@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 
 import { OperationType, ProviderId } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
@@ -41,9 +36,7 @@ import { AbstractPopupRedirectOperation } from './abstract_popup_redirect_operat
 import * as idp from '../strategies/idp';
 import { _createError } from '../util/assert';
 
-use(sinonChai);
-use(chaiAsPromised);
-
+vi.mock('../strategies/idp', { spy: true });
 const ERROR = _createError(AuthErrorCode.INTERNAL_ERROR, {
   appName: 'test'
 });
@@ -53,28 +46,56 @@ const ERROR = _createError(AuthErrorCode.INTERNAL_ERROR, {
  */
 class WrapperOperation extends AbstractPopupRedirectOperation {
   eventId = '100';
-  onExecution = sinon.stub().returns(Promise.resolve());
-  cleanUp = sinon.stub();
+  onExecution = vi.fn().mockReturnValue(Promise.resolve());
+  cleanUp = vi.fn();
 }
 
 describe('core/strategies/abstract_popup_redirect_operation', () => {
   let auth: TestAuth;
   let resolver: PopupRedirectResolverInternal;
   let eventManager: EventManager;
-  let idpStubs: sinon.SinonStubbedInstance<typeof idp>;
 
   beforeEach(async () => {
     auth = await testAuth();
     eventManager = new AuthEventManager(auth);
     resolver = _getInstance(makeMockPopupRedirectResolver(eventManager));
-    idpStubs = sinon.stub(idp);
+    vi.spyOn(idp, '_signIn').mockResolvedValue(
+      new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: ProviderId.GOOGLE,
+        _tokenResponse: { ...TEST_ID_TOKEN_RESPONSE },
+        operationType: OperationType.SIGN_IN
+      })
+    );
+    vi.spyOn(idp, '_link').mockResolvedValue(
+      new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: ProviderId.GOOGLE,
+        _tokenResponse: { ...TEST_ID_TOKEN_RESPONSE },
+        operationType: OperationType.LINK
+      })
+    );
+    vi.spyOn(idp, '_reauth').mockResolvedValue(
+      new UserCredentialImpl({
+        user: testUser(auth, 'uid'),
+        providerId: ProviderId.GOOGLE,
+        _tokenResponse: { ...TEST_ID_TOKEN_RESPONSE },
+        operationType: OperationType.REAUTHENTICATE
+      })
+    );
   });
+
+  let finishTimeout: NodeJS.Timeout | null = null;
 
   afterEach(() => {
-    sinon.restore();
+    if (finishTimeout) {
+      clearTimeout(finishTimeout);
+      finishTimeout = null;
+    }
+    vi.restoreAllMocks();
   });
 
-  context('#execute', () => {
+  describe('#execute', () => {
     let operation: WrapperOperation;
 
     beforeEach(() => {
@@ -83,80 +104,66 @@ describe('core/strategies/abstract_popup_redirect_operation', () => {
         AuthEventType.LINK_VIA_POPUP,
         resolver
       );
-      idpStubs._signIn.returns(
-        Promise.resolve(
-          new UserCredentialImpl({
-            user: testUser(auth, 'uid'),
-            providerId: ProviderId.GOOGLE,
-            _tokenResponse: { ...TEST_ID_TOKEN_RESPONSE },
-            operationType: OperationType.SIGN_IN
-          })
-        )
-      );
     });
 
     /** Finishes out the promise */
     function finishPromise(outcome: AuthEvent | FirebaseError): void {
-      setTimeout((): void => {
+      if (finishTimeout) {
+        clearTimeout(finishTimeout);
+      }
+      finishTimeout = setTimeout((): void => {
         if (outcome instanceof FirebaseError) {
           operation.onError(outcome);
         } else {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           operation.onAuthEvent(outcome);
         }
-      }, 1);
+      }, 5);
     }
 
     it('initializes the resolver', async () => {
-      sinon.spy(resolver, '_initialize');
+      vi.spyOn(resolver, '_initialize');
       const promise = operation.execute();
       finishPromise(authEvent());
       await promise;
-      expect(resolver._initialize).to.have.been.calledWith(auth);
+      expect(resolver._initialize).toHaveBeenCalledWith(auth);
     });
 
     it('calls subclass onExecution', async () => {
       finishPromise(authEvent());
       await operation.execute();
-      expect(operation.onExecution).to.have.been.called;
+      expect(operation.onExecution).toHaveBeenCalled();
     });
 
     it('registers and unregisters itself with the event manager', async () => {
-      sinon.spy(eventManager, 'registerConsumer');
-      sinon.spy(eventManager, 'unregisterConsumer');
+      vi.spyOn(eventManager, 'registerConsumer');
+      vi.spyOn(eventManager, 'unregisterConsumer');
       finishPromise(authEvent());
       await operation.execute();
-      expect(eventManager.registerConsumer).to.have.been.calledWith(operation);
-      expect(eventManager.unregisterConsumer).to.have.been.calledWith(
-        operation
-      );
+      expect(eventManager.registerConsumer).toHaveBeenCalledWith(operation);
+      expect(eventManager.unregisterConsumer).toHaveBeenCalledWith(operation);
     });
 
     it('unregisters itself in case of error', async () => {
-      sinon.spy(eventManager, 'unregisterConsumer');
+      vi.spyOn(eventManager, 'unregisterConsumer');
       finishPromise(ERROR);
       try {
         await operation.execute();
       } catch {}
-      expect(eventManager.unregisterConsumer).to.have.been.calledWith(
-        operation
-      );
+      expect(eventManager.unregisterConsumer).toHaveBeenCalledWith(operation);
     });
 
     it('emits the user credential returned from idp task', async () => {
       finishPromise(authEvent());
       const cred = (await operation.execute())!;
-      expect(cred.user.uid).to.eq('uid');
-      expect(cred._tokenResponse).to.eql(TEST_ID_TOKEN_RESPONSE);
-      expect(cred.operationType).to.eq(OperationType.SIGN_IN);
+      expect(cred.user.uid).toBe('uid');
+      expect(cred._tokenResponse).toEqual(TEST_ID_TOKEN_RESPONSE);
+      expect(cred.operationType).toBe(OperationType.SIGN_IN);
     });
 
-    it('bubbles up any error', done => {
+    it('bubbles up any error', async () => {
       finishPromise(ERROR);
-      operation.execute().catch(e => {
-        expect(e).to.eq(ERROR);
-        done();
-      });
+      await expect(operation.execute()).rejects.toBe(ERROR);
     });
 
     it('calls cleanUp on error', async () => {
@@ -164,18 +171,18 @@ describe('core/strategies/abstract_popup_redirect_operation', () => {
       try {
         await operation.execute();
       } catch {}
-      expect(operation.cleanUp).to.have.been.called;
+      expect(operation.cleanUp).toHaveBeenCalled();
     });
 
     it('calls cleanUp on success', async () => {
       finishPromise(authEvent());
       await operation.execute();
-      expect(operation.cleanUp).to.have.been.called;
+      expect(operation.cleanUp).toHaveBeenCalled();
     });
 
-    context('idp tasks', () => {
+    describe('idp tasks', () => {
       function updateFilter(type: AuthEventType): void {
-        (operation as unknown as Record<string, unknown>).filter = type;
+        (operation as unknown as Record<string, unknown>).filter = [type];
       }
 
       function expectedIdpTaskParams(): idp.IdpTaskParams {
@@ -195,7 +202,7 @@ describe('core/strategies/abstract_popup_redirect_operation', () => {
         updateFilter(type);
         finishPromise(authEvent({ type }));
         await operation.execute();
-        expect(idp._signIn).to.have.been.calledWith(expectedIdpTaskParams());
+        expect(idp._signIn).toHaveBeenCalledWith(expectedIdpTaskParams());
       });
 
       it('routes SIGN_IN_VIA_REDIRECT', async () => {
@@ -203,7 +210,7 @@ describe('core/strategies/abstract_popup_redirect_operation', () => {
         updateFilter(type);
         finishPromise(authEvent({ type }));
         await operation.execute();
-        expect(idp._signIn).to.have.been.calledWith(expectedIdpTaskParams());
+        expect(idp._signIn).toHaveBeenCalledWith(expectedIdpTaskParams());
       });
 
       it('routes LINK_VIA_POPUP', async () => {
@@ -211,7 +218,7 @@ describe('core/strategies/abstract_popup_redirect_operation', () => {
         updateFilter(type);
         finishPromise(authEvent({ type }));
         await operation.execute();
-        expect(idp._link).to.have.been.calledWith(expectedIdpTaskParams());
+        expect(idp._link).toHaveBeenCalledWith(expectedIdpTaskParams());
       });
 
       it('routes LINK_VIA_REDIRECT', async () => {
@@ -219,7 +226,7 @@ describe('core/strategies/abstract_popup_redirect_operation', () => {
         updateFilter(type);
         finishPromise(authEvent({ type }));
         await operation.execute();
-        expect(idp._link).to.have.been.calledWith(expectedIdpTaskParams());
+        expect(idp._link).toHaveBeenCalledWith(expectedIdpTaskParams());
       });
 
       it('routes REAUTH_VIA_POPUP', async () => {
@@ -227,7 +234,7 @@ describe('core/strategies/abstract_popup_redirect_operation', () => {
         updateFilter(type);
         finishPromise(authEvent({ type }));
         await operation.execute();
-        expect(idp._reauth).to.have.been.calledWith(expectedIdpTaskParams());
+        expect(idp._reauth).toHaveBeenCalledWith(expectedIdpTaskParams());
       });
 
       it('routes REAUTH_VIA_REDIRECT', async () => {
@@ -235,7 +242,7 @@ describe('core/strategies/abstract_popup_redirect_operation', () => {
         updateFilter(type);
         finishPromise(authEvent({ type }));
         await operation.execute();
-        expect(idp._reauth).to.have.been.calledWith(expectedIdpTaskParams());
+        expect(idp._reauth).toHaveBeenCalledWith(expectedIdpTaskParams());
       });
 
       it('includes the bypassAuthState parameter', async () => {
@@ -251,7 +258,7 @@ describe('core/strategies/abstract_popup_redirect_operation', () => {
         updateFilter(type);
         finishPromise(authEvent({ type }));
         await operation.execute();
-        expect(idp._reauth).to.have.been.calledWith({
+        expect(idp._reauth).toHaveBeenCalledWith({
           ...expectedIdpTaskParams(),
           bypassAuthState: true
         });

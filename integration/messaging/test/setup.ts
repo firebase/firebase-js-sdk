@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,10 @@
  * limitations under the License.
  */
 
-import { Condition } from 'selenium-webdriver';
+import { afterEach, vi } from 'vitest';
 
-/**
- * A condition that looks for the presence of a specified function. This is
- * used with WebDriver .wait() as a proxy for determining when the JS has
- * finished loading in a page.
- */
-export class JsLoadCondition extends Condition<boolean> {
-  constructor(globalValue: string) {
-    super(`Waiting for global value ${globalValue}`, driver => {
-      return driver.executeScript(
-        `return typeof ${globalValue} !== 'undefined';`
-      );
-    });
-  }
-}
+afterEach(() => {
+  vi.useRealTimers();
+  vi.resetAllMocks();
+  vi.restoreAllMocks();
+});

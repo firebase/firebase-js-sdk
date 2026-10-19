@@ -15,68 +15,60 @@
  * limitations under the License.
  */
 
-const expect = require('chai').expect;
 const testServer = require('./utils/test-server');
 const deleteToken = require('./utils/deleteToken');
 const clearAppForTest = require('./utils/clearAppForTest');
 const retrieveToken = require('./utils/retrieveToken');
-const seleniumAssistant = require('selenium-assistant');
 const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 
 const TEST_SUITE_TIMEOUT_MS = 20000;
 const TEST_DOMAIN = 'valid-vapid-key';
 
-describe('Firebase Messaging Integration Tests > get and delete token', function () {
-  this.timeout(TEST_SUITE_TIMEOUT_MS);
-  this.retries(2);
-  let globalWebDriver;
+describe(
+  'Firebase Messaging Integration Tests > get and delete token',
+  { timeout: TEST_SUITE_TIMEOUT_MS, retry: 2 },
+  () => {
+    beforeAll(async () => {
+      await testServer.start();
+    });
 
-  before(async function () {
-    await testServer.start();
-  });
+    afterAll(async () => {
+      await testServer.stop();
+    });
 
-  after(async function () {
-    await testServer.stop();
-  });
+    describe(`Testing browser: Chrome : ${TEST_DOMAIN}`, () => {
+      let globalWebDriver;
 
-  const availableBrowsers = seleniumAssistant.getLocalBrowsers();
-  availableBrowsers.forEach(assistantBrowser => {
-    // TODO: enable testing for firefox
-    if (assistantBrowser.getId() !== 'chrome') {
-      return;
-    }
-
-    describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${TEST_DOMAIN}`, function () {
-      before(async function () {
+      beforeAll(async () => {
         // Use one webDriver per browser instead of one per test to speed up test.
-        globalWebDriver = createPermittedWebDriver(
-          /* browser= */ assistantBrowser.getId()
-        );
+        globalWebDriver = await createPermittedWebDriver();
 
-        await globalWebDriver.get(
+        await globalWebDriver.goto(
           `${testServer.serverAddress}/${TEST_DOMAIN}/`
         );
       });
 
-      after(async function () {
-        await seleniumAssistant.killWebDriver(globalWebDriver);
+      afterAll(async () => {
+        if (globalWebDriver) {
+          await globalWebDriver.close();
+        }
       });
 
-      afterEach(async function () {
+      afterEach(async () => {
         await clearAppForTest(globalWebDriver);
       });
 
-      it(`Test app can delete a valid token`, async function () {
+      it(`Test app can delete a valid token`, async () => {
         const token = await retrieveToken(globalWebDriver);
-        expect(token).to.exist;
+        expect(token).toBeDefined();
         try {
           await deleteToken(globalWebDriver, token);
           console.log('Token deletion succeed.');
         } catch (e) {
           console.log('Error trying to delete FCM token: ', e);
-          fail();
+          expect.fail();
         }
       });
     });
-  });
-});
+  }
+);

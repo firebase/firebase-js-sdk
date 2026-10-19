@@ -18,14 +18,12 @@
 module.exports = async webdriver => {
   console.log('Getting received foreground messages from test app: ');
 
-  await webdriver.wait(() => {
-    return webdriver.executeScript(() => {
-      return window.__test.messages.length > 0;
-    });
+  await webdriver.waitForFunction(() => {
+    return window.__test && window.__test.messages.length > 0;
   });
 
   console.log('Found message.');
-  return webdriver.executeScript(() => {
+  return webdriver.evaluate(() => {
     return window.__test.messages;
   });
 };

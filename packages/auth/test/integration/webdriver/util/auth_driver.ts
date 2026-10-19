@@ -17,7 +17,7 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Auth, User, Persistence } from '@firebase/auth';
-import { Builder, Condition, WebDriver } from 'selenium-webdriver';
+import { Browser, BrowserContext, chromium, firefox, Page } from 'playwright';
 import { resetEmulator } from '../../../helpers/integration/emulator_rest_helpers';
 import {
   getEmulatorUrl,
@@ -25,12 +25,10 @@ import {
   USE_EMULATOR
 } from '../../../helpers/integration/settings';
 import { CoreFunction } from './functions';
-import { JsLoadCondition } from './js_load_condition';
 import { authTestServer } from './test_server';
 
 export const START_FUNCTION = 'startAuth';
 const START_LEGACY_SDK_FUNCTION = 'startLegacySDK';
-const PASSED_ARGS = '...Array.prototype.slice.call(arguments, 0, -1)';
 
 type DriverCallResult =
   | { type: 'success'; value: string /* JSON stringified */ }
@@ -41,36 +39,34 @@ type DriverCallResult =
       stack: string;
     };
 
-/** Helper wrapper around the WebDriver object */
+/** Helper wrapper around the Playwright Page and BrowserContext objects */
 export class AuthDriver {
-  webDriver!: WebDriver;
+  browser!: Browser;
+  context!: BrowserContext;
+  page!: Page;
 
-  async start(browser: string): Promise<void> {
+  async start(browserName: string): Promise<void> {
     await authTestServer.start();
-    this.webDriver = await new Builder().forBrowser(browser).build();
+    const browserType = browserName === 'firefox' ? firefox : chromium;
+    this.browser = await browserType.launch({ headless: true });
+    this.context = await this.browser.newContext();
+    if (process.env.WEBDRIVER_BROWSER_LOGS) {
+      this.context.on('page', page => {
+        page.on('console', msg => {
+          console.log(msg.type(), msg.text());
+        });
+      });
+    }
+    this.page = await this.context.newPage();
     await this.goToTestPage();
   }
 
   async stop(): Promise<void> {
     authTestServer.stop();
-    if (process.env.WEBDRIVER_BROWSER_LOGS) {
-      await this.webDriver
-        .manage()
-        .logs()
-        .get('browser')
-        .then(
-          logs => {
-            for (const { level, message } of logs) {
-              console.log(level.name, message);
-            }
-          },
-          () =>
-            console.log(
-              'Failed to dump browser logs (this is normal for Firefox).'
-            )
-        );
+    if (!this.browser) {
+      return;
     }
-    await this.webDriver.quit();
+    await this.browser.close();
   }
 
   async call<T>(fn: string, ...args: unknown[]): Promise<T> {
@@ -79,20 +75,35 @@ export class AuthDriver {
     // serialization which blows up the whole thing. It's okay though; this is
     // an integration test: we don't care about the internal (hidden) values of
     // these objects.
-    const result = await this.webDriver.executeAsyncScript<DriverCallResult>(
-      `
-      var callback = arguments[arguments.length - 1];
-      ${fn}(${PASSED_ARGS}).then(result => {
-        callback({type: 'success', value: JSON.stringify(result)});
-      }).catch(e => {
-        callback({type: 'error', message: e.message, stack: e.stack, fields: JSON.stringify(e)});
-      });
-    `,
-      ...args
+    const result = await this.page.evaluate(
+      async ({ fn, args }): Promise<DriverCallResult> => {
+        const parts = fn.split('.');
+        let ctx: unknown = window;
+        let target: unknown = window;
+        for (const part of parts) {
+          ctx = target;
+          target = (target as Record<string, unknown>)[part];
+        }
+        try {
+          const value = await (
+            target as (...a: unknown[]) => Promise<unknown>
+          ).apply(ctx, args);
+          return { type: 'success', value: JSON.stringify(value) };
+        } catch (e: unknown) {
+          const err = e as Error;
+          return {
+            type: 'error',
+            message: err.message,
+            stack: err.stack || '',
+            fields: JSON.stringify(err)
+          };
+        }
+      },
+      { fn, args }
     );
 
     if (result.type === 'success') {
-      return JSON.parse(result.value) as T;
+      return (result.value ? JSON.parse(result.value) : undefined) as T;
     } else {
       const e = new Error(result.message);
       const stack = e.stack;
@@ -105,7 +116,42 @@ export class AuthDriver {
   }
 
   async callNoWait(fn: string, ...args: unknown[]): Promise<void> {
-    return this.webDriver.executeScript(`${fn}(...arguments)`, ...args);
+    await this.page.evaluate(
+      ({ fn, args }) => {
+        const parts = fn.split('.');
+        let ctx: unknown = window;
+        let target: unknown = window;
+        for (const part of parts) {
+          ctx = target;
+          target = (target as Record<string, unknown>)[part];
+        }
+        void (target as (...a: unknown[]) => unknown).apply(ctx, args);
+      },
+      { fn, args }
+    );
+  }
+
+  async waitForGlobal(globalValue: string): Promise<void> {
+    await this.page.waitForFunction(
+      (name: string) =>
+        typeof (window as unknown as Record<string, unknown>)[name] !==
+        'undefined',
+      globalValue
+    );
+  }
+
+  async wait(
+    condition: () => Promise<boolean> | boolean,
+    timeoutMs = 10000
+  ): Promise<void> {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      if (await condition()) {
+        return;
+      }
+      await this.pause(50);
+    }
+    throw new Error(`Timed out after ${timeoutMs}ms waiting for condition`);
   }
 
   async getAuthSnapshot(): Promise<Auth> {
@@ -123,7 +169,7 @@ export class AuthDriver {
   }
 
   async goToTestPage(): Promise<void> {
-    await this.webDriver.get(authTestServer.address!);
+    await this.page.goto(authTestServer.address!);
   }
 
   async waitForAuthInit(): Promise<void> {
@@ -137,7 +183,7 @@ export class AuthDriver {
   async reinitOnRedirect(): Promise<void> {
     // In this unique case we don't know when the page is back; check for the
     // presence of the core module
-    await this.webDriver.wait(new JsLoadCondition(START_FUNCTION));
+    await this.waitForGlobal(START_FUNCTION);
     await this.injectConfigAndInitAuth();
     await this.waitForAuthInit();
   }
@@ -149,7 +195,7 @@ export class AuthDriver {
   }
 
   async refresh(): Promise<void> {
-    await this.webDriver.navigate().refresh();
+    await this.page.reload();
     await this.injectConfigAndInitAuth();
     await this.waitForAuthInit();
   }
@@ -163,14 +209,18 @@ export class AuthDriver {
       );
     }
 
-    await this.webDriver.executeScript(`
-      window.firebaseConfig = {
-        apiKey: 'emulator-api-key',
-        projectId: '${PROJECT_ID}',
-        authDomain: 'localhost/emulator',
-      };
-      window.emulatorUrl = '${getEmulatorUrl()}';
-    `);
+    await this.page.evaluate(
+      ({ projectId, emulatorUrl }) => {
+        (window as unknown as Record<string, unknown>).firebaseConfig = {
+          apiKey: 'emulator-api-key',
+          projectId,
+          authDomain: 'localhost/emulator'
+        };
+        (window as unknown as Record<string, unknown>).emulatorUrl =
+          emulatorUrl;
+      },
+      { projectId: PROJECT_ID, emulatorUrl: getEmulatorUrl() }
+    );
   }
 
   async injectConfigAndInitAuth(): Promise<void> {
@@ -186,48 +236,33 @@ export class AuthDriver {
   }
 
   async selectPopupWindow(): Promise<void> {
-    const currentWindowHandle = await this.webDriver.getWindowHandle();
-    const condition = new Condition(
-      'Waiting for popup to open',
-      async driver => {
-        return (await driver.getAllWindowHandles()).length > 1;
-      }
-    );
-    await this.webDriver.wait(condition);
-    const handles = await this.webDriver.getAllWindowHandles();
-    return this.webDriver
-      .switchTo()
-      .window(handles.find(h => h !== currentWindowHandle)!);
+    const currentPage = this.page;
+    await this.wait(() => this.context.pages().length > 1);
+    const pages = this.context.pages();
+    this.page = pages.find(p => p !== currentPage)!;
   }
 
   async selectMainWindow(options: { noWait?: boolean } = {}): Promise<void> {
     if (!options.noWait) {
-      const condition = new Condition(
-        'Waiting for popup to close',
-        async driver => {
-          return (await driver.getAllWindowHandles()).length === 1;
-        }
-      );
-      await this.webDriver.wait(condition);
+      await this.wait(() => this.context.pages().length === 1);
     }
-    const handles = await this.webDriver.getAllWindowHandles();
-    return this.webDriver.switchTo().window(handles[0]);
+    const pages = this.context.pages();
+    this.page = pages[0];
   }
 
   async closePopup(): Promise<void> {
-    // This assumes the current driver is already the popup
-    await this.webDriver.close();
+    // This assumes the current page is already the popup
+    await this.page.close();
     return this.selectMainWindow();
   }
 
   async closeExtraWindows(): Promise<void> {
-    const handles = await this.webDriver.getAllWindowHandles();
-    await this.webDriver.switchTo().window(handles[handles.length - 1]);
-    while (handles.length > 1) {
-      await this.webDriver.close();
-      handles.pop();
-      await this.webDriver.switchTo().window(handles[handles.length - 1]);
+    const pages = this.context.pages();
+    while (pages.length > 1) {
+      const extraPage = pages.pop()!;
+      await extraPage.close();
     }
+    this.page = pages[0];
   }
 
   isCompatLayer(): boolean {

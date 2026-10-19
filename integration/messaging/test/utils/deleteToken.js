@@ -17,13 +17,9 @@
 
 module.exports = async (webdriver, token) => {
   console.log('Deleting token: ', token);
-  await webdriver.wait(() => {
-    return webdriver.executeScript(() => {
-      return !!window.__test;
-    });
-  });
+  await webdriver.waitForFunction(() => !!window.__test);
 
-  return webdriver.executeScript(token => {
-    return window.__test.triggerDeleteToken(token);
-  });
+  return webdriver.evaluate(t => {
+    return window.__test.triggerDeleteToken(t);
+  }, token);
 };

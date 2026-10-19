@@ -26,30 +26,30 @@ const BACKGROUND_MESSAGES_OBJECT_STORE = 'background_messages';
 module.exports = async webdriver => {
   console.log('Getting received background messages from idb: ');
 
-  await webdriver.executeScript(() => {
-    window.backgroundMessages = [];
+  await webdriver.evaluate(
+    ({ testDb, storeName }) => {
+      window.backgroundMessages = [];
 
-    const dbOpenReq = indexedDB.open(TEST_DB);
+      const dbOpenReq = indexedDB.open(testDb);
 
-    dbOpenReq.onsuccess = () => {
-      const db = dbOpenReq.result;
-      const tx = db.transaction(BACKGROUND_MESSAGES_OBJECT_STORE, 'readonly');
+      dbOpenReq.onsuccess = () => {
+        const db = dbOpenReq.result;
+        const tx = db.transaction(storeName, 'readonly');
 
-      tx.objectStore(BACKGROUND_MESSAGES_OBJECT_STORE).getAll().onsuccess =
-        e => {
+        tx.objectStore(storeName).getAll().onsuccess = e => {
           window.backgroundMessages = e.target.result;
         };
-    };
-  });
+      };
+    },
+    { testDb: TEST_DB, storeName: BACKGROUND_MESSAGES_OBJECT_STORE }
+  );
 
-  await webdriver.wait(() => {
-    return webdriver.executeScript(() => {
-      return window.backgroundMessages.length > 0;
-    });
+  await webdriver.waitForFunction(() => {
+    return window.backgroundMessages && window.backgroundMessages.length > 0;
   });
 
   console.log('Found background messages');
-  return webdriver.executeScript(() => {
+  return webdriver.evaluate(() => {
     return window.backgroundMessages;
   });
 };

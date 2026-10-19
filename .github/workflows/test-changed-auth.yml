@@ -20,12 +20,6 @@ permissions:
   contents: read
 
 env:
-  # make chromedriver detect installed Chrome version and download the corresponding driver
-  DETECT_CHROMEDRIVER_VERSION: true
-  # The default behavior of chromedriver uses the older Chrome download URLs. We need to override
-  # the behavior to use the new URLs.
-  CHROMEDRIVER_CDNURL: https://googlechromelabs.github.io/
-  CHROMEDRIVER_CDNBINARIESURL: https://storage.googleapis.com/chrome-for-testing-public
   # Bump Node memory limit
   NODE_OPTIONS: "--max_old_space_size=4096"
 
@@ -82,8 +76,6 @@ jobs:
         with:
           node-version: 24.19.0
       - name: Test setup and yarn install
-        env:
-          CHROMEDRIVER_SKIP_DOWNLOAD: true
         run: |
           cp config/ci.config.json config/project.json
           yarn
@@ -109,8 +101,6 @@ jobs:
         with:
           node-version: 24.19.0
       - name: Test setup and yarn install
-        env:
-          CHROMEDRIVER_SKIP_DOWNLOAD: true
         run: |
           cp config/ci.config.json config/project.json
           yarn

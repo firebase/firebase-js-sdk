@@ -18,15 +18,9 @@
 module.exports = async webdriver => {
   console.log('Getting token...');
 
-  await webdriver.wait(() => {
-    return webdriver.executeScript(() => {
-      return !!window.__test;
-    });
-  });
+  await webdriver.waitForFunction(() => !!window.__test);
 
-  return webdriver.executeAsyncScript(cb => {
-    window.__test.triggerGetToken().then(token => {
-      cb(token);
-    });
+  return webdriver.evaluate(() => {
+    return window.__test.triggerGetToken();
   });
 };

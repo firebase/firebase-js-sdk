@@ -18,7 +18,6 @@
 const testServer = require('./utils/test-server');
 const sendMessage = require('./utils/sendMessage');
 const retrieveToken = require('./utils/retrieveToken');
-const seleniumAssistant = require('selenium-assistant');
 const checkSendResponse = require('./utils/checkSendResponse');
 const getReceivedForegroundMessages = require('./utils/getReceivedForegroundMessages');
 const checkMessageReceived = require('./utils/checkMessageReceived');
@@ -28,139 +27,144 @@ const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 const TEST_DOMAINS = ['valid-vapid-key'];
 const TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS = 120000;
 
-// Getting and deleting token is the entry step of using FM SDK. Let it run first and fail quickly.
-require('./test-token-delete');
+describe(
+  'Firebase Messaging Integration Tests > Test Foreground Receive',
+  { retry: 2 },
+  () => {
+    beforeAll(async () => {
+      await testServer.start();
+    });
 
-describe('Firebase Messaging Integration Tests > Test Foreground Receive', function () {
-  this.retries(2);
-  let globalWebDriver;
-
-  before(async function () {
-    await testServer.start();
-  });
-
-  after(async function () {
-    await testServer.stop();
-  });
-
-  // TODO: enable testing for firefox
-  seleniumAssistant.getLocalBrowsers().forEach(assistantBrowser => {
-    if (assistantBrowser.getId() !== 'chrome') {
-      return;
-    }
+    afterAll(async () => {
+      await testServer.stop();
+    });
 
     TEST_DOMAINS.forEach(domain => {
-      describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${domain}`, function () {
-        before(async function () {
-          globalWebDriver = createPermittedWebDriver(
-            /* browser= */ assistantBrowser.getId()
-          );
+      describe(`Testing browser: Chrome : ${domain}`, () => {
+        let globalWebDriver;
+
+        beforeAll(async () => {
+          globalWebDriver = await createPermittedWebDriver();
         });
-      });
 
-      it('Foreground app can receive a {} empty message in onMessage', async function () {
-        this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
+        afterAll(async () => {
+          if (globalWebDriver) {
+            await globalWebDriver.close();
+          }
+        });
 
-        await seleniumAssistant.killWebDriver(globalWebDriver);
+        it(
+          'Foreground app can receive a {} empty message in onMessage',
+          async () => {
+            await globalWebDriver.close();
 
-        globalWebDriver = createPermittedWebDriver(
-          /* browser= */ assistantBrowser.getId()
+            globalWebDriver = await createPermittedWebDriver();
+
+            await globalWebDriver.goto(
+              `${testServer.serverAddress}/${domain}/`
+            );
+
+            let token = await retrieveToken(globalWebDriver);
+            checkSendResponse(
+              await sendMessage({
+                to: token
+              })
+            );
+
+            await checkMessageReceived(
+              await getReceivedForegroundMessages(globalWebDriver),
+              /* expectedNotificationPayload= */ null,
+              /* expectedDataPayload= */ null
+            );
+          },
+          TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS
         );
 
-        await globalWebDriver.get(`${testServer.serverAddress}/${domain}/`);
+        it(
+          'Foreground app can receive a {"notification"} message in onMessage',
+          async () => {
+            await globalWebDriver.close();
 
-        let token = await retrieveToken(globalWebDriver);
-        checkSendResponse(
-          await sendMessage({
-            to: token
-          })
+            globalWebDriver = await createPermittedWebDriver();
+
+            await globalWebDriver.goto(
+              `${testServer.serverAddress}/${domain}/`
+            );
+
+            checkSendResponse(
+              await sendMessage({
+                to: await retrieveToken(globalWebDriver),
+                notification: getTestNotificationPayload()
+              })
+            );
+
+            await checkMessageReceived(
+              await getReceivedForegroundMessages(globalWebDriver),
+              /* expectedNotificationPayload= */ getTestNotificationPayload(),
+              /* expectedDataPayload= */ null
+            );
+          },
+          TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS
         );
 
-        await checkMessageReceived(
-          await getReceivedForegroundMessages(globalWebDriver),
-          /* expectedNotificationPayload= */ null,
-          /* expectedDataPayload= */ null
-        );
-      });
+        it(
+          'Foreground app can receive a {"data"} message in onMessage',
+          async () => {
+            await globalWebDriver.close();
 
-      it('Foreground app can receive a {"notification"} message in onMessage', async function () {
-        this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
+            globalWebDriver = await createPermittedWebDriver();
 
-        await seleniumAssistant.killWebDriver(globalWebDriver);
+            await globalWebDriver.goto(
+              `${testServer.serverAddress}/${domain}/`
+            );
 
-        globalWebDriver = createPermittedWebDriver(
-          /* browser= */ assistantBrowser.getId()
-        );
+            checkSendResponse(
+              await sendMessage({
+                to: await retrieveToken(globalWebDriver),
+                data: getTestDataPayload()
+              })
+            );
 
-        await globalWebDriver.get(`${testServer.serverAddress}/${domain}/`);
-
-        checkSendResponse(
-          await sendMessage({
-            to: await retrieveToken(globalWebDriver),
-            notification: getTestNotificationPayload()
-          })
-        );
-
-        await checkMessageReceived(
-          await getReceivedForegroundMessages(globalWebDriver),
-          /* expectedNotificationPayload= */ getTestNotificationPayload(),
-          /* expectedDataPayload= */ null
-        );
-      });
-
-      it('Foreground app can receive a {"data"} message in onMessage', async function () {
-        this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
-
-        await seleniumAssistant.killWebDriver(globalWebDriver);
-
-        globalWebDriver = createPermittedWebDriver(
-          /* browser= */ assistantBrowser.getId()
+            await checkMessageReceived(
+              await getReceivedForegroundMessages(globalWebDriver),
+              /* expectedNotificationPayload= */ null,
+              /* expectedDataPayload= */ getTestDataPayload()
+            );
+          },
+          TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS
         );
 
-        await globalWebDriver.get(`${testServer.serverAddress}/${domain}/`);
+        it(
+          'Foreground app can receive a {"notification", "data"} message in onMessage',
+          async () => {
+            await globalWebDriver.close();
 
-        checkSendResponse(
-          await sendMessage({
-            to: await retrieveToken(globalWebDriver),
-            data: getTestDataPayload()
-          })
-        );
+            globalWebDriver = await createPermittedWebDriver();
 
-        await checkMessageReceived(
-          await getReceivedForegroundMessages(globalWebDriver),
-          /* expectedNotificationPayload= */ null,
-          /* expectedDataPayload= */ getTestDataPayload()
-        );
-      });
+            await globalWebDriver.goto(
+              `${testServer.serverAddress}/${domain}/`
+            );
 
-      it('Foreground app can receive a {"notification", "data"} message in onMessage', async function () {
-        this.timeout(TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS);
+            checkSendResponse(
+              await sendMessage({
+                to: await retrieveToken(globalWebDriver),
+                data: getTestDataPayload(),
+                notification: getTestNotificationPayload()
+              })
+            );
 
-        await seleniumAssistant.killWebDriver(globalWebDriver);
-
-        globalWebDriver = createPermittedWebDriver(
-          /* browser= */ assistantBrowser.getId()
-        );
-
-        await globalWebDriver.get(`${testServer.serverAddress}/${domain}/`);
-
-        checkSendResponse(
-          await sendMessage({
-            to: await retrieveToken(globalWebDriver),
-            data: getTestDataPayload(),
-            notification: getTestNotificationPayload()
-          })
-        );
-
-        await checkMessageReceived(
-          await getReceivedForegroundMessages(globalWebDriver),
-          /* expectedNotificationPayload= */ getTestNotificationPayload(),
-          /* expectedDataPayload= */ getTestDataPayload()
+            await checkMessageReceived(
+              await getReceivedForegroundMessages(globalWebDriver),
+              /* expectedNotificationPayload= */ getTestNotificationPayload(),
+              /* expectedDataPayload= */ getTestDataPayload()
+            );
+          },
+          TIMEOUT_FOREGROUND_MESSAGE_TEST_UNIT_MILLISECONDS
         );
       });
     });
-  });
-});
+  }
+);
 
 function getTestDataPayload() {
   return { hello: 'world' };

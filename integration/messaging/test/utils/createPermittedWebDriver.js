@@ -15,36 +15,24 @@
  * limitations under the License.
  */
 
+const { chromium } = require('playwright');
 const testServer = require('./test-server');
-const { Builder } = require('selenium-webdriver');
-const chrome = require('selenium-webdriver/chrome');
 
-const CHROME_PREFERENCE_NOTIFICATION_ENABLED = 1;
-const SERVER_ADDRESS_SEPARATOR = ',*';
-
-module.exports = browser => {
-  const chromePreferences = {
-    profile: {
-      content_settings: {
-        exceptions: {
-          notifications: {}
-        }
-      }
-    }
+module.exports = async () => {
+  const browser = await chromium.launch({ headless: false });
+  const context = await browser.newContext({
+    permissions: ['notifications']
+  });
+  if (testServer.serverAddress) {
+    await context.grantPermissions(['notifications'], {
+      origin: testServer.serverAddress
+    });
+  }
+  const page = await context.newPage();
+  const origClose = page.close.bind(page);
+  page.close = async () => {
+    await origClose();
+    await browser.close();
   };
-  chromePreferences.profile.content_settings.exceptions.notifications[
-    testServer.serverAddress + SERVER_ADDRESS_SEPARATOR
-  ] = {
-    setting: CHROME_PREFERENCE_NOTIFICATION_ENABLED
-  };
-
-  let chromeOptions = new chrome.Options().setUserPreferences(
-    chromePreferences
-  );
-
-  let driver = new Builder()
-    .forBrowser(browser)
-    .setChromeOptions(chromeOptions)
-    .build();
-  return driver;
+  return page;
 };

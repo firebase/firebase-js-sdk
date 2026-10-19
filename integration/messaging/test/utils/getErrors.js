@@ -18,13 +18,9 @@
 module.exports = async webdriver => {
   console.log('Getting errors...');
 
-  await webdriver.wait(() => {
-    return webdriver.executeScript(() => {
-      return !!window.__test;
-    });
-  });
+  await webdriver.waitForFunction(() => !!window.__test);
 
-  return webdriver.executeScript(() => {
+  return webdriver.evaluate(() => {
     return window.__test.errors;
   });
 };
