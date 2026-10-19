@@ -18,7 +18,6 @@
 const testServer = require('./utils/test-server');
 const sendMessage = require('./utils/sendMessage');
 const retrieveToken = require('./utils/retrieveToken');
-const seleniumAssistant = require('selenium-assistant');
 const getReceivedBackgroundMessages = require('./utils/getReceivedBackgroundMessages');
 const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 const checkSendResponse = require('./utils/checkSendResponse');
@@ -50,109 +49,90 @@ describe(
       await testServer.stop();
     });
 
-    // TODO: enable testing for firefox
-    seleniumAssistant.getLocalBrowsers().forEach(assistantBrowser => {
-      if (assistantBrowser.getId() !== 'chrome') {
-        return;
-      }
+    TEST_DOMAINS.forEach(domain => {
+      describe(`Testing browser: Chrome : ${domain}`, () => {
+        let globalWebDriver;
 
-      TEST_DOMAINS.forEach(domain => {
-        describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${domain}`, () => {
-          let globalWebDriver;
-
-          beforeAll(async () => {
-            globalWebDriver = createPermittedWebDriver(
-              /* browser= */ assistantBrowser.getId()
-            );
-          });
-
-          afterAll(async () => {
-            await seleniumAssistant.killWebDriver(globalWebDriver);
-          });
-
-          it(
-            'Background app can receive a {} empty message from sw',
-            async () => {
-              // Clearing the cache and db data by killing the previously instantiated driver. Note that
-              // ideally this call is placed inside the after/before hooks. However, Mocha forbids
-              // operations longer than 2s in hooks. Hence, this clearing call needs to be inside the
-              // test unit.
-              await seleniumAssistant.killWebDriver(globalWebDriver);
-
-              globalWebDriver = createPermittedWebDriver(
-                /* browser= */ assistantBrowser.getId()
-              );
-
-              prepareBackgroundApp(globalWebDriver, domain);
-
-              checkSendResponse(
-                await sendMessage({
-                  to: await retrieveToken(globalWebDriver)
-                })
-              );
-
-              await wait(
-                WAIT_TIME_BEFORE_RETRIEVING_BACKGROUND_MESSAGES_MILLISECONDS
-              );
-
-              checkMessageReceived(
-                await getReceivedBackgroundMessages(globalWebDriver),
-                /* expectedNotificationPayload= */ null,
-                /* expectedDataPayload= */ null,
-                /* isLegacyPayload= */ false
-              );
-            },
-            TIMEOUT_BACKGROUND_MESSAGE_TEST_UNIT_MILLISECONDS
-          );
-
-          it(
-            'Background app can receive a {"data"} message frow sw',
-            async () => {
-              await seleniumAssistant.killWebDriver(globalWebDriver);
-
-              globalWebDriver = createPermittedWebDriver(
-                /* browser= */ assistantBrowser.getId()
-              );
-
-              prepareBackgroundApp(globalWebDriver, domain);
-
-              checkSendResponse(
-                await sendMessage({
-                  to: await retrieveToken(globalWebDriver),
-                  data: getTestDataPayload()
-                })
-              );
-
-              await wait(
-                WAIT_TIME_BEFORE_RETRIEVING_BACKGROUND_MESSAGES_MILLISECONDS
-              );
-
-              checkMessageReceived(
-                await getReceivedBackgroundMessages(globalWebDriver),
-                /* expectedNotificationPayload= */ null,
-                /* expectedDataPayload= */ getTestDataPayload()
-              );
-            },
-            TIMEOUT_BACKGROUND_MESSAGE_TEST_UNIT_MILLISECONDS
-          );
+        beforeAll(async () => {
+          globalWebDriver = await createPermittedWebDriver();
         });
+
+        afterAll(async () => {
+          if (globalWebDriver) {
+            await globalWebDriver.close();
+          }
+        });
+
+        it(
+          'Background app can receive a {} empty message from sw',
+          async () => {
+            // Clearing the cache and db data by killing the previously instantiated driver. Note that
+            // ideally this call is placed inside the after/before hooks. However, Mocha forbids
+            // operations longer than 2s in hooks. Hence, this clearing call needs to be inside the
+            // test unit.
+            await globalWebDriver.close();
+
+            globalWebDriver = await createPermittedWebDriver();
+
+            await prepareBackgroundApp(globalWebDriver, domain);
+
+            checkSendResponse(
+              await sendMessage({
+                to: await retrieveToken(globalWebDriver)
+              })
+            );
+
+            await wait(
+              WAIT_TIME_BEFORE_RETRIEVING_BACKGROUND_MESSAGES_MILLISECONDS
+            );
+
+            checkMessageReceived(
+              await getReceivedBackgroundMessages(globalWebDriver),
+              /* expectedNotificationPayload= */ null,
+              /* expectedDataPayload= */ null,
+              /* isLegacyPayload= */ false
+            );
+          },
+          TIMEOUT_BACKGROUND_MESSAGE_TEST_UNIT_MILLISECONDS
+        );
+
+        it(
+          'Background app can receive a {"data"} message frow sw',
+          async () => {
+            await globalWebDriver.close();
+
+            globalWebDriver = await createPermittedWebDriver();
+
+            await prepareBackgroundApp(globalWebDriver, domain);
+
+            checkSendResponse(
+              await sendMessage({
+                to: await retrieveToken(globalWebDriver),
+                data: getTestDataPayload()
+              })
+            );
+
+            await wait(
+              WAIT_TIME_BEFORE_RETRIEVING_BACKGROUND_MESSAGES_MILLISECONDS
+            );
+
+            checkMessageReceived(
+              await getReceivedBackgroundMessages(globalWebDriver),
+              /* expectedNotificationPayload= */ null,
+              /* expectedDataPayload= */ getTestDataPayload()
+            );
+          },
+          TIMEOUT_BACKGROUND_MESSAGE_TEST_UNIT_MILLISECONDS
+        );
       });
     });
   }
 );
 
 async function prepareBackgroundApp(globalWebDriver, domain) {
-  await globalWebDriver.get(`${testServer.serverAddress}/${domain}/`);
-  // TODO: remove the try/catch block once the underlying bug has been resolved. Shift window focus
-  // away from app window so that background messages can be received/processed
-  try {
-    await openNewTab(globalWebDriver);
-  } catch (err) {
-    // ChromeDriver seems to have an open bug which throws "JavascriptError: javascript error:
-    // circular reference". Nevertheless, a new tab can still be opened. Hence, just catch and
-    // continue here.
-    console.log('FCM (ignored on purpose): ' + err);
-  }
+  await globalWebDriver.goto(`${testServer.serverAddress}/${domain}/`);
+  // Shift window focus away from app window so that background messages can be received/processed
+  await openNewTab(globalWebDriver);
 }
 
 function getTestDataPayload() {

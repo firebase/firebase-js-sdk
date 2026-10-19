@@ -19,7 +19,6 @@ const testServer = require('./utils/test-server');
 const deleteToken = require('./utils/deleteToken');
 const clearAppForTest = require('./utils/clearAppForTest');
 const retrieveToken = require('./utils/retrieveToken');
-const seleniumAssistant = require('selenium-assistant');
 const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 
 const TEST_SUITE_TIMEOUT_MS = 20000;
@@ -37,46 +36,38 @@ describe(
       await testServer.stop();
     });
 
-    const availableBrowsers = seleniumAssistant.getLocalBrowsers();
-    availableBrowsers.forEach(assistantBrowser => {
-      // TODO: enable testing for firefox
-      if (assistantBrowser.getId() !== 'chrome') {
-        return;
-      }
+    describe(`Testing browser: Chrome : ${TEST_DOMAIN}`, () => {
+      let globalWebDriver;
 
-      describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${TEST_DOMAIN}`, () => {
-        let globalWebDriver;
+      beforeAll(async () => {
+        // Use one webDriver per browser instead of one per test to speed up test.
+        globalWebDriver = await createPermittedWebDriver();
 
-        beforeAll(async () => {
-          // Use one webDriver per browser instead of one per test to speed up test.
-          globalWebDriver = createPermittedWebDriver(
-            /* browser= */ assistantBrowser.getId()
-          );
+        await globalWebDriver.goto(
+          `${testServer.serverAddress}/${TEST_DOMAIN}/`
+        );
+      });
 
-          await globalWebDriver.get(
-            `${testServer.serverAddress}/${TEST_DOMAIN}/`
-          );
-        });
+      afterAll(async () => {
+        if (globalWebDriver) {
+          await globalWebDriver.close();
+        }
+      });
 
-        afterAll(async () => {
-          await seleniumAssistant.killWebDriver(globalWebDriver);
-        });
+      afterEach(async () => {
+        await clearAppForTest(globalWebDriver);
+      });
 
-        afterEach(async () => {
-          await clearAppForTest(globalWebDriver);
-        });
-
-        it(`Test app can delete a valid token`, async () => {
-          const token = await retrieveToken(globalWebDriver);
-          expect(token).toBeDefined();
-          try {
-            await deleteToken(globalWebDriver, token);
-            console.log('Token deletion succeed.');
-          } catch (e) {
-            console.log('Error trying to delete FCM token: ', e);
-            expect.fail();
-          }
-        });
+      it(`Test app can delete a valid token`, async () => {
+        const token = await retrieveToken(globalWebDriver);
+        expect(token).toBeDefined();
+        try {
+          await deleteToken(globalWebDriver, token);
+          console.log('Token deletion succeed.');
+        } catch (e) {
+          console.log('Error trying to delete FCM token: ', e);
+          expect.fail();
+        }
       });
     });
   }

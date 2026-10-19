@@ -17,7 +17,6 @@
 
 const testServer = require('./utils/test-server');
 const retrieveToken = require('./utils/retrieveToken');
-const seleniumAssistant = require('selenium-assistant');
 const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 
 const TEST_DOMAIN = 'valid-manifest';
@@ -35,12 +34,14 @@ describe(
 
     afterAll(async () => {
       await testServer.stop();
-      await seleniumAssistant.killWebDriver(globalWebDriver);
+      if (globalWebDriver) {
+        await globalWebDriver.close();
+      }
     });
 
     it(`should allow valid manifest`, async () => {
-      globalWebDriver = createPermittedWebDriver('chrome');
-      await globalWebDriver.get(`${testServer.serverAddress}/${TEST_DOMAIN}/`);
+      globalWebDriver = await createPermittedWebDriver();
+      await globalWebDriver.goto(`${testServer.serverAddress}/${TEST_DOMAIN}/`);
 
       // If we have a token, then we know the default SW + Manifest worked.
       const token = await retrieveToken(globalWebDriver);

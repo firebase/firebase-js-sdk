@@ -18,13 +18,11 @@
 module.exports = async webdriver => {
   console.log('retrieving token from test app');
 
-  await webdriver.wait(() => {
-    return webdriver.executeScript(() => {
-      return !!window.__test && !!window.__test.token;
-    });
+  await webdriver.waitForFunction(() => {
+    return !!window.__test && !!window.__test.token;
   });
 
-  return webdriver.executeScript(() => {
+  return webdriver.evaluate(() => {
     return window.__test.token;
   });
 };

@@ -3,7 +3,6 @@
   "private": true,
   "version": "0.2.1",
   "scripts": {
-    "pretest:manual": "node ./download-browsers.js",
     "test": "vitest run",
     "test:all": "vitest run",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
@@ -11,9 +10,7 @@
     "test:node": "vitest run"
   },
   "devDependencies": {
-    "chromedriver": "151.0.5",
-    "firebase": "13.0.0",
-    "selenium-assistant": "6.1.1"
+    "firebase": "13.0.0"
   },
   "engines": {
     "node": ">=24.12.0"

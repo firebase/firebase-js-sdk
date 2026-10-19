@@ -26,7 +26,6 @@ import {
   MiddlewareFunction,
   PersistenceFunction
 } from './util/functions';
-import { JsLoadCondition } from './util/js_load_condition';
 import { browserDescribe } from './util/test_runner';
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -70,16 +69,18 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       expect(snap[fullPersistenceKey]).toMatchObject({ uid });
 
       // Persistence should survive a refresh:
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       expect(await driver.getUserSnapshot()).toMatchObject({ uid });
     });
 
     it('should work fine if indexedDB is available while localStorage is not', async () => {
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       // Simulate browsers that do not support localStorage.
-      await driver.webDriver.executeScript('delete window.localStorage;');
+      await driver.page.evaluate(() => {
+        delete (window as unknown as Record<string, unknown>).localStorage;
+      });
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
 
@@ -102,16 +103,18 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       expect(snap[fullPersistenceKey]).toMatchObject({ uid });
 
       // Persistence should survive a refresh:
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       expect(await driver.getUserSnapshot()).toMatchObject({ uid });
     });
 
     it('stores user in localStorage if indexedDB is not available', async () => {
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       // Simulate browsers that do not support indexedDB.
-      await driver.webDriver.executeScript('delete window.indexedDB;');
+      await driver.page.evaluate(() => {
+        delete (window as unknown as Record<string, unknown>).indexedDB;
+      });
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
 
@@ -131,18 +134,20 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       expect(snap[fullPersistenceKey]).toMatchObject({ uid });
 
       // Persistence should survive a refresh:
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       expect(await driver.getUserSnapshot()).toMatchObject({ uid });
     });
 
     it('fall back to in-memory if neither indexedDB or browser storage is present', async () => {
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       // Simulate browsers that do not support indexedDB or localStorage.
-      await driver.webDriver.executeScript(
-        'delete window.indexedDB; delete window.localStorage; delete window.sessionStorage'
-      );
+      await driver.page.evaluate(() => {
+        delete (window as unknown as Record<string, unknown>).indexedDB;
+        delete (window as unknown as Record<string, unknown>).localStorage;
+        delete (window as unknown as Record<string, unknown>).sessionStorage;
+      });
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       const cred: UserCredential = await driver.call(
@@ -161,7 +166,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       );
 
       // User will be gone (a.k.a. logged out) after refresh.
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       expect(await driver.getUserSnapshot()).toBeNull();
@@ -169,7 +174,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
 
     it('migrate stored user from localStorage if indexedDB is available', async () => {
       const persistedUser = await testPersistedUser();
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       await driver.call(PersistenceFunction.LOCAL_STORAGE_SET, {
         [fullPersistenceKey]: persistedUser
       });
@@ -199,7 +204,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       );
       const uid = cred.user.uid;
 
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       await driver.call(PersistenceFunction.MAKE_INDEXED_DB_READONLY);
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
@@ -219,13 +224,17 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
     });
 
     it('use in-memory and clear all persistences if indexedDB and localStorage are both broken', async () => {
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       // Simulate browsers that do not support indexedDB.
-      await driver.webDriver.executeScript('delete window.indexedDB;');
+      await driver.page.evaluate(() => {
+        delete (window as unknown as Record<string, unknown>).indexedDB;
+      });
       // Simulate browsers denying writes to localStorage (e.g. Safari private browsing).
-      await driver.webDriver.executeScript(
-        'Storage.prototype.setItem = () => { throw new Error("setItem disabled for testing"); };'
-      );
+      await driver.page.evaluate(() => {
+        Storage.prototype.setItem = () => {
+          throw new Error('setItem disabled for testing');
+        };
+      });
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
 
@@ -243,7 +252,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       );
 
       // User will be gone (a.k.a. logged out) after refresh.
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       expect(await driver.getUserSnapshot()).toBeNull();
@@ -267,7 +276,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       );
 
       // User will be gone (a.k.a. logged out) after refresh.
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       expect(await driver.getUserSnapshot()).toBeNull();
@@ -290,7 +299,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       expect(snap[fullPersistenceKey]).toMatchObject({ uid: user.uid });
 
       // User will be in session storage after refresh
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       expect(await driver.getUserSnapshot()).toEqual(snapshotAfter);
@@ -323,7 +332,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       );
       expect(snap[fullPersistenceKey]).toMatchObject({ uid: user.uid });
 
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       // User should be picked up from localStorage after refresh.
@@ -343,7 +352,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       );
       expect(snap[fullPersistenceKey]).toMatchObject({ uid: user.uid });
 
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       // User should be picked up from indexedDB after refresh.
@@ -358,13 +367,13 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       );
       const uid = cred.user.uid;
 
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       await driver.injectConfigAndInitLegacySDK();
       await driver.waitForLegacyAuthInit();
       const user = await driver.call(CoreFunction.LEGACY_USER_SNAPSHOT);
       expect(user).toMatchObject({ uid });
 
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       // User should be picked up from indexedDB after refresh.
@@ -372,7 +381,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
     });
 
     it('stays logged in when switching from legacy SDK and then back', async () => {
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       await driver.injectConfigAndInitLegacySDK();
       await driver.waitForLegacyAuthInit();
 
@@ -382,14 +391,14 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       const uid = result.user.uid;
       const persisted1 = await driver.call(PersistenceFunction.INDEXED_DB_SNAP);
 
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       // User should be picked up from indexedDB after refresh.
       expect((await driver.getUserSnapshot()).uid).toEqual(uid);
       const persisted2 = await driver.call(PersistenceFunction.INDEXED_DB_SNAP);
 
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       await driver.injectConfigAndInitLegacySDK();
       await driver.waitForLegacyAuthInit();
       const user = await driver.call(CoreFunction.LEGACY_USER_SNAPSHOT);
@@ -410,9 +419,11 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
         return;
       }
 
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       // Simulate browsers that do not support indexedDB.
-      await driver.webDriver.executeScript('delete window.indexedDB');
+      await driver.page.evaluate(() => {
+        delete (window as unknown as Record<string, unknown>).indexedDB;
+      });
       await driver.injectConfigAndInitLegacySDK();
       await driver.waitForLegacyAuthInit();
 
@@ -424,8 +435,10 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
         PersistenceFunction.LOCAL_STORAGE_SNAP
       );
 
-      await driver.webDriver.navigate().refresh();
-      await driver.webDriver.executeScript('delete window.indexedDB');
+      await driver.page.reload();
+      await driver.page.evaluate(() => {
+        delete (window as unknown as Record<string, unknown>).indexedDB;
+      });
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       // User should be picked up from localStorage after refresh.
@@ -434,7 +447,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
         PersistenceFunction.LOCAL_STORAGE_SNAP
       );
 
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       await driver.injectConfigAndInitLegacySDK();
       await driver.waitForLegacyAuthInit();
       const user = await driver.call(CoreFunction.LEGACY_USER_SNAPSHOT);
@@ -455,9 +468,11 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
         AnonFunction.SIGN_IN_ANONYMOUSLY
       );
       const uid = cred.user.uid;
-      await driver.webDriver.executeScript('window.open(".");');
+      await driver.page.evaluate(() => {
+        window.open('.');
+      });
       await driver.selectPopupWindow();
-      await driver.webDriver.wait(new JsLoadCondition(START_FUNCTION));
+      await driver.waitForGlobal(START_FUNCTION);
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       const userInPopup = await driver.getUserSnapshot();
@@ -467,7 +482,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       await driver.call(CoreFunction.SIGN_OUT);
       expect(await driver.getUserSnapshot()).toBeNull();
       await driver.selectMainWindow({ noWait: true });
-      await driver.webDriver.wait(
+      await driver.wait(
         async () => (await driver.getUserSnapshot()) === null,
         5000
       );
@@ -479,7 +494,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       const uid2 = cred2.user.uid;
 
       await driver.selectPopupWindow();
-      await driver.webDriver.wait(
+      await driver.wait(
         async () => (await driver.getUserSnapshot())?.uid === uid2,
         5000
       );
@@ -504,9 +519,11 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
       expect(userInPopup).toBeNull();
 
       // Now sign in in new page
-      await driver.webDriver.executeScript('window.open(".");');
+      await driver.page.evaluate(() => {
+        window.open('.');
+      });
       await driver.selectPopupWindow();
-      await driver.webDriver.wait(new JsLoadCondition(START_FUNCTION));
+      await driver.waitForGlobal(START_FUNCTION);
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       const cred: UserCredential = await driver.call(
@@ -515,7 +532,7 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
 
       // And make sure it was updated in main window
       await driver.selectMainWindow({ noWait: true });
-      await driver.webDriver.wait(
+      await driver.wait(
         async () => (await driver.getUserSnapshot())?.uid === cred.user.uid,
         5000
       );
@@ -523,20 +540,26 @@ browserDescribe('WebDriver persistence test', (driver, browser) => {
     });
 
     it('sync current user across windows with localStorage', async () => {
-      await driver.webDriver.navigate().refresh();
+      await driver.page.reload();
       // Simulate browsers that do not support indexedDB.
-      await driver.webDriver.executeScript('delete window.indexedDB');
+      await driver.page.evaluate(() => {
+        delete (window as unknown as Record<string, unknown>).indexedDB;
+      });
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       const cred: UserCredential = await driver.call(
         AnonFunction.SIGN_IN_ANONYMOUSLY
       );
       const uid = cred.user.uid;
-      await driver.webDriver.executeScript('window.open(".");');
+      await driver.page.evaluate(() => {
+        window.open('.');
+      });
       await driver.selectPopupWindow();
-      await driver.webDriver.wait(new JsLoadCondition(START_FUNCTION));
+      await driver.waitForGlobal(START_FUNCTION);
       // Simulate browsers that do not support indexedDB.
-      await driver.webDriver.executeScript('delete window.indexedDB');
+      await driver.page.evaluate(() => {
+        delete (window as unknown as Record<string, unknown>).indexedDB;
+      });
       await driver.injectConfigAndInitAuth();
       await driver.waitForAuthInit();
       const userInPopup = await driver.getUserSnapshot();

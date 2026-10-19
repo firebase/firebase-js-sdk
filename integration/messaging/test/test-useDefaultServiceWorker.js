@@ -17,7 +17,6 @@
 
 const testServer = require('./utils/test-server');
 const retrieveToken = require('./utils/retrieveToken');
-const seleniumAssistant = require('selenium-assistant');
 const createPermittedWebDriver = require('./utils/createPermittedWebDriver');
 
 const TEST_DOMAIN = 'default-sw';
@@ -35,27 +34,24 @@ describe(
 
     afterAll(async () => {
       await testServer.stop();
-      await seleniumAssistant.killWebDriver(globalWebDriver);
+      if (globalWebDriver) {
+        await globalWebDriver.close();
+      }
     });
 
     it(`should use default SW by default`, async () => {
-      globalWebDriver = createPermittedWebDriver('chrome');
-      await globalWebDriver.get(`${testServer.serverAddress}/${TEST_DOMAIN}/`);
+      globalWebDriver = await createPermittedWebDriver();
+      await globalWebDriver.goto(`${testServer.serverAddress}/${TEST_DOMAIN}/`);
 
       // If we have a token, then we know the default SW worked.
       const token = await retrieveToken(globalWebDriver);
       expect(token).toBeDefined();
 
-      const result = await globalWebDriver.executeAsyncScript(function (cb) {
-        navigator.serviceWorker
-          .getRegistrations()
-          .then(swReg => {
-            return (
-              swReg[0].scope.indexOf('/firebase-cloud-messaging-push-scope') !==
-              0
-            );
-          })
-          .then(cb, cb);
+      const result = await globalWebDriver.evaluate(async () => {
+        const swReg = await navigator.serviceWorker.getRegistrations();
+        return (
+          swReg[0].scope.indexOf('/firebase-cloud-messaging-push-scope') !== 0
+        );
       });
       expect(result).toBe(true);
     });

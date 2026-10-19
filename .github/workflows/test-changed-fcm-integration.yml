@@ -20,8 +20,6 @@ permissions:
   contents: read
 
 env:
-  # make chromedriver detect installed Chrome version and download the corresponding driver
-  DETECT_CHROMEDRIVER_VERSION: true
   # Bump Node memory limit
   NODE_OPTIONS: "--max_old_space_size=4096"
 

@@ -18,7 +18,7 @@
 module.exports = async webdriver => {
   console.log('Opening a new tab in the browser...');
 
-  return webdriver.executeScript(() => {
-    return window.open();
+  return webdriver.evaluate(() => {
+    window.open();
   });
 };

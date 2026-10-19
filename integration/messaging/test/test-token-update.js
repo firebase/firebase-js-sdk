@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-const seleniumAssistant = require('selenium-assistant');
 const testServer = require('./utils/test-server');
 const retrieveToken = require('./utils/retrieveToken');
 const clearAppForTest = require('./utils/clearAppForTest');
@@ -39,46 +38,38 @@ describe(
       await testServer.stop();
     });
 
-    const availableBrowsers = seleniumAssistant.getLocalBrowsers();
-    // TODO: enable testing for edge and firefox if applicable
-    availableBrowsers.forEach(assistantBrowser => {
-      if (assistantBrowser.getId() !== 'chrome') {
-        return;
-      }
+    describe(`Testing browser: Chrome : ${TEST_DOMAIN}`, () => {
+      let globalWebDriver;
 
-      describe(`Testing browser: ${assistantBrowser.getPrettyName()} : ${TEST_DOMAIN}`, () => {
-        let globalWebDriver;
+      beforeAll(async () => {
+        // Use one webDriver per browser instead of one per test to speed up test.
+        globalWebDriver = await createPermittedWebDriver();
+        await globalWebDriver.goto(
+          `${testServer.serverAddress}/${TEST_DOMAIN}/`
+        );
+      });
 
-        beforeAll(async () => {
-          // Use one webDriver per browser instead of one per test to speed up test.
-          globalWebDriver = createPermittedWebDriver(
-            /* browser= */ assistantBrowser.getId()
-          );
-          await globalWebDriver.get(
-            `${testServer.serverAddress}/${TEST_DOMAIN}/`
-          );
-        });
+      afterAll(async () => {
+        if (globalWebDriver) {
+          await globalWebDriver.close();
+        }
+      });
 
-        afterAll(async () => {
-          await seleniumAssistant.killWebDriver(globalWebDriver);
-        });
+      afterEach(async () => {
+        await clearAppForTest(globalWebDriver);
+      });
 
-        afterEach(async () => {
-          await clearAppForTest(globalWebDriver);
-        });
+      it(`should update a token`, async () => {
+        const token = await retrieveToken(globalWebDriver);
+        expect(token).toBeDefined();
 
-        it(`should update a token`, async () => {
-          const token = await retrieveToken(globalWebDriver);
-          expect(token).toBeDefined();
-
-          // roll the clock forward > 7days
-          await timeForward(globalWebDriver);
-          const updatedToken = await triggerGetToken(globalWebDriver);
-          const errors = await getErrors(globalWebDriver);
-          expect(errors).toBeDefined();
-          expect(errors.length).toBe(0);
-          expect(updatedToken).toBeDefined();
-        });
+        // roll the clock forward > 7days
+        await timeForward(globalWebDriver);
+        const updatedToken = await triggerGetToken(globalWebDriver);
+        const errors = await getErrors(globalWebDriver);
+        expect(errors).toBeDefined();
+        expect(errors.length).toBe(0);
+        expect(updatedToken).toBeDefined();
       });
     });
   }

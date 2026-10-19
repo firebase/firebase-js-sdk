@@ -17,13 +17,9 @@
 
 module.exports = async webdriver => {
   console.log('Rolling time forward 8 days...');
-  await webdriver.wait(() => {
-    return webdriver.executeScript(() => {
-      return !!window.__test;
-    });
-  });
+  await webdriver.waitForFunction(() => !!window.__test);
 
-  return webdriver.executeScript(() => {
+  return webdriver.evaluate(() => {
     return window.__test.triggerTimeForward();
   });
 };

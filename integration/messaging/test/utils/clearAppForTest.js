@@ -18,13 +18,9 @@
 module.exports = async webDriver => {
   console.log('Clearing received messaged and errors from the test app.');
 
-  await webDriver.wait(() => {
-    return webDriver.executeScript(() => {
-      return !!window.__test;
-    });
-  });
+  await webDriver.waitForFunction(() => !!window.__test);
 
-  return webDriver.executeScript(() => {
+  return webDriver.evaluate(() => {
     return window.__test.clearInstanceForTest();
   });
 };
