@@ -38,14 +38,18 @@ import { FirebaseApp } from '@firebase/app';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { CrashlyticsOptions } from '../public-types';
 import {
-  DEFAULT_TELEMETRY_ENDPOINT,
-  DEFAULT_TELEMETRY_REGION
+  DEFAULT_TELEMETRY_REGION,
+  RESOURCE_ATTRIBUTE_KEYS
 } from '../constants';
 import { AttributesStore } from '../attributes-store';
 import type { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
 import type { TelemetryStore } from '../telemetry-store';
 import { FirebaseAttributesLogProcessor } from './attributes-log-processor';
-import { getBreadcrumbsFeature, isTelemetryUrl } from '../helpers';
+import {
+  getBreadcrumbsFeature,
+  getTelemetryEndpointUrl,
+  isTelemetryUrl
+} from '../helpers';
 
 /**
  * Result returned by {@link createLoggerProvider}.
@@ -69,19 +73,25 @@ export function createLoggerProvider(
   telemetryStore?: TelemetryStore,
   dynamicHeaderProviders: DynamicHeaderProvider[] = []
 ): LoggerProviderResult {
-  let endpointUrl =
-    crashlyticsOptions.endpointUrl || DEFAULT_TELEMETRY_ENDPOINT;
-  if (endpointUrl.endsWith('/')) {
-    endpointUrl = endpointUrl.slice(0, -1);
-  }
+  const endpointUrl = getTelemetryEndpointUrl(crashlyticsOptions);
 
   const { projectId, appId, apiKey } = app.options;
   const region = crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
-  const otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/locations/${region}/logs`;
+  const otlpEndpoint = `${endpointUrl}/v1/logs`;
 
-  const resource = resourceFromAttributes({
+  const resourceAttributes: Record<string, string> = {
     [ATTR_SERVICE_NAME]: 'firebase_telemetry_service'
-  });
+  };
+  if (projectId) {
+    resourceAttributes[RESOURCE_ATTRIBUTE_KEYS.GCP_PROJECT_ID] = projectId;
+  }
+  if (appId) {
+    resourceAttributes[RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_ID] = appId;
+  }
+  if (region !== DEFAULT_TELEMETRY_REGION) {
+    resourceAttributes[RESOURCE_ATTRIBUTE_KEYS.CLOUD_REGION] = region;
+  }
+  const resource = resourceFromAttributes(resourceAttributes);
 
   const logExporter = new OTLPLogExporter(
     {
