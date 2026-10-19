@@ -21,19 +21,12 @@ export const CRASHLYTICS_TYPE = 'crashlytics';
 /** The name of the tracer for Firebase Crashlytics. */
 export const CRASHLYTICS_TRACER_NAME = 'firebase.crashlytics';
 
-/** The default endpoint for the Cloud Client Telemetry API. */
+/** The default endpoint for the Firebase Telemetry API. */
 export const DEFAULT_TELEMETRY_ENDPOINT =
-  'https://clienttelemetry.googleapis.com';
+  'https://firebasetelemetry.googleapis.com';
 
 /** Default region for telemetry data. */
 export const DEFAULT_TELEMETRY_REGION = 'global';
-
-/** Label keys for resource attributes in telemetry providers. */
-export const RESOURCE_ATTRIBUTE_KEYS = {
-  GCP_PROJECT_ID: 'gcp.project_id',
-  GCP_FIREBASE_APP_ID: 'gcp.firebase.app_id',
-  CLOUD_REGION: 'cloud.region'
-};
 
 /** Symbol for the internal flag indicating an error has already been logged. */
 export const ALREADY_LOGGED_FLAG = Symbol('firebase_crashlytics_logged');
