@@ -16,11 +16,7 @@
  */
 
 import { SeverityNumber } from '@opentelemetry/api-logs';
-import {
-  DEFAULT_TELEMETRY_ENDPOINT,
-  DEFAULT_TELEMETRY_REGION
-} from './constants';
-import { Crashlytics, CrashlyticsOptions } from './public-types';
+import { Crashlytics } from './public-types';
 import { CrashlyticsInternal } from './types';
 
 /**
@@ -107,27 +103,6 @@ export function flush(crashlytics: Crashlytics): Promise<void> {
 }
 
 /**
- * Resolves the base telemetry endpoint URL based on the provided options.
- * Uses the regional endpoint (REP) format (`https://clienttelemetry.{region}.rep.googleapis.com`)
- * when a non-global region is specified and no custom `endpointUrl` override is provided.
- *
- * @internal
- */
-export function getTelemetryEndpointUrl(
-  crashlyticsOptions: CrashlyticsOptions = {}
-): string {
-  const options = crashlyticsOptions || {};
-  if (options.endpointUrl) {
-    return options.endpointUrl.replace(/\/+$/, '');
-  }
-  const region = options.region || DEFAULT_TELEMETRY_REGION;
-  if (region !== DEFAULT_TELEMETRY_REGION) {
-    return `https://clienttelemetry.${region}.rep.googleapis.com`;
-  }
-  return DEFAULT_TELEMETRY_ENDPOINT;
-}
-
-/**
  * Determines whether a given URL string targets the Firebase Crashlytics telemetry ingestion endpoint.
  * Used to automatically drop self-referential telemetry records (e.g. from ResourceTiming or Fetch instrumentations).
  *
@@ -138,9 +113,8 @@ export function isTelemetryUrl(url: unknown, customEndpoint?: string): boolean {
     return false;
   }
   if (
-    url.startsWith('https://clienttelemetry.googleapis.com') ||
-    url.startsWith('http://clienttelemetry.googleapis.com') ||
-    /^https?:\/\/clienttelemetry\.[a-z0-9-]+\.rep\.googleapis\.com/.test(url)
+    url.startsWith('https://firebasetelemetry.googleapis.com') ||
+    url.startsWith('http://firebasetelemetry.googleapis.com')
   ) {
     return true;
   }
