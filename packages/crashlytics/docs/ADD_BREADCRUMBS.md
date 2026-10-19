@@ -28,7 +28,7 @@ Run the following command using Firebase CLI v15.19.1+:
 
 ```sh
 # Enable the logs breadcrumbs experiment and APIs
-firebase experiments:enable crashlyticsWebTrace
+firebase experiments:enable crashlyticsWebBreadcrumbs
 ```
 
 ### Step 2: Update SDK Packages
