@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import {
   getLiveGenerativeModel,
   LiveGenerationConfig,
@@ -106,9 +105,7 @@ async function nextTurnData(
   };
 }
 
-describe('Live', function () {
-  this.timeout(20000);
-
+describe('Live', { timeout: 20000 }, () => {
   const textLiveGenerationConfig: LiveGenerationConfig = {
     responseModalities: [ResponseModality.AUDIO],
     temperature: 0,
@@ -130,8 +127,8 @@ describe('Live', function () {
             'Where is Google headquarters located? Answer with the city name only.'
           );
           const responseData = await responsePromise;
-          expect(responseData).to.exist;
-          expect(responseData.hasAudioData).to.be.true;
+          expect(responseData).toBeDefined();
+          expect(responseData.hasAudioData).toBe(true);
           await session.close();
         });
         it('should handle multiple messages in a session', async () => {
@@ -148,7 +145,7 @@ describe('Live', function () {
 
           const responsePromise1 = nextTurnData(generator);
           const responseData1 = await responsePromise1; // Wait for the turn to complete
-          expect(responseData1.hasAudioData).to.be.true;
+          expect(responseData1.hasAudioData).toBe(true);
 
           await session.send(
             'What state is that in? Answer with the state name only.'
@@ -156,7 +153,7 @@ describe('Live', function () {
 
           const responsePromise2 = nextTurnData(generator);
           const responseData2 = await responsePromise2; // Wait for the second turn to complete
-          expect(responseData2.hasAudioData).to.be.true;
+          expect(responseData2.hasAudioData).toBe(true);
 
           await session.close();
         });
@@ -199,7 +196,7 @@ describe('Live', function () {
           await session.sendTextRealtime('Are you an AI? Yes or No.');
 
           const responseData = await responsePromise;
-          expect(responseData.hasAudioData).to.be.true;
+          expect(responseData.hasAudioData).toBe(true);
 
           await session.close();
         });
@@ -220,7 +217,7 @@ describe('Live', function () {
           });
 
           const responseData = await responsePromise;
-          expect(responseData.hasAudioData).to.be.true;
+          expect(responseData.hasAudioData).toBe(true);
 
           await session.close();
         });
@@ -270,8 +267,8 @@ describe('Live', function () {
             result = await stream.next();
           }
 
-          expect(aggregatedInputTranscription).to.not.be.empty;
-          expect(aggregatedOutputTranscription).to.not.be.empty;
+          expect(aggregatedInputTranscription).not.toBe('');
+          expect(aggregatedOutputTranscription).not.toBe('');
 
           await session.close();
         });
@@ -362,7 +359,7 @@ describe('Live', function () {
           await session.send('Whats the weather on June 15, 2025 in Toronto?');
 
           const finalResponseData = await streamPromise;
-          expect(finalResponseData).to.include('22'); // Should include the result of our function call
+          expect(finalResponseData).toContain('22'); // Should include the result of our function call
 
           await session.close();
         });

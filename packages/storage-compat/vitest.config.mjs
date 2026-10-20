@@ -15,11 +15,17 @@
  * limitations under the License.
  */
 
-const path = require('path');
-const glob = require('glob');
-const Mocha = require('mocha');
+import createBaseConfig from '../../config/vitest.base.mjs';
 
-const mocha = new Mocha();
-const testFiles = glob.sync(path.join(__dirname, '../dist/**/*.test.js'));
-testFiles.forEach(file => mocha.addFile(file));
-mocha.run(failures => process.exit(failures));
+const config = createBaseConfig(import.meta.url);
+
+for (const project of config.test.projects) {
+  project.test.testTimeout = 20000;
+  project.test.hookTimeout = 20000;
+  project.test.retry = process.env.CI ? 2 : 0;
+  if (project.test.name === 'browser' && project.test.browser) {
+    project.test.browser.screenshotFailures = false;
+  }
+}
+
+export default config;

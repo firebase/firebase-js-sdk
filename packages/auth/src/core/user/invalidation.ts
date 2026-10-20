@@ -31,7 +31,7 @@ export async function _logoutIfInvalidated<T>(
   try {
     return await promise;
   } catch (e) {
-    if (e instanceof FirebaseError && isUserInvalidated(e)) {
+    if (_isUserInvalidated(e)) {
       if (user.auth.currentUser === user) {
         await user.auth.signOut();
       }
@@ -41,9 +41,13 @@ export async function _logoutIfInvalidated<T>(
   }
 }
 
-function isUserInvalidated({ code }: FirebaseError): boolean {
-  return (
-    code === `auth/${AuthErrorCode.USER_DISABLED}` ||
-    code === `auth/${AuthErrorCode.TOKEN_EXPIRED}`
-  );
+export function _isUserInvalidated(error: unknown): boolean {
+  if (error instanceof FirebaseError) {
+    return (
+      error.code === `auth/${AuthErrorCode.USER_DISABLED}` ||
+      error.code === `auth/${AuthErrorCode.TOKEN_EXPIRED}`
+    );
+  }
+
+  return false;
 }

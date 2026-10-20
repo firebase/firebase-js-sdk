@@ -35,6 +35,21 @@ describe('Firebase Analytics > Service', () => {
   let setAnalyticsCollectionEnabledStub = vi.fn();
 
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.spyOn(window, 'fetch').mockImplementation(
+      async () =>
+        new Response(
+          JSON.stringify({
+            measurementId: 'abcd-efgh',
+            authToken: { token: 'fake-token', expiresIn: '3600s' }
+          }),
+          { status: 200 }
+        )
+    );
+    vi.spyOn(indexedDB, 'open').mockReturnValue({
+      onsuccess: () => {},
+      result: { close: () => {} }
+    } as unknown as IDBOpenDBRequest);
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     logEventStub = vi
       .spyOn(analyticsExp, 'logEvent')

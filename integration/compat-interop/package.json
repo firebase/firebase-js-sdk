@@ -3,9 +3,12 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "test": "karma start",
-    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test",
-    "test:debug": "karma start --browsers Chrome --auto-watch"
+    "test": "vitest run",
+    "test:all": "vitest run",
+    "test:browser": "vitest run",
+    "test:browser:debug": "vitest --browser.headless=false",
+    "test:debug": "vitest --browser.headless=false",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all"
   },
   "dependencies": {
     "@firebase/app": "0.16.3",

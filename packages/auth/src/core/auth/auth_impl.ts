@@ -41,7 +41,6 @@ import {
 import {
   createSubscribe,
   ErrorFactory,
-  FirebaseError,
   getModularInstance,
   Observer,
   Subscribe
@@ -61,6 +60,7 @@ import {
   KeyName,
   PersistenceUserManager
 } from '../persistence/persistence_user_manager';
+import { _isUserInvalidated } from '../user/invalidation';
 import { _reloadWithoutSaving } from '../user/reload';
 import {
   _assert,
@@ -393,12 +393,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     try {
       await _reloadWithoutSaving(user);
     } catch (e) {
-      const code = (e as FirebaseError)?.code;
-      if (
-        code !== `auth/${AuthErrorCode.NETWORK_REQUEST_FAILED}` &&
-        code !== `auth/${AuthErrorCode.TOO_MANY_ATTEMPTS_TRY_LATER}` &&
-        !code?.startsWith(`auth/${AuthErrorCode.QUOTA_EXCEEDED}`)
-      ) {
+      if (_isUserInvalidated(e)) {
         // Something's wrong with the user's token. Log them out and remove
         // them from storage
         return this.directlySetCurrentUser(null);
