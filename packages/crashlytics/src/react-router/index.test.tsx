@@ -194,10 +194,10 @@ describe('CrashlyticsRoutes', () => {
       </MemoryRouter>
     );
 
-    expect(fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH]).to.equal('/users/:id');
+    expect(fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID]).to.equal('/users/:id');
 
     unmount();
-    expect(fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH]).to.be.undefined;
+    expect(fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID]).to.be.undefined;
   });
 
   it('invokes logViewBoundary on mount and on subsequent navigation events', async () => {

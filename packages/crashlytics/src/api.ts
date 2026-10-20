@@ -20,10 +20,11 @@ import { CrashlyticsInternal, ErrorWithSymbol } from './types';
 import { ALREADY_LOGGED_FLAG, CRASHLYTICS_TYPE } from './constants';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
+import { Attributes } from '@opentelemetry/api';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { CrashlyticsService } from './service';
 import { deepEqual } from '@firebase/util';
-import { SPAN_ATTR_KEY } from './attributes-store';
+import { LOG_ATTR_KEY } from './attributes-store';
 import { flush, getBreadcrumbsFeature } from './helpers';
 
 declare module '@firebase/component' {
@@ -238,7 +239,7 @@ export function registerGlobalErrorListeners(
 export function logViewBoundary(
   crashlytics: Crashlytics,
   urlTemplate: string,
-  attributes?: AnyValueMap
+  attributes?: Attributes
 ): void {
   const { loggerProvider, attributesStore, options } =
     crashlytics as CrashlyticsInternal;
@@ -246,21 +247,15 @@ export function logViewBoundary(
     return;
   }
   const logger = loggerProvider.getLogger('view-boundary-logger');
-  const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
-
-  // Merge in any additional attributes. Explicitly provided attributes take precedence over
-  // automatically added attributes.
-  if (attributes) {
-    Object.assign(customAttributes, attributes);
-  }
+  const customAttributes = attributesStore.getLogAttributes({
+    [LOG_ATTR_KEY.APP_SCREEN_ID]: urlTemplate,
+    ...attributes
+  });
 
   logger.emit({
     severityNumber: SeverityNumber.INFO,
     body: 'Navigation event',
-    attributes: {
-      [SPAN_ATTR_KEY.APP_SCREEN_ID]: urlTemplate,
-      ...customAttributes
-    }
+    attributes: customAttributes
   });
 }
 

@@ -577,7 +577,7 @@ describe('Top level API', () => {
         'exception.stacktrace': '...stack trace...',
         'exception.message': 'This is a test error',
         [LOG_ATTR_KEY.APP_VERSION]: 'unset',
-        'route_path': '/my-route',
+        [LOG_ATTR_KEY.APP_SCREEN_ID]: '/my-route',
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
@@ -824,7 +824,7 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(1);
       expect(emittedLogs[0].attributes).to.deep.equal({
         [LOG_ATTR_KEY.APP_VERSION]: 'unset',
-        'route_path': '/my-route',
+        [LOG_ATTR_KEY.APP_SCREEN_ID]: '/my-route',
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });

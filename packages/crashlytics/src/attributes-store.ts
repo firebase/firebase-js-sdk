@@ -30,7 +30,7 @@ export const SESSION_STORAGE_SESSION_ID_KEY = 'firebasecrashlytics.sessionid';
 export const LOG_ATTR_KEY = {
   APP_VERSION: 'app.build_id',
   SESSION_ID: 'session.id',
-  ROUTE_PATH: 'route_path',
+  APP_SCREEN_ID: 'app.screen.id',
   TRACE: 'logging.googleapis.com/trace',
   SPAN_ID: 'logging.googleapis.com/spanId',
   INTERRUPTED_BY_TRACE: 'interrupted_by_trace'
@@ -148,7 +148,7 @@ export class AttributesStore {
 
     const path = this._routePathProvider?.();
     if (path) {
-      attributes[LOG_ATTR_KEY.ROUTE_PATH] = path;
+      attributes[LOG_ATTR_KEY.APP_SCREEN_ID] = path;
     }
 
     // Avoid shallow copy if there are no custom attributes
