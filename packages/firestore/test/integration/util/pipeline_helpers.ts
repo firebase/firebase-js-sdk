@@ -48,10 +48,7 @@ import { getRunEnterpriseTests } from './settings';
 export type PipelineMode = 'no-pipeline-conversion' | 'query-to-pipeline';
 
 function apiPipelineDescribeInternal(
-  describeFn:
-    | Mocha.PendingSuiteFunction
-    | Mocha.SuiteFunction
-    | Mocha.ExclusiveSuiteFunction,
+  describeFn: typeof describe | typeof describe.skip | typeof describe.only,
   message: string,
   testSuite: (persistence: PersistenceMode, pipelineMode: PipelineMode) => void
 ): void {
