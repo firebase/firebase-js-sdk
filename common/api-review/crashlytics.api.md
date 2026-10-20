@@ -9,15 +9,22 @@ import { FirebaseApp } from '@firebase/app';
 import { Instrumentation } from 'next';
 
 // @public
+export function breadcrumbs(): CrashlyticsFeature;
+
+// @public
 export interface Crashlytics {
     app: FirebaseApp;
 }
+
+// @public
+export interface CrashlyticsFeature {}
 
 // @public
 export interface CrashlyticsOptions {
     appVersion?: string;
     customAttributes?: AnyValueMap;
     endpointUrl?: string;
+    features?: CrashlyticsFeature[];
     region?: string;
     registerGlobalLoggerProvider?: boolean;
 }

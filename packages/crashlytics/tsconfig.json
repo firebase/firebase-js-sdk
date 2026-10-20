@@ -2,7 +2,25 @@
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "jsx": "react"
+    "jsx": "react",
+    "baseUrl": ".",
+    "paths": {
+      "@opentelemetry/browser-instrumentation/experimental/*": [
+        "node_modules/@opentelemetry/browser-instrumentation/dist/*",
+        "../../node_modules/@opentelemetry/browser-instrumentation/dist/*"
+      ],
+      "@opentelemetry/instrumentation": [
+        "node_modules/@opentelemetry/instrumentation",
+        "../../node_modules/@opentelemetry/instrumentation"
+      ]
+    }
   },
-  "exclude": ["dist/**/*"]
+  "exclude": [
+    "dist/**/*"
+  ],
+  "include": [
+    "src/**/*",
+    "index.ts",
+    "index.node.ts"
+  ]
 }

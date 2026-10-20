@@ -78,7 +78,8 @@ export function FirebaseCrashlytics({
 }): null {
   useEffect(() => {
     const crashlytics = getCrashlytics(firebaseApp, crashlyticsOptions);
-    return registerGlobalErrorListeners(crashlytics);
+    const globalErrorListeners = registerGlobalErrorListeners(crashlytics);
+    return () => globalErrorListeners();
   }, [firebaseApp, crashlyticsOptions]);
 
   return null;

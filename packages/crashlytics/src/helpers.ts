@@ -15,9 +15,35 @@
  * limitations under the License.
  */
 
-import { SeverityNumber } from '@opentelemetry/api-logs';
-import { Crashlytics } from './public-types';
-import { CrashlyticsInternal } from './types';
+import { SeverityNumber, AnyValueMap } from '@opentelemetry/api-logs';
+import { Crashlytics, CrashlyticsOptions } from './public-types';
+import { CrashlyticsFeatureInternal, CrashlyticsInternal } from './types';
+import { type TimeInput } from '@opentelemetry/api';
+import { hrTimeToMilliseconds, timeInputToHrTime } from '@opentelemetry/core';
+
+/**
+ * Returns the breadcrumbs feature implementation if enabled in options.
+ *
+ * @internal
+ */
+export function getBreadcrumbsFeature(
+  options?: CrashlyticsOptions
+): CrashlyticsFeatureInternal | undefined {
+  return options?.features?.find(
+    (feature): feature is CrashlyticsFeatureInternal =>
+      Boolean(
+        feature &&
+        (feature as CrashlyticsFeatureInternal).name === 'breadcrumbs'
+      )
+  );
+}
+
+/**
+ * Converts OpenTelemetry TimeInput to milliseconds since epoch.
+ */
+export function timeInputToMilliseconds(time: TimeInput): number {
+  return hrTimeToMilliseconds(timeInputToHrTime(time));
+}
 
 /**
  * Generates a unique UUID v4 format string.
@@ -72,17 +98,35 @@ export function startNewSession(crashlytics: Crashlytics): void {
  * Registers event listeners to flush logs when the page is hidden. In some cases multiple listeners
  * may trigger at the same time, but flushing only occurs once per batch.
  */
-export function registerListeners(crashlytics: Crashlytics): void {
+export function registerListeners(crashlytics: Crashlytics): () => void {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-    window.addEventListener('visibilitychange', async () => {
+    const onVisibilityChange = async (): Promise<void> => {
+      if (
+        getBreadcrumbsFeature((crashlytics as CrashlyticsInternal).options) &&
+        (document.visibilityState === 'visible' ||
+          document.visibilityState === 'hidden')
+      ) {
+        logVisibilityEvent(crashlytics, document.visibilityState);
+      }
+
       if (document.visibilityState === 'hidden') {
         await flush(crashlytics);
       }
-    });
-    window.addEventListener('pagehide', async () => {
+    };
+
+    const onPageHide = async (): Promise<void> => {
       await flush(crashlytics);
-    });
+    };
+
+    window.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', onPageHide);
+
+    return () => {
+      window.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pagehide', onPageHide);
+    };
   }
+  return () => {};
 }
 
 /**
@@ -100,6 +144,35 @@ export function flush(crashlytics: Crashlytics): Promise<void> {
     .catch(err => {
       console.error('Error flushing logs from Firebase Crashlytics:', err);
     });
+}
+
+/**
+ * Logs a page visibility transition event (foreground or background).
+ *
+ * @internal
+ *
+ * @param crashlytics - The {@link Crashlytics} instance.
+ * @param visibilityState - The current page visibility state ('visible' or 'hidden').
+ */
+export function logVisibilityEvent(
+  crashlytics: Crashlytics,
+  visibilityState: 'visible' | 'hidden'
+): void {
+  const { loggerProvider, attributesStore } =
+    crashlytics as CrashlyticsInternal;
+  const logger = loggerProvider.getLogger('visibility-logger');
+  const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
+
+  const body =
+    visibilityState === 'hidden'
+      ? 'Background lifecycle event'
+      : 'Foreground lifecycle event';
+
+  logger.emit({
+    severityNumber: SeverityNumber.INFO,
+    body,
+    attributes: customAttributes
+  });
 }
 
 /**

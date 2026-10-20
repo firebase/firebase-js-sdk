@@ -16,14 +16,15 @@
  */
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
-import { ALREADY_LOGGED_FLAG, CRASHLYTICS_TYPE } from './constants';
 import { CrashlyticsInternal, ErrorWithSymbol } from './types';
+import { ALREADY_LOGGED_FLAG, CRASHLYTICS_TYPE } from './constants';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { CrashlyticsService } from './service';
-import { flush } from './helpers';
 import { deepEqual } from '@firebase/util';
+import { SPAN_ATTR_KEY } from './attributes-store';
+import { flush, getBreadcrumbsFeature } from './helpers';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -66,7 +67,6 @@ export function getCrashlytics(
       );
     }
   }
-
   const crashlytics: CrashlyticsService = crashlyticsProvider.initialize({
     options
   });
@@ -102,8 +102,14 @@ export function recordError(
     }
   }
 
-  // Cast to CrashlyticsInternal to access internal loggerProvider
-  const { loggerProvider } = crashlytics as CrashlyticsInternal;
+  // Cast to CrashlyticsInternal to access internal loggerProvider, tracingProvider, and processors
+  const {
+    loggerProvider,
+    telemetryStore,
+    onErrorSpanProcessor,
+    onErrorLogRecordProcessor
+  } = crashlytics as CrashlyticsInternal;
+
   const logger = loggerProvider.getLogger('error-logger');
   const customAttributes: AnyValueMap = attributes ? { ...attributes } : {};
 
@@ -130,6 +136,18 @@ export function recordError(
       body: `Unknown error type: ${typeof error}`,
       attributes: customAttributes
     });
+  }
+
+  if (onErrorSpanProcessor) {
+    onErrorSpanProcessor.onErrorOccurred();
+  }
+
+  if (onErrorLogRecordProcessor) {
+    onErrorLogRecordProcessor.onErrorOccurred();
+  }
+
+  if (telemetryStore) {
+    telemetryStore.clear();
   }
 }
 
@@ -161,8 +179,6 @@ export function log(
     attributes: customAttributes
   });
 }
-
-export { flush };
 
 /**
  * Registers global event listeners for uncaught errors and promise rejections.
@@ -209,3 +225,43 @@ export function registerGlobalErrorListeners(
     );
   };
 }
+
+/**
+ * Creates a log for view boundary on navigation event
+ *
+ * @internal
+ *
+ * @param crashlytics - The {@link Crashlytics} instance.
+ * @param urlTemplate - The new URL pattern being navigated to.
+ * @param attributes - Optional, arbitrary attributes to attach to the view boundary log
+ */
+export function logViewBoundary(
+  crashlytics: Crashlytics,
+  urlTemplate: string,
+  attributes?: AnyValueMap
+): void {
+  const { loggerProvider, attributesStore, options } =
+    crashlytics as CrashlyticsInternal;
+  if (!getBreadcrumbsFeature(options)) {
+    return;
+  }
+  const logger = loggerProvider.getLogger('view-boundary-logger');
+  const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
+
+  // Merge in any additional attributes. Explicitly provided attributes take precedence over
+  // automatically added attributes.
+  if (attributes) {
+    Object.assign(customAttributes, attributes);
+  }
+
+  logger.emit({
+    severityNumber: SeverityNumber.INFO,
+    body: 'Navigation event',
+    attributes: {
+      [SPAN_ATTR_KEY.APP_SCREEN_ID]: urlTemplate,
+      ...customAttributes
+    }
+  });
+}
+
+export { flush };

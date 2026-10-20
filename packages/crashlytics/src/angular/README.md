@@ -66,6 +66,61 @@ export const appConfig: ApplicationConfig = {
 };
 ```
 
+### Step 3: Track Route Changes & Enable Breadcrumbs
+
+To automatically track navigation changes, update the route path attribute, and log view boundary telemetry with breadcrumbs enabled when navigating between routes, initialize `setupCrashlyticsRoutes` with `provideEnvironmentInitializer` in `src/app/app.config.ts` and pass `{ features: [breadcrumbs()] }`:
+
+```typescript
+// src/app/app.config.ts
+import {
+  ApplicationConfig,
+  DestroyRef,
+  ErrorHandler,
+  inject,
+  provideEnvironmentInitializer
+} from '@angular/core';
+import { provideRouter, Router } from '@angular/router';
+import { breadcrumbs } from '@firebase/crashlytics';
+import {
+  CrashlyticsOptions,
+  FirebaseErrorHandler,
+  setupCrashlyticsRoutes
+} from '@firebase/crashlytics/angular';
+import { FIREBASE_APP, provideFirebaseApp } from './firebase.config';
+import { routes } from './app.routes';
+
+const crashlyticsOptions: CrashlyticsOptions = {
+  features: [breadcrumbs()]
+};
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(routes),
+    // Provide the core Firebase App dependency token
+    {
+      provide: FIREBASE_APP,
+      useFactory: provideFirebaseApp
+    },
+    // Wire Angular runtime uncaught errors to Firebase Crashlytics
+    {
+      provide: ErrorHandler,
+      useFactory: (app: FirebaseApp) =>
+        new FirebaseErrorHandler(app, crashlyticsOptions),
+      deps: [FIREBASE_APP]
+    },
+    // Configure automatic route navigation tracking
+    provideEnvironmentInitializer(() => {
+      setupCrashlyticsRoutes({
+        firebaseApp: inject(FIREBASE_APP),
+        router: inject(Router),
+        destroyRef: inject(DestroyRef),
+        crashlyticsOptions
+      });
+    })
+  ]
+};
+```
+
 > [!NOTE]
 > The `FirebaseErrorHandler` tracks all zone crashes. It uses internal `Router` instances to build dynamic routes (like `/dashboard/user/:id`) rather than logging literal URLs, keeping telemetry free of personally identifiable information (PII).
 

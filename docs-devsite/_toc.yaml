@@ -435,6 +435,8 @@ toc:
   section:
   - title: Crashlytics
     path: /docs/reference/js/crashlytics.crashlytics.md
+  - title: CrashlyticsFeature
+    path: /docs/reference/js/crashlytics.crashlyticsfeature.md
   - title: CrashlyticsOptions
     path: /docs/reference/js/crashlytics.crashlyticsoptions.md
 - title: crashlytics/angular
@@ -442,15 +444,28 @@ toc:
   section:
   - title: Crashlytics
     path: /docs/reference/js/crashlytics_angular.crashlytics.md
+  - title: CrashlyticsFeature
+    path: /docs/reference/js/crashlytics_angular.crashlyticsfeature.md
   - title: CrashlyticsOptions
     path: /docs/reference/js/crashlytics_angular.crashlyticsoptions.md
   - title: FirebaseErrorHandler
     path: /docs/reference/js/crashlytics_angular.firebaseerrorhandler.md
+- title: crashlytics/next-navigation
+  path: /docs/reference/js/crashlytics_next-navigation.md
+  section:
+  - title: Crashlytics
+    path: /docs/reference/js/crashlytics_next-navigation.crashlytics.md
+  - title: CrashlyticsFeature
+    path: /docs/reference/js/crashlytics_next-navigation.crashlyticsfeature.md
+  - title: CrashlyticsOptions
+    path: /docs/reference/js/crashlytics_next-navigation.crashlyticsoptions.md
 - title: crashlytics/react
   path: /docs/reference/js/crashlytics_react.md
   section:
   - title: Crashlytics
     path: /docs/reference/js/crashlytics_react.crashlytics.md
+  - title: CrashlyticsFeature
+    path: /docs/reference/js/crashlytics_react.crashlyticsfeature.md
   - title: CrashlyticsOptions
     path: /docs/reference/js/crashlytics_react.crashlyticsoptions.md
 - title: crashlytics/react-router
@@ -458,6 +473,8 @@ toc:
   section:
   - title: Crashlytics
     path: /docs/reference/js/crashlytics_react-router.crashlytics.md
+  - title: CrashlyticsFeature
+    path: /docs/reference/js/crashlytics_react-router.crashlyticsfeature.md
   - title: CrashlyticsOptions
     path: /docs/reference/js/crashlytics_react-router.crashlyticsoptions.md
 - title: database

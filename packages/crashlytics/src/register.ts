@@ -26,7 +26,11 @@ import { CrashlyticsService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
 import { AppCheckProvider } from './logging/appcheck-provider';
 import { CRASHLYTICS_TYPE } from './constants';
-import { registerListeners, startNewSession } from './helpers';
+import {
+  getBreadcrumbsFeature,
+  registerListeners,
+  startNewSession
+} from './helpers';
 import { CrashlyticsOptions } from './public-types';
 
 // We only import types from this package elsewhere in the `telemetry` package, so this
@@ -39,7 +43,7 @@ export function registerCrashlytics(): void {
     new Component(
       CRASHLYTICS_TYPE,
       (container, { options }: InstanceFactoryOptions) => {
-        const crashlyticsOptions = options as CrashlyticsOptions;
+        const crashlyticsOptions = (options as CrashlyticsOptions) || {};
 
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
@@ -52,19 +56,42 @@ export function registerCrashlytics(): void {
           crashlyticsOptions,
           installationsProvider
         );
+        const breadcrumbsFeature = getBreadcrumbsFeature(crashlyticsOptions);
+        const telemetryStore = breadcrumbsFeature?.createTelemetryStore();
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
-        const loggerProvider = createLoggerProvider(
-          app,
-          crashlyticsOptions,
-          attributesStore,
-          dynamicHeaderProviders
-        );
+        const { loggerProvider, onErrorLogRecordProcessor } =
+          createLoggerProvider(
+            app,
+            crashlyticsOptions,
+            attributesStore,
+            telemetryStore,
+            dynamicHeaderProviders
+          );
+
+        const { tracingProvider, onErrorSpanProcessor } =
+          breadcrumbsFeature && telemetryStore
+            ? breadcrumbsFeature.createTracingProvider(
+                app,
+                crashlyticsOptions,
+                attributesStore,
+                telemetryStore,
+                dynamicHeaderProviders
+              )
+            : { tracingProvider: null, onErrorSpanProcessor: undefined };
 
         const crashlyticsService = new CrashlyticsService(
           app,
           loggerProvider,
-          attributesStore
+          tracingProvider,
+          attributesStore,
+          telemetryStore,
+          onErrorLogRecordProcessor,
+          onErrorSpanProcessor
         );
+
+        if (options) {
+          crashlyticsService.options = crashlyticsOptions;
+        }
 
         // Immediately track this as a new client session (if one doesn't exist yet)
         if (!attributesStore.sessionId) {
@@ -72,7 +99,8 @@ export function registerCrashlytics(): void {
         }
 
         // Register relevant event listeners
-        registerListeners(crashlyticsService);
+        const unsubscribeListeners = registerListeners(crashlyticsService);
+        crashlyticsService.unsubscribeListeners(unsubscribeListeners);
 
         return crashlyticsService;
       },

@@ -26,15 +26,24 @@ import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_rep
 
 const deps = [
   ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
-  './auto-constants'
+  './auto-constants',
+  './breadcrumbs',
+  './breadcrumbs.mjs',
+  './breadcrumbs.js',
+  '../breadcrumbs.mjs'
 ];
 
-function replaceSource(path) {
-  return replacePlugin({
-    './src/auto-constants': `'${path}'`,
-    '../auto-constants': `'${path}'`,
+function replaceSource(autoConstantsPath, breadcrumbsPath) {
+  const replacements = {
+    './src/auto-constants': `'${autoConstantsPath}'`,
+    '../auto-constants': `'${autoConstantsPath}'`,
     delimiters: ["'", "'"]
-  });
+  };
+  if (breadcrumbsPath) {
+    replacements['./src/breadcrumbs'] = `'${breadcrumbsPath}'`;
+    replacements['../breadcrumbs'] = `'${breadcrumbsPath}'`;
+  }
+  return replacePlugin(replacements);
 }
 
 function replaceBuildTarget(format, target = 2020) {
@@ -55,7 +64,7 @@ const browserBuilds = [
     },
     plugins: [
       ...buildPlugins,
-      replaceSource('./auto-constants.mjs'),
+      replaceSource('./auto-constants.mjs', './breadcrumbs.mjs'),
       replaceBuildTarget('esm')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -69,7 +78,7 @@ const browserBuilds = [
     },
     plugins: [
       ...buildPlugins,
-      replaceSource('./auto-constants.js'),
+      replaceSource('./auto-constants.js', './breadcrumbs.js'),
       replaceBuildTarget('cjs')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -86,7 +95,7 @@ const nodeBuilds = [
     },
     plugins: [
       ...buildPlugins,
-      replaceSource('./auto-constants.js'),
+      replaceSource('./auto-constants.js', './breadcrumbs.js'),
       replaceBuildTarget('cjs')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -101,7 +110,7 @@ const nodeBuilds = [
     plugins: [
       ...buildPlugins,
       emitModulePackageFile(),
-      replaceSource('../auto-constants.mjs'),
+      replaceSource('../auto-constants.mjs', '../breadcrumbs.mjs'),
       replaceBuildTarget('esm')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -265,6 +274,82 @@ const angularBuilds = [
   }
 ];
 
+const nextNavigationBuilds = [
+  {
+    input: 'src/next-navigation/index.ts',
+    output: {
+      file: pkg.exports['./next-navigation'].browser.import,
+      format: 'es',
+      sourcemap: true,
+      banner: `'use client';`
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.next-navigation.json'
+      }),
+      json(),
+      copy({
+        targets: [
+          {
+            src: 'dist/src/next-navigation/index.d.ts',
+            dest: 'dist/next-navigation'
+          },
+          {
+            src: 'dist/src/public-types.d.ts',
+            dest: 'dist'
+          }
+        ]
+      }),
+      replaceSource('../auto-constants.mjs'),
+      replaceBuildTarget('esm')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'src/next-navigation/index.ts',
+    output: {
+      file: pkg.exports['./next-navigation'].browser.require,
+      format: 'cjs',
+      sourcemap: true,
+      banner: `'use client';`
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.next-navigation.json'
+      }),
+      json(),
+      replaceSource('../auto-constants.js'),
+      replaceBuildTarget('cjs')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+const breadcrumbsBuild = [
+  {
+    input: './src/breadcrumbs.ts',
+    output: {
+      file: './dist/breadcrumbs.js',
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: [...buildPlugins, replaceSource('./auto-constants.js')],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: './src/breadcrumbs.ts',
+    output: {
+      file: './dist/breadcrumbs.mjs',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [...buildPlugins, replaceSource('./auto-constants.mjs')],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
 const autoinitBuild = [
   {
     input: './src/auto-constants.ts',
@@ -290,5 +375,7 @@ export default [
   ...reactBuilds,
   ...reactRouterBuilds,
   ...angularBuilds,
+  ...nextNavigationBuilds,
+  ...breadcrumbsBuild,
   ...autoinitBuild
 ];

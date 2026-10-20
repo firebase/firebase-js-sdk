@@ -42,8 +42,20 @@ import {
   DEFAULT_TELEMETRY_REGION
 } from '../constants';
 import { AttributesStore } from '../attributes-store';
-import { FirebaseAttributesProcessor } from './attributes-processor';
-import { isTelemetryUrl } from '../helpers';
+import type { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
+import type { TelemetryStore } from '../telemetry-store';
+import { FirebaseAttributesLogProcessor } from './attributes-log-processor';
+import { getBreadcrumbsFeature, isTelemetryUrl } from '../helpers';
+
+/**
+ * Result returned by {@link createLoggerProvider}.
+ *
+ * @internal
+ */
+export interface LoggerProviderResult {
+  loggerProvider: LoggerProvider;
+  onErrorLogRecordProcessor?: OnErrorLogRecordProcessor;
+}
 
 /**
  * Create a logger provider for the current execution environment.
@@ -54,8 +66,9 @@ export function createLoggerProvider(
   app: FirebaseApp,
   crashlyticsOptions: CrashlyticsOptions = {},
   attributesStore: AttributesStore,
+  telemetryStore?: TelemetryStore,
   dynamicHeaderProviders: DynamicHeaderProvider[] = []
-): LoggerProvider {
+): LoggerProviderResult {
   let endpointUrl =
     crashlyticsOptions.endpointUrl || DEFAULT_TELEMETRY_ENDPOINT;
   if (endpointUrl.endsWith('/')) {
@@ -82,25 +95,42 @@ export function createLoggerProvider(
     attributesStore
   );
 
+  let onErrorLogRecordProcessor: OnErrorLogRecordProcessor | undefined;
   const processors: LogRecordProcessor[] = [
-    new FirebaseAttributesProcessor(attributesStore, projectId),
-    new BatchLogRecordProcessor({
-      exporter: logExporter,
-      disableAutoFlushOnDocumentHide: true
-    } as BatchLogRecordProcessorBrowserOptions)
+    new FirebaseAttributesLogProcessor(attributesStore, projectId)
   ];
 
-  const provider = new LoggerProvider({
+  const breadcrumbsFeature = getBreadcrumbsFeature(crashlyticsOptions);
+  if (breadcrumbsFeature) {
+    onErrorLogRecordProcessor = breadcrumbsFeature.createLogRecordProcessor(
+      logExporter,
+      telemetryStore ?? breadcrumbsFeature.createTelemetryStore()
+    );
+    processors.push(onErrorLogRecordProcessor);
+  } else {
+    processors.push(
+      new BatchLogRecordProcessor({
+        exporter: logExporter,
+        disableAutoFlushOnDocumentHide: true
+      } as BatchLogRecordProcessorBrowserOptions)
+    );
+  }
+
+  const loggerProvider = new LoggerProvider({
     resource,
     processors,
     logRecordLimits: {}
   });
 
   if (crashlyticsOptions.registerGlobalLoggerProvider) {
-    logs.setGlobalLoggerProvider(provider);
+    logs.setGlobalLoggerProvider(loggerProvider);
   }
 
-  return provider;
+  if (breadcrumbsFeature && typeof window !== 'undefined') {
+    breadcrumbsFeature.initializeLoggerInstrumentations(loggerProvider);
+  }
+
+  return { loggerProvider, onErrorLogRecordProcessor };
 }
 
 /** OTLP exporter that uses custom FetchTransport and resolves async attributes. */
@@ -163,5 +193,15 @@ class OTLPLogExporter
       });
     }
     super.export(filteredLogs, resultCallback);
+  }
+
+  async shutdown(): Promise<void> {
+    // Basic implementation of shutdown for interface compliance
+    console.log('OTLPLogExporter: shutdown called');
+  }
+
+  async forceFlush(): Promise<void> {
+    // Basic implementation of forceFlush for interface compliance
+    console.log('OTLPLogExporter: forceFlush called');
   }
 }

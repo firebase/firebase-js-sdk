@@ -16,12 +16,13 @@
  */
 
 import { Provider } from '@firebase/component';
-import { AttributeValue } from '@opentelemetry/api';
+import { Attributes, AttributeValue } from '@opentelemetry/api';
 import { AnyValueMap } from '@opentelemetry/api-logs';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { CrashlyticsOptions } from './public-types';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { FirebaseOptions } from '@firebase/app-types';
+import { DEFAULT_TELEMETRY_REGION } from './constants';
 
 export const ATTR_KEY_INSTALLATION_ID = 'app.installation.id';
 export const SESSION_STORAGE_SESSION_ID_KEY = 'firebasecrashlytics.sessionid';
@@ -31,7 +32,15 @@ export const LOG_ATTR_KEY = {
   SESSION_ID: 'session.id',
   ROUTE_PATH: 'route_path',
   TRACE: 'logging.googleapis.com/trace',
-  SPAN_ID: 'logging.googleapis.com/spanId'
+  SPAN_ID: 'logging.googleapis.com/spanId',
+  INTERRUPTED_BY_TRACE: 'interrupted_by_trace'
+};
+
+export const SPAN_ATTR_KEY = {
+  GCP_RESOURCE_NAME: 'gcp.resource.name',
+  SESSION_ID: 'session.id',
+  SERVICE_VERSION: 'service.version',
+  APP_SCREEN_ID: 'app.screen.id'
 };
 
 type Attribute = Record<string, AttributeValue>;
@@ -47,6 +56,7 @@ export class AttributesStore {
   private _installations: _FirebaseInstallationsInternal | null;
   private _iid: string | undefined;
   private _routePathProvider?: () => string;
+  private _region: string;
 
   constructor(
     firebaseOptions: FirebaseOptions,
@@ -54,6 +64,7 @@ export class AttributesStore {
     installationsProvider?: Provider<'installations-internal'>
   ) {
     this._projectId = firebaseOptions.projectId;
+    this._region = crashlyticsOptions?.region || DEFAULT_TELEMETRY_REGION;
     this.updateOptions(crashlyticsOptions);
 
     // Get session id from storage, if available
@@ -123,7 +134,7 @@ export class AttributesStore {
    * Get the log attributes.
    * @returns The log attributes.
    */
-  getLogAttributes(): AnyValueMap {
+  getLogAttributes(customAttributes?: Attributes): AnyValueMap {
     const attributes: AnyValueMap = {};
     if (this._customAttributes) {
       Object.assign(attributes, this._customAttributes);
@@ -138,6 +149,39 @@ export class AttributesStore {
     const path = this._routePathProvider?.();
     if (path) {
       attributes[LOG_ATTR_KEY.ROUTE_PATH] = path;
+    }
+
+    // Avoid shallow copy if there are no custom attributes
+    if (!customAttributes) {
+      return attributes;
+    }
+    return {
+      ...attributes,
+      ...customAttributes
+    };
+  }
+
+  /**
+   * Get the span attributes.
+   * @returns The span attributes.
+   */
+  getSpanAttributes(): Attributes {
+    const attributes: Attributes = {};
+    if (this._projectId) {
+      attributes[SPAN_ATTR_KEY.GCP_RESOURCE_NAME] =
+        `//firebasetelemetry.googleapis.com/projects/${this._projectId}/locations/${this._region}/`;
+    }
+
+    if (this._appVersion) {
+      attributes[SPAN_ATTR_KEY.SERVICE_VERSION] = this._appVersion;
+    }
+    if (this._sessionId) {
+      attributes[SPAN_ATTR_KEY.SESSION_ID] = this._sessionId;
+    }
+
+    const path = this._routePathProvider?.();
+    if (path) {
+      attributes[SPAN_ATTR_KEY.APP_SCREEN_ID] = path;
     }
 
     return attributes;

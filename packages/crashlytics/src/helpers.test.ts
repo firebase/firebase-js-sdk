@@ -16,13 +16,15 @@
  */
 
 import { expect } from 'chai';
-import * as sinon from 'sinon';
-import { LoggerProvider } from '@opentelemetry/sdk-logs';
+import { LoggerProvider, SdkLogRecord } from '@opentelemetry/sdk-logs';
 import { Logger, LogRecord } from '@opentelemetry/api-logs';
+import { trace, TracerProvider } from '@opentelemetry/api';
+import sinon from 'sinon';
 import { isNode } from '@firebase/util';
 import {
   registerListeners,
   startNewSession,
+  logVisibilityEvent,
   generateUuid,
   isTelemetryUrl
 } from './helpers';
@@ -34,6 +36,10 @@ import {
   LOG_ATTR_KEY,
   SESSION_STORAGE_SESSION_ID_KEY
 } from './attributes-store';
+import { TelemetryStore } from './telemetry-store';
+import { FirebaseAttributesLogProcessor } from './logging/attributes-log-processor';
+import { breadcrumbs } from './breadcrumbs';
+
 describe('helpers', () => {
   let originalSessionStorage: Storage | undefined;
   let originalCrypto: Crypto | undefined;
@@ -45,6 +51,11 @@ describe('helpers', () => {
     getLogger: (): Logger => {
       return {
         emit: (logRecord: LogRecord) => {
+          const processor = new FirebaseAttributesLogProcessor(
+            fakeAttributesStore,
+            'my-project'
+          );
+          processor.onEmit(logRecord as unknown as SdkLogRecord);
           emittedLogs.push(logRecord);
         },
         enabled: () => true
@@ -57,8 +68,15 @@ describe('helpers', () => {
     shutdown: () => Promise.resolve()
   } as unknown as LoggerProvider;
 
+  const fakeTracingProvider = {
+    getTracer: () => ({}),
+    register: () => {},
+    shutdown: () => Promise.resolve()
+  } as unknown as TracerProvider;
   let fakeAttributesStore: AttributesStore;
+  let fakeTelemetryStore: TelemetryStore;
   let fakeCrashlytics: CrashlyticsInternal;
+  let getActiveSpanStub: sinon.SinonStub;
 
   beforeEach(() => {
     emittedLogs = [];
@@ -81,6 +99,7 @@ describe('helpers', () => {
     });
 
     fakeAttributesStore = new AttributesStore({ projectId: 'my-project' });
+    fakeTelemetryStore = new TelemetryStore();
     fakeCrashlytics = {
       app: {
         name: 'DEFAULT',
@@ -91,8 +110,11 @@ describe('helpers', () => {
         }
       },
       loggerProvider: fakeLoggerProvider,
-      attributesStore: fakeAttributesStore
+      tracingProvider: fakeTracingProvider,
+      attributesStore: fakeAttributesStore,
+      telemetryStore: fakeTelemetryStore
     };
+    getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns(undefined);
   });
 
   afterEach(() => {
@@ -107,6 +129,7 @@ describe('helpers', () => {
       });
     }
     delete AUTO_CONSTANTS.appVersion;
+    getActiveSpanStub.restore();
   });
 
   describe('startNewSession', () => {
@@ -156,7 +179,9 @@ describe('helpers', () => {
       const telemetryWithVersion = new CrashlyticsService(
         fakeCrashlytics.app,
         fakeLoggerProvider,
-        fakeAttributesStore
+        fakeTracingProvider,
+        fakeAttributesStore,
+        fakeTelemetryStore
       );
       telemetryWithVersion.options = { appVersion: '9.9.9' };
 
@@ -165,6 +190,21 @@ describe('helpers', () => {
       expect(emittedLogs[0].attributes).to.deep.equal({
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
         [LOG_ATTR_KEY.APP_VERSION]: '9.9.9'
+      });
+    });
+
+    it('should log trace and span id from context', () => {
+      const mockRootSpan = {
+        spanContext: () => ({ traceId: 'traceId2', spanId: 'spanId2' })
+      };
+      getActiveSpanStub.returns(mockRootSpan);
+      startNewSession(fakeCrashlytics);
+
+      expect(emittedLogs[0].attributes).to.deep.equal({
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.TRACE]: 'projects/my-project/traces/traceId2',
+        [LOG_ATTR_KEY.SPAN_ID]: 'spanId2'
       });
     });
   });
@@ -211,35 +251,110 @@ describe('helpers', () => {
   });
 
   describe('registerListeners', () => {
+    let addEventListenerStub: sinon.SinonStub;
+    let listeners: Record<string, (...args: any[]) => any>;
+
+    beforeEach(() => {
+      listeners = {};
+      if (typeof window !== 'undefined') {
+        addEventListenerStub = sinon
+          .stub(window, 'addEventListener')
+          .callsFake((event, callback) => {
+            listeners[event] = callback as (...args: any[]) => any;
+          });
+      }
+    });
+
+    afterEach(() => {
+      if (typeof window !== 'undefined') {
+        addEventListenerStub.restore();
+      }
+    });
+
     if (isNode()) {
       it('should do nothing in node', () => {
         registerListeners(fakeCrashlytics);
       });
     } else {
-      it('should flush logs when the visibility changes to hidden', () => {
+      it('should emit a log and flush when the visibility changes to hidden and breadcrumbs() is enabled', async () => {
+        fakeCrashlytics.options = { features: [breadcrumbs()] };
         registerListeners(fakeCrashlytics);
 
         expect(flushed).to.be.false;
+        expect(emittedLogs).to.have.lengthOf(0);
+        expect(listeners['visibilitychange']).to.be.ok;
 
         Object.defineProperty(document, 'visibilityState', {
           value: 'hidden',
           writable: true
         });
-        window.dispatchEvent(new Event('visibilitychange'));
+        await listeners['visibilitychange']();
 
         expect(flushed).to.be.true;
+        expect(emittedLogs).to.have.lengthOf(1);
       });
 
-      it('should flush logs when the pagehide event fires', () => {
+      it('should emit a log but not flush when the visibility changes to visible and breadcrumbs() is enabled', async () => {
+        fakeCrashlytics.options = { features: [breadcrumbs()] };
         registerListeners(fakeCrashlytics);
 
         expect(flushed).to.be.false;
+        expect(emittedLogs).to.have.lengthOf(0);
+        expect(listeners['visibilitychange']).to.be.ok;
 
-        window.dispatchEvent(new Event('pagehide'));
+        Object.defineProperty(document, 'visibilityState', {
+          value: 'visible',
+          writable: true
+        });
+        await listeners['visibilitychange']();
+
+        expect(flushed).to.be.false;
+        expect(emittedLogs).to.have.lengthOf(1);
+      });
+
+      it('should not emit a visibility log when breadcrumbs() is not enabled, but still flush on hidden', async () => {
+        registerListeners(fakeCrashlytics);
+
+        Object.defineProperty(document, 'visibilityState', {
+          value: 'hidden',
+          writable: true
+        });
+        await listeners['visibilitychange']();
+
+        expect(flushed).to.be.true;
+        expect(emittedLogs).to.have.lengthOf(0);
+      });
+
+      it('should flush logs when the pagehide event fires', async () => {
+        startNewSession(fakeCrashlytics);
+        registerListeners(fakeCrashlytics);
+
+        expect(flushed).to.be.false;
+        expect(listeners['pagehide']).to.be.ok;
+
+        await listeners['pagehide']();
 
         expect(flushed).to.be.true;
       });
     }
+  });
+
+  describe('logVisibilityEvent', () => {
+    it("should emit a log record for a hidden visibility with body of 'Background lifecycle event'", () => {
+      logVisibilityEvent(fakeCrashlytics, 'hidden');
+
+      expect(emittedLogs).to.have.lengthOf(1);
+      const log = emittedLogs[0];
+      expect(log.body).to.equal('Background lifecycle event');
+    });
+
+    it("should emit a log record for a visible visibility with body of 'Foreground lifecycle event'", () => {
+      logVisibilityEvent(fakeCrashlytics, 'visible');
+
+      expect(emittedLogs).to.have.lengthOf(1);
+      const log = emittedLogs[0];
+      expect(log.body).to.equal('Foreground lifecycle event');
+    });
   });
 
   describe('isTelemetryUrl', () => {

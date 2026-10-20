@@ -16,19 +16,22 @@
  */
 
 import { expect } from 'chai';
-import { LoggerProvider, SdkLogRecord } from '@opentelemetry/sdk-logs';
-import { trace } from '@opentelemetry/api';
+import { ExportResultCode } from '@opentelemetry/core';
+import {
+  LoggerProvider,
+  LogRecordExporter,
+  ReadableLogRecord,
+  SdkLogRecord
+} from '@opentelemetry/sdk-logs';
+import { resourceFromAttributes } from '@opentelemetry/resources';
+import { trace, TracerProvider } from '@opentelemetry/api';
 import {
   Logger,
   LogRecord,
   SeverityNumber,
   logs
 } from '@opentelemetry/api-logs';
-import {
-  InMemorySpanExporter,
-  SimpleSpanProcessor,
-  WebTracerProvider
-} from '@opentelemetry/sdk-trace-web';
+import sinon from 'sinon';
 import {
   FirebaseApp,
   initializeApp,
@@ -37,7 +40,13 @@ import {
 } from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
-import { recordError, log, flush, getCrashlytics } from './api';
+import {
+  recordError,
+  log,
+  flush,
+  getCrashlytics,
+  logViewBoundary
+} from './api';
 import { CrashlyticsService } from './service';
 import { registerCrashlytics } from './register';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
@@ -46,9 +55,13 @@ import { CrashlyticsInternal } from './types';
 import {
   AttributesStore,
   LOG_ATTR_KEY,
+  SPAN_ATTR_KEY,
   SESSION_STORAGE_SESSION_ID_KEY
 } from './attributes-store';
-import { FirebaseAttributesProcessor } from './logging/attributes-processor';
+import { TelemetryStore } from './telemetry-store';
+import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
+import { FirebaseAttributesLogProcessor } from './logging/attributes-log-processor';
+import { breadcrumbs } from './breadcrumbs';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
@@ -61,7 +74,7 @@ const fakeLoggerProvider = {
   getLogger: (): Logger => {
     return {
       emit: (logRecord: LogRecord) => {
-        const processor = new FirebaseAttributesProcessor(
+        const processor = new FirebaseAttributesLogProcessor(
           fakeAttributesStore,
           PROJECT_ID
         );
@@ -78,14 +91,42 @@ const fakeLoggerProvider = {
   shutdown: () => Promise.resolve()
 } as unknown as LoggerProvider;
 
-let fakeAttributesStore: AttributesStore;
-let fakeCrashlytics: CrashlyticsInternal;
+const fakeApp = {
+  name: 'DEFAULT',
+  automaticDataCollectionEnabled: true,
+  options: {
+    projectId: PROJECT_ID,
+    appId: APP_ID
+  }
+} as FirebaseApp;
+let fakeAttributesStore = new AttributesStore(fakeApp.options);
+const fakeTelemetryStore = new TelemetryStore();
+const fakeTracingProvider = {
+  getTracer: () => ({
+    startActiveSpan: (name: string, fn: (span: any) => any) =>
+      fn({
+        end: () => {},
+        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+      })
+  }),
+  register: () => {},
+  shutdown: () => Promise.resolve()
+} as unknown as TracerProvider;
+
+const fakeCrashlytics: CrashlyticsInternal = {
+  app: fakeApp,
+  loggerProvider: fakeLoggerProvider,
+  tracingProvider: fakeTracingProvider,
+  attributesStore: fakeAttributesStore,
+  telemetryStore: fakeTelemetryStore
+};
 
 describe('Top level API', () => {
   let app: FirebaseApp;
   let originalSessionStorage: Storage | undefined;
   let originalCrypto: Crypto | undefined;
   let storage: Record<string, string> = {};
+  let getActiveSpanStub: sinon.SinonStub;
 
   beforeEach(() => {
     // Clear the logs before each test.
@@ -120,19 +161,10 @@ describe('Top level API', () => {
     // Simulate session creation that now happens in registerCrashlytics
     storage[SESSION_STORAGE_SESSION_ID_KEY] = MOCK_SESSION_ID;
 
-    fakeAttributesStore = new AttributesStore({ projectId: PROJECT_ID });
-    fakeCrashlytics = {
-      app: {
-        name: 'DEFAULT',
-        automaticDataCollectionEnabled: true,
-        options: {
-          projectId: PROJECT_ID,
-          appId: APP_ID
-        }
-      },
-      loggerProvider: fakeLoggerProvider,
-      attributesStore: fakeAttributesStore
-    };
+    fakeAttributesStore = new AttributesStore(fakeApp.options);
+    fakeCrashlytics.attributesStore = fakeAttributesStore;
+
+    getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns(undefined);
   });
 
   afterEach(async () => {
@@ -146,6 +178,7 @@ describe('Top level API', () => {
       writable: true
     });
     delete AUTO_CONSTANTS.appVersion;
+    getActiveSpanStub.restore();
   });
 
   describe('getCrashlytics()', () => {
@@ -203,6 +236,24 @@ describe('Top level API', () => {
         getCrashlytics(app, {});
       }).to.throw('getCrashlytics() cannot be called with different options');
     });
+
+    it('works when called multiple times with fresh breadcrumbs() instances', () => {
+      const app = getFakeApp();
+      expect(
+        getCrashlytics(app, {
+          features: [breadcrumbs()]
+        })
+      ).to.equal(
+        getCrashlytics(app, {
+          features: [breadcrumbs()]
+        })
+      );
+      expect(() => {
+        getCrashlytics(app, {
+          features: []
+        });
+      }).to.throw('getCrashlytics() cannot be called with different options');
+    });
   });
 
   describe('registerCrashlytics()', () => {
@@ -226,6 +277,79 @@ describe('Top level API', () => {
       expect(storage[SESSION_STORAGE_SESSION_ID_KEY]).to.equal(
         'existing-session'
       );
+    });
+
+    it('should not initialize tracing by default when breadcrumbs() is not passed in features', () => {
+      const crashlytics = getCrashlytics(getFakeApp()) as CrashlyticsInternal;
+
+      expect(crashlytics.tracingProvider).to.be.null;
+      expect(crashlytics.telemetryStore).to.be.undefined;
+      expect(crashlytics.onErrorLogRecordProcessor).to.be.undefined;
+      expect(crashlytics.onErrorSpanProcessor).to.be.undefined;
+    });
+
+    it('should initialize tracing when breadcrumbs() is passed in features', () => {
+      const crashlytics = getCrashlytics(getFakeApp(), {
+        features: [breadcrumbs()]
+      }) as CrashlyticsInternal;
+
+      expect(crashlytics.tracingProvider).to.not.be.null;
+      expect(crashlytics.telemetryStore).to.be.instanceOf(TelemetryStore);
+      expect(crashlytics.onErrorLogRecordProcessor).to.be.instanceOf(
+        OnErrorLogRecordProcessor
+      );
+    });
+  });
+
+  describe('logViewBoundary()', () => {
+    it("should emit a log record with the severity number of SeverityNumber.INFO, the body of 'Navigation event', and the attribute of 'app.screen.id' as the path of navigation when breadcrumbs() is enabled", () => {
+      const urlTemplate = '/users/:id';
+      const crashlyticsWithTracing: CrashlyticsInternal = {
+        ...fakeCrashlytics,
+        options: { features: [breadcrumbs()] }
+      };
+      logViewBoundary(crashlyticsWithTracing, urlTemplate);
+
+      expect(emittedLogs.length).to.equal(1);
+      const log = emittedLogs[0];
+      expect(log.severityNumber).to.equal(SeverityNumber.INFO);
+      expect(log.body).to.equal('Navigation event');
+      expect(log.attributes![SPAN_ATTR_KEY.APP_SCREEN_ID]).to.equal(
+        urlTemplate
+      );
+    });
+
+    it('should emit a log record with additional attributes if available when breadcrumbs() is enabled', () => {
+      const urlTemplate = '/users/:id';
+      const additionalAttributes = { 'custom.attr': 'value' };
+      const crashlyticsWithTracing: CrashlyticsInternal = {
+        ...fakeCrashlytics,
+        options: { features: [breadcrumbs()] }
+      };
+      logViewBoundary(
+        crashlyticsWithTracing,
+        urlTemplate,
+        additionalAttributes
+      );
+
+      expect(emittedLogs.length).to.equal(1);
+      const log = emittedLogs[0];
+      expect(log.attributes!['custom.attr']).to.equal('value');
+      expect(log.attributes![SPAN_ATTR_KEY.APP_SCREEN_ID]).to.equal(
+        urlTemplate
+      );
+    });
+
+    it('should not emit a log record when breadcrumbs() is not in features', () => {
+      const urlTemplate = '/users/:id';
+      const crashlyticsWithoutTracing: CrashlyticsInternal = {
+        ...fakeCrashlytics,
+        options: { features: [] }
+      };
+      logViewBoundary(fakeCrashlytics, urlTemplate);
+      logViewBoundary(crashlyticsWithoutTracing, urlTemplate);
+
+      expect(emittedLogs.length).to.equal(0);
     });
   });
 
@@ -295,25 +419,21 @@ describe('Top level API', () => {
       });
     });
 
-    it('should propagate trace context', async () => {
-      const provider = new WebTracerProvider({
-        spanProcessors: [new SimpleSpanProcessor(new InMemorySpanExporter())]
-      });
-      provider.register();
+    it('should propagate trace context', () => {
+      getActiveSpanStub.returns({
+        spanContext: () => ({
+          traceId: 'my-trace',
+          spanId: 'my-span',
+          traceFlags: 0,
+          isRemote: false
+        })
+      } as any);
 
-      trace.getTracer('test-tracer').startActiveSpan('test-span', span => {
-        const error = new Error('This is a test error');
-        error.stack = '...stack trace...';
-        error.name = 'TestError';
+      const error = new Error('This is a test error');
+      error.stack = '...stack trace...';
+      error.name = 'TestError';
 
-        span.spanContext().traceId = 'my-trace';
-        span.spanContext().spanId = 'my-span';
-
-        recordError(fakeCrashlytics, error);
-        span.end();
-      });
-
-      await provider.shutdown();
+      recordError(fakeCrashlytics, error);
 
       expect(emittedLogs[0].attributes).to.deep.equal({
         'exception.type': 'TestError',
@@ -408,7 +528,9 @@ describe('Top level API', () => {
       const crashlytics = new CrashlyticsService(
         fakeCrashlytics.app,
         fakeLoggerProvider,
-        fakeAttributesStore
+        fakeTracingProvider,
+        fakeAttributesStore,
+        fakeTelemetryStore
       );
       crashlytics.options = {
         appVersion: '1.0.0'
@@ -521,6 +643,73 @@ describe('Top level API', () => {
         expect(log.attributes![LOG_ATTR_KEY.SESSION_ID]).to.be.undefined;
       });
     });
+
+    it('should emit the error log record to the logger before calling onErrorOccurred on processors', () => {
+      const callOrder: string[] = [];
+
+      const mockOnErrorLogRecordProcessor = {
+        onErrorOccurred: sinon.spy(() => {
+          callOrder.push('onErrorOccurred');
+        })
+      };
+
+      const mockLogger = {
+        emit: sinon.spy(() => {
+          callOrder.push('emit');
+        })
+      };
+
+      const mockLoggerProvider = {
+        getLogger: () => mockLogger
+      } as unknown as LoggerProvider;
+
+      const crashlyticsInstance: CrashlyticsInternal = {
+        ...fakeCrashlytics,
+        loggerProvider: mockLoggerProvider,
+        onErrorLogRecordProcessor: mockOnErrorLogRecordProcessor as any
+      };
+
+      recordError(crashlyticsInstance, new Error('Test emit order'));
+
+      expect(mockLogger.emit.calledOnce).to.be.true;
+      expect(mockOnErrorLogRecordProcessor.onErrorOccurred.calledOnce).to.be
+        .true;
+      expect(callOrder).to.deep.equal(['emit', 'onErrorOccurred']);
+    });
+
+    it('should immediately flush recorded error when using OnErrorLogRecordProcessor', async () => {
+      const exported: ReadableLogRecord[] = [];
+      const mockExporter: LogRecordExporter = {
+        export(logs, resultCallback) {
+          exported.push(...logs);
+          resultCallback({ code: ExportResultCode.SUCCESS });
+        },
+        shutdown: () => Promise.resolve(),
+        forceFlush: () => Promise.resolve()
+      };
+
+      const processor = new OnErrorLogRecordProcessor(
+        mockExporter,
+        fakeTelemetryStore
+      );
+      const resource = resourceFromAttributes({});
+      const realLoggerProvider = new LoggerProvider({
+        resource,
+        processors: [processor]
+      });
+
+      const crashlyticsInstance: CrashlyticsInternal = {
+        ...fakeCrashlytics,
+        loggerProvider: realLoggerProvider,
+        onErrorLogRecordProcessor: processor
+      };
+
+      recordError(crashlyticsInstance, new Error('Immediate export error'));
+      await processor.forceFlush();
+
+      expect(exported).to.have.lengthOf(1);
+      expect(exported[0].body).to.equal('Immediate export error');
+    });
   });
 
   describe('log()', () => {
@@ -607,21 +796,17 @@ describe('Top level API', () => {
       });
     });
 
-    it('should propagate trace context', async () => {
-      const provider = new WebTracerProvider({
-        spanProcessors: [new SimpleSpanProcessor(new InMemorySpanExporter())]
-      });
-      provider.register();
+    it('should propagate trace context', () => {
+      getActiveSpanStub.returns({
+        spanContext: () => ({
+          traceId: 'my-trace',
+          spanId: 'my-span',
+          traceFlags: 0,
+          isRemote: false
+        })
+      } as any);
 
-      trace.getTracer('test-tracer').startActiveSpan('test-span', span => {
-        span.spanContext().traceId = 'my-trace';
-        span.spanContext().spanId = 'my-span';
-
-        log(fakeCrashlytics, 'Traced log message');
-        span.end();
-      });
-
-      await provider.shutdown();
+      log(fakeCrashlytics, 'Traced log message');
 
       expect(emittedLogs[0].attributes).to.deep.equal({
         [LOG_ATTR_KEY.APP_VERSION]: 'unset',

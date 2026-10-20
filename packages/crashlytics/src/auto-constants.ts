@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2026 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,5 +20,4 @@
  * The supported keys are:
  * - appVersion: string indicating the version of source code being deployed (eg. git commit hash)
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const AUTO_CONSTANTS: any = {};
+export const AUTO_CONSTANTS: Record<string, string | undefined> = {};

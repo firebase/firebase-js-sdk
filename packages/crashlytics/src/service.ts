@@ -18,19 +18,61 @@
 import { _FirebaseService, FirebaseApp } from '@firebase/app';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
+import type { TracerProvider } from '@opentelemetry/api';
 import { AttributesStore } from './attributes-store';
+import type { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
+import type { OnErrorSpanProcessor } from './tracing/on-error-span-processor';
+import type { TelemetryStore } from './telemetry-store';
+import { getBreadcrumbsFeature } from './helpers';
 
 export class CrashlyticsService implements Crashlytics, _FirebaseService {
   private _options?: CrashlyticsOptions;
+  private _unsubscribeListeners?: () => void;
 
   constructor(
     public app: FirebaseApp,
     public loggerProvider: LoggerProvider,
-    public attributesStore: AttributesStore
+    public tracingProvider: TracerProvider | null,
+    public attributesStore: AttributesStore,
+    public telemetryStore?: TelemetryStore,
+    public onErrorLogRecordProcessor?: OnErrorLogRecordProcessor,
+    public onErrorSpanProcessor?: OnErrorSpanProcessor
   ) {}
 
-  _delete(): Promise<void> {
-    return Promise.resolve();
+  unsubscribeListeners(unsubscribe: () => void): void {
+    this._unsubscribeListeners = unsubscribe;
+  }
+
+  async _delete(): Promise<void> {
+    if (this._unsubscribeListeners) {
+      this._unsubscribeListeners();
+    }
+    getBreadcrumbsFeature(this._options)?.unregisterInstrumentations();
+
+    const promises: Array<Promise<void>> = [];
+    if (
+      this.loggerProvider &&
+      typeof this.loggerProvider.shutdown === 'function'
+    ) {
+      promises.push(
+        this.loggerProvider.shutdown().catch(err => {
+          console.warn('Error shutting down logger provider:', err);
+        })
+      );
+    }
+    if (this.tracingProvider) {
+      const shutdownProvider = this.tracingProvider as unknown as {
+        shutdown?: () => Promise<void>;
+      };
+      if (typeof shutdownProvider.shutdown === 'function') {
+        promises.push(
+          shutdownProvider.shutdown().catch(err => {
+            console.warn('Error shutting down tracing provider:', err);
+          })
+        );
+      }
+    }
+    await Promise.all(promises);
   }
 
   set options(optionsToSet: CrashlyticsOptions) {

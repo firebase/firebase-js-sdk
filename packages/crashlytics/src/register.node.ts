@@ -27,6 +27,7 @@ import { CrashlyticsService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
 import { CrashlyticsOptions } from './public-types';
 import { AttributesStore } from './attributes-store';
+import { getBreadcrumbsFeature } from './helpers';
 
 export function registerCrashlytics(): void {
   _registerComponent(
@@ -35,18 +36,45 @@ export function registerCrashlytics(): void {
       (container, { options }: InstanceFactoryOptions) => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
-        const crashlyticsOptions = options as CrashlyticsOptions;
+        const crashlyticsOptions = (options as CrashlyticsOptions) || {};
         const attributesStore = new AttributesStore(
           app.options,
           crashlyticsOptions
         );
-        const loggerProvider = createLoggerProvider(
+        const breadcrumbsFeature = getBreadcrumbsFeature(crashlyticsOptions);
+        const telemetryStore = breadcrumbsFeature?.createTelemetryStore();
+        const { loggerProvider, onErrorLogRecordProcessor } =
+          createLoggerProvider(
+            app,
+            crashlyticsOptions,
+            attributesStore,
+            telemetryStore
+          );
+        const { tracingProvider, onErrorSpanProcessor } =
+          breadcrumbsFeature && telemetryStore
+            ? breadcrumbsFeature.createTracingProvider(
+                app,
+                crashlyticsOptions,
+                attributesStore,
+                telemetryStore
+              )
+            : { tracingProvider: null, onErrorSpanProcessor: undefined };
+
+        const crashlyticsService = new CrashlyticsService(
           app,
-          crashlyticsOptions,
-          attributesStore
+          loggerProvider,
+          tracingProvider,
+          attributesStore,
+          telemetryStore,
+          onErrorLogRecordProcessor,
+          onErrorSpanProcessor
         );
 
-        return new CrashlyticsService(app, loggerProvider, attributesStore);
+        if (options) {
+          crashlyticsService.options = crashlyticsOptions;
+        }
+
+        return crashlyticsService;
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)

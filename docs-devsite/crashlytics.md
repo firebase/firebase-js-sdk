@@ -17,6 +17,8 @@ https://github.com/firebase/firebase-js-sdk
 |  --- | --- |
 |  <b>function(app, ...)</b> |
 |  [getCrashlytics(app, options)](./crashlytics.md#getcrashlytics_a9d22a1) | Returns the default [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
+|  <b>function()</b> |
+|  [breadcrumbs()](./crashlytics.md#breadcrumbs) | Enables Crashlytics breadcrumb and trace telemetry collection when passed in [CrashlyticsOptions.features](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsfeatures)<!-- -->.<!-- -->When enabled, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions, and visibility lifecycle events), buffering them in memory and exporting them when an error occurs. |
 |  <b>function(crashlytics, ...)</b> |
 |  [flush(crashlytics)](./crashlytics.md#flush_16fdf66) | Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching. |
 |  [log(crashlytics, message, attributes)](./crashlytics.md#log_a58b551) | Queues a log message to be uploaded to the Firebase Crashlytics API. |
@@ -29,6 +31,7 @@ https://github.com/firebase/firebase-js-sdk
 |  Interface | Description |
 |  --- | --- |
 |  [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [CrashlyticsFeature](./crashlytics.crashlyticsfeature.md#crashlyticsfeature_interface) | An opaque feature plugin object returned by Crashlytics feature factory functions such as [breadcrumbs()](./crashlytics.md#breadcrumbs)<!-- -->. |
 |  [CrashlyticsOptions](./crashlytics.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
 
 ## Namespaces
@@ -67,6 +70,35 @@ The default [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) in
 
 ```javascript
 const crashlytics = getCrashlytics(app);
+
+```
+
+## function()
+
+### breadcrumbs() {:#breadcrumbs}
+
+Enables Crashlytics breadcrumb and trace telemetry collection when passed in [CrashlyticsOptions.features](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsfeatures)<!-- -->.
+
+When enabled, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions, and visibility lifecycle events), buffering them in memory and exporting them when an error occurs.
+
+<b>Signature:</b>
+
+```typescript
+export declare function breadcrumbs(): CrashlyticsFeature;
+```
+<b>Returns:</b>
+
+[CrashlyticsFeature](./crashlytics.crashlyticsfeature.md#crashlyticsfeature_interface)
+
+### Example
+
+
+```ts
+import { getCrashlytics, breadcrumbs } from '@firebase/crashlytics';
+
+const crashlytics = getCrashlytics(app, {
+  features: [breadcrumbs()]
+});
 
 ```
 

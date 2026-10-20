@@ -18,6 +18,9 @@
 /** Type constant for Firebase Crashlytics. */
 export const CRASHLYTICS_TYPE = 'crashlytics';
 
+/** The name of the tracer for Firebase Crashlytics. */
+export const CRASHLYTICS_TRACER_NAME = 'firebase.crashlytics';
+
 /** The default endpoint for the Firebase Telemetry API. */
 export const DEFAULT_TELEMETRY_ENDPOINT =
   'https://firebasetelemetry.googleapis.com';
@@ -27,6 +30,9 @@ export const DEFAULT_TELEMETRY_REGION = 'global';
 
 /** Symbol for the internal flag indicating an error has already been logged. */
 export const ALREADY_LOGGED_FLAG = Symbol('firebase_crashlytics_logged');
+
+/** Resource attribute key representing the web application domain in the tracing provider. */
+export const GCP_FIREBASE_DOMAIN = 'gcp.firebase.domain';
 
 /**
  * The namespace for Next.js request attributes that we write in telemetry log entries.
@@ -42,3 +48,11 @@ export const NEXTJS_REQUEST_ATTRIBUTE_KEYS = {
   ROUTER_KIND: `${NEXTJS_ATTRIBUTE_NAMESPACE}.router_kind`,
   ROUTE_TYPE: `${NEXTJS_ATTRIBUTE_NAMESPACE}.route_type`
 };
+
+/**
+ * Maximum safe payload size (in bytes) to use with keepalive: true.
+ * Browsers limit total keepalive data to 64KB, which includes both the request body
+ * and all HTTP request headers. We use 60,000 bytes as a safe limit to leave a buffer
+ * of ~5KB for headers (such as large App Check tokens, API keys, and content-type).
+ */
+export const KEEPALIVE_MAX_PAYLOAD_SIZE = 60000;

@@ -62,10 +62,21 @@ describe('FirebaseCrashlytics', () => {
   let emitStub: sinon.SinonStub;
   let fakeApp: FirebaseApp;
   let fakeCrashlytics: Crashlytics;
+  let fakeTracer: any;
+  let fakeContextManager: any;
 
   beforeEach(() => {
     fakeApp = { name: 'fakeApp' } as FirebaseApp;
     emitStub = stub();
+    fakeTracer = {
+      startSpan: stub()
+    };
+    fakeContextManager = {
+      startRootSpan: stub()
+    };
+    const fakeTracingProvider = {
+      getTracer: stub().returns(fakeTracer)
+    };
     fakeCrashlytics = {
       app: {
         options: {}
@@ -75,7 +86,11 @@ describe('FirebaseCrashlytics', () => {
           emit: emitStub
         })
       },
-      attributesStore: new AttributesStore({ projectId: 'fake-project' })
+      tracingProvider: fakeTracingProvider,
+      attributesStore: new AttributesStore({ projectId: 'fake-project' }),
+      telemetryStore: {
+        clear: stub()
+      }
     } as unknown as Crashlytics;
 
     getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
@@ -111,7 +126,7 @@ describe('FirebaseCrashlytics', () => {
     render(<FirebaseCrashlytics firebaseApp={fakeApp} />);
     const reason = new Error('test rejection');
     const promise = Promise.reject(reason);
-    promise.catch(() => {});
+    promise.catch(() => { });
 
     window.dispatchEvent(
       new PromiseRejectionEvent('unhandledrejection', { reason, promise })

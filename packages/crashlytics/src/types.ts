@@ -15,10 +15,48 @@
  * limitations under the License.
  */
 
-import { LoggerProvider } from '@opentelemetry/sdk-logs';
-import { Crashlytics } from './public-types';
+import type { FirebaseApp } from '@firebase/app';
+import type {
+  LoggerProvider,
+  LogRecordExporter
+} from '@opentelemetry/sdk-logs';
+import type { TracerProvider } from '@opentelemetry/api';
+import {
+  Crashlytics,
+  CrashlyticsFeature,
+  CrashlyticsOptions
+} from './public-types';
+import type { AttributesStore } from './attributes-store';
 import { ALREADY_LOGGED_FLAG } from './constants';
-import { AttributesStore } from './attributes-store';
+import type { OnErrorSpanProcessor } from './tracing/on-error-span-processor';
+import type { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
+import type { TelemetryStore } from './telemetry-store';
+
+/**
+ * Internal interface implemented by Crashlytics feature plugins (such as {@link breadcrumbs}).
+ *
+ * @internal
+ */
+export interface CrashlyticsFeatureInternal extends CrashlyticsFeature {
+  readonly name: string;
+  createTelemetryStore(): TelemetryStore;
+  createLogRecordProcessor(
+    exporter: LogRecordExporter,
+    telemetryStore: TelemetryStore
+  ): OnErrorLogRecordProcessor;
+  initializeLoggerInstrumentations(loggerProvider: LoggerProvider): void;
+  createTracingProvider(
+    app: FirebaseApp,
+    crashlyticsOptions: CrashlyticsOptions,
+    attributesStore: AttributesStore,
+    telemetryStore: TelemetryStore,
+    dynamicHeaderProviders?: DynamicHeaderProvider[]
+  ): {
+    tracingProvider: TracerProvider;
+    onErrorSpanProcessor?: OnErrorSpanProcessor;
+  };
+  unregisterInstrumentations(): void;
+}
 
 /**
  * An internal interface for the Crashlytics service.
@@ -27,34 +65,15 @@ import { AttributesStore } from './attributes-store';
  */
 export interface CrashlyticsInternal extends Crashlytics {
   loggerProvider: LoggerProvider;
+  tracingProvider: TracerProvider | null;
   attributesStore: AttributesStore;
+  telemetryStore?: TelemetryStore;
+  onErrorLogRecordProcessor?: OnErrorLogRecordProcessor;
+  onErrorSpanProcessor?: OnErrorSpanProcessor;
+  options?: CrashlyticsOptions;
 }
 
 type KeyValuePair = [key: string, value: string];
-
-/**
- * A type for Cloud Telemetry signal attributes
- *
- * @internal
- */
-export type SignalAttribute = KeyValuePair;
-
-/**
- * An interface for classes that provide dynamic signal attributes.
- *
- * Classes that implement this interface can be used to supply custom headers for logging.
- *
- * @internal
- */
-export interface DynamicAttributeProvider {
-  /**
-   * Returns a record of attributes to be added to a log entry.
-   *
-   * @returns A {@link Promise} that resolves to a {@link SignalAttribute} key-value pair,
-   * or null if no attribute is to be added.
-   */
-  getAttribute(): Promise<SignalAttribute | null>;
-}
 
 /**
  * A type for HTTP Headers

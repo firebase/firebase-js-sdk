@@ -20,6 +20,7 @@ import { registerCrashlytics } from '../register';
 import {
   recordError,
   getCrashlytics,
+  logViewBoundary,
   registerGlobalErrorListeners
 } from '../api';
 import { CrashlyticsOptions } from '../public-types';
@@ -40,7 +41,7 @@ registerCrashlytics();
 export * from '../public-types';
 
 /**
- * A wrapper around {@link react-router-dom#Routes} that automatically captures errors in route components.
+ * A wrapper around `Routes` from `react-router-dom` that automatically captures errors in route components.
  *
  * This component acts as a replacement for `Routes` from `react-router-dom`. It wraps the routes
  * in an error boundary that captures errors thrown during rendering and reports them to Crashlytics.
@@ -124,6 +125,10 @@ export function CrashlyticsRoutes({
   const onError = (error: Error): void => {
     recordError(crashlytics, error);
   };
+
+  React.useEffect(() => {
+    logViewBoundary(crashlytics, pattern);
+  }, [location.key]);
 
   return React.createElement(CrashlyticsErrorBoundary, {
     onError,
