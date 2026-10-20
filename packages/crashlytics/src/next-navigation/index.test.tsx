@@ -120,12 +120,12 @@ describe('CrashlyticsRoutes', () => {
     );
 
     // Check that routePathProvider is set up and returns the active pathname
-    const routePath = fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
+    const routePath = fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
     expect(routePath).to.equal('/initial-path');
 
     // Unmount and verify cleanup
     unmount();
-    const routePathAfterUnmount = fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
+    const routePathAfterUnmount = fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
     expect(routePathAfterUnmount).to.be.undefined;
   });
 
@@ -211,7 +211,7 @@ describe('CrashlyticsRoutes', () => {
       </PathnameContext.Provider>
     );
 
-    const routePath = fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
+    const routePath = fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
     expect(routePath).to.equal('/posts/:postId');
   });
 

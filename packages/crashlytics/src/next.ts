@@ -46,7 +46,7 @@ export function nextOnRequestError(
     const crashlytics = getCrashlytics(getApp(), crashlyticsOptions);
 
     const attributes = {
-      [LOG_ATTR_KEY.ROUTE_PATH]: errorContext.routePath,
+      [LOG_ATTR_KEY.APP_SCREEN_ID]: errorContext.routePath,
       [NEXTJS_REQUEST_ATTRIBUTE_KEYS.PATH]: errorRequest.path,
       [NEXTJS_REQUEST_ATTRIBUTE_KEYS.METHOD]: errorRequest.method,
       [NEXTJS_REQUEST_ATTRIBUTE_KEYS.ROUTER_KIND]: errorContext.routerKind,

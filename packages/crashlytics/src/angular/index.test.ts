@@ -229,13 +229,13 @@ describe('setupCrashlyticsRoutes', () => {
     setupCrashlyticsRoutes({ firebaseApp: app, router, destroyRef });
 
     const routePath =
-      attributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
+      attributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
     expect(routePath).to.equal('/home');
 
     TestBed.resetTestingModule();
 
     const routePathAfterUnmount =
-      attributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
+      attributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
     expect(routePathAfterUnmount).to.be.undefined;
   });
 
@@ -297,7 +297,7 @@ describe('setupCrashlyticsRoutes', () => {
     await router.navigate(['/about']);
 
     const routePath =
-      attributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
+      attributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
     expect(routePath).to.equal('/about');
   });
 
