@@ -22,11 +22,7 @@ import {
   ExportResult
 } from '@opentelemetry/core';
 import { TracerProvider, trace } from '@opentelemetry/api';
-import {
-  WebTracerProvider,
-  SimpleSpanProcessor,
-  ConsoleSpanExporter
-} from '@opentelemetry/sdk-trace-web';
+import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
@@ -128,8 +124,6 @@ export function createTracingProvider(
     resource,
     spanProcessors: [
       new FirebaseAttributesSpanProcessor(attributesStore),
-      // TODO: Remove console exporter before we ship
-      new SimpleSpanProcessor(new ConsoleSpanExporter()),
       onErrorSpanProcessor
     ]
   });
