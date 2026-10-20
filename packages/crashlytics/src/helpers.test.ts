@@ -15,11 +15,9 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { LoggerProvider, SdkLogRecord } from '@opentelemetry/sdk-logs';
 import { Logger, LogRecord } from '@opentelemetry/api-logs';
 import { trace, TracerProvider } from '@opentelemetry/api';
-import sinon from 'sinon';
 import { isNode } from '@firebase/util';
 import {
   registerListeners,
@@ -39,6 +37,7 @@ import {
 import { TelemetryStore } from './telemetry-store';
 import { FirebaseAttributesLogProcessor } from './logging/attributes-log-processor';
 import { breadcrumbs } from './breadcrumbs';
+import type { MockInstance } from 'vitest';
 
 describe('helpers', () => {
   let originalSessionStorage: Storage | undefined;
@@ -76,16 +75,16 @@ describe('helpers', () => {
   let fakeAttributesStore: AttributesStore;
   let fakeTelemetryStore: TelemetryStore;
   let fakeCrashlytics: CrashlyticsInternal;
-  let getActiveSpanStub: sinon.SinonStub;
+  let getActiveSpanStub: MockInstance;
 
   beforeEach(() => {
     emittedLogs = [];
     flushed = false;
     storage = {};
     // @ts-ignore
-    originalSessionStorage = global.sessionStorage;
+    originalSessionStorage = globalThis.sessionStorage;
     // @ts-ignore
-    originalCrypto = global.crypto;
+    originalCrypto = globalThis.crypto;
 
     const sessionStorageMock: Partial<Storage> = {
       getItem: (key: string) => storage[key] || null,
@@ -93,7 +92,7 @@ describe('helpers', () => {
         storage[key] = value;
       }
     };
-    Object.defineProperty(global, 'sessionStorage', {
+    Object.defineProperty(globalThis, 'sessionStorage', {
       value: sessionStorageMock,
       writable: true
     });
@@ -114,11 +113,13 @@ describe('helpers', () => {
       attributesStore: fakeAttributesStore,
       telemetryStore: fakeTelemetryStore
     };
-    getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns(undefined);
+    getActiveSpanStub = vi
+      .spyOn(trace, 'getActiveSpan')
+      .mockReturnValue(undefined);
   });
 
   afterEach(() => {
-    Object.defineProperty(global, 'sessionStorage', {
+    Object.defineProperty(globalThis, 'sessionStorage', {
       value: originalSessionStorage,
       writable: true
     });
@@ -129,7 +130,7 @@ describe('helpers', () => {
       });
     }
     delete AUTO_CONSTANTS.appVersion;
-    getActiveSpanStub.restore();
+    getActiveSpanStub.mockRestore();
   });
 
   describe('startNewSession', () => {
@@ -139,14 +140,14 @@ describe('helpers', () => {
       const cryptoMock: Partial<Crypto> = {
         randomUUID: () => MOCK_SESSION_ID
       };
-      Object.defineProperty(global, 'crypto', {
+      Object.defineProperty(globalThis, 'crypto', {
         value: cryptoMock,
         writable: true
       });
     });
 
     afterEach(() => {
-      Object.defineProperty(global, 'crypto', {
+      Object.defineProperty(globalThis, 'crypto', {
         value: originalCrypto,
         writable: true
       });
@@ -155,9 +156,9 @@ describe('helpers', () => {
     it('should create a new session and log it with app version (unset)', () => {
       startNewSession(fakeCrashlytics);
 
-      expect(storage[SESSION_STORAGE_SESSION_ID_KEY]).to.equal(MOCK_SESSION_ID);
-      expect(emittedLogs.length).to.equal(1);
-      expect(emittedLogs[0].attributes).to.deep.equal({
+      expect(storage[SESSION_STORAGE_SESSION_ID_KEY]).toBe(MOCK_SESSION_ID);
+      expect(emittedLogs.length).toBe(1);
+      expect(emittedLogs[0].attributes).toEqual({
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
         [LOG_ATTR_KEY.APP_VERSION]: 'unset'
       });
@@ -169,7 +170,7 @@ describe('helpers', () => {
       fakeCrashlytics.attributesStore = fakeAttributesStore;
       startNewSession(fakeCrashlytics);
 
-      expect(emittedLogs[0].attributes).to.deep.equal({
+      expect(emittedLogs[0].attributes).toEqual({
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
         [LOG_ATTR_KEY.APP_VERSION]: '1.2.3'
       });
@@ -187,7 +188,7 @@ describe('helpers', () => {
 
       startNewSession(telemetryWithVersion);
 
-      expect(emittedLogs[0].attributes).to.deep.equal({
+      expect(emittedLogs[0].attributes).toEqual({
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
         [LOG_ATTR_KEY.APP_VERSION]: '9.9.9'
       });
@@ -197,10 +198,10 @@ describe('helpers', () => {
       const mockRootSpan = {
         spanContext: () => ({ traceId: 'traceId2', spanId: 'spanId2' })
       };
-      getActiveSpanStub.returns(mockRootSpan);
+      getActiveSpanStub.mockReturnValue(mockRootSpan);
       startNewSession(fakeCrashlytics);
 
-      expect(emittedLogs[0].attributes).to.deep.equal({
+      expect(emittedLogs[0].attributes).toEqual({
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID,
         [LOG_ATTR_KEY.APP_VERSION]: 'unset',
         [LOG_ATTR_KEY.TRACE]: 'projects/my-project/traces/traceId2',
@@ -215,51 +216,51 @@ describe('helpers', () => {
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
     afterEach(() => {
-      Object.defineProperty(global, 'crypto', {
+      Object.defineProperty(globalThis, 'crypto', {
         value: originalCrypto,
         writable: true
       });
     });
 
     it('should generate a valid v4 UUID using crypto.randomUUID when crypto is available', () => {
-      const randomUUIDStub = sinon.stub().returns(MOCK_UUID);
+      const randomUUIDStub = vi.fn().mockReturnValue(MOCK_UUID);
       const cryptoMock: Partial<Crypto> = {
         randomUUID: randomUUIDStub
       };
 
-      Object.defineProperty(global, 'crypto', {
+      Object.defineProperty(globalThis, 'crypto', {
         value: cryptoMock,
         writable: true
       });
 
       const uuid = generateUuid();
-      expect(uuid).to.equal(MOCK_UUID);
-      expect(randomUUIDStub.called).to.be.true;
+      expect(uuid).toBe(MOCK_UUID);
+      expect(randomUUIDStub.mock.calls.length > 0).toBe(true);
     });
 
     it('should still generate a valid v4 UUID using Math.random when crypto is undefined', () => {
-      Object.defineProperty(global, 'crypto', {
+      Object.defineProperty(globalThis, 'crypto', {
         value: undefined,
         writable: true
       });
-      const randomSpy = sinon.spy(Math, 'random');
+      const randomSpy = vi.spyOn(Math, 'random');
       const uuid = generateUuid();
-      expect(uuid).to.match(UUID_REGEX);
-      expect(randomSpy.called).to.be.true;
-      randomSpy.restore();
+      expect(uuid).toMatch(UUID_REGEX);
+      expect(randomSpy.mock.calls.length > 0).toBe(true);
+      randomSpy.mockRestore();
     });
   });
 
   describe('registerListeners', () => {
-    let addEventListenerStub: sinon.SinonStub;
+    let addEventListenerStub: MockInstance;
     let listeners: Record<string, (...args: any[]) => any>;
 
     beforeEach(() => {
       listeners = {};
       if (typeof window !== 'undefined') {
-        addEventListenerStub = sinon
-          .stub(window, 'addEventListener')
-          .callsFake((event, callback) => {
+        addEventListenerStub = vi
+          .spyOn(window, 'addEventListener')
+          .mockImplementation((event, callback) => {
             listeners[event] = callback as (...args: any[]) => any;
           });
       }
@@ -267,7 +268,7 @@ describe('helpers', () => {
 
     afterEach(() => {
       if (typeof window !== 'undefined') {
-        addEventListenerStub.restore();
+        addEventListenerStub.mockRestore();
       }
     });
 
@@ -280,9 +281,9 @@ describe('helpers', () => {
         fakeCrashlytics.options = { features: [breadcrumbs()] };
         registerListeners(fakeCrashlytics);
 
-        expect(flushed).to.be.false;
-        expect(emittedLogs).to.have.lengthOf(0);
-        expect(listeners['visibilitychange']).to.be.ok;
+        expect(flushed).toBe(false);
+        expect(emittedLogs).toHaveLength(0);
+        expect(listeners['visibilitychange']).toBeTruthy();
 
         Object.defineProperty(document, 'visibilityState', {
           value: 'hidden',
@@ -290,17 +291,17 @@ describe('helpers', () => {
         });
         await listeners['visibilitychange']();
 
-        expect(flushed).to.be.true;
-        expect(emittedLogs).to.have.lengthOf(1);
+        expect(flushed).toBe(true);
+        expect(emittedLogs).toHaveLength(1);
       });
 
       it('should emit a log but not flush when the visibility changes to visible and breadcrumbs() is enabled', async () => {
         fakeCrashlytics.options = { features: [breadcrumbs()] };
         registerListeners(fakeCrashlytics);
 
-        expect(flushed).to.be.false;
-        expect(emittedLogs).to.have.lengthOf(0);
-        expect(listeners['visibilitychange']).to.be.ok;
+        expect(flushed).toBe(false);
+        expect(emittedLogs).toHaveLength(0);
+        expect(listeners['visibilitychange']).toBeTruthy();
 
         Object.defineProperty(document, 'visibilityState', {
           value: 'visible',
@@ -308,8 +309,8 @@ describe('helpers', () => {
         });
         await listeners['visibilitychange']();
 
-        expect(flushed).to.be.false;
-        expect(emittedLogs).to.have.lengthOf(1);
+        expect(flushed).toBe(false);
+        expect(emittedLogs).toHaveLength(1);
       });
 
       it('should not emit a visibility log when breadcrumbs() is not enabled, but still flush on hidden', async () => {
@@ -321,20 +322,20 @@ describe('helpers', () => {
         });
         await listeners['visibilitychange']();
 
-        expect(flushed).to.be.true;
-        expect(emittedLogs).to.have.lengthOf(0);
+        expect(flushed).toBe(true);
+        expect(emittedLogs).toHaveLength(0);
       });
 
       it('should flush logs when the pagehide event fires', async () => {
         startNewSession(fakeCrashlytics);
         registerListeners(fakeCrashlytics);
 
-        expect(flushed).to.be.false;
-        expect(listeners['pagehide']).to.be.ok;
+        expect(flushed).toBe(false);
+        expect(listeners['pagehide']).toBeTruthy();
 
         await listeners['pagehide']();
 
-        expect(flushed).to.be.true;
+        expect(flushed).toBe(true);
       });
     }
   });
@@ -343,17 +344,17 @@ describe('helpers', () => {
     it("should emit a log record for a hidden visibility with body of 'Background lifecycle event'", () => {
       logVisibilityEvent(fakeCrashlytics, 'hidden');
 
-      expect(emittedLogs).to.have.lengthOf(1);
+      expect(emittedLogs).toHaveLength(1);
       const log = emittedLogs[0];
-      expect(log.body).to.equal('Background lifecycle event');
+      expect(log.body).toBe('Background lifecycle event');
     });
 
     it("should emit a log record for a visible visibility with body of 'Foreground lifecycle event'", () => {
       logVisibilityEvent(fakeCrashlytics, 'visible');
 
-      expect(emittedLogs).to.have.lengthOf(1);
+      expect(emittedLogs).toHaveLength(1);
       const log = emittedLogs[0];
-      expect(log.body).to.equal('Foreground lifecycle event');
+      expect(log.body).toBe('Foreground lifecycle event');
     });
   });
 
@@ -363,7 +364,7 @@ describe('helpers', () => {
         isTelemetryUrl(
           'https://firebasetelemetry.googleapis.com/v1/projects/p/apps/a/locations/l/logs'
         )
-      ).to.be.true;
+      ).toBe(true);
     });
 
     it('should identify custom endpoint URLs when provided', () => {
@@ -372,31 +373,31 @@ describe('helpers', () => {
           'https://custom-proxy.internal.net/v1/projects/p/apps/a/locations/l/logs',
           'https://custom-proxy.internal.net'
         )
-      ).to.be.true;
+      ).toBe(true);
     });
 
     it('should return false for unrelated URLs (e.g. Auth, Firestore, APIs)', () => {
       expect(
         isTelemetryUrl('https://identitytoolkit.googleapis.com/v1/accounts')
-      ).to.be.false;
+      ).toBe(false);
       expect(
         isTelemetryUrl(
           'https://firestore.googleapis.com/v1/projects/p/databases'
         )
-      ).to.be.false;
-      expect(isTelemetryUrl('https://api.example.com/data')).to.be.false;
+      ).toBe(false);
+      expect(isTelemetryUrl('https://api.example.com/data')).toBe(false);
       expect(
         isTelemetryUrl(
           'https://example.com/search?query=firebasetelemetry.googleapis.com'
         )
-      ).to.be.false;
+      ).toBe(false);
     });
 
     it('should handle undefined or non-string inputs safely', () => {
-      expect(isTelemetryUrl(undefined)).to.be.false;
-      expect(isTelemetryUrl(null)).to.be.false;
-      expect(isTelemetryUrl(12345)).to.be.false;
-      expect(isTelemetryUrl('')).to.be.false;
+      expect(isTelemetryUrl(undefined)).toBe(false);
+      expect(isTelemetryUrl(null)).toBe(false);
+      expect(isTelemetryUrl(12345)).toBe(false);
+      expect(isTelemetryUrl('')).toBe(false);
     });
   });
 });

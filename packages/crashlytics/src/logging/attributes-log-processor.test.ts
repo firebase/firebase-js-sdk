@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { SdkLogRecord } from '@opentelemetry/sdk-logs';
 import { trace, context, SpanContext, TraceFlags } from '@opentelemetry/api';
 import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
@@ -43,8 +42,8 @@ describe('FirebaseAttributesLogProcessor', () => {
 
     processor.onEmit(logRecord);
 
-    expect(logRecord.attributes?.customKey).to.equal('customValue');
-    expect(logRecord.attributes?.appLevel).to.equal('value1');
+    expect(logRecord.attributes?.customKey).toBe('customValue');
+    expect(logRecord.attributes?.appLevel).toBe('value1');
   });
 
   it('should not overwrite existing attributes on log record', () => {
@@ -58,7 +57,7 @@ describe('FirebaseAttributesLogProcessor', () => {
 
     processor.onEmit(logRecord);
 
-    expect(logRecord.attributes?.appLevel).to.equal('overridden');
+    expect(logRecord.attributes?.appLevel).toBe('overridden');
   });
 
   it('should correlate trace and span IDs from logRecord.spanContext', () => {
@@ -76,10 +75,10 @@ describe('FirebaseAttributesLogProcessor', () => {
 
     processor.onEmit(logRecord);
 
-    expect(logRecord.attributes?.[LOG_ATTR_KEY.TRACE]).to.equal(
+    expect(logRecord.attributes?.[LOG_ATTR_KEY.TRACE]).toBe(
       'projects/test-project/traces/4bf92f3577b34da6a3ce929d0e0e4736'
     );
-    expect(logRecord.attributes?.[LOG_ATTR_KEY.SPAN_ID]).to.equal(
+    expect(logRecord.attributes?.[LOG_ATTR_KEY.SPAN_ID]).toBe(
       '00f067aa0ba902b7'
     );
   });
@@ -102,10 +101,10 @@ describe('FirebaseAttributesLogProcessor', () => {
 
     processor.onEmit(logRecord, ctx);
 
-    expect(logRecord.attributes?.[LOG_ATTR_KEY.TRACE]).to.equal(
+    expect(logRecord.attributes?.[LOG_ATTR_KEY.TRACE]).toBe(
       'projects/test-project/traces/1234567890abcdef1234567890abcdef'
     );
-    expect(logRecord.attributes?.[LOG_ATTR_KEY.SPAN_ID]).to.equal(
+    expect(logRecord.attributes?.[LOG_ATTR_KEY.SPAN_ID]).toBe(
       'abcdef1234567890'
     );
   });
@@ -135,10 +134,10 @@ describe('FirebaseAttributesLogProcessor', () => {
 
     await provider.shutdown();
 
-    expect(logRecord.attributes?.[LOG_ATTR_KEY.TRACE]).to.equal(
+    expect(logRecord.attributes?.[LOG_ATTR_KEY.TRACE]).toBe(
       'projects/test-project/traces/fedcba0987654321fedcba0987654321'
     );
-    expect(logRecord.attributes?.[LOG_ATTR_KEY.SPAN_ID]).to.equal(
+    expect(logRecord.attributes?.[LOG_ATTR_KEY.SPAN_ID]).toBe(
       '0987654321fedcba'
     );
   });

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import sinon from 'sinon';
 import { FirebaseApp } from '@firebase/app';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { TracerProvider } from '@opentelemetry/api';
@@ -34,14 +32,14 @@ describe('CrashlyticsService', () => {
   const fakeTelemetryStore = {} as unknown as TelemetryStore;
 
   afterEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
   });
 
   describe('_delete() lifecycle', () => {
     it('should unsubscribe listeners, shutdown providers, and call OTel unregister functions', async () => {
-      const unsubscribeSpy = sinon.spy();
-      const loggerShutdownStub = sinon.stub().resolves();
-      const tracingShutdownStub = sinon.stub().resolves();
+      const unsubscribeSpy = vi.fn();
+      const loggerShutdownStub = vi.fn().mockResolvedValue(undefined);
+      const tracingShutdownStub = vi.fn().mockResolvedValue(undefined);
 
       const fakeLoggerProvider = {
         shutdown: loggerShutdownStub
@@ -63,9 +61,9 @@ describe('CrashlyticsService', () => {
 
       await service._delete();
 
-      expect(unsubscribeSpy.called).to.be.true;
-      expect(loggerShutdownStub.called).to.be.true;
-      expect(tracingShutdownStub.called).to.be.true;
+      expect(unsubscribeSpy).toHaveBeenCalled();
+      expect(loggerShutdownStub).toHaveBeenCalled();
+      expect(tracingShutdownStub).toHaveBeenCalled();
     });
 
     it('should not throw if unsubscribeListeners is not registered and providers lack shutdown methods', async () => {
@@ -87,13 +85,13 @@ describe('CrashlyticsService', () => {
     });
 
     it('should not throw when provider shutdown methods reject', async () => {
-      sinon.stub(console, 'warn');
-      const loggerShutdownStub = sinon
-        .stub()
-        .rejects(new Error('Logger shutdown failed'));
-      const tracingShutdownStub = sinon
-        .stub()
-        .rejects(new Error('Tracing shutdown failed'));
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const loggerShutdownStub = vi
+        .fn()
+        .mockRejectedValue(new Error('Logger shutdown failed'));
+      const tracingShutdownStub = vi
+        .fn()
+        .mockRejectedValue(new Error('Tracing shutdown failed'));
 
       const fakeLoggerProvider = {
         shutdown: loggerShutdownStub
@@ -117,8 +115,8 @@ describe('CrashlyticsService', () => {
         expect.fail('Should not throw when provider shutdown methods reject');
       }
 
-      expect(loggerShutdownStub.called).to.be.true;
-      expect(tracingShutdownStub.called).to.be.true;
+      expect(loggerShutdownStub).toHaveBeenCalled();
+      expect(tracingShutdownStub).toHaveBeenCalled();
     });
   });
 });

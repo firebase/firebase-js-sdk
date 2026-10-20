@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
-import sinon, { restore, stub } from 'sinon';
 import * as crashlytics from '../api';
 import { FirebaseApp } from '@firebase/app';
 import { Crashlytics } from '../public-types';
@@ -30,31 +26,33 @@ import {
   PathnameContext,
   PathParamsContext
 } from 'next/dist/shared/lib/hooks-client-context.shared-runtime';
+import type { MockInstance } from 'vitest';
 
-use(sinonChai);
-use(chaiAsPromised);
+vi.mock('../api', { spy: true });
 
 describe('getParameterizedRoute', () => {
   it('should return "/" if pathname is null or empty', () => {
-    expect(getParameterizedRoute(null, {})).to.equal('/');
-    expect(getParameterizedRoute('', {})).to.equal('/');
+    expect(getParameterizedRoute(null, {})).toBe('/');
+    expect(getParameterizedRoute('', {})).toBe('/');
   });
 
   it('should return raw pathname if params are empty or null', () => {
-    expect(getParameterizedRoute('/users/profile', null)).to.equal('/users/profile');
-    expect(getParameterizedRoute('/users/profile', {})).to.equal('/users/profile');
+    expect(getParameterizedRoute('/users/profile', null)).toBe(
+      '/users/profile'
+    );
+    expect(getParameterizedRoute('/users/profile', {})).toBe('/users/profile');
   });
 
   it('should ignore params when the value is set to undefined', () => {
     const route = getParameterizedRoute('/users/123/details', {
       id: undefined
     });
-    expect(route).to.equal('/users/123/details');
+    expect(route).toBe('/users/123/details');
   });
 
   it('should replace dynamic string route parameters with placeholders', () => {
     const route = getParameterizedRoute('/users/123/details', { id: '123' });
-    expect(route).to.equal('/users/:id/details');
+    expect(route).toBe('/users/:id/details');
   });
 
   it('should replace multiple dynamic parameters in pathname', () => {
@@ -62,14 +60,14 @@ describe('getParameterizedRoute', () => {
       userId: '123',
       postId: '456'
     });
-    expect(route).to.equal('/users/:userId/posts/:postId');
+    expect(route).toBe('/users/:userId/posts/:postId');
   });
 
   it('should handle catch-all array parameters', () => {
     const route = getParameterizedRoute('/docs/a/b/c', {
       parts: ['a', 'b', 'c']
     });
-    expect(route).to.equal('/docs/:parts*');
+    expect(route).toBe('/docs/:parts*');
   });
 
   it('should handle multiple dynamic parameters with the same value', () => {
@@ -77,12 +75,12 @@ describe('getParameterizedRoute', () => {
       userId: '123',
       otherUserId: '123'
     });
-    expect(route).to.equal('/users/:userId/compare/:otherUserId');
+    expect(route).toBe('/users/:userId/compare/:otherUserId');
   });
 });
 
 describe('CrashlyticsRoutes', () => {
-  let getCrashlyticsStub: sinon.SinonStub;
+  let getCrashlyticsStub: MockInstance;
   let fakeApp: FirebaseApp;
   let fakeAttributesStore: AttributesStore;
   let fakeCrashlytics: Crashlytics;
@@ -93,23 +91,23 @@ describe('CrashlyticsRoutes', () => {
     fakeCrashlytics = {
       app: fakeApp,
       loggerProvider: {
-        getLogger: stub().returns({
-          emit: stub()
+        getLogger: vi.fn().mockReturnValue({
+          emit: vi.fn()
         })
       },
       contextManager: {
-        setActiveAppScreenId: stub()
+        setActiveAppScreenId: vi.fn()
       },
       attributesStore: fakeAttributesStore
     } as unknown as Crashlytics;
 
-    getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
-      fakeCrashlytics
-    );
+    getCrashlyticsStub = vi
+      .spyOn(crashlytics, 'getCrashlytics')
+      .mockReturnValue(fakeCrashlytics);
   });
 
   afterEach(() => {
-    restore();
+    vi.restoreAllMocks();
   });
 
   it('should register routePath in attributesStore on initial mount and clear registration on unmount', () => {
@@ -120,17 +118,21 @@ describe('CrashlyticsRoutes', () => {
     );
 
     // Check that routePathProvider is set up and returns the active pathname
-    const routePath = fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
-    expect(routePath).to.equal('/initial-path');
+    const routePath =
+      fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
+    expect(routePath).toBe('/initial-path');
 
     // Unmount and verify cleanup
     unmount();
-    const routePathAfterUnmount = fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
-    expect(routePathAfterUnmount).to.be.undefined;
+    const routePathAfterUnmount =
+      fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
+    expect(routePathAfterUnmount).toBeUndefined();
   });
 
   it('should invoke logViewBoundary on initial mount', () => {
-    const logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
+    const logViewBoundaryStub = vi
+      .spyOn(crashlytics, 'logViewBoundary')
+      .mockImplementation(() => {});
 
     render(
       <PathnameContext.Provider value="/initial-path">
@@ -138,7 +140,7 @@ describe('CrashlyticsRoutes', () => {
       </PathnameContext.Provider>
     );
 
-    expect(logViewBoundaryStub).to.have.been.calledWith(
+    expect(logViewBoundaryStub).toHaveBeenCalledWith(
       fakeCrashlytics,
       '/initial-path'
     );
@@ -153,7 +155,10 @@ describe('CrashlyticsRoutes', () => {
       </PathnameContext.Provider>
     );
 
-    const logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
+    const logViewBoundaryStub = vi
+      .spyOn(crashlytics, 'logViewBoundary')
+      .mockImplementation(() => {})
+      .mockClear();
 
     // Change pathname and params
     rerender(
@@ -164,7 +169,7 @@ describe('CrashlyticsRoutes', () => {
       </PathnameContext.Provider>
     );
 
-    expect(logViewBoundaryStub).to.have.been.calledWith(
+    expect(logViewBoundaryStub).toHaveBeenCalledWith(
       fakeCrashlytics,
       '/users/:id'
     );
@@ -181,7 +186,10 @@ describe('CrashlyticsRoutes', () => {
       </PathnameContext.Provider>
     );
 
-    const logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
+    const logViewBoundaryStub = vi
+      .spyOn(crashlytics, 'logViewBoundary')
+      .mockImplementation(() => {})
+      .mockClear();
 
     rerender(
       <PathnameContext.Provider value="/users/123">
@@ -191,7 +199,7 @@ describe('CrashlyticsRoutes', () => {
       </PathnameContext.Provider>
     );
 
-    expect(logViewBoundaryStub).to.not.have.been.called;
+    expect(logViewBoundaryStub).not.toHaveBeenCalled();
   });
 
   it('should set routePath in attributesStore with new route pattern if route pattern changes', () => {
@@ -211,8 +219,9 @@ describe('CrashlyticsRoutes', () => {
       </PathnameContext.Provider>
     );
 
-    const routePath = fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
-    expect(routePath).to.equal('/posts/:postId');
+    const routePath =
+      fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
+    expect(routePath).toBe('/posts/:postId');
   });
 
   it('should not set routePath in attributesStore when route pattern stays the same', () => {
@@ -224,7 +233,7 @@ describe('CrashlyticsRoutes', () => {
       </PathnameContext.Provider>
     );
 
-    const setRoutePathProviderSpy = sinon.spy(
+    const setRoutePathProviderSpy = vi.spyOn(
       fakeAttributesStore,
       'setRoutePathProvider'
     );
@@ -237,6 +246,6 @@ describe('CrashlyticsRoutes', () => {
       </PathnameContext.Provider>
     );
 
-    expect(setRoutePathProviderSpy).to.not.have.been.called;
+    expect(setRoutePathProviderSpy).not.toHaveBeenCalled();
   });
 });

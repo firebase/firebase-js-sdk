@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { ExportResultCode } from '@opentelemetry/core';
 import {
   LoggerProvider,
@@ -31,7 +30,6 @@ import {
   SeverityNumber,
   logs
 } from '@opentelemetry/api-logs';
-import sinon from 'sinon';
 import {
   FirebaseApp,
   initializeApp,
@@ -62,6 +60,7 @@ import { TelemetryStore } from './telemetry-store';
 import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
 import { FirebaseAttributesLogProcessor } from './logging/attributes-log-processor';
 import { breadcrumbs } from './breadcrumbs';
+import type { MockInstance } from 'vitest';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
@@ -126,7 +125,7 @@ describe('Top level API', () => {
   let originalSessionStorage: Storage | undefined;
   let originalCrypto: Crypto | undefined;
   let storage: Record<string, string> = {};
-  let getActiveSpanStub: sinon.SinonStub;
+  let getActiveSpanStub: MockInstance;
 
   beforeEach(() => {
     // Clear the logs before each test.
@@ -135,9 +134,9 @@ describe('Top level API', () => {
     storage = {};
 
     // @ts-ignore
-    originalSessionStorage = global.sessionStorage;
+    originalSessionStorage = globalThis.sessionStorage;
     // @ts-ignore
-    originalCrypto = global.crypto;
+    originalCrypto = globalThis.crypto;
 
     const sessionStorageMock: Partial<Storage> = {
       getItem: (key: string) => storage[key] || null,
@@ -149,11 +148,11 @@ describe('Top level API', () => {
       randomUUID: () => MOCK_SESSION_ID
     };
 
-    Object.defineProperty(global, 'sessionStorage', {
+    Object.defineProperty(globalThis, 'sessionStorage', {
       value: sessionStorageMock,
       writable: true
     });
-    Object.defineProperty(global, 'crypto', {
+    Object.defineProperty(globalThis, 'crypto', {
       value: cryptoMock,
       writable: true
     });
@@ -164,34 +163,34 @@ describe('Top level API', () => {
     fakeAttributesStore = new AttributesStore(fakeApp.options);
     fakeCrashlytics.attributesStore = fakeAttributesStore;
 
-    getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns(undefined);
+    getActiveSpanStub = vi
+      .spyOn(trace, 'getActiveSpan')
+      .mockReturnValue(undefined);
   });
 
   afterEach(async () => {
     await deleteApp(app);
-    Object.defineProperty(global, 'sessionStorage', {
+    Object.defineProperty(globalThis, 'sessionStorage', {
       value: originalSessionStorage,
       writable: true
     });
-    Object.defineProperty(global, 'crypto', {
+    Object.defineProperty(globalThis, 'crypto', {
       value: originalCrypto,
       writable: true
     });
     delete AUTO_CONSTANTS.appVersion;
-    getActiveSpanStub.restore();
+    getActiveSpanStub.mockRestore();
   });
 
   describe('getCrashlytics()', () => {
     it('works without options', () => {
-      expect(getCrashlytics(getFakeApp())).to.be.instanceOf(CrashlyticsService);
+      expect(getCrashlytics(getFakeApp())).toBeInstanceOf(CrashlyticsService);
       // Two instances are the same
-      expect(getCrashlytics(getFakeApp())).to.equal(
-        getCrashlytics(getFakeApp())
-      );
+      expect(getCrashlytics(getFakeApp())).toBe(getCrashlytics(getFakeApp()));
     });
 
     it('works with options: no config values', () => {
-      expect(getCrashlytics(getFakeApp(), {})).to.equal(
+      expect(getCrashlytics(getFakeApp(), {})).toBe(
         getCrashlytics(getFakeApp())
       );
     });
@@ -204,7 +203,7 @@ describe('Top level API', () => {
           region: 'us-central1',
           appVersion: '1.2.3'
         })
-      ).to.equal(
+      ).toBe(
         getCrashlytics(app, {
           endpointUrl: 'http://endpoint1',
           region: 'us-central1',
@@ -217,24 +216,24 @@ describe('Top level API', () => {
           region: 'us-central1',
           appVersion: '1.2.3'
         });
-      }).to.throw('getCrashlytics() cannot be called with different options');
+      }).toThrow('getCrashlytics() cannot be called with different options');
       expect(() => {
         getCrashlytics(app, {
           endpointUrl: 'http://endpoint1',
           region: 'us-east1',
           appVersion: '1.2.3'
         });
-      }).to.throw('getCrashlytics() cannot be called with different options');
+      }).toThrow('getCrashlytics() cannot be called with different options');
       expect(() => {
         getCrashlytics(app, {
           endpointUrl: 'http://endpoint1',
           region: 'us-central1',
           appVersion: '1.2.4'
         });
-      }).to.throw('getCrashlytics() cannot be called with different options');
+      }).toThrow('getCrashlytics() cannot be called with different options');
       expect(() => {
         getCrashlytics(app, {});
-      }).to.throw('getCrashlytics() cannot be called with different options');
+      }).toThrow('getCrashlytics() cannot be called with different options');
     });
 
     it('works when called multiple times with fresh breadcrumbs() instances', () => {
@@ -243,7 +242,7 @@ describe('Top level API', () => {
         getCrashlytics(app, {
           features: [breadcrumbs()]
         })
-      ).to.equal(
+      ).toBe(
         getCrashlytics(app, {
           features: [breadcrumbs()]
         })
@@ -252,7 +251,7 @@ describe('Top level API', () => {
         getCrashlytics(app, {
           features: []
         });
-      }).to.throw('getCrashlytics() cannot be called with different options');
+      }).toThrow('getCrashlytics() cannot be called with different options');
     });
   });
 
@@ -265,7 +264,7 @@ describe('Top level API', () => {
       getCrashlytics(getFakeApp());
 
       // Check if session ID was created in storage
-      expect(storage[SESSION_STORAGE_SESSION_ID_KEY]).to.equal(MOCK_SESSION_ID);
+      expect(storage[SESSION_STORAGE_SESSION_ID_KEY]).toBe(MOCK_SESSION_ID);
     });
 
     it('should not create a new session if one exists', () => {
@@ -274,18 +273,16 @@ describe('Top level API', () => {
 
       getCrashlytics(getFakeApp());
 
-      expect(storage[SESSION_STORAGE_SESSION_ID_KEY]).to.equal(
-        'existing-session'
-      );
+      expect(storage[SESSION_STORAGE_SESSION_ID_KEY]).toBe('existing-session');
     });
 
     it('should not initialize tracing by default when breadcrumbs() is not passed in features', () => {
       const crashlytics = getCrashlytics(getFakeApp()) as CrashlyticsInternal;
 
-      expect(crashlytics.tracingProvider).to.be.null;
-      expect(crashlytics.telemetryStore).to.be.undefined;
-      expect(crashlytics.onErrorLogRecordProcessor).to.be.undefined;
-      expect(crashlytics.onErrorSpanProcessor).to.be.undefined;
+      expect(crashlytics.tracingProvider).toBeNull();
+      expect(crashlytics.telemetryStore).toBeUndefined();
+      expect(crashlytics.onErrorLogRecordProcessor).toBeUndefined();
+      expect(crashlytics.onErrorSpanProcessor).toBeUndefined();
     });
 
     it('should initialize tracing when breadcrumbs() is passed in features', () => {
@@ -293,9 +290,9 @@ describe('Top level API', () => {
         features: [breadcrumbs()]
       }) as CrashlyticsInternal;
 
-      expect(crashlytics.tracingProvider).to.not.be.null;
-      expect(crashlytics.telemetryStore).to.be.instanceOf(TelemetryStore);
-      expect(crashlytics.onErrorLogRecordProcessor).to.be.instanceOf(
+      expect(crashlytics.tracingProvider).not.toBeNull();
+      expect(crashlytics.telemetryStore).toBeInstanceOf(TelemetryStore);
+      expect(crashlytics.onErrorLogRecordProcessor).toBeInstanceOf(
         OnErrorLogRecordProcessor
       );
     });
@@ -310,13 +307,11 @@ describe('Top level API', () => {
       };
       logViewBoundary(crashlyticsWithTracing, urlTemplate);
 
-      expect(emittedLogs.length).to.equal(1);
+      expect(emittedLogs.length).toBe(1);
       const log = emittedLogs[0];
-      expect(log.severityNumber).to.equal(SeverityNumber.INFO);
-      expect(log.body).to.equal('Navigation event');
-      expect(log.attributes![SPAN_ATTR_KEY.APP_SCREEN_ID]).to.equal(
-        urlTemplate
-      );
+      expect(log.severityNumber).toBe(SeverityNumber.INFO);
+      expect(log.body).toBe('Navigation event');
+      expect(log.attributes![SPAN_ATTR_KEY.APP_SCREEN_ID]).toBe(urlTemplate);
     });
 
     it('should emit a log record with additional attributes if available when breadcrumbs() is enabled', () => {
@@ -332,12 +327,10 @@ describe('Top level API', () => {
         additionalAttributes
       );
 
-      expect(emittedLogs.length).to.equal(1);
+      expect(emittedLogs.length).toBe(1);
       const log = emittedLogs[0];
-      expect(log.attributes!['custom.attr']).to.equal('value');
-      expect(log.attributes![SPAN_ATTR_KEY.APP_SCREEN_ID]).to.equal(
-        urlTemplate
-      );
+      expect(log.attributes!['custom.attr']).toBe('value');
+      expect(log.attributes![SPAN_ATTR_KEY.APP_SCREEN_ID]).toBe(urlTemplate);
     });
 
     it('should not emit a log record when breadcrumbs() is not in features', () => {
@@ -349,7 +342,7 @@ describe('Top level API', () => {
       logViewBoundary(fakeCrashlytics, urlTemplate);
       logViewBoundary(crashlyticsWithoutTracing, urlTemplate);
 
-      expect(emittedLogs.length).to.equal(0);
+      expect(emittedLogs.length).toBe(0);
     });
   });
 
@@ -361,11 +354,11 @@ describe('Top level API', () => {
 
       recordError(fakeCrashlytics, error);
 
-      expect(emittedLogs.length).to.equal(1);
+      expect(emittedLogs.length).toBe(1);
       const log = emittedLogs[0];
-      expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
-      expect(log.body).to.equal('This is a test error');
-      expect(log.attributes).to.deep.equal({
+      expect(log.severityNumber).toBe(SeverityNumber.ERROR);
+      expect(log.body).toBe('This is a test error');
+      expect(log.attributes).toEqual({
         'exception.type': 'TestError',
         'exception.stacktrace': '...stack trace...',
         'exception.message': 'This is a test error',
@@ -380,11 +373,11 @@ describe('Top level API', () => {
 
       recordError(fakeCrashlytics, error);
 
-      expect(emittedLogs.length).to.equal(1);
+      expect(emittedLogs.length).toBe(1);
       const log = emittedLogs[0];
-      expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
-      expect(log.body).to.equal('error with no stack');
-      expect(log.attributes).to.deep.equal({
+      expect(log.severityNumber).toBe(SeverityNumber.ERROR);
+      expect(log.body).toBe('error with no stack');
+      expect(log.attributes).toEqual({
         'exception.type': 'Error',
         'exception.stacktrace': 'No stack trace available',
         'exception.message': 'error with no stack',
@@ -396,11 +389,11 @@ describe('Top level API', () => {
     it('should capture a string error correctly', () => {
       recordError(fakeCrashlytics, 'a string error');
 
-      expect(emittedLogs.length).to.equal(1);
+      expect(emittedLogs.length).toBe(1);
       const log = emittedLogs[0];
-      expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
-      expect(log.body).to.equal('a string error');
-      expect(log.attributes).to.deep.equal({
+      expect(log.severityNumber).toBe(SeverityNumber.ERROR);
+      expect(log.body).toBe('a string error');
+      expect(log.attributes).toEqual({
         [LOG_ATTR_KEY.APP_VERSION]: 'unset',
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
@@ -409,18 +402,18 @@ describe('Top level API', () => {
     it('should capture an unknown error type correctly', () => {
       recordError(fakeCrashlytics, 12345);
 
-      expect(emittedLogs.length).to.equal(1);
+      expect(emittedLogs.length).toBe(1);
       const log = emittedLogs[0];
-      expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
-      expect(log.body).to.equal('Unknown error type: number');
-      expect(log.attributes).to.deep.equal({
+      expect(log.severityNumber).toBe(SeverityNumber.ERROR);
+      expect(log.body).toBe('Unknown error type: number');
+      expect(log.attributes).toEqual({
         [LOG_ATTR_KEY.APP_VERSION]: 'unset',
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
     it('should propagate trace context', () => {
-      getActiveSpanStub.returns({
+      getActiveSpanStub.mockReturnValue({
         spanContext: () => ({
           traceId: 'my-trace',
           spanId: 'my-span',
@@ -435,7 +428,7 @@ describe('Top level API', () => {
 
       recordError(fakeCrashlytics, error);
 
-      expect(emittedLogs[0].attributes).to.deep.equal({
+      expect(emittedLogs[0].attributes).toEqual({
         'exception.type': 'TestError',
         'exception.stacktrace': '...stack trace...',
         'exception.message': 'This is a test error',
@@ -460,9 +453,9 @@ describe('Top level API', () => {
         arrAttr: [1, 2, 3]
       });
 
-      expect(emittedLogs.length).to.equal(1);
+      expect(emittedLogs.length).toBe(1);
       const log = emittedLogs[0];
-      expect(log.attributes).to.deep.equal({
+      expect(log.attributes).toEqual({
         'exception.type': 'TestError',
         'exception.stacktrace': '...stack trace...',
         'exception.message': 'This is a test error',
@@ -488,9 +481,9 @@ describe('Top level API', () => {
 
       recordError(fakeCrashlytics, error);
 
-      expect(emittedLogs.length).to.equal(1);
+      expect(emittedLogs.length).toBe(1);
       const log = emittedLogs[0];
-      expect(log.attributes).to.deep.equal({
+      expect(log.attributes).toEqual({
         [LOG_ATTR_KEY.APP_VERSION]: 'unset',
         baseKey: 'baseValue',
         commonKey: 'commonBaseValue',
@@ -512,9 +505,9 @@ describe('Top level API', () => {
         newKey: 'newValue'
       });
 
-      expect(emittedLogs.length).to.equal(1);
+      expect(emittedLogs.length).toBe(1);
       const log = emittedLogs[0];
-      expect(log.attributes).to.deep.equal({
+      expect(log.attributes).toEqual({
         [LOG_ATTR_KEY.APP_VERSION]: 'unset',
         baseKey: 'baseValue',
         commonKey: 'commonOverrideValue',
@@ -538,9 +531,9 @@ describe('Top level API', () => {
 
       recordError(crashlytics, 'a string error');
 
-      expect(emittedLogs.length).to.equal(1);
+      expect(emittedLogs.length).toBe(1);
       const log = emittedLogs[0];
-      expect(log.attributes).to.deep.equal({
+      expect(log.attributes).toEqual({
         [LOG_ATTR_KEY.APP_VERSION]: '1.0.0',
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
@@ -553,9 +546,9 @@ describe('Top level API', () => {
 
       recordError(fakeCrashlytics, 'a string error');
 
-      expect(emittedLogs.length).to.equal(1);
+      expect(emittedLogs.length).toBe(1);
       const log = emittedLogs[0];
-      expect(log.attributes).to.deep.equal({
+      expect(log.attributes).toEqual({
         [LOG_ATTR_KEY.APP_VERSION]: '1.2.3',
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
@@ -570,9 +563,9 @@ describe('Top level API', () => {
 
       recordError(fakeCrashlytics, error);
 
-      expect(emittedLogs.length).to.equal(1);
+      expect(emittedLogs.length).toBe(1);
       const log = emittedLogs[0];
-      expect(log.attributes).to.deep.equal({
+      expect(log.attributes).toEqual({
         'exception.type': 'TestError',
         'exception.stacktrace': '...stack trace...',
         'exception.message': 'This is a test error',
@@ -590,9 +583,9 @@ describe('Top level API', () => {
 
         recordError(fakeCrashlytics, 'error');
 
-        expect(emittedLogs.length).to.equal(1);
+        expect(emittedLogs.length).toBe(1);
         const log = emittedLogs[0];
-        expect(log.attributes![LOG_ATTR_KEY.SESSION_ID]).to.equal(
+        expect(log.attributes![LOG_ATTR_KEY.SESSION_ID]).toBe(
           'existing-session-id'
         );
       });
@@ -605,7 +598,7 @@ describe('Top level API', () => {
           setItem: () => {}
         };
 
-        Object.defineProperty(global, 'sessionStorage', {
+        Object.defineProperty(globalThis, 'sessionStorage', {
           value: sessionStorageMock,
           writable: true
         });
@@ -615,9 +608,9 @@ describe('Top level API', () => {
 
         recordError(fakeCrashlytics, 'error');
 
-        expect(emittedLogs.length).to.equal(1);
+        expect(emittedLogs.length).toBe(1);
         const log = emittedLogs[0];
-        expect(log.attributes![LOG_ATTR_KEY.SESSION_ID]).to.be.undefined;
+        expect(log.attributes![LOG_ATTR_KEY.SESSION_ID]).toBeUndefined();
       });
 
       it('should handle errors when sessionStorage.setItem throws', () => {
@@ -628,7 +621,7 @@ describe('Top level API', () => {
           }
         };
 
-        Object.defineProperty(global, 'sessionStorage', {
+        Object.defineProperty(globalThis, 'sessionStorage', {
           value: sessionStorageMock,
           writable: true
         });
@@ -638,9 +631,9 @@ describe('Top level API', () => {
 
         recordError(fakeCrashlytics, 'error');
 
-        expect(emittedLogs.length).to.equal(1);
+        expect(emittedLogs.length).toBe(1);
         const log = emittedLogs[0];
-        expect(log.attributes![LOG_ATTR_KEY.SESSION_ID]).to.be.undefined;
+        expect(log.attributes![LOG_ATTR_KEY.SESSION_ID]).toBeUndefined();
       });
     });
 
@@ -648,13 +641,13 @@ describe('Top level API', () => {
       const callOrder: string[] = [];
 
       const mockOnErrorLogRecordProcessor = {
-        onErrorOccurred: sinon.spy(() => {
+        onErrorOccurred: vi.fn(() => {
           callOrder.push('onErrorOccurred');
         })
       };
 
       const mockLogger = {
-        emit: sinon.spy(() => {
+        emit: vi.fn(() => {
           callOrder.push('emit');
         })
       };
@@ -671,10 +664,11 @@ describe('Top level API', () => {
 
       recordError(crashlyticsInstance, new Error('Test emit order'));
 
-      expect(mockLogger.emit.calledOnce).to.be.true;
-      expect(mockOnErrorLogRecordProcessor.onErrorOccurred.calledOnce).to.be
-        .true;
-      expect(callOrder).to.deep.equal(['emit', 'onErrorOccurred']);
+      expect(mockLogger.emit.mock.calls.length === 1).toBe(true);
+      expect(
+        mockOnErrorLogRecordProcessor.onErrorOccurred.mock.calls.length === 1
+      ).toBe(true);
+      expect(callOrder).toEqual(['emit', 'onErrorOccurred']);
     });
 
     it('should immediately flush recorded error when using OnErrorLogRecordProcessor', async () => {
@@ -707,8 +701,8 @@ describe('Top level API', () => {
       recordError(crashlyticsInstance, new Error('Immediate export error'));
       await processor.forceFlush();
 
-      expect(exported).to.have.lengthOf(1);
-      expect(exported[0].body).to.equal('Immediate export error');
+      expect(exported).toHaveLength(1);
+      expect(exported[0].body).toBe('Immediate export error');
     });
   });
 
@@ -716,11 +710,11 @@ describe('Top level API', () => {
     it('should log a message with default metadata', () => {
       log(fakeCrashlytics, 'This is a custom log message');
 
-      expect(emittedLogs.length).to.equal(1);
+      expect(emittedLogs.length).toBe(1);
       const logRecord = emittedLogs[0];
-      expect(logRecord.severityNumber).to.equal(SeverityNumber.INFO);
-      expect(logRecord.body).to.equal('This is a custom log message');
-      expect(logRecord.attributes).to.deep.equal({
+      expect(logRecord.severityNumber).toBe(SeverityNumber.INFO);
+      expect(logRecord.body).toBe('This is a custom log message');
+      expect(logRecord.attributes).toEqual({
         [LOG_ATTR_KEY.APP_VERSION]: 'unset',
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
       });
@@ -736,11 +730,11 @@ describe('Top level API', () => {
         arrAttr: [1, 2, 3]
       });
 
-      expect(emittedLogs.length).to.equal(1);
+      expect(emittedLogs.length).toBe(1);
       const logRecord = emittedLogs[0];
-      expect(logRecord.severityNumber).to.equal(SeverityNumber.INFO);
-      expect(logRecord.body).to.equal('User action');
-      expect(logRecord.attributes).to.deep.equal({
+      expect(logRecord.severityNumber).toBe(SeverityNumber.INFO);
+      expect(logRecord.body).toBe('User action');
+      expect(logRecord.attributes).toEqual({
         [LOG_ATTR_KEY.APP_VERSION]: 'unset',
         strAttr: 'string attribute',
         mapAttr: {
@@ -762,9 +756,9 @@ describe('Top level API', () => {
 
       log(fakeCrashlytics, 'Message with option attributes');
 
-      expect(emittedLogs.length).to.equal(1);
+      expect(emittedLogs.length).toBe(1);
       const logRecord = emittedLogs[0];
-      expect(logRecord.attributes).to.deep.equal({
+      expect(logRecord.attributes).toEqual({
         [LOG_ATTR_KEY.APP_VERSION]: 'unset',
         baseKey: 'baseValue',
         commonKey: 'commonBaseValue',
@@ -785,9 +779,9 @@ describe('Top level API', () => {
         newKey: 'newValue'
       });
 
-      expect(emittedLogs.length).to.equal(1);
+      expect(emittedLogs.length).toBe(1);
       const logRecord = emittedLogs[0];
-      expect(logRecord.attributes).to.deep.equal({
+      expect(logRecord.attributes).toEqual({
         [LOG_ATTR_KEY.APP_VERSION]: 'unset',
         baseKey: 'baseValue',
         commonKey: 'commonOverrideValue',
@@ -797,7 +791,7 @@ describe('Top level API', () => {
     });
 
     it('should propagate trace context', () => {
-      getActiveSpanStub.returns({
+      getActiveSpanStub.mockReturnValue({
         spanContext: () => ({
           traceId: 'my-trace',
           spanId: 'my-span',
@@ -808,7 +802,7 @@ describe('Top level API', () => {
 
       log(fakeCrashlytics, 'Traced log message');
 
-      expect(emittedLogs[0].attributes).to.deep.equal({
+      expect(emittedLogs[0].attributes).toEqual({
         [LOG_ATTR_KEY.APP_VERSION]: 'unset',
         'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
         'logging.googleapis.com/spanId': 'my-span',
@@ -821,8 +815,8 @@ describe('Top level API', () => {
 
       log(fakeCrashlytics, 'Route log message');
 
-      expect(emittedLogs.length).to.equal(1);
-      expect(emittedLogs[0].attributes).to.deep.equal({
+      expect(emittedLogs.length).toBe(1);
+      expect(emittedLogs[0].attributes).toEqual({
         [LOG_ATTR_KEY.APP_VERSION]: 'unset',
         'route_path': '/my-route',
         [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
@@ -835,11 +829,11 @@ describe('Top level API', () => {
       recordError(fakeCrashlytics, 'error1');
       log(fakeCrashlytics, 'log1');
 
-      expect(emittedLogs.length).to.equal(2);
+      expect(emittedLogs.length).toBe(2);
 
       await flush(fakeCrashlytics);
 
-      expect(emittedLogs.length).to.equal(0);
+      expect(emittedLogs.length).toBe(0);
     });
   });
 
@@ -849,9 +843,9 @@ describe('Top level API', () => {
         registerGlobalLoggerProvider: true
       });
 
-      expect(crashlytics).to.be.an('object');
+      expect(typeof crashlytics).toBe('object');
       const globalLogger = logs.getLogger('global-app-logger');
-      expect(typeof globalLogger.emit).to.equal('function');
+      expect(typeof globalLogger.emit).toBe('function');
     });
   });
 });

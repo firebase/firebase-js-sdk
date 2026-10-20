@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import {
   LogRecordExporter,
@@ -80,23 +79,23 @@ describe('OnErrorLogRecordProcessor', () => {
     processor.onEmit(mockLog1);
     processor.onEmit(mockLog2);
     await processor.forceFlush();
-    expect(mockExporter.exportedLogs).to.be.empty;
+    expect(mockExporter.exportedLogs).toHaveLength(0);
 
     processor.onErrorOccurred();
-    expect(mockExporter.exportedLogs).to.be.empty;
+    expect(mockExporter.exportedLogs).toHaveLength(0);
 
     await processor.forceFlush();
-    expect(mockExporter.exportedLogs).to.deep.equal([mockLog1, mockLog2]);
+    expect(mockExporter.exportedLogs).toEqual([mockLog1, mockLog2]);
   });
 
   it('should forward shutdown calls to exporter and clear buffer', async () => {
     processor.onEmit(mockLog1);
     await processor.shutdown();
-    expect(mockExporter.shutdownCount).to.equal(1);
+    expect(mockExporter.shutdownCount).toBe(1);
 
     processor.onErrorOccurred();
     await processor.forceFlush();
-    expect(mockExporter.exportedLogs).to.be.empty;
+    expect(mockExporter.exportedLogs).toHaveLength(0);
   });
 
   it('should filter out web vital log records with rating === "good"', async () => {
@@ -120,10 +119,7 @@ describe('OnErrorLogRecordProcessor', () => {
 
     processor.onErrorOccurred();
     await processor.forceFlush();
-    expect(mockExporter.exportedLogs).to.deep.equal([
-      needsImprovementLog,
-      poorLog
-    ]);
+    expect(mockExporter.exportedLogs).toEqual([needsImprovementLog, poorLog]);
   });
 
   describe('multi-error scenarios simulating SDK lifecycle', () => {
@@ -137,14 +133,14 @@ describe('OnErrorLogRecordProcessor', () => {
       processor.onErrorOccurred();
       simulateSDKErrorLifecycleCleanup();
       await processor.forceFlush();
-      expect(mockExporter.exportedLogs).to.deep.equal([mockLog1]);
+      expect(mockExporter.exportedLogs).toEqual([mockLog1]);
 
       // Second error cycle
       processor.onEmit(mockLog2);
       processor.onErrorOccurred();
       simulateSDKErrorLifecycleCleanup();
       await processor.forceFlush();
-      expect(mockExporter.exportedLogs).to.deep.equal([mockLog1, mockLog2]);
+      expect(mockExporter.exportedLogs).toEqual([mockLog1, mockLog2]);
     });
   });
 });

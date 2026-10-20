@@ -3,6 +3,7 @@
   "compilerOptions": {
     "outDir": "dist",
     "jsx": "react",
+    "experimentalDecorators": true,
     "baseUrl": ".",
     "paths": {
       "@opentelemetry/browser-instrumentation/experimental/*": [
@@ -15,12 +16,6 @@
       ]
     }
   },
-  "exclude": [
-    "dist/**/*"
-  ],
-  "include": [
-    "src/**/*",
-    "index.ts",
-    "index.node.ts"
-  ]
+  "exclude": ["dist/**/*"],
+  "include": ["src/**/*", "test/**/*", "index.ts", "index.node.ts"]
 }

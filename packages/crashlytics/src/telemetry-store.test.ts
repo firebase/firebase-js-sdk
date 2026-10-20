@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { TelemetryStore, RootTelemetryQueue } from './telemetry-store';
 import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { SdkLogRecord } from '@opentelemetry/sdk-logs';
@@ -103,9 +102,9 @@ describe('TelemetryStore', () => {
       store.add(expectedChildSpan);
       store.add(expectedChildLog);
 
-      expect(store.getSpansToExport()).to.be.empty;
-      expect(store.getLogsToExport()).to.be.empty;
-      expect(store.totalTelemetryCount).to.equal(3);
+      expect(store.getSpansToExport()).toHaveLength(0);
+      expect(store.getLogsToExport()).toHaveLength(0);
+      expect(store.totalTelemetryCount).toBe(3);
     });
   });
 
@@ -122,12 +121,13 @@ describe('TelemetryStore', () => {
       store.add(expectedChildLog);
       store.update(expectedRootSpan);
 
-      expect(store.getSpansToExport()).to.have.deep.members([
-        expectedRootSpan,
-        expectedChildSpan
-      ]);
-      expect(store.getLogsToExport()).to.have.deep.members([expectedChildLog]);
-      expect(store.totalTelemetryCount).to.equal(3);
+      expect(store.getSpansToExport()).toEqual(
+        expect.arrayContaining([expectedRootSpan, expectedChildSpan])
+      );
+      expect(store.getLogsToExport()).toEqual(
+        expect.arrayContaining([expectedChildLog])
+      );
+      expect(store.totalTelemetryCount).toBe(3);
     });
 
     it('should create an exportable root log successfully', () => {
@@ -137,8 +137,10 @@ describe('TelemetryStore', () => {
 
       store.add(expectedRootLog);
 
-      expect(store.getLogsToExport()).to.have.deep.members([expectedRootLog]);
-      expect(store.totalTelemetryCount).to.equal(1);
+      expect(store.getLogsToExport()).toEqual(
+        expect.arrayContaining([expectedRootLog])
+      );
+      expect(store.totalTelemetryCount).toBe(1);
     });
   });
 
@@ -159,9 +161,11 @@ describe('TelemetryStore', () => {
       store.add(expectedRootSpan);
       store.update(expectedRootSpan);
 
-      expect(store.getSpansToExport()).to.have.deep.members([expectedRootSpan]);
-      expect(store.getLogsToExport()).to.be.empty;
-      expect(store.totalTelemetryCount).to.equal(1);
+      expect(store.getSpansToExport()).toEqual(
+        expect.arrayContaining([expectedRootSpan])
+      );
+      expect(store.getLogsToExport()).toHaveLength(0);
+      expect(store.totalTelemetryCount).toBe(1);
     });
 
     it('should create an exportable root log and evict oldest root id if queue size == limit and buffer size < limit', () => {
@@ -179,9 +183,11 @@ describe('TelemetryStore', () => {
 
       store.add(expectedRootLog);
 
-      expect(store.getSpansToExport()).to.be.empty;
-      expect(store.getLogsToExport()).to.have.deep.members([expectedRootLog]);
-      expect(store.totalTelemetryCount).to.equal(1);
+      expect(store.getSpansToExport()).toHaveLength(0);
+      expect(store.getLogsToExport()).toEqual(
+        expect.arrayContaining([expectedRootLog])
+      );
+      expect(store.totalTelemetryCount).toBe(1);
     });
 
     it('should create an exportable event and evict oldest root id if queue size < limit and buffer size == limit', () => {
@@ -200,9 +206,11 @@ describe('TelemetryStore', () => {
       store.add(expectedRootSpan);
       store.update(expectedRootSpan);
 
-      expect(store.getSpansToExport()).to.have.deep.members([expectedRootSpan]);
-      expect(store.getLogsToExport()).to.be.empty;
-      expect(store.totalTelemetryCount).to.equal(1);
+      expect(store.getSpansToExport()).toEqual(
+        expect.arrayContaining([expectedRootSpan])
+      );
+      expect(store.getLogsToExport()).toHaveLength(0);
+      expect(store.totalTelemetryCount).toBe(1);
     });
   });
 
@@ -215,12 +223,12 @@ describe('TelemetryStore', () => {
       store.add(ignoredRootLog);
 
       const exportedLogs = store.getLogsToExport();
-      expect(exportedLogs).to.have.lengthOf(1);
-      expect(exportedLogs[0]).to.deep.equal({
+      expect(exportedLogs).toHaveLength(1);
+      expect(exportedLogs[0]).toEqual({
         severityNumber: SeverityNumber.INFO,
         body: 'Telemetry buffer limit reached. Some telemetry events were dropped.'
       });
-      expect(store.totalTelemetryCount).to.equal(0);
+      expect(store.totalTelemetryCount).toBe(0);
     });
 
     it('should not add and as a result not export any additional root event if already added', () => {
@@ -233,8 +241,10 @@ describe('TelemetryStore', () => {
       store.update(expectedRootSpan);
       store.add(expectedRootSpan); // should not add again
 
-      expect(store.getSpansToExport()).to.have.deep.members([expectedRootSpan]);
-      expect(store.totalTelemetryCount).to.equal(1);
+      expect(store.getSpansToExport()).toEqual(
+        expect.arrayContaining([expectedRootSpan])
+      );
+      expect(store.totalTelemetryCount).toBe(1);
     });
 
     it('should not add and as a result not export any additional child event if already added', () => {
@@ -248,11 +258,10 @@ describe('TelemetryStore', () => {
       store.add(expectedChildSpan); // should not add again
       store.update(existingRootSpan);
 
-      expect(store.getSpansToExport()).to.have.deep.members([
-        existingRootSpan,
-        expectedChildSpan
-      ]);
-      expect(store.totalTelemetryCount).to.equal(2);
+      expect(store.getSpansToExport()).toEqual(
+        expect.arrayContaining([existingRootSpan, expectedChildSpan])
+      );
+      expect(store.totalTelemetryCount).toBe(2);
     });
 
     it('should not add any child event if its root span has not been added', () => {
@@ -264,7 +273,7 @@ describe('TelemetryStore', () => {
       store.add(ignoredChildSpan);
       store.add(ignoredChildLog);
 
-      expect(store.totalTelemetryCount).to.equal(0);
+      expect(store.totalTelemetryCount).toBe(0);
     });
 
     it('should not add any child event if its root span must be evicted in the add', () => {
@@ -277,7 +286,7 @@ describe('TelemetryStore', () => {
       store.update(existingRootSpan);
       store.add(ignoredChildLog); // could be added asynchronously after its root span updates
 
-      expect(store.totalTelemetryCount).to.equal(0);
+      expect(store.totalTelemetryCount).toBe(0);
     });
   });
 
@@ -291,8 +300,10 @@ describe('TelemetryStore', () => {
       store.update(expectedRootSpan);
       store.update(expectedRootSpan); // should not export again
 
-      expect(store.getSpansToExport()).to.have.deep.members([expectedRootSpan]);
-      expect(store.totalTelemetryCount).to.equal(1);
+      expect(store.getSpansToExport()).toEqual(
+        expect.arrayContaining([expectedRootSpan])
+      );
+      expect(store.totalTelemetryCount).toBe(1);
     });
 
     it('should not create an exportable child span if child span is directly queued for export', () => {
@@ -305,7 +316,7 @@ describe('TelemetryStore', () => {
       store.add(ignoredChildSpan);
       store.update(ignoredChildSpan); // should not export
 
-      expect(store.getSpansToExport()).to.be.empty;
+      expect(store.getSpansToExport()).toHaveLength(0);
     });
   });
 
@@ -326,9 +337,9 @@ describe('TelemetryStore', () => {
 
       store.clear();
 
-      expect(store.getSpansToExport()).to.be.empty;
-      expect(store.getLogsToExport()).to.be.empty;
-      expect(store.totalTelemetryCount).to.equal(0);
+      expect(store.getSpansToExport()).toHaveLength(0);
+      expect(store.getLogsToExport()).toHaveLength(0);
+      expect(store.totalTelemetryCount).toBe(0);
     });
 
     it('should return no limit log for export if previously triggered', () => {
@@ -340,7 +351,7 @@ describe('TelemetryStore', () => {
 
       store.clear();
 
-      expect(store.getLogsToExport()).to.be.empty;
+      expect(store.getLogsToExport()).toHaveLength(0);
     });
   });
 
@@ -357,10 +368,9 @@ describe('TelemetryStore', () => {
       store.add(ignoredChildSpanCopy);
       store.update(existingRootSpan);
 
-      expect(store.getSpansToExport()).to.have.deep.members([
-        existingRootSpan,
-        existingChildSpan
-      ]);
+      expect(store.getSpansToExport()).toEqual(
+        expect.arrayContaining([existingRootSpan, existingChildSpan])
+      );
     });
 
     it('should treat two identical child logs of different memory as different events', () => {
@@ -375,10 +385,9 @@ describe('TelemetryStore', () => {
       store.add(expectedChildLogCopy);
       store.update(existingRootSpan);
 
-      expect(store.getLogsToExport()).to.have.deep.members([
-        existingChildLog,
-        expectedChildLogCopy
-      ]);
+      expect(store.getLogsToExport()).toEqual(
+        expect.arrayContaining([existingChildLog, expectedChildLogCopy])
+      );
     });
   });
 });
@@ -386,9 +395,9 @@ describe('TelemetryStore', () => {
 describe('RootTelemetryQueue', () => {
   it('should initialize empty', () => {
     const queue = new RootTelemetryQueue(2);
-    expect(queue.size).to.equal(0);
-    expect(queue.peek()).to.be.undefined;
-    expect(queue.dequeue()).to.be.undefined;
+    expect(queue.size).toBe(0);
+    expect(queue.peek()).toBeUndefined();
+    expect(queue.dequeue()).toBeUndefined();
   });
 
   it('should enqueue and dequeue in FIFO order with circular wrapping', () => {
@@ -396,28 +405,28 @@ describe('RootTelemetryQueue', () => {
     queue.enqueue('a');
     queue.enqueue('b');
 
-    expect(queue.size).to.equal(2);
-    expect(queue.peek()).to.equal('a');
+    expect(queue.size).toBe(2);
+    expect(queue.peek()).toBe('a');
 
-    expect(queue.dequeue()).to.equal('a'); // head = 1, tail = 2
+    expect(queue.dequeue()).toBe('a'); // head = 1, tail = 2
 
     // Enqueuing here wraps the tail pointer around the circular array to index 0
     queue.enqueue('c');
 
-    expect(queue.size).to.equal(2);
-    expect(queue.peek()).to.equal('b');
+    expect(queue.size).toBe(2);
+    expect(queue.peek()).toBe('b');
 
     queue.enqueue('d'); // head = 1, tail = 1 (queue is now full)
 
-    expect(queue.size).to.equal(3);
-    expect(queue.peek()).to.equal('b');
+    expect(queue.size).toBe(3);
+    expect(queue.peek()).toBe('b');
 
-    expect(queue.dequeue()).to.equal('b'); // head = 2, tail = 1
-    expect(queue.dequeue()).to.equal('c'); // head = 0, tail = 1
-    expect(queue.dequeue()).to.equal('d'); // head = 1, tail = 1
+    expect(queue.dequeue()).toBe('b'); // head = 2, tail = 1
+    expect(queue.dequeue()).toBe('c'); // head = 0, tail = 1
+    expect(queue.dequeue()).toBe('d'); // head = 1, tail = 1
 
-    expect(queue.size).to.equal(0);
-    expect(queue.dequeue()).to.be.undefined;
+    expect(queue.size).toBe(0);
+    expect(queue.dequeue()).toBeUndefined();
   });
 
   it('should not enqueue when limit is exceeded', () => {
@@ -427,8 +436,8 @@ describe('RootTelemetryQueue', () => {
 
     // Third item exceeds limit of 2, should do nothing
     queue.enqueue('c');
-    expect(queue.size).to.equal(2);
-    expect(queue.peek()).to.equal('a');
+    expect(queue.size).toBe(2);
+    expect(queue.peek()).toBe('a');
   });
 
   it('should clear the queue', () => {
@@ -436,15 +445,15 @@ describe('RootTelemetryQueue', () => {
     queue.enqueue('a');
     queue.enqueue('b');
     queue.clear();
-    expect(queue.size).to.equal(0);
-    expect(queue.peek()).to.be.undefined;
+    expect(queue.size).toBe(0);
+    expect(queue.peek()).toBeUndefined();
   });
 
   it('should throw an error if limit is less than or equal to 0', () => {
-    expect(() => new RootTelemetryQueue(0)).to.throw(
+    expect(() => new RootTelemetryQueue(0)).toThrow(
       'Limit must be a positive integer greater than 0'
     );
-    expect(() => new RootTelemetryQueue(-5)).to.throw(
+    expect(() => new RootTelemetryQueue(-5)).toThrow(
       'Limit must be a positive integer greater than 0'
     );
   });

@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
-import sinon, { restore, stub } from 'sinon';
 import * as crashlytics from '../api';
 import { FirebaseApp } from '@firebase/app';
 import { Crashlytics } from '../public-types';
@@ -28,9 +24,9 @@ import { AttributesStore } from '../attributes-store';
 import { render } from '@testing-library/react';
 import { ALREADY_LOGGED_FLAG } from '../constants';
 import { ErrorWithSymbol } from '../types';
+import type { Mock, MockInstance } from 'vitest';
 
-use(sinonChai);
-use(chaiAsPromised);
+vi.mock('../api', { spy: true });
 
 class TestErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -58,8 +54,8 @@ class TestErrorBoundary extends React.Component<
 }
 
 describe('FirebaseCrashlytics', () => {
-  let getCrashlyticsStub: sinon.SinonStub;
-  let emitStub: sinon.SinonStub;
+  let getCrashlyticsStub: MockInstance;
+  let emitStub: Mock;
   let fakeApp: FirebaseApp;
   let fakeCrashlytics: Crashlytics;
   let fakeTracer: any;
@@ -67,39 +63,39 @@ describe('FirebaseCrashlytics', () => {
 
   beforeEach(() => {
     fakeApp = { name: 'fakeApp' } as FirebaseApp;
-    emitStub = stub();
+    emitStub = vi.fn();
     fakeTracer = {
-      startSpan: stub()
+      startSpan: vi.fn()
     };
     fakeContextManager = {
-      startRootSpan: stub()
+      startRootSpan: vi.fn()
     };
     const fakeTracingProvider = {
-      getTracer: stub().returns(fakeTracer)
+      getTracer: vi.fn().mockReturnValue(fakeTracer)
     };
     fakeCrashlytics = {
       app: {
         options: {}
       },
       loggerProvider: {
-        getLogger: stub().returns({
+        getLogger: vi.fn().mockReturnValue({
           emit: emitStub
         })
       },
       tracingProvider: fakeTracingProvider,
       attributesStore: new AttributesStore({ projectId: 'fake-project' }),
       telemetryStore: {
-        clear: stub()
+        clear: vi.fn()
       }
     } as unknown as Crashlytics;
 
-    getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
-      fakeCrashlytics
-    );
+    getCrashlyticsStub = vi
+      .spyOn(crashlytics, 'getCrashlytics')
+      .mockReturnValue(fakeCrashlytics);
   });
 
   afterEach(() => {
-    restore();
+    vi.restoreAllMocks();
   });
 
   it('captures window errors', () => {
@@ -111,13 +107,13 @@ describe('FirebaseCrashlytics', () => {
 
     window.dispatchEvent(new ErrorEvent('error', { error }));
 
-    expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
-    expect(emitStub).to.have.been.calledOnce;
-    const log = emitStub.firstCall.args[0];
-    expect(log.body).to.equal('test error');
-    expect(log.attributes['exception.type']).to.equal('Error');
-    expect(log.attributes['exception.stacktrace']).to.be.a('string');
-    expect(log.attributes['exception.message']).to.equal('test error');
+    expect(getCrashlyticsStub).toHaveBeenCalledWith(fakeApp, undefined);
+    expect(emitStub).toHaveBeenCalledTimes(1);
+    const log = emitStub.mock.calls[0][0];
+    expect(log.body).toBe('test error');
+    expect(log.attributes['exception.type']).toBe('Error');
+    expect(typeof log.attributes['exception.stacktrace']).toBe('string');
+    expect(log.attributes['exception.message']).toBe('test error');
 
     window.onerror = prevOnError;
   });
@@ -126,19 +122,19 @@ describe('FirebaseCrashlytics', () => {
     render(<FirebaseCrashlytics firebaseApp={fakeApp} />);
     const reason = new Error('test rejection');
     const promise = Promise.reject(reason);
-    promise.catch(() => { });
+    promise.catch(() => {});
 
     window.dispatchEvent(
       new PromiseRejectionEvent('unhandledrejection', { reason, promise })
     );
 
-    expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
-    expect(emitStub).to.have.been.calledOnce;
-    const log = emitStub.firstCall.args[0];
-    expect(log.body).to.equal('test rejection');
-    expect(log.attributes['exception.type']).to.equal('Error');
-    expect(log.attributes['exception.stacktrace']).to.be.a('string');
-    expect(log.attributes['exception.message']).to.equal('test rejection');
+    expect(getCrashlyticsStub).toHaveBeenCalledWith(fakeApp, undefined);
+    expect(emitStub).toHaveBeenCalledTimes(1);
+    const log = emitStub.mock.calls[0][0];
+    expect(log.body).toBe('test rejection');
+    expect(log.attributes['exception.type']).toBe('Error');
+    expect(typeof log.attributes['exception.stacktrace']).toBe('string');
+    expect(log.attributes['exception.message']).toBe('test rejection');
   });
 
   it('ignores errors that have already been logged by Crashlytics', () => {
@@ -151,7 +147,7 @@ describe('FirebaseCrashlytics', () => {
 
     window.dispatchEvent(new ErrorEvent('error', { error }));
 
-    expect(emitStub).to.not.have.been.called;
+    expect(emitStub).not.toHaveBeenCalled();
 
     window.onerror = prevOnError;
   });

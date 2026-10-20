@@ -16,13 +16,11 @@
  */
 
 import { createTracingProvider, OTLPTraceExporter } from './tracing-provider';
-import { expect } from 'chai';
 import { FirebaseApp } from '@firebase/app';
 import { CrashlyticsOptions } from '../public-types';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
-import * as sinon from 'sinon';
 import { context, trace } from '@opentelemetry/api';
 import { AttributesStore } from '../attributes-store';
 import { resourceFromAttributes } from '@opentelemetry/resources';
@@ -31,6 +29,7 @@ import { CompositePropagator } from '@opentelemetry/core';
 import { TelemetryStore } from '../telemetry-store';
 import { FirebaseAttributesSpanProcessor } from './attributes-span-processor';
 import { OnErrorSpanProcessor } from './on-error-span-processor';
+import type { MockInstance } from 'vitest';
 
 describe('createTracingProvider', () => {
   let mockApp: FirebaseApp;
@@ -45,8 +44,11 @@ describe('createTracingProvider', () => {
         apiKey: 'test-api-key'
       }
     } as unknown as FirebaseApp;
-    mockAttributesStore = {} as unknown as AttributesStore;
-    mockTelemetryStore = {} as unknown as TelemetryStore;
+    mockAttributesStore = new AttributesStore({
+      projectId: 'test-project',
+      appId: 'test-app-id'
+    });
+    mockTelemetryStore = new TelemetryStore();
     mockSpan = {
       name: 'test-span',
       kind: 0,
@@ -70,7 +72,7 @@ describe('createTracingProvider', () => {
   });
 
   afterEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
   });
 
   it('should return a default tracing provider when running in a server/Node environment', () => {
@@ -84,7 +86,7 @@ describe('createTracingProvider', () => {
       mockAttributesStore,
       mockTelemetryStore
     );
-    expect(provider).to.equal(trace.getTracerProvider());
+    expect(provider).toBe(trace.getTracerProvider());
   });
 
   it('should register the WebTracerProvider globally with a W3CTraceContextPropagator', () => {
@@ -92,7 +94,7 @@ describe('createTracingProvider', () => {
       return;
     }
 
-    const registerSpy = sinon.spy(WebTracerProvider.prototype, 'register');
+    const registerSpy = vi.spyOn(WebTracerProvider.prototype, 'register');
 
     const mockCrashlyticsOptions = {
       endpointUrl: 'http://localhost:4318'
@@ -105,13 +107,13 @@ describe('createTracingProvider', () => {
       mockTelemetryStore
     );
 
-    expect(registerSpy.calledOnce).to.be.true;
-    const registerArgs = registerSpy.firstCall.args[0];
-    expect(registerArgs).to.be.ok;
+    expect(registerSpy).toHaveBeenCalledTimes(1);
+    const registerArgs = registerSpy.mock.calls[0][0];
+    expect(registerArgs).toBeTruthy();
 
     const propagator = registerArgs!.propagator;
-    expect(propagator).to.be.ok;
-    expect(propagator instanceof CompositePropagator).to.be.true;
+    expect(propagator).toBeTruthy();
+    expect(propagator).toBeInstanceOf(CompositePropagator);
 
     // Verify that the registered propagator is a W3C trace context propagator
     // by checking that it injects a W3C spec-compliant 'traceparent' header.
@@ -130,10 +132,10 @@ describe('createTracingProvider', () => {
 
     propagator!.inject(testContext, carrier, setter);
 
-    expect(carrier['traceparent']).to.equal(
+    expect(carrier['traceparent']).toBe(
       '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01'
     );
-    expect(provider).to.be.ok;
+    expect(provider).toBeTruthy();
   });
 
   it('should initialize WebTracerProvider with FirebaseAttributesSpanProcessor and OnErrorSpanProcessor', () => {
@@ -141,15 +143,15 @@ describe('createTracingProvider', () => {
       return;
     }
 
-    const onStartSpy = sinon.spy(
+    const onStartSpy = vi.spyOn(
       FirebaseAttributesSpanProcessor.prototype,
       'onStart'
     );
-    const attributesOnEndSpy = sinon.spy(
+    const attributesOnEndSpy = vi.spyOn(
       FirebaseAttributesSpanProcessor.prototype,
       'onEnd'
     );
-    const onErrorOnEndSpy = sinon.spy(OnErrorSpanProcessor.prototype, 'onEnd');
+    const onErrorOnEndSpy = vi.spyOn(OnErrorSpanProcessor.prototype, 'onEnd');
 
     const testTelemetryStore = new TelemetryStore();
     const { tracingProvider } = createTracingProvider(
@@ -163,10 +165,12 @@ describe('createTracingProvider', () => {
     const span = tracer.startSpan('root-span');
     span.end();
 
-    expect(onStartSpy.called).to.be.true;
-    expect(attributesOnEndSpy.called).to.be.true;
-    expect(onErrorOnEndSpy.called).to.be.true;
-    sinon.assert.callOrder(attributesOnEndSpy, onErrorOnEndSpy);
+    expect(onStartSpy).toHaveBeenCalled();
+    expect(attributesOnEndSpy).toHaveBeenCalled();
+    expect(onErrorOnEndSpy).toHaveBeenCalled();
+    expect(attributesOnEndSpy.mock.invocationCallOrder[0]).toBeLessThan(
+      onErrorOnEndSpy.mock.invocationCallOrder[0]
+    );
   });
 
   it('should register FetchInstrumentation with appropriate config', () => {
@@ -174,7 +178,7 @@ describe('createTracingProvider', () => {
       return;
     }
 
-    const fetchInstrumentationSpy = sinon.spy(
+    const fetchInstrumentationSpy = vi.spyOn(
       FetchInstrumentation.prototype,
       'setConfig'
     );
@@ -190,13 +194,16 @@ describe('createTracingProvider', () => {
       mockTelemetryStore
     );
 
-    expect(fetchInstrumentationSpy.called).to.be.true;
-    const fetchConfig = fetchInstrumentationSpy.lastCall.args[0] as any;
-    expect(fetchConfig.ignoreUrls).to.be.an('array').with.lengthOf(1);
+    expect(fetchInstrumentationSpy).toHaveBeenCalled();
+    const fetchConfig = fetchInstrumentationSpy.mock.calls[
+      fetchInstrumentationSpy.mock.calls.length - 1
+    ][0] as any;
+    expect(Array.isArray(fetchConfig.ignoreUrls)).toBe(true);
+    expect(fetchConfig.ignoreUrls).toHaveLength(1);
 
     const fetchPatterns = fetchConfig.ignoreUrls.map((r: RegExp) => r.source);
-    expect(fetchPatterns).to.include('my-custom-endpoint\\.url');
-    expect(fetchConfig.semconvStabilityOptIn).to.equal('http');
+    expect(fetchPatterns).toContain('my-custom-endpoint\\.url');
+    expect(fetchConfig.semconvStabilityOptIn).toBe('http');
   });
 
   it('should register XMLHttpRequestInstrumentation with appropriate config', () => {
@@ -204,7 +211,7 @@ describe('createTracingProvider', () => {
       return;
     }
 
-    const xhrInstrumentationSpy = sinon.spy(
+    const xhrInstrumentationSpy = vi.spyOn(
       XMLHttpRequestInstrumentation.prototype,
       'setConfig'
     );
@@ -220,13 +227,16 @@ describe('createTracingProvider', () => {
       mockTelemetryStore
     );
 
-    expect(xhrInstrumentationSpy.called).to.be.true;
-    const xhrConfig = xhrInstrumentationSpy.lastCall.args[0] as any;
-    expect(xhrConfig.ignoreUrls).to.be.an('array').with.lengthOf(1);
+    expect(xhrInstrumentationSpy).toHaveBeenCalled();
+    const xhrConfig = xhrInstrumentationSpy.mock.calls[
+      xhrInstrumentationSpy.mock.calls.length - 1
+    ][0] as any;
+    expect(Array.isArray(xhrConfig.ignoreUrls)).toBe(true);
+    expect(xhrConfig.ignoreUrls).toHaveLength(1);
 
     const xhrPatterns = xhrConfig.ignoreUrls.map((r: RegExp) => r.source);
-    expect(xhrPatterns).to.include('my-custom-endpoint\\.url');
-    expect(xhrConfig.semconvStabilityOptIn).to.equal('http');
+    expect(xhrPatterns).toContain('my-custom-endpoint\\.url');
+    expect(xhrConfig.semconvStabilityOptIn).toBe('http');
   });
 
   it('should register DocumentLoadInstrumentation with appropriate config', () => {
@@ -234,33 +244,34 @@ describe('createTracingProvider', () => {
       return;
     }
 
-    const documentLoadInstrumentationSpy = sinon.spy(
+    const documentLoadInstrumentationSpy = vi.spyOn(
       DocumentLoadInstrumentation.prototype,
       'setConfig'
     );
 
     createTracingProvider(mockApp, {}, mockAttributesStore, mockTelemetryStore);
 
-    expect(documentLoadInstrumentationSpy.called).to.be.true;
-    const documentLoadConfig = documentLoadInstrumentationSpy.lastCall
-      .args[0] as any;
-    expect(documentLoadConfig.semconvStabilityOptIn).to.equal('http');
+    expect(documentLoadInstrumentationSpy).toHaveBeenCalled();
+    const documentLoadConfig = documentLoadInstrumentationSpy.mock.calls[
+      documentLoadInstrumentationSpy.mock.calls.length - 1
+    ][0] as any;
+    expect(documentLoadConfig.semconvStabilityOptIn).toBe('http');
   });
 
   describe('OTLPTraceExporter', () => {
-    let fetchStub: sinon.SinonStub;
+    let fetchStub: MockInstance;
 
     beforeEach(() => {
-      fetchStub = sinon
-        .stub(globalThis, 'fetch')
-        .resolves(new Response('test response', { status: 200 }));
+      fetchStub = vi
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValue(new Response('test response', { status: 200 }));
     });
 
     it('should attach dynamic headers to the export request', async () => {
       const mockHeaderProvider = {
-        getHeader: sinon
-          .stub()
-          .resolves(['X-My-Dynamic-Header', 'dynamic-value'])
+        getHeader: vi
+          .fn()
+          .mockResolvedValue(['X-My-Dynamic-Header', 'dynamic-value'])
       };
 
       const exporter = new OTLPTraceExporter({ url: 'http://localhost' }, [
@@ -279,17 +290,15 @@ describe('createTracingProvider', () => {
           .catch(reject);
       });
 
-      expect(fetchStub.calledOnce).to.be.true;
-      const fetchOptions = fetchStub.firstCall.args[1] as any;
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+      const fetchOptions = fetchStub.mock.calls[0][1] as any;
       const requestHeaders = fetchOptions.headers as any;
-      expect(requestHeaders.get('X-My-Dynamic-Header')).to.equal(
-        'dynamic-value'
-      );
+      expect(requestHeaders.get('X-My-Dynamic-Header')).toBe('dynamic-value');
     });
 
     it('should inject the installation id attribute into exported spans', async () => {
       const mockAttributesStore = {
-        getInstallationIdAttribute: sinon.stub().resolves({
+        getInstallationIdAttribute: vi.fn().mockResolvedValue({
           'installation_id_key': 'installation_id_value'
         })
       } as unknown as AttributesStore;
@@ -312,8 +321,8 @@ describe('createTracingProvider', () => {
           .catch(reject);
       });
 
-      expect(fetchStub.calledOnce).to.be.true;
-      const fetchOptions = fetchStub.firstCall.args[1] as any;
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+      const fetchOptions = fetchStub.mock.calls[0][1] as any;
       const requestBodyUint8 = fetchOptions.body;
 
       // Decode and parse request body
@@ -326,8 +335,8 @@ describe('createTracingProvider', () => {
       const dynamicAttr = spanAttributes.find(
         (a: any) => a.key === 'installation_id_key'
       );
-      expect(dynamicAttr).to.be.ok;
-      expect(dynamicAttr.value.stringValue).to.equal('installation_id_value');
+      expect(dynamicAttr).toBeTruthy();
+      expect(dynamicAttr.value.stringValue).toBe('installation_id_value');
     });
   });
 });

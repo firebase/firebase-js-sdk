@@ -20,8 +20,6 @@ import {
   BatchLogRecordProcessor,
   LoggerProvider
 } from '@opentelemetry/sdk-logs';
-import { expect } from 'chai';
-import * as sinon from 'sinon';
 import { AttributesStore } from '../attributes-store';
 import { breadcrumbs } from '../breadcrumbs';
 import { TelemetryStore } from '../telemetry-store';
@@ -48,31 +46,33 @@ describe('createLoggerProvider', () => {
   });
 
   afterEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
   });
 
   it('should initialize LoggerProvider with FirebaseAttributesLogProcessor and BatchLogRecordProcessor by default when breadcrumbs() is not set', () => {
     const { loggerProvider: provider, onErrorLogRecordProcessor } =
       createLoggerProvider(app, {}, attributesStore, telemetryStore, []);
-    expect(provider).to.be.an.instanceOf(LoggerProvider);
-    expect(onErrorLogRecordProcessor).to.be.undefined;
+    expect(provider).toBeInstanceOf(LoggerProvider);
+    expect(onErrorLogRecordProcessor).toBeUndefined();
 
-    const attributesEmitSpy = sinon.spy(
+    const attributesEmitSpy = vi.spyOn(
       FirebaseAttributesLogProcessor.prototype,
       'onEmit'
     );
-    const batchEmitSpy = sinon.spy(BatchLogRecordProcessor.prototype, 'onEmit');
-    const onErrorEmitSpy = sinon.spy(
+    const batchEmitSpy = vi.spyOn(BatchLogRecordProcessor.prototype, 'onEmit');
+    const onErrorEmitSpy = vi.spyOn(
       OnErrorLogRecordProcessor.prototype,
       'onEmit'
     );
 
     provider.getLogger('test-logger').emit({ body: 'test log' });
 
-    expect(attributesEmitSpy.calledOnce).to.be.true;
-    expect(batchEmitSpy.calledOnce).to.be.true;
-    expect(onErrorEmitSpy.called).to.be.false;
-    sinon.assert.callOrder(attributesEmitSpy, batchEmitSpy);
+    expect(attributesEmitSpy).toHaveBeenCalledTimes(1);
+    expect(batchEmitSpy).toHaveBeenCalledTimes(1);
+    expect(onErrorEmitSpy).not.toHaveBeenCalled();
+    expect(attributesEmitSpy.mock.invocationCallOrder[0]).toBeLessThan(
+      batchEmitSpy.mock.invocationCallOrder[0]
+    );
   });
 
   it('should initialize LoggerProvider with FirebaseAttributesLogProcessor and OnErrorLogRecordProcessor when breadcrumbs() is enabled', () => {
@@ -84,34 +84,34 @@ describe('createLoggerProvider', () => {
         telemetryStore,
         []
       );
-    expect(provider).to.be.an.instanceOf(LoggerProvider);
-    expect(onErrorLogRecordProcessor).to.be.an.instanceOf(
-      OnErrorLogRecordProcessor
-    );
+    expect(provider).toBeInstanceOf(LoggerProvider);
+    expect(onErrorLogRecordProcessor).toBeInstanceOf(OnErrorLogRecordProcessor);
 
-    const attributesEmitSpy = sinon.spy(
+    const attributesEmitSpy = vi.spyOn(
       FirebaseAttributesLogProcessor.prototype,
       'onEmit'
     );
-    const batchEmitSpy = sinon.spy(BatchLogRecordProcessor.prototype, 'onEmit');
-    const onErrorEmitSpy = sinon.spy(
+    const batchEmitSpy = vi.spyOn(BatchLogRecordProcessor.prototype, 'onEmit');
+    const onErrorEmitSpy = vi.spyOn(
       OnErrorLogRecordProcessor.prototype,
       'onEmit'
     );
 
     provider.getLogger('test-logger').emit({ body: 'test log' });
 
-    expect(attributesEmitSpy.calledOnce).to.be.true;
-    expect(onErrorEmitSpy.calledOnce).to.be.true;
-    expect(batchEmitSpy.called).to.be.false;
-    sinon.assert.callOrder(attributesEmitSpy, onErrorEmitSpy);
+    expect(attributesEmitSpy).toHaveBeenCalledTimes(1);
+    expect(onErrorEmitSpy).toHaveBeenCalledTimes(1);
+    expect(batchEmitSpy).not.toHaveBeenCalled();
+    expect(attributesEmitSpy.mock.invocationCallOrder[0]).toBeLessThan(
+      onErrorEmitSpy.mock.invocationCallOrder[0]
+    );
   });
 
   describe('BatchLogRecordProcessor auto-flush on document hide', () => {
     it('should pass disableAutoFlushOnDocumentHide: true to BatchLogRecordProcessor by default when breadcrumbs() is not enabled', () => {
       if ('_onInit' in BatchLogRecordProcessor.prototype) {
         // Browser environment (Webpack ES module bundle where namespace exports are non-configurable)
-        const onInitSpy = sinon.spy(
+        const onInitSpy = vi.spyOn(
           BatchLogRecordProcessor.prototype as unknown as {
             _onInit: (options: unknown) => void;
           },
@@ -119,26 +119,30 @@ describe('createLoggerProvider', () => {
         );
         try {
           createLoggerProvider(app, {}, attributesStore, telemetryStore, []);
-          expect(onInitSpy.calledOnce).to.be.true;
-          const args = onInitSpy.firstCall.args[0];
-          expect(args).to.have.property('disableAutoFlushOnDocumentHide', true);
+          expect(onInitSpy).toHaveBeenCalledTimes(1);
+          const args = onInitSpy.mock.calls[0][0];
+          expect(args).toHaveProperty('disableAutoFlushOnDocumentHide', true);
         } finally {
-          onInitSpy.restore();
+          onInitSpy.mockRestore();
         }
       } else {
         // Node environment
         const BaseClass = Object.getPrototypeOf(BatchLogRecordProcessor);
-        const BaseSpy = sinon.spy(function (this: unknown, options: unknown) {
-          return Reflect.construct(BaseClass, [options], new.target);
+        const BaseSpy = vi.fn(function (this: object, options: unknown) {
+          return Reflect.construct(
+            BaseClass,
+            [options],
+            new.target || this.constructor
+          );
         });
         Object.setPrototypeOf(BaseSpy, Object.getPrototypeOf(BaseClass));
         BaseSpy.prototype = BaseClass.prototype;
         Object.setPrototypeOf(BatchLogRecordProcessor, BaseSpy);
         try {
           createLoggerProvider(app, {}, attributesStore, telemetryStore, []);
-          expect(BaseSpy.calledOnce).to.be.true;
-          const args = BaseSpy.firstCall.args[0];
-          expect(args).to.have.property('disableAutoFlushOnDocumentHide', true);
+          expect(BaseSpy).toHaveBeenCalledTimes(1);
+          const args = BaseSpy.mock.calls[0][0];
+          expect(args).toHaveProperty('disableAutoFlushOnDocumentHide', true);
         } finally {
           Object.setPrototypeOf(BatchLogRecordProcessor, BaseClass);
         }
@@ -148,7 +152,7 @@ describe('createLoggerProvider', () => {
     it('should pass disableAutoFlushOnDocumentHide: true to BatchLogRecordProcessor when breadcrumbs() is enabled', () => {
       if ('_onInit' in BatchLogRecordProcessor.prototype) {
         // Browser environment (Webpack ES module bundle where namespace exports are non-configurable)
-        const onInitSpy = sinon.spy(
+        const onInitSpy = vi.spyOn(
           BatchLogRecordProcessor.prototype as unknown as {
             _onInit: (options: unknown) => void;
           },
@@ -162,19 +166,19 @@ describe('createLoggerProvider', () => {
             telemetryStore,
             []
           );
-          expect(onInitSpy.calledOnce).to.be.true;
-          const args = onInitSpy.firstCall.args[0];
-          expect(args).to.have.property('disableAutoFlushOnDocumentHide', true);
+          expect(onInitSpy).toHaveBeenCalledTimes(1);
+          const args = onInitSpy.mock.calls[0][0];
+          expect(args).toHaveProperty('disableAutoFlushOnDocumentHide', true);
         } finally {
-          onInitSpy.restore();
+          onInitSpy.mockRestore();
         }
       } else {
         // Node environment
-        const BaseSpy = sinon.spy(function (this: unknown, options: unknown) {
+        const BaseSpy = vi.fn(function (this: object, options: unknown) {
           return Reflect.construct(
             BatchLogRecordProcessor,
             [options],
-            new.target
+            new.target || this.constructor
           );
         });
         Object.setPrototypeOf(
@@ -191,9 +195,9 @@ describe('createLoggerProvider', () => {
             telemetryStore,
             []
           );
-          expect(BaseSpy.calledOnce).to.be.true;
-          const args = BaseSpy.firstCall.args[0];
-          expect(args).to.have.property('disableAutoFlushOnDocumentHide', true);
+          expect(BaseSpy).toHaveBeenCalledTimes(1);
+          const args = BaseSpy.mock.calls[0][0];
+          expect(args).toHaveProperty('disableAutoFlushOnDocumentHide', true);
         } finally {
           Object.setPrototypeOf(
             OnErrorLogRecordProcessor,
