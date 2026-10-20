@@ -146,16 +146,26 @@ gcloud services api-keys update <KEY_ID> \
  --api-target=service=firebasetelemetry.googleapis.com
 ```
 
-#### 5. Enable Observability Analytics
+#### 5. Configure Cloud Logging Bucket and Routing Sink
 
-Enable Observability Analytics for the `_Default` global bucket in order to view errors in the Firebase Console:
+Create the `firebase-telemetry` log bucket with Log Analytics enabled and configure a routing sink so that telemetry logs are routed to it and visible in the Firebase Console:
 
 ```bash
-gcloud logging buckets update _Default --project=<PROJECT_ID> --location=global --enable-analytics
+# 1. Create the firebase-telemetry log bucket with Log Analytics enabled
+gcloud logging buckets create firebase-telemetry \
+  --project=<PROJECT_ID> \
+  --location=global \
+  --enable-analytics
+
+# 2. Create a routing sink to send Firebase Telemetry logs to the bucket
+gcloud logging sinks create firebase-telemetry-routing \
+  logging.googleapis.com/projects/<PROJECT_ID>/locations/global/buckets/firebase-telemetry \
+  --project=<PROJECT_ID> \
+  --log-filter='resource.type="firebasetelemetry.googleapis.com/App"'
 ```
 
 > [!NOTE]
-> You must have an **Owner** role on the Cloud project or equivalent permission to do this.
+> You must have an **Owner** role on the Cloud project or equivalent permission to do this. If the `firebase-telemetry` bucket already exists without Log Analytics enabled, run `gcloud logging buckets update firebase-telemetry --project=<PROJECT_ID> --location=global --enable-analytics` instead.
 
 ---
 

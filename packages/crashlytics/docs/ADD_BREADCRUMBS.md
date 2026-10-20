@@ -11,7 +11,7 @@ While standard Crashlytics captures errors and stack traces, **Session Breadcrum
 - 📝 **Custom Breadcrumb Logs**: Attach structured domain logs (e.g. checkout step, cart size) via OpenTelemetry.
 - 📊 **Dedicated Timeline View**: Visualized chronologically under each crash event in the Firebase Console in the **Logs & Breadcrumbs** tab.
 
-Under the hood, network traces and session logs are stored in **Cloud Trace** and **Cloud Logging**. Both services include monthly free allotments: Cloud Trace includes the first 2.5 million spans per month at no charge, and Cloud Logging includes the first 50 GiB processed per month for free. Learn more about [Cloud Trace pricing](https://cloud.google.com/products/observability/pricing#trace-pricing-summary) and [Cloud Logging pricing](https://cloud.google.com/products/observability/pricing#logging-pricing-summary).
+Internally, network traces and session logs are stored in **Cloud Trace** and **Cloud Logging**. Both services include monthly free allotments: Cloud Trace includes the first 2.5 million spans per month at no charge, and Cloud Logging includes the first 50 GiB processed per month for free. Learn more about [Cloud Trace pricing](https://cloud.google.com/products/observability/pricing#trace-pricing-summary) and [Cloud Logging pricing](https://cloud.google.com/products/observability/pricing#logging-pricing-summary).
 
 ### Prerequisites
 
