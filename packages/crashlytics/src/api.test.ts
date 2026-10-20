@@ -664,10 +664,10 @@ describe('Top level API', () => {
 
       recordError(crashlyticsInstance, new Error('Test emit order'));
 
-      expect(mockLogger.emit.mock.calls.length === 1).toBe(true);
+      expect(mockLogger.emit).toHaveBeenCalledTimes(1);
       expect(
-        mockOnErrorLogRecordProcessor.onErrorOccurred.mock.calls.length === 1
-      ).toBe(true);
+        mockOnErrorLogRecordProcessor.onErrorOccurred
+      ).toHaveBeenCalledTimes(1);
       expect(callOrder).toEqual(['emit', 'onErrorOccurred']);
     });
 

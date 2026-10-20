@@ -235,7 +235,7 @@ describe('helpers', () => {
 
       const uuid = generateUuid();
       expect(uuid).toBe(MOCK_UUID);
-      expect(randomUUIDStub.mock.calls.length > 0).toBe(true);
+      expect(randomUUIDStub).toHaveBeenCalled();
     });
 
     it('should still generate a valid v4 UUID using Math.random when crypto is undefined', () => {
@@ -246,7 +246,7 @@ describe('helpers', () => {
       const randomSpy = vi.spyOn(Math, 'random');
       const uuid = generateUuid();
       expect(uuid).toMatch(UUID_REGEX);
-      expect(randomSpy.mock.calls.length > 0).toBe(true);
+      expect(randomSpy).toHaveBeenCalled();
       randomSpy.mockRestore();
     });
   });
