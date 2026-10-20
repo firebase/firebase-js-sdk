@@ -228,15 +228,15 @@ describe('setupCrashlyticsRoutes', () => {
     await router.navigate(['/home']);
     setupCrashlyticsRoutes({ firebaseApp: app, router, destroyRef });
 
-    const routePath =
+    const appScreenId =
       attributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
-    expect(routePath).to.equal('/home');
+    expect(appScreenId).to.equal('/home');
 
     TestBed.resetTestingModule();
 
-    const routePathAfterUnmount =
+    const appScreenIdAfterUnmount =
       attributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
-    expect(routePathAfterUnmount).to.be.undefined;
+    expect(appScreenIdAfterUnmount).to.be.undefined;
   });
 
   it('should invoke logViewBoundary on initialization if the router is set up', async () => {
@@ -296,9 +296,9 @@ describe('setupCrashlyticsRoutes', () => {
 
     await router.navigate(['/about']);
 
-    const routePath =
+    const appScreenId =
       attributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
-    expect(routePath).to.equal('/about');
+    expect(appScreenId).to.equal('/about');
   });
 
   it('should pass crashlyticsOptions to getCrashlytics', () => {

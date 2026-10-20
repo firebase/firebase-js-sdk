@@ -20,6 +20,7 @@ import { CrashlyticsInternal, ErrorWithSymbol } from './types';
 import { ALREADY_LOGGED_FLAG, CRASHLYTICS_TYPE } from './constants';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
+import { Attributes } from '@opentelemetry/api';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { CrashlyticsService } from './service';
 import { deepEqual } from '@firebase/util';
@@ -238,7 +239,7 @@ export function registerGlobalErrorListeners(
 export function logViewBoundary(
   crashlytics: Crashlytics,
   urlTemplate: string,
-  attributes?: AnyValueMap
+  attributes?: Attributes
 ): void {
   const { loggerProvider, attributesStore, options } =
     crashlytics as CrashlyticsInternal;
@@ -246,11 +247,10 @@ export function logViewBoundary(
     return;
   }
   const logger = loggerProvider.getLogger('view-boundary-logger');
-  const customAttributes: AnyValueMap = {
-    ...attributesStore.getLogAttributes(),
+  const customAttributes = attributesStore.getLogAttributes({
     [LOG_ATTR_KEY.APP_SCREEN_ID]: urlTemplate,
     ...attributes
-  };
+  });
 
   logger.emit({
     severityNumber: SeverityNumber.INFO,
