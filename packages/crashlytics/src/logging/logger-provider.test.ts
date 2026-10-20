@@ -110,7 +110,7 @@ describe('createLoggerProvider', () => {
   describe('BatchLogRecordProcessor auto-flush on document hide', () => {
     it('should pass disableAutoFlushOnDocumentHide: true to BatchLogRecordProcessor by default when breadcrumbs() is not enabled', () => {
       if ('_onInit' in BatchLogRecordProcessor.prototype) {
-        // Browser environment (Webpack ES module bundle where namespace exports are non-configurable)
+        // Browser environment (ES module bundle where namespace exports are non-configurable)
         const onInitSpy = vi.spyOn(
           BatchLogRecordProcessor.prototype as unknown as {
             _onInit: (options: unknown) => void;
@@ -151,7 +151,7 @@ describe('createLoggerProvider', () => {
 
     it('should pass disableAutoFlushOnDocumentHide: true to BatchLogRecordProcessor when breadcrumbs() is enabled', () => {
       if ('_onInit' in BatchLogRecordProcessor.prototype) {
-        // Browser environment (Webpack ES module bundle where namespace exports are non-configurable)
+        // Browser environment (ES module bundle where namespace exports are non-configurable)
         const onInitSpy = vi.spyOn(
           BatchLogRecordProcessor.prototype as unknown as {
             _onInit: (options: unknown) => void;

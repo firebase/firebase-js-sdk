@@ -27,30 +27,12 @@ for (const project of baseConfig.test.projects) {
     project.test.include.push('src/**/*.test.tsx');
     project.optimizeDeps = {
       ...project.optimizeDeps,
-      exclude: [...(project.optimizeDeps?.exclude || []), 'next'],
       include: [
         ...(project.optimizeDeps?.include || []),
         'next/navigation',
         'next/dist/shared/lib/hooks-client-context.shared-runtime'
       ]
     };
-    project.plugins = [
-      ...(project.plugins || []),
-      {
-        name: 'mock-next-server-entry',
-        enforce: 'pre',
-        resolveId(id) {
-          if (id === 'next') {
-            return '\0virtual:next';
-          }
-        },
-        load(id) {
-          if (id === '\0virtual:next') {
-            return 'export const Instrumentation = {};';
-          }
-        }
-      }
-    ];
   }
 }
 

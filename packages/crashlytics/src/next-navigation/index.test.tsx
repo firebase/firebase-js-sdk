@@ -118,15 +118,15 @@ describe('CrashlyticsRoutes', () => {
     );
 
     // Check that routePathProvider is set up and returns the active pathname
-    const routePath =
-      fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
-    expect(routePath).toBe('/initial-path');
+    const appScreenId =
+      fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
+    expect(appScreenId).toBe('/initial-path');
 
     // Unmount and verify cleanup
     unmount();
-    const routePathAfterUnmount =
-      fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
-    expect(routePathAfterUnmount).toBeUndefined();
+    const appScreenIdAfterUnmount =
+      fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
+    expect(appScreenIdAfterUnmount).toBeUndefined();
   });
 
   it('should invoke logViewBoundary on initial mount', () => {
@@ -219,9 +219,9 @@ describe('CrashlyticsRoutes', () => {
       </PathnameContext.Provider>
     );
 
-    const routePath =
-      fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
-    expect(routePath).toBe('/posts/:postId');
+    const appScreenId =
+      fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
+    expect(appScreenId).toBe('/posts/:postId');
   });
 
   it('should not set routePath in attributesStore when route pattern stays the same', () => {

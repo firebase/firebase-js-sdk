@@ -198,12 +198,12 @@ describe('CrashlyticsRoutes', () => {
     );
 
     expect(
-      fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH]
+      fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID]
     ).toBe('/users/:id');
 
     unmount();
     expect(
-      fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH]
+      fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID]
     ).toBeUndefined();
   });
 

@@ -124,9 +124,11 @@ describe('TelemetryStore', () => {
       expect(store.getSpansToExport()).toEqual(
         expect.arrayContaining([expectedRootSpan, expectedChildSpan])
       );
+      expect(store.getSpansToExport()).toHaveLength(2);
       expect(store.getLogsToExport()).toEqual(
         expect.arrayContaining([expectedChildLog])
       );
+      expect(store.getLogsToExport()).toHaveLength(1);
       expect(store.totalTelemetryCount).toBe(3);
     });
 
@@ -140,6 +142,7 @@ describe('TelemetryStore', () => {
       expect(store.getLogsToExport()).toEqual(
         expect.arrayContaining([expectedRootLog])
       );
+      expect(store.getLogsToExport()).toHaveLength(1);
       expect(store.totalTelemetryCount).toBe(1);
     });
   });
@@ -164,6 +167,7 @@ describe('TelemetryStore', () => {
       expect(store.getSpansToExport()).toEqual(
         expect.arrayContaining([expectedRootSpan])
       );
+      expect(store.getSpansToExport()).toHaveLength(1);
       expect(store.getLogsToExport()).toHaveLength(0);
       expect(store.totalTelemetryCount).toBe(1);
     });
@@ -187,6 +191,7 @@ describe('TelemetryStore', () => {
       expect(store.getLogsToExport()).toEqual(
         expect.arrayContaining([expectedRootLog])
       );
+      expect(store.getLogsToExport()).toHaveLength(1);
       expect(store.totalTelemetryCount).toBe(1);
     });
 
@@ -209,6 +214,7 @@ describe('TelemetryStore', () => {
       expect(store.getSpansToExport()).toEqual(
         expect.arrayContaining([expectedRootSpan])
       );
+      expect(store.getSpansToExport()).toHaveLength(1);
       expect(store.getLogsToExport()).toHaveLength(0);
       expect(store.totalTelemetryCount).toBe(1);
     });
@@ -244,6 +250,7 @@ describe('TelemetryStore', () => {
       expect(store.getSpansToExport()).toEqual(
         expect.arrayContaining([expectedRootSpan])
       );
+      expect(store.getSpansToExport()).toHaveLength(1);
       expect(store.totalTelemetryCount).toBe(1);
     });
 
@@ -261,6 +268,7 @@ describe('TelemetryStore', () => {
       expect(store.getSpansToExport()).toEqual(
         expect.arrayContaining([existingRootSpan, expectedChildSpan])
       );
+      expect(store.getSpansToExport()).toHaveLength(2);
       expect(store.totalTelemetryCount).toBe(2);
     });
 
@@ -303,6 +311,7 @@ describe('TelemetryStore', () => {
       expect(store.getSpansToExport()).toEqual(
         expect.arrayContaining([expectedRootSpan])
       );
+      expect(store.getSpansToExport()).toHaveLength(1);
       expect(store.totalTelemetryCount).toBe(1);
     });
 
@@ -371,6 +380,7 @@ describe('TelemetryStore', () => {
       expect(store.getSpansToExport()).toEqual(
         expect.arrayContaining([existingRootSpan, existingChildSpan])
       );
+      expect(store.getSpansToExport()).toHaveLength(2);
     });
 
     it('should treat two identical child logs of different memory as different events', () => {
@@ -388,6 +398,7 @@ describe('TelemetryStore', () => {
       expect(store.getLogsToExport()).toEqual(
         expect.arrayContaining([existingChildLog, expectedChildLogCopy])
       );
+      expect(store.getLogsToExport()).toHaveLength(2);
     });
   });
 });

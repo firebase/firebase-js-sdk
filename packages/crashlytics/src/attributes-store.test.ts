@@ -331,7 +331,7 @@ describe('AttributesStore', () => {
         custom: 'value',
         [LOG_ATTR_KEY.APP_VERSION]: '1.0.0',
         [LOG_ATTR_KEY.SESSION_ID]: 'sess-123',
-        [LOG_ATTR_KEY.ROUTE_PATH]: '/home'
+        [LOG_ATTR_KEY.APP_SCREEN_ID]: '/home'
       });
     });
   });

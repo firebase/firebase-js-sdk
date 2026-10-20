@@ -22,7 +22,10 @@ import { Crashlytics } from './public-types';
 import { nextOnRequestError } from './next';
 import type { MockInstance } from 'vitest';
 
-vi.mock('@firebase/app', { spy: true });
+vi.mock('@firebase/app', async importOriginal => {
+  const actual = await importOriginal<typeof import('@firebase/app')>();
+  return { ...actual, getApp: vi.fn(actual.getApp) };
+});
 vi.mock('./api', { spy: true });
 
 describe('nextOnRequestError', () => {
@@ -77,7 +80,7 @@ describe('nextOnRequestError', () => {
       fakeCrashlytics,
       error,
       {
-        'route_path': '/test-path',
+        'app.screen.id': '/test-path',
         'nextjs.path': '/test-path?some=param',
         'nextjs.method': 'GET',
         'nextjs.router_kind': 'Pages Router',

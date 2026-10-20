@@ -226,20 +226,22 @@ describe('setupCrashlyticsRoutes', () => {
     await router.navigate(['/home']);
     setupCrashlyticsRoutes({ firebaseApp: app, router, destroyRef });
 
-    const routePath =
-      attributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
-    expect(routePath).toBe('/home');
+    const appScreenId =
+      attributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
+    expect(appScreenId).toBe('/home');
 
     TestBed.resetTestingModule();
 
-    const routePathAfterUnmount =
-      attributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
-    expect(routePathAfterUnmount).toBeUndefined();
+    const appScreenIdAfterUnmount =
+      attributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
+    expect(appScreenIdAfterUnmount).toBeUndefined();
   });
 
   it('should invoke logViewBoundary on initialization if the router is set up', async () => {
     await router.navigate(['/home']);
-    const logViewBoundaryStub = vi.spyOn(crashlytics, 'logViewBoundary');
+    const logViewBoundaryStub = vi
+      .spyOn(crashlytics, 'logViewBoundary')
+      .mockImplementation(() => {});
 
     setupCrashlyticsRoutes({ firebaseApp: app, router, destroyRef });
 
@@ -247,7 +249,9 @@ describe('setupCrashlyticsRoutes', () => {
   });
 
   it('should not invoke logViewBoundary on initialization if the router is not set up yet', async () => {
-    const logViewBoundaryStub = vi.spyOn(crashlytics, 'logViewBoundary');
+    const logViewBoundaryStub = vi
+      .spyOn(crashlytics, 'logViewBoundary')
+      .mockImplementation(() => {});
 
     setupCrashlyticsRoutes({ firebaseApp: app, router, destroyRef });
 
@@ -264,6 +268,7 @@ describe('setupCrashlyticsRoutes', () => {
 
     const logViewBoundaryStub = vi
       .spyOn(crashlytics, 'logViewBoundary')
+      .mockImplementation(() => {})
       .mockClear();
 
     await router.navigate(['/users/456']);
@@ -279,6 +284,7 @@ describe('setupCrashlyticsRoutes', () => {
 
     const logViewBoundaryStub = vi
       .spyOn(crashlytics, 'logViewBoundary')
+      .mockImplementation(() => {})
       .mockClear();
 
     await router.navigate(['/home']);
@@ -292,9 +298,9 @@ describe('setupCrashlyticsRoutes', () => {
 
     await router.navigate(['/about']);
 
-    const routePath =
-      attributesStore.getLogAttributes()[LOG_ATTR_KEY.ROUTE_PATH];
-    expect(routePath).toBe('/about');
+    const appScreenId =
+      attributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
+    expect(appScreenId).toBe('/about');
   });
 
   it('should pass crashlyticsOptions to getCrashlytics', () => {
