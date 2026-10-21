@@ -17,44 +17,17 @@
 
 const { execSync } = require('child_process');
 const fs = require('fs');
-const path = require('path');
 
 function isChromiumInstalled() {
   try {
-    const { chromium } = require(
-      require.resolve('playwright', { paths: [process.cwd(), __dirname] })
+    const { registry } = require(
+      require.resolve('playwright-core/lib/coreBundle', {
+        paths: [process.cwd(), __dirname]
+      })
+    ).registry;
+    return ['chromium', 'chromium-headless-shell'].every(name =>
+      fs.existsSync(registry.findExecutable(name).executablePath())
     );
-    const execPath = chromium.executablePath();
-    if (!fs.existsSync(execPath)) return false;
-
-    const parts = execPath.split(path.sep);
-    const chromiumDirIndex = parts.findIndex(part =>
-      part.startsWith('chromium-')
-    );
-    if (chromiumDirIndex === -1) return false;
-
-    const revision = parts[chromiumDirIndex].substring('chromium-'.length);
-    const msPlaywrightRoot = parts.slice(0, chromiumDirIndex).join(path.sep);
-
-    let platformSuffix = '';
-    let exeName = 'headless_shell';
-    if (process.platform === 'win32') {
-      platformSuffix = 'win';
-      exeName = 'headless_shell.exe';
-    } else if (process.platform === 'darwin') {
-      platformSuffix = 'mac';
-    } else {
-      platformSuffix = 'linux';
-    }
-
-    const headlessShellPath = path.join(
-      msPlaywrightRoot,
-      `chromium_headless_shell-${revision}`,
-      `chrome-${platformSuffix}`,
-      exeName
-    );
-
-    return fs.existsSync(headlessShellPath);
   } catch {
     return false;
   }

@@ -35,6 +35,30 @@ function getConcurrency() {
 
 const maxForks = getConcurrency();
 
+/**
+ * Wraps the Playwright browser provider so each `BrowserContext` registers a
+ * permanent no-op route on creation. This keeps Playwright's CDP request
+ * interception (`Fetch.enable` and `Network.setCacheDisabled(true)`) active
+ * for the lifetime of the context instead of toggling it on/off as `vi.mock()`
+ * routes are added and cleared between test files.
+ */
+function createPlaywrightProvider(options) {
+  const baseProvider = playwright(options);
+  return {
+    ...baseProvider,
+    providerFactory(project) {
+      const provider = baseProvider.providerFactory(project);
+      const createContext = provider.createContext.bind(provider);
+      provider.createContext = async (sessionId, openBrowserOptions) => {
+        const context = await createContext(sessionId, openBrowserOptions);
+        await context.route(/^$/, () => {});
+        return context;
+      };
+      return provider;
+    }
+  };
+}
+
 export function createBaseConfig(importMetaUrl, customConfig = {}) {
   const packageDir = typeof importMetaUrl === 'string'
     ? (importMetaUrl.startsWith('file:') ? path.dirname(fileURLToPath(importMetaUrl)) : importMetaUrl)
@@ -86,7 +110,7 @@ export function createBaseConfig(importMetaUrl, customConfig = {}) {
             maxWorkers: maxForks,
             browser: {
               enabled: true,
-              provider: playwright({
+              provider: createPlaywrightProvider({
                 launchOptions: {
                   args: ['--disk-cache-size=1', '--media-cache-size=1']
                 }
