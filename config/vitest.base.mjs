@@ -36,11 +36,13 @@ function getConcurrency() {
 const maxForks = getConcurrency();
 
 /**
- * Wraps the Playwright browser provider so each `BrowserContext` registers a
- * permanent no-op route on creation. This keeps Playwright's CDP request
- * interception (`Fetch.enable` and `Network.setCacheDisabled(true)`) active
- * for the lifetime of the context instead of toggling it on/off as `vi.mock()`
- * routes are added and cleared between test files.
+ * Wraps the Playwright browser provider so that when a session uses `vi.mock()`,
+ * its `BrowserContext` registers a permanent no-op route on the first mock
+ * registration. This keeps Playwright's request interception (`Fetch.enable`
+ * and `Network.setCacheDisabled(true)`) active across `mocker.clear()` calls
+ * between test files in that session, without enabling network interception
+ * for suites that never call `vi.mock()` (such as `@firebase/firestore`
+ * live backend integration tests).
  */
 function createPlaywrightProvider(options) {
   const baseProvider = playwright(options);
@@ -48,12 +50,17 @@ function createPlaywrightProvider(options) {
     ...baseProvider,
     providerFactory(project) {
       const provider = baseProvider.providerFactory(project);
-      const createContext = provider.createContext.bind(provider);
-      provider.createContext = async (sessionId, openBrowserOptions) => {
-        const context = await createContext(sessionId, openBrowserOptions);
-        await context.route(/^$/, () => {});
-        return context;
-      };
+      if (provider.mocker) {
+        const routedSessions = new Set();
+        const register = provider.mocker.register.bind(provider.mocker);
+        provider.mocker.register = async (sessionId, module) => {
+          if (!routedSessions.has(sessionId)) {
+            routedSessions.add(sessionId);
+            await provider.getPage(sessionId).context().route(/^$/, () => {});
+          }
+          return register(sessionId, module);
+        };
+      }
       return provider;
     }
   };
