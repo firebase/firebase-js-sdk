@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { Reference } from '../src/api/Reference';
 
 import { getRandomNode, getRootNode } from './helpers/util';
@@ -30,7 +28,7 @@ import { getRandomNode, getRootNode } from './helpers/util';
 describe.skip('Promise Tests', () => {
   it('wraps Query.once', () => {
     return (getRandomNode() as Reference).once('value').then(snap => {
-      expect(snap.val()).to.equal(null);
+      expect(snap.val()).toBe(null);
     });
   });
 
@@ -42,7 +40,7 @@ describe.skip('Promise Tests', () => {
         return ref.once('value');
       })
       .then(read => {
-        expect(read.val()).to.equal(5);
+        expect(read.val()).toBe(5);
       });
   });
 
@@ -51,13 +49,13 @@ describe.skip('Promise Tests', () => {
     const pushed = ref.push();
     return pushed
       .then(childRef => {
-        expect(pushed.ref.parent.toString()).to.equal(ref.toString());
-        expect(pushed.toString()).to.equal(childRef.toString());
+        expect(pushed.ref.parent.toString()).toBe(ref.toString());
+        expect(pushed.toString()).toBe(childRef.toString());
         return pushed.once('value');
       })
       .then(snap => {
-        expect(snap.val()).to.equal(null);
-        expect(snap.ref.toString()).to.equal(pushed.toString());
+        expect(snap.val()).toBe(null);
+        expect(snap.ref.toString()).toBe(pushed.toString());
       });
   });
 
@@ -66,13 +64,13 @@ describe.skip('Promise Tests', () => {
     const pushed = ref.push(6);
     return pushed
       .then(childRef => {
-        expect(pushed.ref.parent.toString()).to.equal(ref.toString());
-        expect(pushed.toString()).to.equal(childRef.toString());
+        expect(pushed.ref.parent.toString()).toBe(ref.toString());
+        expect(pushed.toString()).toBe(childRef.toString());
         return pushed.once('value');
       })
       .then(snap => {
-        expect(snap.val()).to.equal(6);
-        expect(snap.ref.toString()).to.equal(pushed.toString());
+        expect(snap.val()).toBe(6);
+        expect(snap.ref.toString()).toBe(pushed.toString());
       });
   });
 
@@ -82,14 +80,14 @@ describe.skip('Promise Tests', () => {
       .set({ a: 'b' })
       .then(() => {
         const p = ref.child('a').remove();
-        expect(typeof p.then === 'function').to.equal(true);
+        expect(typeof p.then === 'function').toBe(true);
         return p;
       })
       .then(() => {
         return ref.once('value');
       })
       .then(snap => {
-        expect(snap.val()).to.equal(null);
+        expect(snap.val()).toBe(null);
       });
   });
 
@@ -99,14 +97,14 @@ describe.skip('Promise Tests', () => {
       .set({ a: 'b' })
       .then(() => {
         const p = ref.update({ c: 'd' });
-        expect(typeof p.then === 'function').to.equal(true);
+        expect(typeof p.then === 'function').toBe(true);
         return p;
       })
       .then(() => {
         return ref.once('value');
       })
       .then(snap => {
-        expect(snap.val()).to.deep.equal({ a: 'b', c: 'd' });
+        expect(snap.val()).toEqual({ a: 'b', c: 'd' });
       });
   });
 
@@ -116,14 +114,14 @@ describe.skip('Promise Tests', () => {
       .set({ a: 'b' })
       .then(() => {
         const p = ref.child('a').setPriority(5);
-        expect(typeof p.then === 'function').to.equal(true);
+        expect(typeof p.then === 'function').toBe(true);
         return p;
       })
       .then(() => {
         return ref.once('value');
       })
       .then(snap => {
-        expect(snap.child('a').getPriority()).to.equal(5);
+        expect(snap.child('a').getPriority()).toBe(5);
       });
   });
 
@@ -135,8 +133,8 @@ describe.skip('Promise Tests', () => {
         return ref.once('value');
       })
       .then(snap => {
-        expect(snap.getPriority()).to.equal(5);
-        expect(snap.val()).to.equal('hi');
+        expect(snap.getPriority()).toBe(5);
+        expect(snap.val()).toBe('hi');
       });
   });
 
@@ -147,14 +145,14 @@ describe.skip('Promise Tests', () => {
         return 5;
       })
       .then(result => {
-        expect(result.committed).to.equal(true);
-        expect(result.snapshot.val()).to.equal(5);
+        expect(result.committed).toBe(true);
+        expect(result.snapshot.val()).toBe(5);
         return ref.transaction(() => {
           return undefined;
         });
       })
       .then(result => {
-        expect(result.committed).to.equal(false);
+        expect(result.committed).toBe(false);
       });
   });
 
@@ -164,10 +162,10 @@ describe.skip('Promise Tests', () => {
     const ref = getRandomNode() as Reference;
     const pushed = ref.push(6);
 
-    expect(typeof ref.then === 'function').to.equal(false);
-    expect(typeof ref.catch === 'function').to.equal(false);
-    expect(typeof pushed.then === 'function').to.equal(true);
-    expect(typeof pushed.catch === 'function').to.equal(true);
+    expect(typeof ref.then === 'function').toBe(false);
+    expect(typeof ref.catch === 'function').toBe(false);
+    expect(typeof pushed.then === 'function').toBe(true);
+    expect(typeof pushed.catch === 'function').toBe(true);
     return pushed;
   });
 
@@ -178,7 +176,7 @@ describe.skip('Promise Tests', () => {
     const refInfo = getRootNode(0, '.info/connected');
 
     refInfo.once('value', snapshot => {
-      expect(snapshot.val()).to.equal(true);
+      expect(snapshot.val()).toBe(true);
     });
 
     return writer
@@ -186,7 +184,7 @@ describe.skip('Promise Tests', () => {
       .set('gone tomorrow')
       .then(() => {
         const p = writer.child('here today').onDisconnect().remove();
-        expect(typeof p.then === 'function').to.equal(true);
+        expect(typeof p.then === 'function').toBe(true);
         return p;
       })
       .then(() => {
@@ -195,7 +193,7 @@ describe.skip('Promise Tests', () => {
         return reader.once('value');
       })
       .then(snap => {
-        expect(snap.val()).to.equal(null);
+        expect(snap.val()).toBe(null);
       });
   });
 
@@ -207,7 +205,7 @@ describe.skip('Promise Tests', () => {
       .set({ foo: 'baz' })
       .then(() => {
         const p = writer.onDisconnect().update({ foo: 'bar' });
-        expect(typeof p.then === 'function').to.equal(true);
+        expect(typeof p.then === 'function').toBe(true);
         return p;
       })
       .then(() => {
@@ -216,7 +214,7 @@ describe.skip('Promise Tests', () => {
         return reader.once('value');
       })
       .then(snap => {
-        expect(snap.val()).to.deep.equal({ foo: 'bar' });
+        expect(snap.val()).toEqual({ foo: 'bar' });
       });
   });
 
@@ -234,7 +232,7 @@ describe.skip('Promise Tests', () => {
         return reader.once('value');
       })
       .then(snap => {
-        expect(snap.val()).to.deep.equal({ hello: 'world' });
+        expect(snap.val()).toEqual({ hello: 'world' });
       });
   });
 
@@ -252,10 +250,10 @@ describe.skip('Promise Tests', () => {
         return reader.once('value');
       })
       .then(snap => {
-        expect(snap.val()).to.deep.equal({
+        expect(snap.val()).toEqual({
           'meaning of life': 'ultimate question'
         });
-        expect(snap.child('meaning of life').getPriority()).to.equal(42);
+        expect(snap.child('meaning of life').getPriority()).toBe(42);
       });
   });
 });
