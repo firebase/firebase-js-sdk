@@ -1386,10 +1386,10 @@
   resolved "https://registry.npmjs.org/@noble/hashes/-/hashes-1.4.0.tgz#45814aa329f30e4fe0ba49426f49dfccdd066426"
   integrity sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==
 
-"@oxc-project/types@=0.152.0":
-  version "0.152.0"
-  resolved "https://registry.npmjs.org/@oxc-project/types/-/types-0.152.0.tgz#643ff80ce7aacea025f859f13b60cbb42ae0a613"
-  integrity sha512-oM/5rLBm2tPkg0iBgkH/FOeR3PCDpY19GTgAZjMFM8h9WI9VW7cLgzp6nwtarYKmovavIQZ+Fe/RKX/8C8O/Rw==
+"@oxc-project/types@=0.155.0":
+  version "0.155.0"
+  resolved "https://registry.npmjs.org/@oxc-project/types/-/types-0.155.0.tgz#a3525bff41bc0575839e95d2064635dd73dfef81"
+  integrity sha512-SeE8JPwW1xs1tHeNycjUtUBdhorRa8o4jlvjwk49R7/Z291i+4DQa7JJIgOm/TaYQZx+QrPQbVJ/9c8dMIZN8Q==
 
 "@peculiar/asn1-cms@^2.6.0", "@peculiar/asn1-cms@^2.8.0":
   version "2.8.0"
@@ -1573,80 +1573,80 @@
   resolved "https://registry.npmjs.org/@protobufjs/utf8/-/utf8-1.1.2.tgz#78d476333d85d5b1c792e257bca74ba080da49a4"
   integrity sha512-b1UQwcEZ4yCnMCD8DAL1VlbvBJE9/IX4FTIp7BG1xYpf29SLazLSrqUkj4w7Y5y7cCVP6E5tcqqcI0xemPkHug==
 
-"@rolldown/binding-android-arm-eabi@1.2.12":
-  version "1.2.12"
-  resolved "https://registry.npmjs.org/@rolldown/binding-android-arm-eabi/-/binding-android-arm-eabi-1.2.12.tgz#efba4353480c76804606f106c9ac01f0ddfa7d13"
-  integrity sha512-dB/a1214qKfHMXCpgqR4OZT+jS4kTyEXbQGJPqzobt5EwH5rX080pxE37alt3RzvR1bf1Yz/yGqRfrYAxuPw0A==
+"@rolldown/binding-android-arm-eabi@1.2.15":
+  version "1.2.15"
+  resolved "https://registry.npmjs.org/@rolldown/binding-android-arm-eabi/-/binding-android-arm-eabi-1.2.15.tgz#3bdaa2e77aabbb78194500e22d46ebbdfc009558"
+  integrity sha512-aLcgK9gIJ3YRvrrtfSBbRa27F5WrpiTaPulnFpsHPxpUHgFlSgnU4854MHwoRGEBhfRJDWCS2WQ7lIjskE9Olw==
 
-"@rolldown/binding-android-arm64@1.2.12":
-  version "1.2.12"
-  resolved "https://registry.npmjs.org/@rolldown/binding-android-arm64/-/binding-android-arm64-1.2.12.tgz#6255422c39c2b45ee44b0286df902b9481f76ecb"
-  integrity sha512-7KHFgQ5VJxIHcLlrwrc3Xbds7oTNQT7Pgi9gQCJKrd2VGab/UksIOYp6VD8MzCstGxOKMgNamPwUCfxPdP1OHg==
+"@rolldown/binding-android-arm64@1.2.15":
+  version "1.2.15"
+  resolved "https://registry.npmjs.org/@rolldown/binding-android-arm64/-/binding-android-arm64-1.2.15.tgz#1bf2dd523e6b94be1366f397b946d7fd0de67f1d"
+  integrity sha512-xD7DdZCrbThKuxNg7ooQmvp07ys4J/pnSEMTG3/OdOWl6daC67m/Q4fL78sRHMxTH/N4fGUbYhcPM0MF5WFHkg==
 
-"@rolldown/binding-darwin-arm64@1.2.12":
-  version "1.2.12"
-  resolved "https://registry.npmjs.org/@rolldown/binding-darwin-arm64/-/binding-darwin-arm64-1.2.12.tgz#2d7d153d657f5ee4d44abb752ae7d64cac049ca5"
-  integrity sha512-3YIhqHD96nA5SaYNRBR16HnGv4oavZvXfD/ayHM+oYZ0WD/8lBAtf6zQua4kEyAvpqrluKXl0lnOBoiNby7x9w==
+"@rolldown/binding-darwin-arm64@1.2.15":
+  version "1.2.15"
+  resolved "https://registry.npmjs.org/@rolldown/binding-darwin-arm64/-/binding-darwin-arm64-1.2.15.tgz#99fdcc6be79f156331099de799f726809af142e7"
+  integrity sha512-m2WuQ6r0B4OTYxyPpNLtXaMRbRDUbG8YQV2Q3KTdSSK8Th6KHCnC8jVCJt8bvYeSB5WivkkNbc85mKadaSdOxA==
 
-"@rolldown/binding-darwin-x64@1.2.12":
-  version "1.2.12"
-  resolved "https://registry.npmjs.org/@rolldown/binding-darwin-x64/-/binding-darwin-x64-1.2.12.tgz#7ddc83ecef05fb28f1174e5be3eb4ae5307faedf"
-  integrity sha512-UuuJ35MFw4gmFOrE9pEqIV+K3syIKveph+Qc1/ljHZVdoDW4pz/JHR/eMVom+TZGl/5OOvGJOWaOCVt3ZfqhxA==
+"@rolldown/binding-darwin-x64@1.2.15":
+  version "1.2.15"
+  resolved "https://registry.npmjs.org/@rolldown/binding-darwin-x64/-/binding-darwin-x64-1.2.15.tgz#752b56bcede7851580735a6cd48437eca936a182"
+  integrity sha512-5RtnsHM36nodM9WbMy+zip0LGS/G+y5wro5RHrpOlr4ac24+1zSi9kiV2MP1myZeZ/ifEHfulQcWjnAXzc2C2A==
 
-"@rolldown/binding-freebsd-x64@1.2.12":
-  version "1.2.12"
-  resolved "https://registry.npmjs.org/@rolldown/binding-freebsd-x64/-/binding-freebsd-x64-1.2.12.tgz#9e68e57cc3a1c5ea363129234fd5dcc8537606dd"
-  integrity sha512-uMvssit0a4W+/7D8CbHUvG719mH3R2jwXAlh/XcPvuHTE0g++LymF88DCGNX0HM2rBOn0xrzgXktIB6fLSJBTQ==
+"@rolldown/binding-freebsd-x64@1.2.15":
+  version "1.2.15"
+  resolved "https://registry.npmjs.org/@rolldown/binding-freebsd-x64/-/binding-freebsd-x64-1.2.15.tgz#f5104c1f4e50a63afae5d4d8c976a51d2facc8c6"
+  integrity sha512-g3l09pyFqhu+135JKkbkwiKGQmwU5hUMUPJ4VdBADvuqR8d33L6H578rh8m7rtxbdp+VmX/+nzI7nvhSZlzpUQ==
 
-"@rolldown/binding-linux-arm-gnueabihf@1.2.12":
-  version "1.2.12"
-  resolved "https://registry.npmjs.org/@rolldown/binding-linux-arm-gnueabihf/-/binding-linux-arm-gnueabihf-1.2.12.tgz#335b4f2cbf8c8a2d1016f79feeb0187c578f5f7a"
-  integrity sha512-XcFu0R0xWnwzSf4IQgFH1rJIckPN1pLy2R+4r9IDB7Yfu/ys9cVqfa4pBrMHj7a3gl8mIR4nRNPg0e5IvEVs6g==
+"@rolldown/binding-linux-arm-gnueabihf@1.2.15":
+  version "1.2.15"
+  resolved "https://registry.npmjs.org/@rolldown/binding-linux-arm-gnueabihf/-/binding-linux-arm-gnueabihf-1.2.15.tgz#b0a53d7f4b5293687de6ef8727469a5e2ad68312"
+  integrity sha512-nIe3VugI97nGQtspPxDqA4sXMUpeiocKIP/CqpY/u/vgbT+alX+cVxu1C/oVBPKg4feNTmYovE91v4DgXvXNwQ==
 
-"@rolldown/binding-linux-arm64-gnu@1.2.12":
-  version "1.2.12"
-  resolved "https://registry.npmjs.org/@rolldown/binding-linux-arm64-gnu/-/binding-linux-arm64-gnu-1.2.12.tgz#759fc27992583653f87dc447b4be02b4ddd0d1b4"
-  integrity sha512-260UrKgn8tz39ak+SMDOirKzr7V04M9dWPw5llW00SwBivCZoWcRBKV1d8cXnRkUmSZA3BdiUmBHWk7734Ulpw==
+"@rolldown/binding-linux-arm64-gnu@1.2.15":
+  version "1.2.15"
+  resolved "https://registry.npmjs.org/@rolldown/binding-linux-arm64-gnu/-/binding-linux-arm64-gnu-1.2.15.tgz#b9832ceb22aca59cef2d20e267550fc83cd60fce"
+  integrity sha512-iTBjXx+B5QSvgI89lJfmqh4wTh8NabR1YZIIN3hNx4zSG0EVfVqkOvLulNpG4251pbd6/IAmZ/LefVk1Y4rPhw==
 
-"@rolldown/binding-linux-arm64-musl@1.2.12":
-  version "1.2.12"
-  resolved "https://registry.npmjs.org/@rolldown/binding-linux-arm64-musl/-/binding-linux-arm64-musl-1.2.12.tgz#e1f3094429a874cb76e2c7735759d333ad8f6791"
-  integrity sha512-5YK1I9SqDkbPgc1IA8BgDl34suqUS2q0KWnBrirm0E51YjOs6eo6dV6jbQfNE/argHRSvd0QUGgtpIoYx+WWpw==
+"@rolldown/binding-linux-arm64-musl@1.2.15":
+  version "1.2.15"
+  resolved "https://registry.npmjs.org/@rolldown/binding-linux-arm64-musl/-/binding-linux-arm64-musl-1.2.15.tgz#43d43aa8cd490ef529b37129755879c276ec899c"
+  integrity sha512-uN26XOnVR7rqQupG3V9oAG2EGGatWjcJHOeDOHUFCh4TBWmP2tHTFoVN13aYbwfm0aHqJAEmcwhAu6sooIjfqQ==
 
-"@rolldown/binding-linux-ppc64-gnu@1.2.12":
-  version "1.2.12"
-  resolved "https://registry.npmjs.org/@rolldown/binding-linux-ppc64-gnu/-/binding-linux-ppc64-gnu-1.2.12.tgz#0ca361ac97774403dd5fe5976a363eb9c2139dc5"
-  integrity sha512-Rkcrmp7eFRg74yL5fXEU91JEWbdEPLevWwGtXpmhbjlD1StScbWTmO94Bhly+Mo+ketKYkdmM1vNUKeWSlx8cQ==
+"@rolldown/binding-linux-ppc64-gnu@1.2.15":
+  version "1.2.15"
+  resolved "https://registry.npmjs.org/@rolldown/binding-linux-ppc64-gnu/-/binding-linux-ppc64-gnu-1.2.15.tgz#455df0b3a2ee6cacc004b8dad6295b43c39906e7"
+  integrity sha512-9nWkcdd+H+XhaA3fQIwpHnKIrfx/PQ6rO0pivr78Og07tXlUlctBBJoEYLPfhTmCR/QxEVdn6uPjHV5SymPhdw==
 
-"@rolldown/binding-linux-s390x-gnu@1.2.12":
-  version "1.2.12"
-  resolved "https://registry.npmjs.org/@rolldown/binding-linux-s390x-gnu/-/binding-linux-s390x-gnu-1.2.12.tgz#e40fb19c56e99197aec91ecb02756ebd378a347c"
-  integrity sha512-qvK4DuAsQc2BSjlx+Xr+IzOIvvxbGZqxFwdWfG6F518Erj0GGISyQbJ6pIappnOxlNPzNHvo/L0BwB30GZ+zVw==
+"@rolldown/binding-linux-s390x-gnu@1.2.15":
+  version "1.2.15"
+  resolved "https://registry.npmjs.org/@rolldown/binding-linux-s390x-gnu/-/binding-linux-s390x-gnu-1.2.15.tgz#a2f243b64683c72cd1b2fcbe67505a89d9c9d89b"
+  integrity sha512-Ggh0ciFjLwIusLSLz7LZYEaGdxOAUJXI+Qu5JCbhPJJHEt8vP+IjRATTJheiJsdzzTYgUiHUiw3X1Ea3ZpMBdA==
 
-"@rolldown/binding-linux-x64-gnu@1.2.12":
-  version "1.2.12"
-  resolved "https://registry.npmjs.org/@rolldown/binding-linux-x64-gnu/-/binding-linux-x64-gnu-1.2.12.tgz#215aeb601d0daaf5d28582c1f2e967c775a6c70a"
-  integrity sha512-Q9uLBO53Xd4QIq1WOycVQyPP1O4HhraEV2qqb3uTrnVw6QZih9duY4vNXOivL1xoUS1/z+W8eF4NMfl2a8Sdjw==
+"@rolldown/binding-linux-x64-gnu@1.2.15":
+  version "1.2.15"
+  resolved "https://registry.npmjs.org/@rolldown/binding-linux-x64-gnu/-/binding-linux-x64-gnu-1.2.15.tgz#a514415b06af3517fcdbf228ebb7e06e8ed8385a"
+  integrity sha512-FHg60rS6DBePAYZ9X9F67x+JObFdmgn6tupA1C/a3B+CufFmTD4mX+e8M75tCiAO3foR/6xwVBI0KQiI7sn/rw==
 
-"@rolldown/binding-linux-x64-musl@1.2.12":
-  version "1.2.12"
-  resolved "https://registry.npmjs.org/@rolldown/binding-linux-x64-musl/-/binding-linux-x64-musl-1.2.12.tgz#90905cdd1ab12242d72de38b7ec9aa826a9ee17c"
-  integrity sha512-3IBxWFMjbOZskDPKv8Lf9BCnahlKuHthWkYnyIxOH/QcJrFcS4EmcenthApkwr/5+nEqZlLzeYbxeMaX7A5u4g==
+"@rolldown/binding-linux-x64-musl@1.2.15":
+  version "1.2.15"
+  resolved "https://registry.npmjs.org/@rolldown/binding-linux-x64-musl/-/binding-linux-x64-musl-1.2.15.tgz#2b6ac8d0487af711741e1bc218cd49f113542f66"
+  integrity sha512-/cvV/7v5VGz/moiz0XKRj2dE8DzsKyhIu1KpOvJGPjRywg3yscON889UGvAe8zfiJLHup7VLjBduoGWi3HusWQ==
 
-"@rolldown/binding-openharmony-arm64@1.2.12":
-  version "1.2.12"
-  resolved "https://registry.npmjs.org/@rolldown/binding-openharmony-arm64/-/binding-openharmony-arm64-1.2.12.tgz#e6868debd9202c476786f0995ca8250f3f647972"
-  integrity sha512-xtX61xg4LKPkPWilZU1ynKClz5Gj4bf74LML4r3eVLWumKnGjoEr1OSHQhMdbBDoYTi+yjrujvpZe2pUnqCrrA==
+"@rolldown/binding-openharmony-arm64@1.2.15":
+  version "1.2.15"
+  resolved "https://registry.npmjs.org/@rolldown/binding-openharmony-arm64/-/binding-openharmony-arm64-1.2.15.tgz#70cdb40621eb478999a015019f68a97012f5e8cd"
+  integrity sha512-MyzC5Hrv/sm+Z7TSGKP/j8001RO2xQm1zOpCNVL4j0cY/VhBZviludA2YFQ7i4lH6ZAXxQm0lcMdBzM+99mE7w==
 
-"@rolldown/binding-win32-arm64-msvc@1.2.12":
-  version "1.2.12"
-  resolved "https://registry.npmjs.org/@rolldown/binding-win32-arm64-msvc/-/binding-win32-arm64-msvc-1.2.12.tgz#a335ae382cbf3b282c3a6fe620fe4f4a0e25dfda"
-  integrity sha512-At7fPB6PCaIjzgIhEZFxuT+BBFqiQibJDT4d3PhiR3f4E7bbMZF4aKblbFfEM3sETRDd1YiQx/+U/g/B/ou5Ew==
+"@rolldown/binding-win32-arm64-msvc@1.2.15":
+  version "1.2.15"
+  resolved "https://registry.npmjs.org/@rolldown/binding-win32-arm64-msvc/-/binding-win32-arm64-msvc-1.2.15.tgz#8345076b3d3b4c362e5e8411aae227f729840a39"
+  integrity sha512-+PgYiS+AH5omy6L45ZLxybasauJaj3M8buoT83D+nzPmCayXlxUV9hydhciCKVyIg0B/v0BtXPDE1uGqNwCPpg==
 
-"@rolldown/binding-win32-x64-msvc@1.2.12":
-  version "1.2.12"
-  resolved "https://registry.npmjs.org/@rolldown/binding-win32-x64-msvc/-/binding-win32-x64-msvc-1.2.12.tgz#55d6f9c288aa220f758310c39c31aa1c4d309830"
-  integrity sha512-WIw2haVKwjuYdXkHaoC0mF8Le71TuCBxjrdKqLbJGctbBABj+ClfmNvtbOnzpq3RokNo5+V1qhtSzJyXorsklQ==
+"@rolldown/binding-win32-x64-msvc@1.2.15":
+  version "1.2.15"
+  resolved "https://registry.npmjs.org/@rolldown/binding-win32-x64-msvc/-/binding-win32-x64-msvc-1.2.15.tgz#04ff5f1e8786fd31a68d040661a50e6dae3c7669"
+  integrity sha512-HFZd2QNQYn1JbIi+Hpd7H+r/lkWxcfIu28nirZ6eCn2LafuvmExMlb/P96Sfx5tf7pPArw39IdhmCF8vmV+NhQ==
 
 "@rolldown/pluginutils@^1.0.0":
   version "1.0.1"
@@ -2673,11 +2673,6 @@ fresh@^2.0.0:
   resolved "https://registry.npmjs.org/fresh/-/fresh-2.0.0.tgz#8dd7df6a1b3a1b3a5cf186c05a5dd267622635a4"
   integrity sha512-Rx/WycZ60HOaqLKAi6cHRKKI7zxWbJ31MhntmtwMoaTeF7XFH9hhBp8vITaMidfljRQ6eYWCKkaTK+ykVJHP2A==
 
-fsevents@2.3.2:
-  version "2.3.2"
-  resolved "https://registry.npmjs.org/fsevents/-/fsevents-2.3.2.tgz#8a526f78b8fdf4623b709e0b975c52c24c02fd1a"
-  integrity sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==
-
 fsevents@~2.3.3:
   version "2.3.3"
   resolved "https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz#cac6407785d03675a2a5e1a5305c697b347d90d6"
@@ -3194,7 +3189,7 @@ multicast-dns@^7.2.5:
     dns-packet "^5.2.2"
     thunky "^1.0.2"
 
-nanoid@^3.3.19:
+nanoid@^3.3.20:
   version "3.3.20"
   resolved "https://registry.npmjs.org/nanoid/-/nanoid-3.3.20.tgz#dfd4444d85aa10111ef66ba85ed72e08ba0855d8"
   integrity sha512-uKdg2G3GNCKQn9byYOpxbGqrT2fGO5KRt5J/8b3pok8rT6qxGWF6hxMyJiEYtAf+FVyYuD9hRaDqX5uPFYJ4ZQ==
@@ -3369,31 +3364,29 @@ pkijs@^3.3.3:
     pvutils "^1.1.3"
     tslib "^2.8.1"
 
-playwright-core@1.55.1:
-  version "1.55.1"
-  resolved "https://registry.npmjs.org/playwright-core/-/playwright-core-1.55.1.tgz#5d3bb1846bc4289d364ea1a9dcb33f14545802e9"
-  integrity sha512-Z6Mh9mkwX+zxSlHqdr5AOcJnfp+xUWLCt9uKV18fhzA8eyxUd8NUWzAjxUh55RZKSYwDGX0cfaySdhZJGMoJ+w==
+playwright-core@1.64.1:
+  version "1.64.1"
+  resolved "https://registry.npmjs.org/playwright-core/-/playwright-core-1.64.1.tgz#ca9ec82d7da6ced1b2326ec59ef097aaa9a29f94"
+  integrity sha512-BC4s8y6SEVA6Q1rSxZTto8hI1KUI3xXlHGZgvGqP4IqPdI/a6FX9H29IDNz7vKo9l21b6LfYosScPL6M3xxyDQ==
 
-playwright@1.55.1:
-  version "1.55.1"
-  resolved "https://registry.npmjs.org/playwright/-/playwright-1.55.1.tgz#8a9954e9e61ed1ab479212af9be336888f8b3f0e"
-  integrity sha512-cJW4Xd/G3v5ovXtJJ52MAOclqeac9S/aGGgRzLabuF8TnIb6xHvMzKIa6JmrRzUkeXJgfL1MhukP0NK6l39h3A==
+playwright@1.64.1:
+  version "1.64.1"
+  resolved "https://registry.npmjs.org/playwright/-/playwright-1.64.1.tgz#c174f48e17f5f3fba71726a9bcdeb8534d5c665d"
+  integrity sha512-HCrVhHr5QQuwYoswEUGTb7gGp522yflbv/ST8nF4sFWGuLjQCt17Q/EubpGGSNKYn1tsTCPZxqHhHCfVURu7UA==
   dependencies:
-    playwright-core "1.55.1"
-  optionalDependencies:
-    fsevents "2.3.2"
+    playwright-core "1.64.1"
 
 pngjs@^7.0.0:
   version "7.0.0"
   resolved "https://registry.npmjs.org/pngjs/-/pngjs-7.0.0.tgz#a8b7446020ebbc6ac739db6c5415a65d17090e26"
   integrity sha512-LKWqWJRhstyYo9pGvgor/ivk2w94eSjE3RGVuzLGlr3NmD8bf7RcYGze1mNdEHRP6TRP6rMuDHk5t44hnTRyow==
 
-postcss@^8.5.28:
-  version "8.5.29"
-  resolved "https://registry.npmjs.org/postcss/-/postcss-8.5.29.tgz#086a0ded2c0257c71efb8c68776b477774714b4a"
-  integrity sha512-49cGhUbXj8Qenv0iTMxA1cFBzxXoctpC9Ujd77t1WcbJIr6nF/eI7g/8MgxrYldFRuAXvja7xQRwavoW7kgrxQ==
+postcss@^8.5.30:
+  version "8.5.31"
+  resolved "https://registry.npmjs.org/postcss/-/postcss-8.5.31.tgz#d44731fa02f8ae8371629ec7220e2ae0dbdf23ec"
+  integrity sha512-YUbWYCgErwnMAVkjUnYa+KlMBzGpHwiIt/DE7f0G33AuX2LH9UcTk6KgWxd3zRU+pN3u/C+Xl3EnMLM4Hea7Sg==
   dependencies:
-    nanoid "^3.3.19"
+    nanoid "^3.3.20"
     picocolors "^1.1.1"
     source-map-js "^1.2.2"
 
@@ -3552,29 +3545,29 @@ resolve@^1.20.0:
     path-parse "^1.0.7"
     supports-preserve-symlinks-flag "^1.0.0"
 
-rolldown@~1.2.11:
-  version "1.2.12"
-  resolved "https://registry.npmjs.org/rolldown/-/rolldown-1.2.12.tgz#75215a6b55a2a9e8f577ac937a4fe42d9682ae0c"
-  integrity sha512-8wafseiaG80xmXSfqidUNqZcylTlhmPZZt+za2m+js2sFZ8dTNlhIOV2WcbIPx2hgwPBJpEUGFAMZ9bgBBLTSQ==
+rolldown@~1.2.14:
+  version "1.2.15"
+  resolved "https://registry.npmjs.org/rolldown/-/rolldown-1.2.15.tgz#d232b8201e1be3471d636375fe10af1dfc4eac35"
+  integrity sha512-6odND+fel5zVw3I4Yc2e69gvguDnX0CAAGiNDZSq4ik5WUcaLrkD2GLuog0XcODbor31hZ5ayEMgVDno+KPV5g==
   dependencies:
-    "@oxc-project/types" "=0.152.0"
+    "@oxc-project/types" "=0.155.0"
     "@rolldown/pluginutils" "^1.0.0"
   optionalDependencies:
-    "@rolldown/binding-android-arm-eabi" "1.2.12"
-    "@rolldown/binding-android-arm64" "1.2.12"
-    "@rolldown/binding-darwin-arm64" "1.2.12"
-    "@rolldown/binding-darwin-x64" "1.2.12"
-    "@rolldown/binding-freebsd-x64" "1.2.12"
-    "@rolldown/binding-linux-arm-gnueabihf" "1.2.12"
-    "@rolldown/binding-linux-arm64-gnu" "1.2.12"
-    "@rolldown/binding-linux-arm64-musl" "1.2.12"
-    "@rolldown/binding-linux-ppc64-gnu" "1.2.12"
-    "@rolldown/binding-linux-s390x-gnu" "1.2.12"
-    "@rolldown/binding-linux-x64-gnu" "1.2.12"
-    "@rolldown/binding-linux-x64-musl" "1.2.12"
-    "@rolldown/binding-openharmony-arm64" "1.2.12"
-    "@rolldown/binding-win32-arm64-msvc" "1.2.12"
-    "@rolldown/binding-win32-x64-msvc" "1.2.12"
+    "@rolldown/binding-android-arm-eabi" "1.2.15"
+    "@rolldown/binding-android-arm64" "1.2.15"
+    "@rolldown/binding-darwin-arm64" "1.2.15"
+    "@rolldown/binding-darwin-x64" "1.2.15"
+    "@rolldown/binding-freebsd-x64" "1.2.15"
+    "@rolldown/binding-linux-arm-gnueabihf" "1.2.15"
+    "@rolldown/binding-linux-arm64-gnu" "1.2.15"
+    "@rolldown/binding-linux-arm64-musl" "1.2.15"
+    "@rolldown/binding-linux-ppc64-gnu" "1.2.15"
+    "@rolldown/binding-linux-s390x-gnu" "1.2.15"
+    "@rolldown/binding-linux-x64-gnu" "1.2.15"
+    "@rolldown/binding-linux-x64-musl" "1.2.15"
+    "@rolldown/binding-openharmony-arm64" "1.2.15"
+    "@rolldown/binding-win32-arm64-msvc" "1.2.15"
+    "@rolldown/binding-win32-x64-msvc" "1.2.15"
 
 router@^2.2.0:
   version "2.2.0"
@@ -3962,14 +3955,14 @@ vary@^1.1.2, vary@~1.1.2:
   integrity sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==
 
 "vite@^6.0.0 || ^7.0.0 || ^8.0.0":
-  version "8.3.2"
-  resolved "https://registry.npmjs.org/vite/-/vite-8.3.2.tgz#391d1e62761b343435b8e4b512e449a4f90670a3"
-  integrity sha512-SQr1x6W5vVSbROg7vsyXIaxK9b0G7zsT68acdWWRmnBUsgDieLCRG+Rep9WdZgcposvv/GSnr4GUUBqB3vXq6w==
+  version "8.3.5"
+  resolved "https://registry.npmjs.org/vite/-/vite-8.3.5.tgz#9614f66026cb92fe486cb9d3c90780b2a69fc85d"
+  integrity sha512-z1YpjieJ9g0ebTmQpLBv/oq9E3F9EIlOe+7LahW8SrE3LTiG3udBRUXQOlYXP9b+IC2q2phHeVxj9xGlw34OEQ==
   dependencies:
     lightningcss "^1.33.0"
     picomatch "^4.0.7"
-    postcss "^8.5.28"
-    rolldown "~1.2.11"
+    postcss "^8.5.30"
+    rolldown "~1.2.14"
     tinyglobby "^0.2.17"
   optionalDependencies:
     fsevents "~2.3.3"
