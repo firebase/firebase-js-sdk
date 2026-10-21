@@ -56,7 +56,10 @@ function createPlaywrightProvider(options) {
         provider.mocker.register = async (sessionId, module) => {
           if (!routedSessions.has(sessionId)) {
             routedSessions.add(sessionId);
-            await provider.getPage(sessionId).context().route(/^$/, () => {});
+            await provider
+              .getPage(sessionId)
+              .context()
+              .route(/^$/, route => route.continue());
           }
           return register(sessionId, module);
         };

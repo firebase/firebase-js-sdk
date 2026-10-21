@@ -20,11 +20,12 @@ const fs = require('fs');
 
 function isChromiumInstalled() {
   try {
-    const { registry } = require(
+    const coreBundle = require(
       require.resolve('playwright-core/lib/coreBundle', {
         paths: [process.cwd(), __dirname]
       })
-    ).registry;
+    );
+    const { registry } = coreBundle.registry;
     return ['chromium', 'chromium-headless-shell'].every(name =>
       fs.existsSync(registry.findExecutable(name).executablePath())
     );
