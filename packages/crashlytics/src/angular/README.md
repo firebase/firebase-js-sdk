@@ -29,29 +29,6 @@ export const appConfig: ApplicationConfig = {
 };
 ```
 
-### Enable Breadcrumbs
-
-To enable Session Breadcrumbs & Logs when navigating between routes or logging custom events, pass `{ features: [breadcrumbs()] }` in the options parameter of `provideCrashlytics`:
-
-```typescript
-// src/app/app.config.ts
-import { ApplicationConfig } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { breadcrumbs } from '@firebase/crashlytics';
-import { provideCrashlytics } from '@firebase/crashlytics/angular';
-import { app } from '../lib/firebase';
-import { routes } from './app.routes';
-
-export const appConfig: ApplicationConfig = {
-  providers: [
-    provideRouter(routes),
-    provideCrashlytics(() => app, {
-      features: [breadcrumbs()]
-    })
-  ]
-};
-```
-
 > [!NOTE]
 > `provideCrashlytics()` registers a custom `ErrorHandler` to track uncaught zone crashes and uses internal `Router` instances to build dynamic routes (like `/dashboard/user/:id`) rather than logging literal URLs, keeping telemetry free of personally identifiable information (PII).
 

@@ -18,7 +18,7 @@ async function submitPaymentForm() {
   try {
     await api.processTransaction();
   } catch (error) {
-    // Manually record handled errors with custom diagnostic context
+    // Manually record handled errors with custom diagnostic context (key/value pairs)
     recordError(crashlytics, error, {
       userTier: 'Premium Gold',
       checkoutStage: 'BillingAddressVerification',
@@ -29,24 +29,6 @@ async function submitPaymentForm() {
     showFallbackBanner(error);
   }
 }
-```
-
----
-
-## Custom Logs & Attributes
-
-You can send custom diagnostic logs and attach arbitrary key-value attributes using `log()`:
-
-```typescript
-import { log, getCrashlytics } from '@firebase/crashlytics';
-import { getApp } from '@firebase/app';
-
-const crashlytics = getCrashlytics(getApp());
-
-log(crashlytics, 'User opened shopping cart', {
-  itemCount: 3,
-  couponApplied: true
-});
 ```
 
 ---
