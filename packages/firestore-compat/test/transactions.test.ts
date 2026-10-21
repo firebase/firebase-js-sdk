@@ -16,7 +16,6 @@
  */
 
 import type * as firestore from '@firebase/firestore-types';
-import { expect } from 'chai';
 
 import * as firebaseExport from './util/firebase_export';
 import * as integrationHelpers from './util/helpers';
@@ -114,8 +113,8 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         await this.prepareDoc();
         await this.runTransaction();
         const snapshot = await this.docRef.get();
-        expect(snapshot.exists).to.equal(true);
-        expect(snapshot.data()).to.deep.equal(expected);
+        expect(snapshot.exists).toBe(true);
+        expect(snapshot.data()).toEqual(expected);
       } catch (e) {
         const err = e as firestore.FirestoreError;
         expect.fail(
@@ -133,7 +132,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         await this.prepareDoc();
         await this.runTransaction();
         const snapshot = await this.docRef.get();
-        expect(snapshot.exists).to.equal(false);
+        expect(snapshot.exists).toBe(false);
       } catch (e) {
         const err = e as firestore.FirestoreError;
         expect.fail(
@@ -154,7 +153,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         succeeded = true;
       } catch (e) {
         const err = e as firestore.FirestoreError;
-        expect(err.code).to.equal(expected);
+        expect(err.code).toBe(expected);
       }
       if (succeeded) {
         expect.fail(
@@ -241,7 +240,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .run(get, set1, set2)
         .expectDoc({ foo: 'bar2' });
     });
-  }).timeout(10000);
+  }, 10000);
 
   it('runs transactions after getting nonexistent document', async () => {
     return integrationHelpers.withTestDb(persistence, async db => {
@@ -280,7 +279,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .run(get, set1, set2)
         .expectDoc({ foo: 'bar2' });
     });
-  }).timeout(10000);
+  }, 10000);
 
   it('runs transactions on existing document', async () => {
     return integrationHelpers.withTestDb(persistence, async db => {
@@ -356,8 +355,8 @@ apiDescribe('Database transactions', (persistence: boolean) => {
           return doc.get();
         })
         .then(snapshot => {
-          expect(snapshot.exists).to.equal(true);
-          expect(snapshot.data()).to.deep.equal({
+          expect(snapshot.exists).toBe(true);
+          expect(snapshot.data()).toEqual({
             a: 'b',
             c: 'd',
             nested: { a: 'b', c: 'd' }
@@ -393,8 +392,8 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         })
         .then(() => doc.get())
         .then(docSnapshot => {
-          expect(docSnapshot.exists).to.be.ok;
-          expect(docSnapshot.data()).to.deep.equal(finalData);
+          expect(docSnapshot.exists).toBeTruthy();
+          expect(docSnapshot.data()).toEqual(finalData);
         });
     });
   });
@@ -430,8 +429,8 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         })
         .then(async () => {
           const snapshot = await doc1.get();
-          expect(tries).to.equal(2);
-          expect(snapshot.data()!['count']).to.equal(1234);
+          expect(tries).toBe(2);
+          expect(snapshot.data()!['count']).toBe(1234);
         });
     });
   });
@@ -448,9 +447,9 @@ apiDescribe('Database transactions', (persistence: boolean) => {
           expect.fail('transaction should fail');
         })
         .catch((err: firestore.FirestoreError) => {
-          expect(err).to.exist;
-          expect(err.code).to.equal('invalid-argument');
-          expect(err.message).to.contain(
+          expect(err).toBeDefined();
+          expect(err.code).toBe('invalid-argument');
+          expect(err.message).toContain(
             'Firestore transactions require all reads to be executed'
           );
         });
@@ -479,9 +478,9 @@ apiDescribe('Database transactions', (persistence: boolean) => {
           })
           .then(() => expect.fail('transaction should fail'))
           .catch((err: firestore.FirestoreError) => {
-            expect(err).to.exist;
-            expect(err.code).to.equal('invalid-argument');
-            expect(err.message).to.contain(
+            expect(err).toBeDefined();
+            expect(err.code).toBe('invalid-argument');
+            expect(err.message).toContain(
               "Can't update a document that doesn't exist."
             );
           });
@@ -512,8 +511,8 @@ apiDescribe('Database transactions', (persistence: boolean) => {
             .runTransaction(fn)
             .then(() => expect.fail('transaction should fail'))
             .catch(err => {
-              expect(err).to.exist;
-              expect(err.message).to.contain(
+              expect(err).toBeDefined();
+              expect(err.message).toContain(
                 'Transaction callback must return a Promise'
               );
             });
@@ -535,8 +534,8 @@ apiDescribe('Database transactions', (persistence: boolean) => {
           });
         })
         .then(snapshot => {
-          expect(snapshot).to.exist;
-          expect(snapshot.data()!['foo']).to.equal('bar');
+          expect(snapshot).toBeDefined();
+          expect(snapshot.data()!['foo']).toBe('bar');
         });
     });
   });
@@ -558,8 +557,8 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         })
         .then(() => expect.fail('transaction should fail'))
         .catch((err: firestore.FirestoreError) => {
-          expect(err.code).to.equal('invalid-argument');
-          expect(counter).to.equal(1);
+          expect(err.code).toBe('invalid-argument');
+          expect(counter).toBe(1);
         });
     });
   });
@@ -582,15 +581,13 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         })
         .then(() => expect.fail('transaction should fail'))
         .catch(err => {
-          expect(err).to.exist;
-          expect(err).to.equal('no');
-          expect(counter).to.equal(1);
+          expect(err).toBeDefined();
+          expect(err).toBe('no');
+          expect(counter).toBe(1);
           return doc.get();
         })
         .then(snapshot => {
-          expect((snapshot as firestore.DocumentSnapshot).exists).to.equal(
-            false
-          );
+          expect((snapshot as firestore.DocumentSnapshot).exists).toBe(false);
         });
     });
   });
@@ -608,15 +605,13 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         })
         .then(() => expect.fail('transaction should fail'))
         .catch(err => {
-          expect(err).to.exist;
-          expect(err).to.equal(failure);
-          expect(count).to.equal(1);
+          expect(err).toBeDefined();
+          expect(err).toBe(failure);
+          expect(count).toBe(1);
           return doc.get();
         })
         .then(snapshot => {
-          expect((snapshot as firestore.DocumentSnapshot).exists).to.equal(
-            false
-          );
+          expect((snapshot as firestore.DocumentSnapshot).exists).toBe(false);
         });
     });
   });
@@ -655,12 +650,12 @@ apiDescribe('Database transactions', (persistence: boolean) => {
           return db
             .runTransaction(async transaction => {
               const snapshot = await transaction.get(docRef);
-              expect(snapshot.data()!.byline()).to.equal('post, by author');
+              expect(snapshot.data()!.byline()).toBe('post, by author');
               transaction.set(docRef, new Post('new post', 'author'));
             })
             .then(async () => {
               const snapshot = await docRef.get();
-              expect(snapshot.data()!.byline()).to.equal('new post, by author');
+              expect(snapshot.data()!.byline()).toBe('new post, by author');
             });
         });
       });

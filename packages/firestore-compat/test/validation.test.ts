@@ -16,7 +16,6 @@
  */
 
 import type * as firestore from '@firebase/firestore-types';
-import { expect } from 'chai';
 
 import * as firebaseExport from './util/firebase_export';
 import {
@@ -103,15 +102,11 @@ class TestClass {
 }
 
 apiDescribe('Validation:', (persistence: boolean) => {
-  describe('FirestoreSettings', () => {
+  describe.skipIf(persistence)('FirestoreSettings', () => {
     // Enabling persistence counts as a use of the firestore instance, meaning
     // that it will be impossible to verify that a set of settings don't throw,
     // and additionally that some exceptions happen for specific reasons, rather
     // than persistence having already been enabled.
-    if (persistence) {
-      return;
-    }
-
     validationIt(
       persistence,
       'disallows changing settings after use',
@@ -119,7 +114,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         await db.doc('foo/bar').set({});
         expect(() =>
           db.settings({ host: 'something-else.example.com' })
-        ).to.throw(
+        ).toThrow(
           'Firestore has already been started and its settings can no ' +
             'longer be changed. You can only modify settings before calling any other ' +
             'methods on a Firestore object.'
@@ -129,7 +124,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(persistence, 'enforces minimum cache size', () => {
       const db = newTestFirestore('test-project');
-      expect(() => db.settings({ cacheSizeBytes: 1 })).to.throw(
+      expect(() => db.settings({ cacheSizeBytes: 1 })).toThrow(
         'cacheSizeBytes must be at least 1048576'
       );
     });
@@ -154,7 +149,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           'Firestore has already been started and its settings can no longer be changed.';
 
         await db.doc('foo/bar').set({});
-        expect(() => db.useEmulator('localhost', 9000)).to.throw(errorMsg);
+        expect(() => db.useEmulator('localhost', 9000)).toThrow(errorMsg);
       }
     );
 
@@ -188,7 +183,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
         expect(() =>
           db.useEmulator('localhost', 9000, { mockUserToken: {} as any })
-        ).to.throw(errorMsg);
+        ).toThrow(errorMsg);
       }
     );
   });
@@ -203,7 +198,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         if (!persistence) {
           db.doc('foo/bar');
         }
-        expect(() => db.enablePersistence()).to.throw(
+        expect(() => db.enablePersistence()).toThrow(
           'Firestore has already been started and persistence can no ' +
             'longer be enabled. You can only enable persistence before ' +
             'calling any other methods on a Firestore object.'
@@ -218,7 +213,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .then(
             x => expect.fail('Transaction should fail'),
             err => {
-              expect(err.message).to.equal(
+              expect(err.message).toBe(
                 'Transaction callback must return a Promise'
               );
             }
@@ -230,10 +225,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
   describe('Collection paths', () => {
     validationIt(persistence, 'must be non-empty strings', db => {
       const baseDocRef = db.doc('foo/bar');
-      expect(() => db.collection('')).to.throw(
+      expect(() => db.collection('')).toThrow(
         'Function Firestore.collection() cannot be called with an empty path.'
       );
-      expect(() => baseDocRef.collection('')).to.throw(
+      expect(() => baseDocRef.collection('')).toThrow(
         'Function DocumentReference.collection() cannot be called with an ' +
           'empty path.'
       );
@@ -250,10 +245,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
           'Invalid collection reference. Collection references ' +
           'must have an odd number of segments, but ' +
           `${badAbsolutePaths[i]} has ${badPathLengths[i]}`;
-        expect(() => db.collection(badAbsolutePaths[i])).to.throw(error);
-        expect(() => baseDocRef.collection(badRelativePaths[i])).to.throw(
-          error
-        );
+        expect(() => db.collection(badAbsolutePaths[i])).toThrow(error);
+        expect(() => baseDocRef.collection(badRelativePaths[i])).toThrow(error);
       }
     });
 
@@ -268,10 +261,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
       const doc = collection.doc('test-document');
       for (const path of badPaths) {
         const reason = `Invalid segment (${path}). Paths must not contain // in them.`;
-        expect(() => db.collection(path)).to.throw(reason);
-        expect(() => db.doc(path)).to.throw(reason);
-        expect(() => collection.doc(path)).to.throw(reason);
-        expect(() => doc.collection(path)).to.throw(reason);
+        expect(() => db.collection(path)).toThrow(reason);
+        expect(() => db.doc(path)).toThrow(reason);
+        expect(() => collection.doc(path)).toThrow(reason);
+        expect(() => doc.collection(path)).toThrow(reason);
       }
     });
   });
@@ -280,10 +273,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
     validationIt(persistence, 'must be strings', db => {
       const baseCollectionRef = db.collection('foo');
 
-      expect(() => db.doc('')).to.throw(
+      expect(() => db.doc('')).toThrow(
         'Function Firestore.doc() cannot be called with an empty path.'
       );
-      expect(() => baseCollectionRef.doc('')).to.throw(
+      expect(() => baseCollectionRef.doc('')).toThrow(
         'Function CollectionReference.doc() cannot be called with an empty ' +
           'path.'
       );
@@ -300,10 +293,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
           'Invalid document reference. Document references ' +
           'must have an even number of segments, but ' +
           `${badAbsolutePaths[i]} has ${badPathLengths[i]}`;
-        expect(() => db.doc(badAbsolutePaths[i])).to.throw(error);
-        expect(() => baseCollectionRef.doc(badRelativePaths[i])).to.throw(
-          error
-        );
+        expect(() => db.doc(badAbsolutePaths[i])).toThrow(error);
+        expect(() => baseCollectionRef.doc(badRelativePaths[i])).toThrow(error);
       }
     });
   });
@@ -311,11 +302,11 @@ apiDescribe('Validation:', (persistence: boolean) => {
   validationIt(persistence, 'Merge options are validated', db => {
     const docRef = db.collection('test').doc();
 
-    expect(() => docRef.set({}, { merge: true, mergeFields: [] })).to.throw(
+    expect(() => docRef.set({}, { merge: true, mergeFields: [] })).toThrow(
       'Invalid options passed to function DocumentReference.set(): You cannot specify both ' +
         '"merge" and "mergeFields".'
     );
-    expect(() => docRef.set({}, { merge: false, mergeFields: [] })).to.throw(
+    expect(() => docRef.set({}, { merge: false, mergeFields: [] })).toThrow(
       'Invalid options passed to function DocumentReference.set(): You cannot specify both ' +
         '"merge" and "mergeFields".'
     );
@@ -540,9 +531,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
           'Provided document reference is from a different Firestore instance.';
         const data = { foo: 1 };
         const batch = db.batch();
-        expect(() => batch.set(badRef, data)).to.throw(reason);
-        expect(() => batch.update(badRef, data)).to.throw(reason);
-        expect(() => batch.delete(badRef)).to.throw(reason);
+        expect(() => batch.set(badRef, data)).toThrow(reason);
+        expect(() => batch.update(badRef, data)).toThrow(reason);
+        expect(() => batch.delete(badRef)).toThrow(reason);
       });
     }
   );
@@ -557,10 +548,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
           'Provided document reference is from a different Firestore instance.';
         const data = { foo: 1 };
         return db.runTransaction(async txn => {
-          expect(() => txn.get(badRef)).to.throw(reason);
-          expect(() => txn.set(badRef, data)).to.throw(reason);
-          expect(() => txn.update(badRef, data)).to.throw(reason);
-          expect(() => txn.delete(badRef)).to.throw(reason);
+          expect(() => txn.get(badRef)).toThrow(reason);
+          expect(() => txn.set(badRef, data)).toThrow(reason);
+          expect(() => txn.update(badRef, data)).toThrow(reason);
+          expect(() => txn.delete(badRef)).toThrow(reason);
         });
       });
     }
@@ -622,7 +613,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       const collection = db.collection('test');
       expect(() =>
         collection.where('test', '==', { test: FieldValue.arrayUnion(1) })
-      ).to.throw(
+      ).toThrow(
         'Function Query.where() called with invalid data. ' +
           'FieldValue.arrayUnion() can only be used with update() and set() ' +
           '(found in field test)'
@@ -630,7 +621,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
       expect(() =>
         collection.where('test', '==', { test: FieldValue.arrayRemove(1) })
-      ).to.throw(
+      ).toThrow(
         'Function Query.where() called with invalid data. ' +
           'FieldValue.arrayRemove() can only be used with update() and set() ' +
           '(found in field test)'
@@ -641,19 +632,19 @@ apiDescribe('Validation:', (persistence: boolean) => {
       const doc = db.collection('test').doc();
       expect(() =>
         doc.set({ x: FieldValue.arrayUnion(1, new TestClass('foo')) })
-      ).to.throw(
+      ).toThrow(
         'Function FieldValue.arrayUnion() called with invalid data. ' +
           'Unsupported field value: a custom TestClass object'
       );
 
       expect(() =>
         doc.set({ x: FieldValue.arrayRemove(1, new TestClass('foo')) })
-      ).to.throw(
+      ).toThrow(
         'Function FieldValue.arrayRemove() called with invalid data. ' +
           'Unsupported field value: a custom TestClass object'
       );
 
-      expect(() => doc.set({ x: FieldValue.arrayRemove(undefined) })).to.throw(
+      expect(() => doc.set({ x: FieldValue.arrayRemove(undefined) })).toThrow(
         'Function FieldValue.arrayRemove() called with invalid data. ' +
           'Unsupported field value: undefined'
       );
@@ -664,14 +655,14 @@ apiDescribe('Validation:', (persistence: boolean) => {
       // This would result in a directly nested array which is not supported.
       expect(() =>
         doc.set({ x: FieldValue.arrayUnion(1, ['nested']) })
-      ).to.throw(
+      ).toThrow(
         'Function FieldValue.arrayUnion() called with invalid data. ' +
           'Nested arrays are not supported'
       );
 
       expect(() =>
         doc.set({ x: FieldValue.arrayRemove(1, ['nested']) })
-      ).to.throw(
+      ).toThrow(
         'Function FieldValue.arrayRemove() called with invalid data. ' +
           'Nested arrays are not supported'
       );
@@ -683,7 +674,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       const collection = db.collection('test');
       expect(() =>
         collection.where('test', '==', { test: FieldValue.increment(1) })
-      ).to.throw(
+      ).toThrow(
         'Function Query.where() called with invalid data. ' +
           'FieldValue.increment() can only be used with update() and set() ' +
           '(found in field test)'
@@ -694,10 +685,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
   describe('Queries', () => {
     validationIt(persistence, 'with non-positive limit fail', db => {
       const collection = db.collection('test');
-      expect(() => collection.limit(0)).to.throw(
+      expect(() => collection.limit(0)).toThrow(
         `Function Query.limit() requires a positive number, but it was: 0.`
       );
-      expect(() => collection.limitToLast(-1)).to.throw(
+      expect(() => collection.limitToLast(-1)).toThrow(
         `Function Query.limitToLast() requires a positive number, but it was: -1.`
       );
     });
@@ -712,15 +703,15 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .doc('f')
           .get()
           .then(doc => {
-            expect(doc.data()).to.deep.equal({ k: 'f', nosort: 1 });
+            expect(doc.data()).toEqual({ k: 'f', nosort: 1 });
             const reason =
               `Invalid query. You are trying to start or end a ` +
               `query using a document for which the field 'sort' (used as ` +
               `the orderBy) does not exist.`;
-            expect(() => query.startAt(doc)).to.throw(reason);
-            expect(() => query.startAfter(doc)).to.throw(reason);
-            expect(() => query.endBefore(doc)).to.throw(reason);
-            expect(() => query.endAt(doc)).to.throw(reason);
+            expect(() => query.startAt(doc)).toThrow(reason);
+            expect(() => query.startAfter(doc)).toThrow(reason);
+            expect(() => query.endBefore(doc)).toThrow(reason);
+            expect(() => query.endAt(doc)).toThrow(reason);
           });
       });
     });
@@ -744,7 +735,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
                 return;
               }
 
-              expect(snapshot.docs).to.have.lengthOf(1);
+              expect(snapshot.docs).toHaveLength(1);
               const docSnap: firestore.DocumentSnapshot = snapshot.docs[0];
 
               if (snapshot.metadata.hasPendingWrites) {
@@ -755,7 +746,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
                     .orderBy('timestamp')
                     .endAt(docSnap)
                     .onSnapshot(() => {})
-                ).to.throw('uncommitted server timestamp');
+                ).toThrow('uncommitted server timestamp');
                 offlineDeferred.resolve();
               } else {
                 // Online snapshot. Since the server timestamp is committed, we
@@ -792,8 +783,8 @@ apiDescribe('Validation:', (persistence: boolean) => {
           'Too many arguments provided to Query.startAt(). The number of ' +
           'arguments must be less than or equal to the number of orderBy() ' +
           'clauses';
-        expect(() => query.startAt(1, 2)).to.throw(reason);
-        expect(() => query.orderBy('bar').startAt(1, 2, 3)).to.throw(reason);
+        expect(() => query.startAt(1, 2)).toThrow(reason);
+        expect(() => query.orderBy('bar').startAt(1, 2, 3)).toThrow(reason);
       }
     );
 
@@ -807,16 +798,16 @@ apiDescribe('Validation:', (persistence: boolean) => {
         const cgQuery = db
           .collectionGroup('collection')
           .orderBy(FieldPath.documentId());
-        expect(() => query.startAt(1)).to.throw(
+        expect(() => query.startAt(1)).toThrow(
           'Invalid query. Expected a string for document ID in ' +
             'Query.startAt(), but got a number'
         );
-        expect(() => query.startAt('foo/bar')).to.throw(
+        expect(() => query.startAt('foo/bar')).toThrow(
           'Invalid query. When querying a collection and ordering by ' +
             'documentId(), the value passed to Query.startAt() ' +
             "must be a plain document ID, but 'foo/bar' contains a slash."
         );
-        expect(() => cgQuery.startAt('foo')).to.throw(
+        expect(() => cgQuery.startAt('foo')).toThrow(
           'Invalid query. When querying a collection group and ordering by ' +
             'documentId(), the value passed to Query.startAt() ' +
             "must result in a valid document path, but 'foo' is not because " +
@@ -829,14 +820,14 @@ apiDescribe('Validation:', (persistence: boolean) => {
       const collection = db.collection('test');
       expect(() =>
         collection.where('x', '>=', 32).where('y', '<', 'cat')
-      ).not.to.throw();
+      ).not.toThrow();
     });
 
     validationIt(persistence, 'with more than one != query fail', db => {
       const collection = db.collection('test');
       expect(() =>
         collection.where('x', '!=', 32).where('x', '!=', 33)
-      ).to.throw("Invalid query. You cannot use more than one '!=' filter.");
+      ).toThrow("Invalid query. You cannot use more than one '!=' filter.");
     });
 
     validationIt(
@@ -846,7 +837,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         const collection = db.collection('test');
         expect(() =>
           collection.where('y', '>', 32).where('x', '!=', 33)
-        ).not.to.throw();
+        ).not.toThrow();
       }
     );
 
@@ -857,7 +848,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         const collection = db.collection('test');
         expect(() =>
           collection.where('y', '>', 32).where('x', 'not-in', [33])
-        ).not.to.throw();
+        ).not.toThrow();
       }
     );
 
@@ -866,21 +857,17 @@ apiDescribe('Validation:', (persistence: boolean) => {
       'can have inequality different than first orderBy',
       db => {
         const collection = db.collection('test');
-        expect(() =>
-          collection.where('x', '>', 32).orderBy('y')
-        ).not.to.throw();
-        expect(() =>
-          collection.orderBy('y').where('x', '>', 32)
-        ).not.to.throw();
+        expect(() => collection.where('x', '>', 32).orderBy('y')).not.toThrow();
+        expect(() => collection.orderBy('y').where('x', '>', 32)).not.toThrow();
         expect(() =>
           collection.where('x', '>', 32).orderBy('y').orderBy('x')
-        ).not.to.throw();
+        ).not.toThrow();
         expect(() =>
           collection.orderBy('y').orderBy('x').where('x', '>', 32)
-        ).not.to.throw();
+        ).not.toThrow();
         expect(() =>
           collection.where('x', '!=', 32).orderBy('y')
-        ).not.to.throw();
+        ).not.toThrow();
       }
     );
 
@@ -890,7 +877,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .collection('test')
           .where('foo', 'not-in', [2, 3])
           .where('foo', '!=', 4)
-      ).to.throw(
+      ).toThrow(
         "Invalid query. You cannot use '!=' filters with 'not-in' filters."
       );
 
@@ -899,7 +886,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .collection('test')
           .where('foo', '!=', 4)
           .where('foo', 'not-in', [2, 3])
-      ).to.throw(
+      ).toThrow(
         "Invalid query. You cannot use 'not-in' filters with '!=' filters."
       );
     });
@@ -910,16 +897,14 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .collection('test')
           .where('foo', 'not-in', [1, 2])
           .where('foo', 'not-in', [2, 3])
-      ).to.throw(
-        "Invalid query. You cannot use more than one 'not-in' filter."
-      );
+      ).toThrow("Invalid query. You cannot use more than one 'not-in' filter.");
 
       expect(() =>
         db
           .collection('test')
           .where('foo', 'not-in', [2, 3])
           .where('foo', 'array-contains-any', [2, 3])
-      ).to.throw(
+      ).toThrow(
         "Invalid query. You cannot use 'array-contains-any' filters with " +
           "'not-in' filters."
       );
@@ -929,7 +914,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .collection('test')
           .where('foo', 'array-contains-any', [2, 3])
           .where('foo', 'not-in', [2, 3])
-      ).to.throw(
+      ).toThrow(
         "Invalid query. You cannot use 'not-in' filters with " +
           "'array-contains-any' filters."
       );
@@ -939,7 +924,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .collection('test')
           .where('foo', 'not-in', [2, 3])
           .where('foo', 'in', [2, 3])
-      ).to.throw(
+      ).toThrow(
         "Invalid query. You cannot use 'in' filters with 'not-in' filters."
       );
 
@@ -948,7 +933,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           .collection('test')
           .where('foo', 'in', [2, 3])
           .where('foo', 'not-in', [2, 3])
-      ).to.throw(
+      ).toThrow(
         "Invalid query. You cannot use 'not-in' filters with 'in' filters."
       );
     });
@@ -962,14 +947,14 @@ apiDescribe('Validation:', (persistence: boolean) => {
             .collection('test')
             .where('foo', 'array-contains', 1)
             .where('foo', 'in', [2, 3])
-        ).not.to.throw();
+        ).not.toThrow();
 
         expect(() =>
           db
             .collection('test')
             .where('foo', 'in', [2, 3])
             .where('foo', 'array-contains', 1)
-        ).not.to.throw();
+        ).not.toThrow();
       }
     );
 
@@ -977,24 +962,24 @@ apiDescribe('Validation:', (persistence: boolean) => {
       persistence,
       'enforce array requirements for disjunctive filters',
       db => {
-        expect(() => db.collection('test').where('foo', 'in', 2)).to.throw(
+        expect(() => db.collection('test').where('foo', 'in', 2)).toThrow(
           "Invalid Query. A non-empty array is required for 'in' filters."
         );
 
         expect(() =>
           db.collection('test').where('foo', 'array-contains-any', 2)
-        ).to.throw(
+        ).toThrow(
           'Invalid Query. A non-empty array is required for ' +
             "'array-contains-any' filters."
         );
 
-        expect(() => db.collection('test').where('foo', 'in', [])).to.throw(
+        expect(() => db.collection('test').where('foo', 'in', [])).toThrow(
           "Invalid Query. A non-empty array is required for 'in' filters."
         );
 
         expect(() =>
           db.collection('test').where('foo', 'array-contains-any', [])
-        ).to.throw(
+        ).toThrow(
           'Invalid Query. A non-empty array is required for ' +
             "'array-contains-any' filters."
         );
@@ -1009,13 +994,13 @@ apiDescribe('Validation:', (persistence: boolean) => {
         const query = collection.orderBy('foo');
         let reason =
           'Invalid query. You must not call startAt() or startAfter() before calling Query.orderBy().';
-        expect(() => query.startAt(1).orderBy('bar')).to.throw(reason);
-        expect(() => query.startAfter(1).orderBy('bar')).to.throw(reason);
+        expect(() => query.startAt(1).orderBy('bar')).toThrow(reason);
+        expect(() => query.startAfter(1).orderBy('bar')).toThrow(reason);
 
         reason =
           'Invalid query. You must not call endAt() or endBefore() before calling Query.orderBy().';
-        expect(() => query.endAt(1).orderBy('bar')).to.throw(reason);
-        expect(() => query.endBefore(1).orderBy('bar')).to.throw(reason);
+        expect(() => query.endAt(1).orderBy('bar')).toThrow(reason);
+        expect(() => query.endBefore(1).orderBy('bar')).toThrow(reason);
       }
     );
 
@@ -1026,26 +1011,24 @@ apiDescribe('Validation:', (persistence: boolean) => {
         const collection = db.collection('test');
         expect(() =>
           collection.where(FieldPath.documentId(), '>=', '')
-        ).to.throw(
+        ).toThrow(
           'Invalid query. When querying with documentId(), you ' +
             'must provide a valid document ID, but it was an empty string.'
         );
         expect(() =>
           collection.where(FieldPath.documentId(), '>=', 'foo/bar/baz')
-        ).to.throw(
+        ).toThrow(
           `Invalid query. When querying a collection by documentId(), ` +
             `you must provide a plain document ID, but ` +
             `'foo/bar/baz' contains a '/' character.`
         );
-        expect(() =>
-          collection.where(FieldPath.documentId(), '>=', 1)
-        ).to.throw(
+        expect(() => collection.where(FieldPath.documentId(), '>=', 1)).toThrow(
           'Invalid query. When querying with documentId(), you must ' +
             'provide a valid string or a DocumentReference, but it was: 1.'
         );
         expect(() =>
           db.collectionGroup('foo').where(FieldPath.documentId(), '>=', 'foo')
-        ).to.throw(
+        ).toThrow(
           `Invalid query. When querying a collection group by documentId(), ` +
             `the value provided must result in a valid document path, ` +
             `but 'foo' is not because it has an odd number of segments (1).`
@@ -1053,14 +1036,14 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
         expect(() =>
           collection.where(FieldPath.documentId(), 'array-contains', 1)
-        ).to.throw(
+        ).toThrow(
           "Invalid Query. You can't perform 'array-contains' queries on " +
             'documentId().'
         );
 
         expect(() =>
           collection.where(FieldPath.documentId(), 'array-contains-any', 1)
-        ).to.throw(
+        ).toThrow(
           "Invalid Query. You can't perform 'array-contains-any' queries on " +
             'documentId().'
         );
@@ -1075,18 +1058,18 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
         expect(() =>
           collection.where(FieldPath.documentId(), 'in', [collection.path])
-        ).not.to.throw();
+        ).not.toThrow();
 
         expect(() =>
           collection.where(FieldPath.documentId(), 'in', [''])
-        ).to.throw(
+        ).toThrow(
           'Invalid query. When querying with documentId(), you ' +
             'must provide a valid document ID, but it was an empty string.'
         );
 
         expect(() =>
           collection.where(FieldPath.documentId(), 'in', ['foo/bar/baz'])
-        ).to.throw(
+        ).toThrow(
           `Invalid query. When querying a collection by documentId(), you ` +
             `must provide a plain document ID, but 'foo/bar/baz' contains a ` +
             `'/' character.`
@@ -1094,14 +1077,14 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
         expect(() =>
           collection.where(FieldPath.documentId(), 'in', [1, 2])
-        ).to.throw(
+        ).toThrow(
           'Invalid query. When querying with documentId(), you must ' +
             'provide a valid string or a DocumentReference, but it was: 1.'
         );
 
         expect(() =>
           db.collectionGroup('foo').where(FieldPath.documentId(), 'in', ['foo'])
-        ).to.throw(
+        ).toThrow(
           `Invalid query. When querying a collection group by documentId(), ` +
             `the value provided must result in a valid document path, ` +
             `but 'foo' is not because it has an odd number of segments (1).`
@@ -1111,10 +1094,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(persistence, 'cannot pass undefined as a field value', db => {
       const collection = db.collection('test');
-      expect(() => collection.where('foo', '==', undefined)).to.throw(
+      expect(() => collection.where('foo', '==', undefined)).toThrow(
         'Function Query.where() called with invalid data. Unsupported field value: undefined'
       );
-      expect(() => collection.orderBy('foo').startAt(undefined)).to.throw(
+      expect(() => collection.orderBy('foo').startAt(undefined)).toThrow(
         'Function Query.startAt() called with invalid data. Unsupported field value: undefined'
       );
     });
@@ -1179,28 +1162,28 @@ function expectWriteToFail(
     `Function ${fnName}() called with invalid data. ${reason}`;
 
   if (includeSets) {
-    expect(() => docRef.set(data)).to.throw(error('DocumentReference.set'));
-    expect(() => docRef.firestore.batch().set(docRef, data)).to.throw(
+    expect(() => docRef.set(data)).toThrow(error('DocumentReference.set'));
+    expect(() => docRef.firestore.batch().set(docRef, data)).toThrow(
       error('WriteBatch.set')
     );
   }
 
   if (includeUpdates) {
-    expect(() => docRef.update(data)).to.throw(
+    expect(() => docRef.update(data)).toThrow(
       error('DocumentReference.update')
     );
-    expect(() => docRef.firestore.batch().update(docRef, data)).to.throw(
+    expect(() => docRef.firestore.batch().update(docRef, data)).toThrow(
       error('WriteBatch.update')
     );
   }
 
   return docRef.firestore.runTransaction(async txn => {
     if (includeSets) {
-      expect(() => txn.set(docRef, data)).to.throw(error('Transaction.set'));
+      expect(() => txn.set(docRef, data)).toThrow(error('Transaction.set'));
     }
 
     if (includeUpdates) {
-      expect(() => txn.update(docRef, data)).to.throw(
+      expect(() => txn.update(docRef, data)).toThrow(
         error('Transaction.update')
       );
     }
@@ -1219,7 +1202,7 @@ function expectFieldPathToFail(
   // Get an arbitrary snapshot we can use for testing.
   return Promise.resolve().then(() => {
     // Snapshot paths.
-    expect(() => snapshot.get(path)).to.throw(
+    expect(() => snapshot.get(path)).toThrow(
       'Function DocumentSnapshot.get() called with invalid data. ' + reason
     );
 
@@ -1229,10 +1212,10 @@ function expectFieldPathToFail(
     const coll = db.collection('test-collection');
     // <=, etc omitted for brevity since the code path is trivially
     // shared.
-    expect(() => coll.where(path, '==', 1)).to.throw(
+    expect(() => coll.where(path, '==', 1)).toThrow(
       `Function Query.where() called with invalid data. ` + reason
     );
-    expect(() => coll.orderBy(path)).to.throw(
+    expect(() => coll.orderBy(path)).toThrow(
       `Function Query.orderBy() called with invalid data. ` + reason
     );
 
