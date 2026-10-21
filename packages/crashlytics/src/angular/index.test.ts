@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
-import sinon, { restore, stub } from 'sinon';
 import { FirebaseApp, deleteApp, initializeApp } from '@firebase/app';
 import * as crashlytics from '../api';
 import {
@@ -42,9 +38,9 @@ import {
   platformBrowserTesting
 } from '@angular/platform-browser/testing';
 import { LOG_ATTR_KEY, AttributesStore } from '../attributes-store';
+import type { MockInstance } from 'vitest';
 
-use(sinonChai);
-use(chaiAsPromised);
+vi.mock('../api', { spy: true });
 
 TestBed.initTestEnvironment(BrowserTestingModule, platformBrowserTesting());
 
@@ -58,8 +54,8 @@ describe('FirebaseErrorHandler', () => {
   let fakeCrashlytics: Crashlytics;
   let attributesStore: AttributesStore;
 
-  let recordErrorStub: sinon.SinonStub;
-  let getCrashlyticsStub: sinon.SinonStub;
+  let recordErrorStub: MockInstance;
+  let getCrashlyticsStub: MockInstance;
 
   beforeEach(() => {
     app = initializeApp({ projectId: 'p', appId: 'fakeapp' });
@@ -68,10 +64,12 @@ describe('FirebaseErrorHandler', () => {
       attributesStore
     } as unknown as Crashlytics;
 
-    recordErrorStub = stub(crashlytics, 'recordError');
-    getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
-      fakeCrashlytics
-    );
+    recordErrorStub = vi
+      .spyOn(crashlytics, 'recordError')
+      .mockImplementation(() => {});
+    getCrashlyticsStub = vi
+      .spyOn(crashlytics, 'getCrashlytics')
+      .mockReturnValue(fakeCrashlytics);
 
     TestBed.configureTestingModule({
       imports: [
@@ -90,31 +88,31 @@ describe('FirebaseErrorHandler', () => {
   });
 
   afterEach(async () => {
-    restore();
+    vi.restoreAllMocks();
     await deleteApp(app);
   });
 
   it('should register routePath provider in attributesStore and return correct route path', async () => {
-    const setRoutePathProviderSpy = sinon.spy(
+    const setRoutePathProviderSpy = vi.spyOn(
       attributesStore,
       'setRoutePathProvider'
     );
     const testInjector = TestBed.inject(Injector);
     runInInjectionContext(testInjector, () => new FirebaseErrorHandler(app));
-    expect(setRoutePathProviderSpy).to.have.been.calledWith(sinon.match.func);
+    expect(setRoutePathProviderSpy).toHaveBeenCalledWith(expect.any(Function));
 
-    const provider = setRoutePathProviderSpy.firstCall.args[0];
+    const provider = setRoutePathProviderSpy.mock.calls[0][0];
     const router = TestBed.inject(Router);
     await router.navigate(['/static-route']);
-    expect(provider).to.not.be.undefined;
-    expect(provider!()).to.equal('/static-route');
+    expect(provider).toBeDefined();
+    expect(provider!()).toBe('/static-route');
   });
 
   it('should log the error to the console', async () => {
     const testError = new Error('Test error message');
     errorHandler.handleError(testError);
-    expect(getCrashlyticsStub).to.have.been.called;
-    expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, testError);
+    expect(getCrashlyticsStub).toHaveBeenCalled();
+    expect(recordErrorStub).toHaveBeenCalledWith(fakeCrashlytics, testError);
   });
 });
 
@@ -136,48 +134,48 @@ describe('getSafeRoutePath', () => {
 
   it('should return the static route path', async () => {
     await router.navigate(['/static-route']);
-    expect(getSafeRoutePath(router)).to.equal('/static-route');
+    expect(getSafeRoutePath(router)).toBe('/static-route');
   });
 
   it('should return the parameterized route pattern', async () => {
     await router.navigate(['/dynamic/my-name/route']);
-    expect(getSafeRoutePath(router)).to.equal('/dynamic/:id/route');
+    expect(getSafeRoutePath(router)).toBe('/dynamic/:id/route');
   });
 });
 
 describe('getRawPath', () => {
   it('returns the same path if there are no query parameters or hashes', () => {
-    expect(getRawPath('/home')).to.equal('/home');
-    expect(getRawPath('/users/123/profile')).to.equal('/users/123/profile');
+    expect(getRawPath('/home')).toBe('/home');
+    expect(getRawPath('/users/123/profile')).toBe('/users/123/profile');
   });
 
   it('strips query parameters', () => {
-    expect(getRawPath('/home?foo=bar')).to.equal('/home');
-    expect(getRawPath('/home?foo=bar&baz=qux')).to.equal('/home');
+    expect(getRawPath('/home?foo=bar')).toBe('/home');
+    expect(getRawPath('/home?foo=bar&baz=qux')).toBe('/home');
   });
 
   it('strips hash fragment', () => {
-    expect(getRawPath('/home#section1')).to.equal('/home');
+    expect(getRawPath('/home#section1')).toBe('/home');
   });
 
   it('strips matrix parameters', () => {
-    expect(getRawPath('/users;id=123;role=admin/profile')).to.equal(
+    expect(getRawPath('/users;id=123;role=admin/profile')).toBe(
       '/users/profile'
     );
     expect(
       getRawPath('/users;id=123/profile;tab=posts/details;view=detailed')
-    ).to.equal('/users/profile/details');
+    ).toBe('/users/profile/details');
   });
 
   it('strips both query parameters and hash fragment', () => {
-    expect(getRawPath('/home?foo=bar#section1')).to.equal('/home');
-    expect(getRawPath('/home#section1?foo=bar')).to.equal('/home');
+    expect(getRawPath('/home?foo=bar#section1')).toBe('/home');
+    expect(getRawPath('/home#section1?foo=bar')).toBe('/home');
   });
 
   it('strips query parameters, hash fragments, and matrix parameters combined', () => {
-    expect(
-      getRawPath('/users;id=123/profile;tab=posts?foo=bar#section1')
-    ).to.equal('/users/profile');
+    expect(getRawPath('/users;id=123/profile;tab=posts?foo=bar#section1')).toBe(
+      '/users/profile'
+    );
   });
 });
 
@@ -200,7 +198,7 @@ describe('setupCrashlyticsRoutes', () => {
       }
     } as unknown as Crashlytics;
 
-    stub(crashlytics, 'getCrashlytics').returns(fakeCrashlytics);
+    vi.spyOn(crashlytics, 'getCrashlytics').mockReturnValue(fakeCrashlytics);
 
     // Set up a real Angular testing module with routes
     TestBed.configureTestingModule({
@@ -220,7 +218,7 @@ describe('setupCrashlyticsRoutes', () => {
   });
 
   afterEach(async () => {
-    restore();
+    vi.restoreAllMocks();
     await deleteApp(app);
   });
 
@@ -230,50 +228,51 @@ describe('setupCrashlyticsRoutes', () => {
 
     const appScreenId =
       attributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
-    expect(appScreenId).to.equal('/home');
+    expect(appScreenId).toBe('/home');
 
     TestBed.resetTestingModule();
 
     const appScreenIdAfterUnmount =
       attributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
-    expect(appScreenIdAfterUnmount).to.be.undefined;
+    expect(appScreenIdAfterUnmount).toBeUndefined();
   });
 
   it('should invoke logViewBoundary on initialization if the router is set up', async () => {
     await router.navigate(['/home']);
-    const logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
+    const logViewBoundaryStub = vi
+      .spyOn(crashlytics, 'logViewBoundary')
+      .mockImplementation(() => {});
 
     setupCrashlyticsRoutes({ firebaseApp: app, router, destroyRef });
 
-    expect(logViewBoundaryStub).to.have.been.calledWith(
-      fakeCrashlytics,
-      '/home'
-    );
+    expect(logViewBoundaryStub).toHaveBeenCalledWith(fakeCrashlytics, '/home');
   });
 
   it('should not invoke logViewBoundary on initialization if the router is not set up yet', async () => {
-    const logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
+    const logViewBoundaryStub = vi
+      .spyOn(crashlytics, 'logViewBoundary')
+      .mockImplementation(() => {});
 
     setupCrashlyticsRoutes({ firebaseApp: app, router, destroyRef });
 
-    expect(logViewBoundaryStub).to.not.have.been.called;
+    expect(logViewBoundaryStub).not.toHaveBeenCalled();
 
     await router.navigate(['/home']);
 
-    expect(logViewBoundaryStub).to.have.been.calledWith(
-      fakeCrashlytics,
-      '/home'
-    );
+    expect(logViewBoundaryStub).toHaveBeenCalledWith(fakeCrashlytics, '/home');
   });
 
   it('should invoke logViewBoundary with new route pattern if raw path changes', async () => {
     await router.navigate(['/users/123']);
     setupCrashlyticsRoutes({ firebaseApp: app, router, destroyRef });
 
-    const logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
+    const logViewBoundaryStub = vi
+      .spyOn(crashlytics, 'logViewBoundary')
+      .mockImplementation(() => {})
+      .mockClear();
 
     await router.navigate(['/users/456']);
-    expect(logViewBoundaryStub).to.have.been.calledWith(
+    expect(logViewBoundaryStub).toHaveBeenCalledWith(
       fakeCrashlytics,
       '/users/:id'
     );
@@ -283,11 +282,14 @@ describe('setupCrashlyticsRoutes', () => {
     await router.navigate(['/home']);
     setupCrashlyticsRoutes({ firebaseApp: app, router, destroyRef });
 
-    const logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
+    const logViewBoundaryStub = vi
+      .spyOn(crashlytics, 'logViewBoundary')
+      .mockImplementation(() => {})
+      .mockClear();
 
     await router.navigate(['/home']);
 
-    expect(logViewBoundaryStub).to.not.have.been.called;
+    expect(logViewBoundaryStub).not.toHaveBeenCalled();
   });
 
   it('should set routePath in attributesStore with new route pattern if raw path changes', async () => {
@@ -298,11 +300,12 @@ describe('setupCrashlyticsRoutes', () => {
 
     const appScreenId =
       attributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID];
-    expect(appScreenId).to.equal('/about');
+    expect(appScreenId).toBe('/about');
   });
 
   it('should pass crashlyticsOptions to getCrashlytics', () => {
-    const getCrashlyticsStub = crashlytics.getCrashlytics as sinon.SinonStub;
+    const getCrashlyticsStub =
+      crashlytics.getCrashlytics as unknown as MockInstance;
     const crashlyticsOptions = { appVersion: '2.0.0' };
 
     setupCrashlyticsRoutes({
@@ -312,6 +315,6 @@ describe('setupCrashlyticsRoutes', () => {
       crashlyticsOptions
     });
 
-    expect(getCrashlyticsStub).to.have.been.calledWith(app, crashlyticsOptions);
+    expect(getCrashlyticsStub).toHaveBeenCalledWith(app, crashlyticsOptions);
   });
 });

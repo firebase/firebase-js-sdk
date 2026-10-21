@@ -23,7 +23,6 @@ import {
   LOG_ATTR_KEY
 } from './attributes-store';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
-import { expect } from 'chai';
 import { AUTO_CONSTANTS } from './auto-constants';
 
 describe('AttributesStore', () => {
@@ -45,16 +44,16 @@ describe('AttributesStore', () => {
       const store = new AttributesStore({} as any, {} as any, mockProvider);
 
       const attr1 = await store.getInstallationIdAttribute();
-      expect(attr1).to.deep.equal({
+      expect(attr1).toEqual({
         [ATTR_KEY_INSTALLATION_ID]: 'iid-123'
       });
-      expect(callCount).to.equal(1);
+      expect(callCount).toBe(1);
 
       const attr2 = await store.getInstallationIdAttribute();
-      expect(attr2).to.deep.equal({
+      expect(attr2).toEqual({
         [ATTR_KEY_INSTALLATION_ID]: 'iid-123'
       });
-      expect(callCount).to.equal(1); // Should still be 1
+      expect(callCount).toBe(1); // Should still be 1
     });
 
     it('should not cache if installation id is null', async () => {
@@ -75,22 +74,22 @@ describe('AttributesStore', () => {
       const store = new AttributesStore({} as any, {} as any, mockProvider);
 
       const attr1 = await store.getInstallationIdAttribute();
-      expect(attr1).to.be.null;
-      expect(callCount).to.equal(1);
+      expect(attr1).toBeNull();
+      expect(callCount).toBe(1);
 
       returnValue = 'iid-456';
       const attr2 = await store.getInstallationIdAttribute();
-      expect(attr2).to.deep.equal({
+      expect(attr2).toEqual({
         [ATTR_KEY_INSTALLATION_ID]: 'iid-456'
       });
-      expect(callCount).to.equal(2);
+      expect(callCount).toBe(2);
 
       // Should cache now
       const attr3 = await store.getInstallationIdAttribute();
-      expect(attr3).to.deep.equal({
+      expect(attr3).toEqual({
         [ATTR_KEY_INSTALLATION_ID]: 'iid-456'
       });
-      expect(callCount).to.equal(2);
+      expect(callCount).toBe(2);
     });
 
     it('should resolve installations provider asynchronously if not immediate', async () => {
@@ -107,7 +106,7 @@ describe('AttributesStore', () => {
       const store = new AttributesStore({} as any, {} as any, mockProvider);
 
       // Initially, it has no installations because the promise hasn't resolved
-      expect(await store.getInstallationIdAttribute()).to.be.null;
+      expect(await store.getInstallationIdAttribute()).toBeNull();
 
       const mockInstallations = {
         getId: async () => 'iid-async'
@@ -120,7 +119,7 @@ describe('AttributesStore', () => {
       await new Promise(resolve => setTimeout(resolve, 0));
 
       const attr = await store.getInstallationIdAttribute();
-      expect(attr).to.deep.equal({
+      expect(attr).toEqual({
         [ATTR_KEY_INSTALLATION_ID]: 'iid-async'
       });
     });
@@ -136,13 +135,13 @@ describe('AttributesStore', () => {
       // Yield to let the rejected promise handler run
       await new Promise(resolve => setTimeout(resolve, 0));
 
-      expect(await store.getInstallationIdAttribute()).to.be.null;
+      expect(await store.getInstallationIdAttribute()).toBeNull();
     });
 
     it('should return null if installations is not provided', async () => {
       const store = new AttributesStore({} as any, {} as any);
       const attr = await store.getInstallationIdAttribute();
-      expect(attr).to.be.null;
+      expect(attr).toBeNull();
     });
   });
 
@@ -150,11 +149,11 @@ describe('AttributesStore', () => {
     let originalSessionStorage: Storage | undefined;
 
     beforeEach(() => {
-      originalSessionStorage = global.sessionStorage;
+      originalSessionStorage = globalThis.sessionStorage;
     });
 
     afterEach(() => {
-      Object.defineProperty(global, 'sessionStorage', {
+      Object.defineProperty(globalThis, 'sessionStorage', {
         value: originalSessionStorage,
         writable: true
       });
@@ -170,13 +169,13 @@ describe('AttributesStore', () => {
           storage[key] = val;
         }
       };
-      Object.defineProperty(global, 'sessionStorage', {
+      Object.defineProperty(globalThis, 'sessionStorage', {
         value: sessionStorageMock,
         writable: true
       });
 
       const store = new AttributesStore({} as any, {} as any);
-      expect(store.sessionId).to.equal('session-123');
+      expect(store.sessionId).toBe('session-123');
     });
 
     it('should set session id in sessionStorage when setSessionId is called', () => {
@@ -187,17 +186,17 @@ describe('AttributesStore', () => {
           storage[key] = val;
         }
       };
-      Object.defineProperty(global, 'sessionStorage', {
+      Object.defineProperty(globalThis, 'sessionStorage', {
         value: sessionStorageMock,
         writable: true
       });
 
       const store = new AttributesStore({} as any, {} as any);
-      expect(store.sessionId).to.be.undefined;
+      expect(store.sessionId).toBeUndefined();
 
       store.setSessionId('new-session');
-      expect(store.sessionId).to.equal('new-session');
-      expect(storage['firebasecrashlytics.sessionid']).to.equal('new-session');
+      expect(store.sessionId).toBe('new-session');
+      expect(storage['firebasecrashlytics.sessionid']).toBe('new-session');
     });
 
     it('should handle sessionStorage throwing errors on getItem gracefully', () => {
@@ -207,14 +206,14 @@ describe('AttributesStore', () => {
         },
         setItem: () => {}
       };
-      Object.defineProperty(global, 'sessionStorage', {
+      Object.defineProperty(globalThis, 'sessionStorage', {
         value: sessionStorageMock,
         writable: true
       });
 
       // Should not throw
       const store = new AttributesStore({} as any, {} as any);
-      expect(store.sessionId).to.be.undefined;
+      expect(store.sessionId).toBeUndefined();
     });
 
     it('should handle sessionStorage throwing errors on setItem gracefully', () => {
@@ -224,7 +223,7 @@ describe('AttributesStore', () => {
           throw new Error('sessionStorage quota exceeded');
         }
       };
-      Object.defineProperty(global, 'sessionStorage', {
+      Object.defineProperty(globalThis, 'sessionStorage', {
         value: sessionStorageMock,
         writable: true
       });
@@ -232,21 +231,21 @@ describe('AttributesStore', () => {
       const store = new AttributesStore({} as any, {} as any);
       // Should not throw
       store.setSessionId('new-session');
-      expect(store.sessionId).to.equal('new-session');
+      expect(store.sessionId).toBe('new-session');
     });
 
     it('should handle undefined sessionStorage gracefully', () => {
-      Object.defineProperty(global, 'sessionStorage', {
+      Object.defineProperty(globalThis, 'sessionStorage', {
         value: undefined,
         writable: true
       });
 
       const store = new AttributesStore({} as any, {} as any);
-      expect(store.sessionId).to.be.undefined;
+      expect(store.sessionId).toBeUndefined();
 
       // Should not throw
       store.setSessionId('new-session');
-      expect(store.sessionId).to.equal('new-session');
+      expect(store.sessionId).toBe('new-session');
     });
   });
 
@@ -263,49 +262,34 @@ describe('AttributesStore', () => {
 
     it('should use appVersion from options if provided', () => {
       const store = new AttributesStore({} as any, { appVersion: '1.2.3' });
-      expect(store.getLogAttributes()).to.have.property(
-        'app.build_id',
-        '1.2.3'
-      );
+      expect(store.getLogAttributes()).toHaveProperty('app.build_id', '1.2.3');
     });
 
     it('should fall back to AUTO_CONSTANTS appVersion if not in options', () => {
       AUTO_CONSTANTS.appVersion = '2.3.4';
       const store = new AttributesStore({} as any, {});
-      expect(store.getLogAttributes()).to.have.property(
-        'app.build_id',
-        '2.3.4'
-      );
+      expect(store.getLogAttributes()).toHaveProperty('app.build_id', '2.3.4');
     });
 
     it('should use "unset" if neither options nor AUTO_CONSTANTS appVersion are set', () => {
       AUTO_CONSTANTS.appVersion = undefined;
       const store = new AttributesStore({} as any, {});
-      expect(store.getLogAttributes()).to.have.property(
-        'app.build_id',
-        'unset'
-      );
+      expect(store.getLogAttributes()).toHaveProperty('app.build_id', 'unset');
     });
 
     it('should update appVersion when updateOptions is called', () => {
       const store = new AttributesStore({} as any, { appVersion: '1.2.3' });
-      expect(store.getLogAttributes()).to.have.property(
-        'app.build_id',
-        '1.2.3'
-      );
+      expect(store.getLogAttributes()).toHaveProperty('app.build_id', '1.2.3');
 
       store.updateOptions({ appVersion: '3.4.5' });
-      expect(store.getLogAttributes()).to.have.property(
-        'app.build_id',
-        '3.4.5'
-      );
+      expect(store.getLogAttributes()).toHaveProperty('app.build_id', '3.4.5');
     });
 
     it('should include customAttributes in log attributes if provided', () => {
       const store = new AttributesStore({} as any, {
         customAttributes: { key1: 'value1', key2: 'value2' }
       });
-      expect(store.getLogAttributes()).to.include({
+      expect(store.getLogAttributes()).toMatchObject({
         key1: 'value1',
         key2: 'value2'
       });
@@ -315,7 +299,7 @@ describe('AttributesStore', () => {
       const store = new AttributesStore({} as any, {
         customAttributes: { key1: 'value1' }
       });
-      expect(store.getLogAttributes()).to.include({
+      expect(store.getLogAttributes()).toMatchObject({
         key1: 'value1'
       });
 
@@ -323,7 +307,7 @@ describe('AttributesStore', () => {
         customAttributes: { key1: 'value2', key3: 'value3' }
       });
       const logAttrs = store.getLogAttributes();
-      expect(logAttrs).to.include({
+      expect(logAttrs).toMatchObject({
         key1: 'value2',
         key3: 'value3'
       });
@@ -343,7 +327,7 @@ describe('AttributesStore', () => {
       store.setRoutePathProvider(() => '/home');
 
       const logAttributes = store.getLogAttributes();
-      expect(logAttributes).to.deep.equal({
+      expect(logAttributes).toEqual({
         custom: 'value',
         [LOG_ATTR_KEY.APP_VERSION]: '1.0.0',
         [LOG_ATTR_KEY.SESSION_ID]: 'sess-123',
@@ -360,21 +344,21 @@ describe('AttributesStore', () => {
 
     beforeEach(() => {
       storage = {};
-      originalSessionStorage = global.sessionStorage;
+      originalSessionStorage = globalThis.sessionStorage;
       const sessionStorageMock: Partial<Storage> = {
         getItem: (key: string) => storage[key] || null,
         setItem: (key: string, value: string) => {
           storage[key] = value;
         }
       };
-      Object.defineProperty(global, 'sessionStorage', {
+      Object.defineProperty(globalThis, 'sessionStorage', {
         value: sessionStorageMock,
         writable: true
       });
     });
 
     afterEach(() => {
-      Object.defineProperty(global, 'sessionStorage', {
+      Object.defineProperty(globalThis, 'sessionStorage', {
         value: originalSessionStorage,
         writable: true
       });
@@ -384,13 +368,13 @@ describe('AttributesStore', () => {
       storage[SESSION_STORAGE_SESSION_ID_KEY] = MOCK_SESSION_ID;
       const attributesStore = new AttributesStore({ projectId: 'my-project' });
       const attributes = attributesStore.getSpanAttributes();
-      expect(attributes[SPAN_ATTR_KEY.SESSION_ID]).to.equal(MOCK_SESSION_ID);
+      expect(attributes[SPAN_ATTR_KEY.SESSION_ID]).toBe(MOCK_SESSION_ID);
     });
 
     it('should not add session id if not present in storage', () => {
       const attributesStore = new AttributesStore({ projectId: 'my-project' });
       const attributes = attributesStore.getSpanAttributes();
-      expect(attributes[SPAN_ATTR_KEY.SESSION_ID]).to.be.undefined;
+      expect(attributes[SPAN_ATTR_KEY.SESSION_ID]).toBeUndefined();
     });
 
     it('should add region to resource name if present in options', () => {
@@ -399,7 +383,7 @@ describe('AttributesStore', () => {
         { region: 'us-central1' }
       );
       const attributes = attributesStore.getSpanAttributes();
-      expect(attributes[SPAN_ATTR_KEY.GCP_RESOURCE_NAME]).to.equal(
+      expect(attributes[SPAN_ATTR_KEY.GCP_RESOURCE_NAME]).toBe(
         '//firebasetelemetry.googleapis.com/projects/my-project/locations/us-central1/'
       );
     });
@@ -407,7 +391,7 @@ describe('AttributesStore', () => {
     it('should use default region in resource name if not present in options', () => {
       const attributesStore = new AttributesStore({ projectId: 'my-project' });
       const attributes = attributesStore.getSpanAttributes();
-      expect(attributes[SPAN_ATTR_KEY.GCP_RESOURCE_NAME]).to.equal(
+      expect(attributes[SPAN_ATTR_KEY.GCP_RESOURCE_NAME]).toBe(
         '//firebasetelemetry.googleapis.com/projects/my-project/locations/global/'
       );
     });
@@ -416,15 +400,13 @@ describe('AttributesStore', () => {
       const attributesStore = new AttributesStore({ projectId: 'my-project' });
       attributesStore.setRoutePathProvider(() => 'mock-screen-id');
       const attributes = attributesStore.getSpanAttributes();
-      expect(attributes[SPAN_ATTR_KEY.APP_SCREEN_ID]).to.equal(
-        'mock-screen-id'
-      );
+      expect(attributes[SPAN_ATTR_KEY.APP_SCREEN_ID]).toBe('mock-screen-id');
     });
 
     it('should not add active app screen id to attributes if not available', () => {
       const attributesStore = new AttributesStore({ projectId: 'my-project' });
       const attributes = attributesStore.getSpanAttributes();
-      expect(attributes[SPAN_ATTR_KEY.APP_SCREEN_ID]).to.be.undefined;
+      expect(attributes[SPAN_ATTR_KEY.APP_SCREEN_ID]).toBeUndefined();
     });
 
     it('should set app version attribute to the configured app version', () => {
@@ -433,7 +415,7 @@ describe('AttributesStore', () => {
         { appVersion: '1.2.3' }
       );
       const attributes = attributesStore.getSpanAttributes();
-      expect(attributes[SPAN_ATTR_KEY.SERVICE_VERSION]).to.equal('1.2.3');
+      expect(attributes[SPAN_ATTR_KEY.SERVICE_VERSION]).toBe('1.2.3');
     });
 
     it("should set app version attribute to 'unset' if configured app version not available", () => {
@@ -442,7 +424,7 @@ describe('AttributesStore', () => {
         {}
       );
       const attributes = attributesStore.getSpanAttributes();
-      expect(attributes[SPAN_ATTR_KEY.SERVICE_VERSION]).to.equal('unset');
+      expect(attributes[SPAN_ATTR_KEY.SERVICE_VERSION]).toBe('unset');
     });
   });
 });

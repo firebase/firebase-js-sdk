@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
-import sinon, { restore, stub } from 'sinon';
 import * as crashlytics from '../api';
 import { FirebaseApp } from '@firebase/app';
 import { Crashlytics } from '../public-types';
@@ -27,9 +23,9 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { MemoryRouter, Route, useNavigate } from 'react-router-dom';
 import { LOG_ATTR_KEY, AttributesStore } from '../attributes-store';
+import type { Mock, MockInstance } from 'vitest';
 
-use(sinonChai);
-use(chaiAsPromised);
+vi.mock('../api', { spy: true });
 
 class TestErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -57,25 +53,25 @@ class TestErrorBoundary extends React.Component<
 }
 
 describe('CrashlyticsRoutes', () => {
-  let getCrashlyticsStub: sinon.SinonStub;
-  let recordErrorStub: sinon.SinonStub;
-  let logViewBoundaryStub: sinon.SinonStub;
+  let getCrashlyticsStub: MockInstance;
+  let recordErrorStub: MockInstance;
+  let logViewBoundaryStub: MockInstance;
   let fakeApp: FirebaseApp;
   let fakeAttributesStore: AttributesStore;
   let fakeCrashlytics: Crashlytics;
-  let emitStub: sinon.SinonStub;
-  let setActiveAppScreenIdStub: sinon.SinonStub;
+  let emitStub: Mock;
+  let setActiveAppScreenIdStub: Mock;
 
   beforeEach(() => {
     fakeApp = { name: 'fakeApp' } as FirebaseApp;
-    emitStub = stub();
-    setActiveAppScreenIdStub = stub();
+    emitStub = vi.fn();
+    setActiveAppScreenIdStub = vi.fn();
 
     fakeAttributesStore = new AttributesStore({ projectId: 'project-id' });
     fakeCrashlytics = {
       app: fakeApp,
       loggerProvider: {
-        getLogger: stub().returns({
+        getLogger: vi.fn().mockReturnValue({
           emit: emitStub
         })
       },
@@ -85,15 +81,19 @@ describe('CrashlyticsRoutes', () => {
       attributesStore: fakeAttributesStore
     } as unknown as Crashlytics;
 
-    getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
-      fakeCrashlytics
-    );
-    recordErrorStub = stub(crashlytics, 'recordError');
-    logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
+    getCrashlyticsStub = vi
+      .spyOn(crashlytics, 'getCrashlytics')
+      .mockReturnValue(fakeCrashlytics);
+    recordErrorStub = vi
+      .spyOn(crashlytics, 'recordError')
+      .mockImplementation(() => {});
+    logViewBoundaryStub = vi
+      .spyOn(crashlytics, 'logViewBoundary')
+      .mockImplementation(() => {});
   });
 
   afterEach(() => {
-    restore();
+    vi.restoreAllMocks();
   });
 
   const ThrowingComponent = () => {
@@ -102,7 +102,9 @@ describe('CrashlyticsRoutes', () => {
 
   it('captures render errors in routes and re-throws them', () => {
     // Stub console.error to avoid React error logging in test output
-    const consoleErrorStub = stub(console, 'error');
+    const consoleErrorStub = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     const { container } = render(
       <TestErrorBoundary>
@@ -116,22 +118,23 @@ describe('CrashlyticsRoutes', () => {
 
     // Verify the error was recorded
 
-    expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
-    expect(recordErrorStub).to.have.been.calledWith(
+    expect(getCrashlyticsStub).toHaveBeenCalledWith(fakeApp, undefined);
+    expect(recordErrorStub).toHaveBeenCalledWith(
       fakeCrashlytics,
-      sinon.match
-        .instanceOf(Error)
-        .and(sinon.match.has('message', 'render error'))
+      expect.objectContaining({ message: 'render error' })
     );
+    expect(recordErrorStub.mock.calls[0][1]).toBeInstanceOf(Error);
     // Verify the error was caught by our TestErrorBoundary (meaning it was re-thrown)
     // Since TestErrorBoundary returns null on error, container should be empty
-    expect(container.firstChild).to.be.null;
+    expect(container.firstChild).toBeNull();
 
-    consoleErrorStub.restore();
+    consoleErrorStub.mockRestore();
   });
 
   it('captures parameterized route pattern and re-throws', () => {
-    const consoleErrorStub = stub(console, 'error');
+    const consoleErrorStub = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     const { container } = render(
       <TestErrorBoundary>
@@ -143,21 +146,22 @@ describe('CrashlyticsRoutes', () => {
       </TestErrorBoundary>
     );
 
-    expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
-    expect(recordErrorStub).to.have.been.calledWith(
+    expect(getCrashlyticsStub).toHaveBeenCalledWith(fakeApp, undefined);
+    expect(recordErrorStub).toHaveBeenCalledWith(
       fakeCrashlytics,
-      sinon.match
-        .instanceOf(Error)
-        .and(sinon.match.has('message', 'render error'))
+      expect.objectContaining({ message: 'render error' })
     );
+    expect(recordErrorStub.mock.calls[0][1]).toBeInstanceOf(Error);
     // Verify re-throw
-    expect(container.firstChild).to.be.null;
+    expect(container.firstChild).toBeNull();
 
-    consoleErrorStub.restore();
+    consoleErrorStub.mockRestore();
   });
 
   it('filters empty paths and normalizes leading slashes', () => {
-    const consoleErrorStub = stub(console, 'error');
+    const consoleErrorStub = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     const { container } = render(
       <TestErrorBoundary>
@@ -172,17 +176,16 @@ describe('CrashlyticsRoutes', () => {
       </TestErrorBoundary>
     );
 
-    expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
-    expect(recordErrorStub).to.have.been.calledWith(
+    expect(getCrashlyticsStub).toHaveBeenCalledWith(fakeApp, undefined);
+    expect(recordErrorStub).toHaveBeenCalledWith(
       fakeCrashlytics,
-      sinon.match
-        .instanceOf(Error)
-        .and(sinon.match.has('message', 'render error'))
+      expect.objectContaining({ message: 'render error' })
     );
+    expect(recordErrorStub.mock.calls[0][1]).toBeInstanceOf(Error);
     // Verify re-throw
-    expect(container.firstChild).to.be.null;
+    expect(container.firstChild).toBeNull();
 
-    consoleErrorStub.restore();
+    consoleErrorStub.mockRestore();
   });
 
   it('registers routePath in attributesStore and cleans up on unmount', () => {
@@ -194,10 +197,14 @@ describe('CrashlyticsRoutes', () => {
       </MemoryRouter>
     );
 
-    expect(fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID]).to.equal('/users/:id');
+    expect(
+      fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID]
+    ).toBe('/users/:id');
 
     unmount();
-    expect(fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID]).to.be.undefined;
+    expect(
+      fakeAttributesStore.getLogAttributes()[LOG_ATTR_KEY.APP_SCREEN_ID]
+    ).toBeUndefined();
   });
 
   it('invokes logViewBoundary on mount and on subsequent navigation events', async () => {
@@ -220,12 +227,14 @@ describe('CrashlyticsRoutes', () => {
 
     await findByText('About Page');
 
-    expect(logViewBoundaryStub).to.have.been.calledTwice;
-    expect(logViewBoundaryStub.firstCall).to.have.been.calledWith(
+    expect(logViewBoundaryStub).toHaveBeenCalledTimes(2);
+    expect(logViewBoundaryStub).toHaveBeenNthCalledWith(
+      1,
       fakeCrashlytics,
       '/'
     );
-    expect(logViewBoundaryStub.secondCall).to.have.been.calledWith(
+    expect(logViewBoundaryStub).toHaveBeenNthCalledWith(
+      2,
       fakeCrashlytics,
       '/about'
     );
@@ -251,12 +260,14 @@ describe('CrashlyticsRoutes', () => {
 
     await findByText('User Profile');
 
-    expect(logViewBoundaryStub).to.have.been.calledTwice;
-    expect(logViewBoundaryStub.firstCall).to.have.been.calledWith(
+    expect(logViewBoundaryStub).toHaveBeenCalledTimes(2);
+    expect(logViewBoundaryStub).toHaveBeenNthCalledWith(
+      1,
       fakeCrashlytics,
       '/'
     );
-    expect(logViewBoundaryStub.secondCall).to.have.been.calledWith(
+    expect(logViewBoundaryStub).toHaveBeenNthCalledWith(
+      2,
       fakeCrashlytics,
       '/users/:id'
     );

@@ -17,12 +17,12 @@
 
 import { getApp } from '@firebase/app';
 import { recordError, getCrashlytics } from './api';
-import { Instrumentation } from 'next';
+import type { Instrumentation } from 'next';
 import { CrashlyticsOptions } from './public-types';
 import { NEXTJS_REQUEST_ATTRIBUTE_KEYS } from './constants';
 import { LOG_ATTR_KEY } from './attributes-store';
 
-export { Instrumentation };
+export type { Instrumentation };
 
 /**
  * Automatically report uncaught errors from server routes to Firebase Crashlytics.

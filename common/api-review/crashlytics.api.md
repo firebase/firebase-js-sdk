@@ -6,7 +6,7 @@
 
 import { AnyValueMap } from '@opentelemetry/api-logs';
 import { FirebaseApp } from '@firebase/app';
-import { Instrumentation } from 'next';
+import type { Instrumentation } from 'next';
 
 // @public
 export function breadcrumbs(): CrashlyticsFeature;

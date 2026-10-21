@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { ReadableSpan, Span } from '@opentelemetry/sdk-trace-base';
 import { ATTR_USER_AGENT_ORIGINAL } from '@opentelemetry/semantic-conventions';
 import { FirebaseAttributesSpanProcessor } from './attributes-span-processor';
@@ -44,8 +43,8 @@ describe('FirebaseAttributesSpanProcessor', () => {
 
     processor.onEnd(mockSpan);
 
-    expect(mockSpan.attributes[ATTR_USER_AGENT_ORIGINAL]).to.be.undefined;
-    expect(mockSpan.attributes['other.attr']).to.equal('keep-me');
+    expect(mockSpan.attributes[ATTR_USER_AGENT_ORIGINAL]).toBeUndefined();
+    expect(mockSpan.attributes['other.attr']).toBe('keep-me');
   });
 
   it('should enrich span with dynamic attributes from attributesStore onStart', () => {
@@ -64,18 +63,14 @@ describe('FirebaseAttributesSpanProcessor', () => {
 
     processor.onStart(mockSpan, ROOT_CONTEXT);
 
-    expect(setAttributesRecord[SPAN_ATTR_KEY.GCP_RESOURCE_NAME]).to.equal(
+    expect(setAttributesRecord[SPAN_ATTR_KEY.GCP_RESOURCE_NAME]).toBe(
       '//firebasetelemetry.googleapis.com/projects/test-project/locations/us-central1/'
     );
-    expect(setAttributesRecord[SPAN_ATTR_KEY.SERVICE_VERSION]).to.equal(
-      '1.2.3'
-    );
-    expect(setAttributesRecord[SPAN_ATTR_KEY.SESSION_ID]).to.equal(
+    expect(setAttributesRecord[SPAN_ATTR_KEY.SERVICE_VERSION]).toBe('1.2.3');
+    expect(setAttributesRecord[SPAN_ATTR_KEY.SESSION_ID]).toBe(
       'test-session-123'
     );
-    expect(setAttributesRecord[SPAN_ATTR_KEY.APP_SCREEN_ID]).to.equal(
-      '/dashboard'
-    );
+    expect(setAttributesRecord[SPAN_ATTR_KEY.APP_SCREEN_ID]).toBe('/dashboard');
   });
 
   it('should not overwrite existing attributes on span', () => {
@@ -91,7 +86,7 @@ describe('FirebaseAttributesSpanProcessor', () => {
 
     processor.onStart(mockSpan, ROOT_CONTEXT);
 
-    expect(mockSpan.attributes[SPAN_ATTR_KEY.SERVICE_VERSION]).to.equal(
+    expect(mockSpan.attributes[SPAN_ATTR_KEY.SERVICE_VERSION]).toBe(
       'custom-version'
     );
   });
@@ -102,10 +97,10 @@ describe('FirebaseAttributesSpanProcessor', () => {
       setAttribute: () => {}
     } as unknown as Span;
 
-    expect(() => processor.onStart(mockSpan, ROOT_CONTEXT)).to.not.throw();
+    expect(() => processor.onStart(mockSpan, ROOT_CONTEXT)).not.toThrow();
     expect(() =>
       processor.onEnd(mockSpan as unknown as ReadableSpan)
-    ).to.not.throw();
+    ).not.toThrow();
   });
 
   it('should gracefully handle forceFlush and shutdown calls', async () => {

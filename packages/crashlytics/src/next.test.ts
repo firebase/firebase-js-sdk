@@ -15,22 +15,22 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
-import { restore, stub } from 'sinon';
 import * as app from '@firebase/app';
 import * as crashlytics from './api';
 import { FirebaseApp } from '@firebase/app';
 import { Crashlytics } from './public-types';
 import { nextOnRequestError } from './next';
+import type { MockInstance } from 'vitest';
 
-use(sinonChai);
-use(chaiAsPromised);
+vi.mock('@firebase/app', async importOriginal => {
+  const actual = await importOriginal<typeof import('@firebase/app')>();
+  return { ...actual, getApp: vi.fn(actual.getApp) };
+});
+vi.mock('./api', { spy: true });
 
 describe('nextOnRequestError', () => {
-  let getCrashlyticsStub: sinon.SinonStub;
-  let recordErrorStub: sinon.SinonStub;
+  let getCrashlyticsStub: MockInstance;
+  let recordErrorStub: MockInstance;
   let fakeApp: FirebaseApp;
   let fakeCrashlytics: Crashlytics;
 
@@ -38,15 +38,17 @@ describe('nextOnRequestError', () => {
     fakeApp = {} as FirebaseApp;
     fakeCrashlytics = {} as Crashlytics;
 
-    stub(app, 'getApp').returns(fakeApp);
-    getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
-      fakeCrashlytics
-    );
-    recordErrorStub = stub(crashlytics, 'recordError');
+    vi.spyOn(app, 'getApp').mockReturnValue(fakeApp);
+    getCrashlyticsStub = vi
+      .spyOn(crashlytics, 'getCrashlytics')
+      .mockReturnValue(fakeCrashlytics);
+    recordErrorStub = vi
+      .spyOn(crashlytics, 'recordError')
+      .mockImplementation(() => {});
   });
 
   afterEach(() => {
-    restore();
+    vi.restoreAllMocks();
   });
 
   it('should capture errors with correct attributes', async () => {
@@ -70,8 +72,11 @@ describe('nextOnRequestError', () => {
 
     await nextOnRequestError()(error, errorRequest, errorContext);
 
-    expect(getCrashlyticsStub).to.have.been.calledOnceWith(fakeApp);
-    expect(recordErrorStub).to.have.been.calledOnceWith(
+    expect(getCrashlyticsStub).toHaveBeenCalledExactlyOnceWith(
+      fakeApp,
+      undefined
+    );
+    expect(recordErrorStub).toHaveBeenCalledExactlyOnceWith(
       fakeCrashlytics,
       error,
       {

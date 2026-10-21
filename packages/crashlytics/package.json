@@ -92,9 +92,9 @@
     "dev": "rollup -c --bundleConfigAsCjs -w",
     "test": "run-p --npm-path npm lint test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
-    "test:all": "run-p --npm-path npm test:browser test:node",
-    "test:browser": "karma start",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha **/*.test.ts src/**/*.test.ts --exclude src/angular/*.test.ts --config ../../config/mocharc.node.js",
+    "test:all": "vitest run",
+    "test:browser": "vitest run --project=browser",
+    "test:node": "vitest run --project=node",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "api-report": "yarn api-report:main && yarn api-report:react && yarn api-report:react-router && yarn api-report:angular && yarn api-report:next-navigation && yarn api-report:api-json",
     "api-report:main": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package crashlytics --packageRoot . --typescriptDts ./dist/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/index-public.d.ts",
@@ -103,7 +103,8 @@
     "api-report:angular": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package crashlytics-angular --packageRoot . --typescriptDts ./dist/angular/index.d.ts --rollupDts ./dist/angular/private.d.ts --untrimmedRollupDts ./dist/angular/internal.d.ts --publicDts ./dist/angular/index-public.d.ts",
     "api-report:next-navigation": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package crashlytics-next-navigation --packageRoot . --typescriptDts ./dist/next-navigation/index.d.ts --rollupDts ./dist/next-navigation/private.d.ts --untrimmedRollupDts ./dist/next-navigation/internal.d.ts --publicDts ./dist/next-navigation/index-public.d.ts",
     "api-report:api-json": "api-extractor run --local --verbose",
-    "typings:public": "node ../../scripts/build/use_typings.js ./dist/index-public.d.ts"
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/index-public.d.ts",
+    "test:browser:debug": "vitest --project=browser --browser.headless=false"
   },
   "peerDependencies": {
     "@angular/core": ">= 14.0.0",
@@ -191,11 +192,5 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "./dist/index.d.ts",
-  "nyc": {
-    "extension": [
-      ".ts"
-    ],
-    "reportDir": "./coverage/node"
-  }
+  "typings": "./dist/index.d.ts"
 }

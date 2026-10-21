@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,12 @@
  * limitations under the License.
  */
 
-const karmaBase = require('../../config/karma.base');
+if (typeof globalThis.process === 'undefined') {
+  (globalThis as unknown as Record<string, unknown>).process = { env: {} };
+}
 
-const files = [`src/**/*.test.ts*`];
-
-module.exports = function (config) {
-  const karmaConfig = {
-    ...karmaBase,
-    files,
-    preprocessors: {
-      'src/**/*.test.ts*': ['webpack', 'sourcemap']
-    },
-    frameworks: ['mocha']
-  };
-
-  config.set(karmaConfig);
-};
-
-module.exports.files = files;
+afterEach(() => {
+  vi.useRealTimers();
+  vi.resetAllMocks();
+  vi.restoreAllMocks();
+});

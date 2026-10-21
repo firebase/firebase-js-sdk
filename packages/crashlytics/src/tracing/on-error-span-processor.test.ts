@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import {
   SpanExporter,
@@ -77,13 +76,13 @@ describe('OnErrorSpanProcessor', () => {
     processor.onEnd(mockSpan2);
 
     await processor.forceFlush();
-    expect(mockExporter.exportedSpans).to.be.empty;
+    expect(mockExporter.exportedSpans).toHaveLength(0);
 
     processor.onErrorOccurred();
-    expect(mockExporter.exportedSpans).to.be.empty;
+    expect(mockExporter.exportedSpans).toHaveLength(0);
 
     await processor.forceFlush();
-    expect(mockExporter.exportedSpans).to.deep.equal([mockSpan1, mockSpan2]);
+    expect(mockExporter.exportedSpans).toEqual([mockSpan1, mockSpan2]);
   });
 
   it('should forward shutdown calls to exporter and clear buffer', async () => {
@@ -91,11 +90,11 @@ describe('OnErrorSpanProcessor', () => {
     processor.onEnd(mockSpan1);
 
     await processor.shutdown();
-    expect(mockExporter.shutdownCount).to.equal(1);
+    expect(mockExporter.shutdownCount).toBe(1);
 
     processor.onErrorOccurred();
     await processor.forceFlush();
-    expect(mockExporter.exportedSpans).to.be.empty;
+    expect(mockExporter.exportedSpans).toHaveLength(0);
   });
 
   describe('multi-error scenarios simulating SDK lifecycle', () => {
@@ -110,7 +109,7 @@ describe('OnErrorSpanProcessor', () => {
       processor.onErrorOccurred();
       simulateSDKErrorLifecycleCleanup();
       await processor.forceFlush();
-      expect(mockExporter.exportedSpans).to.deep.equal([mockSpan1]);
+      expect(mockExporter.exportedSpans).toEqual([mockSpan1]);
 
       // Second error cycle
       processor.onStart(mockSpan2, context.active());
@@ -118,7 +117,7 @@ describe('OnErrorSpanProcessor', () => {
       processor.onErrorOccurred();
       simulateSDKErrorLifecycleCleanup();
       await processor.forceFlush();
-      expect(mockExporter.exportedSpans).to.deep.equal([mockSpan1, mockSpan2]);
+      expect(mockExporter.exportedSpans).toEqual([mockSpan1, mockSpan2]);
     });
   });
 });
