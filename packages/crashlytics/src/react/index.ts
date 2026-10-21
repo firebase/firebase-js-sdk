@@ -17,7 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app';
 import { registerCrashlytics } from '../register';
-import { getCrashlytics, registerGlobalErrorListeners } from '../api';
+import { getCrashlytics } from '../api';
 import { CrashlyticsOptions } from '../public-types';
 import { useEffect } from 'react';
 
@@ -77,9 +77,7 @@ export function FirebaseCrashlytics({
   crashlyticsOptions?: CrashlyticsOptions;
 }): null {
   useEffect(() => {
-    const crashlytics = getCrashlytics(firebaseApp, crashlyticsOptions);
-    const globalErrorListeners = registerGlobalErrorListeners(crashlytics);
-    return () => globalErrorListeners();
+    getCrashlytics(firebaseApp, crashlyticsOptions);
   }, [firebaseApp, crashlyticsOptions]);
 
   return null;

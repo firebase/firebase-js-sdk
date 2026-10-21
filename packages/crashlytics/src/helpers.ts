@@ -17,9 +17,15 @@
 
 import { SeverityNumber, AnyValueMap } from '@opentelemetry/api-logs';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
-import { CrashlyticsFeatureInternal, CrashlyticsInternal } from './types';
+import {
+  CrashlyticsFeatureInternal,
+  CrashlyticsInternal,
+  ErrorWithSymbol
+} from './types';
 import { type TimeInput } from '@opentelemetry/api';
 import { hrTimeToMilliseconds, timeInputToHrTime } from '@opentelemetry/core';
+import { ALREADY_LOGGED_FLAG } from './constants';
+import { recordError } from './api';
 
 /**
  * Returns the breadcrumbs feature implementation if enabled in options.
@@ -127,6 +133,84 @@ export function registerListeners(crashlytics: Crashlytics): () => void {
     };
   }
   return () => {};
+}
+
+let activeGlobalErrorListener: {
+  crashlytics: Crashlytics;
+  unsubscribe: () => void;
+} | null = null;
+
+/**
+ * Registers global event listeners for uncaught errors and promise rejections.
+ * Automatically avoids double logging if the error was already logged.
+ *
+ * @internal
+ */
+export function registerGlobalErrorListeners(
+  crashlytics: Crashlytics
+): () => void {
+  if (
+    typeof window === 'undefined' ||
+    (crashlytics as CrashlyticsInternal).options?.captureUnhandledErrors ===
+      false
+  ) {
+    return () => {};
+  }
+
+  if (activeGlobalErrorListener) {
+    if (activeGlobalErrorListener.crashlytics === crashlytics) {
+      return () => {};
+    }
+    activeGlobalErrorListener.unsubscribe();
+  }
+
+  const errorListener = (event: ErrorEvent): void => {
+    if (event.error && (event.error as ErrorWithSymbol)[ALREADY_LOGGED_FLAG]) {
+      return;
+    }
+    recordError(crashlytics, event.error);
+  };
+
+  const unhandledRejectionListener = (event: PromiseRejectionEvent): void => {
+    if (
+      event.reason &&
+      (event.reason as ErrorWithSymbol)[ALREADY_LOGGED_FLAG]
+    ) {
+      return;
+    }
+    recordError(crashlytics, event.reason);
+  };
+
+  try {
+    window.addEventListener('error', errorListener);
+    window.addEventListener('unhandledrejection', unhandledRejectionListener);
+  } catch (error) {
+    console.warn(`Firebase Crashlytics was not initialized:\n`, error);
+    return () => {};
+  }
+
+  let isUnsubscribed = false;
+  const unsubscribe = (): void => {
+    if (isUnsubscribed) {
+      return;
+    }
+    isUnsubscribed = true;
+    if (activeGlobalErrorListener?.unsubscribe === unsubscribe) {
+      activeGlobalErrorListener = null;
+    }
+    window.removeEventListener('error', errorListener);
+    window.removeEventListener(
+      'unhandledrejection',
+      unhandledRejectionListener
+    );
+  };
+
+  activeGlobalErrorListener = {
+    crashlytics,
+    unsubscribe
+  };
+
+  return unsubscribe;
 }
 
 /**

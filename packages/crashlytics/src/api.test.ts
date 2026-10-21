@@ -45,11 +45,13 @@ import {
   getCrashlytics,
   logViewBoundary
 } from './api';
+import { registerGlobalErrorListeners } from './helpers';
 import { CrashlyticsService } from './service';
 import { registerCrashlytics } from './register';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { AUTO_CONSTANTS } from './auto-constants';
-import { CrashlyticsInternal } from './types';
+import { CrashlyticsInternal, ErrorWithSymbol } from './types';
+import { ALREADY_LOGGED_FLAG } from './constants';
 import {
   AttributesStore,
   LOG_ATTR_KEY,
@@ -253,6 +255,24 @@ describe('Top level API', () => {
         });
       }).toThrow('getCrashlytics() cannot be called with different options');
     });
+
+    it('works with captureUnhandledErrors option', () => {
+      const app = getFakeApp();
+      expect(
+        getCrashlytics(app, {
+          captureUnhandledErrors: false
+        })
+      ).toBe(
+        getCrashlytics(app, {
+          captureUnhandledErrors: false
+        })
+      );
+      expect(() => {
+        getCrashlytics(app, {
+          captureUnhandledErrors: true
+        });
+      }).toThrow('getCrashlytics() cannot be called with different options');
+    });
   });
 
   describe('registerCrashlytics()', () => {
@@ -295,6 +315,139 @@ describe('Top level API', () => {
       expect(crashlytics.onErrorLogRecordProcessor).toBeInstanceOf(
         OnErrorLogRecordProcessor
       );
+    });
+  });
+
+  describe('Global error listener auto-registration', () => {
+    let listeners: Record<string, Array<(event: any) => void>>;
+    let mockedWindow = false;
+    let addEventListenerStub: MockInstance | undefined;
+    let removeEventListenerStub: MockInstance | undefined;
+
+    beforeEach(() => {
+      listeners = {};
+      if (typeof window === 'undefined') {
+        const mockWindow = {
+          addEventListener: (event: string, cb: (e: any) => void) => {
+            if (!listeners[event]) {
+              listeners[event] = [];
+            }
+            listeners[event].push(cb);
+          },
+          removeEventListener: (event: string, cb: (e: any) => void) => {
+            if (listeners[event]) {
+              listeners[event] = listeners[event].filter(l => l !== cb);
+            }
+          }
+        };
+        mockedWindow = true;
+        Object.defineProperty(globalThis, 'window', {
+          value: mockWindow,
+          writable: true,
+          configurable: true
+        });
+      } else {
+        mockedWindow = false;
+        addEventListenerStub = vi
+          .spyOn(window, 'addEventListener')
+          .mockImplementation((event: string, cb: any) => {
+            if (!listeners[event]) {
+              listeners[event] = [];
+            }
+            listeners[event].push(cb);
+          });
+        removeEventListenerStub = vi
+          .spyOn(window, 'removeEventListener')
+          .mockImplementation((event: string, cb: any) => {
+            if (listeners[event]) {
+              listeners[event] = listeners[event].filter(l => l !== cb);
+            }
+          });
+      }
+    });
+
+    afterEach(async () => {
+      await deleteApp(app);
+      app = getFakeApp();
+
+      if (addEventListenerStub) {
+        addEventListenerStub.mockRestore();
+        addEventListenerStub = undefined;
+      }
+      if (removeEventListenerStub) {
+        removeEventListenerStub.mockRestore();
+        removeEventListenerStub = undefined;
+      }
+      if (mockedWindow) {
+        delete (globalThis as any).window;
+        mockedWindow = false;
+      }
+    });
+
+    it('automatically registers window error and unhandledrejection listeners in getCrashlytics by default', async () => {
+      getCrashlytics(app);
+
+      expect(listeners['error']).toHaveLength(1);
+      expect(listeners['unhandledrejection']).toHaveLength(1);
+
+      await deleteApp(app);
+      expect(listeners['error']).toHaveLength(0);
+      expect(listeners['unhandledrejection']).toHaveLength(0);
+
+      // Re-create app for outer afterEach
+      app = getFakeApp();
+    });
+
+    it('does not register window listeners when captureUnhandledErrors is false', () => {
+      getCrashlytics(app, { captureUnhandledErrors: false });
+
+      expect(listeners['error'] || []).toHaveLength(0);
+      expect(listeners['unhandledrejection'] || []).toHaveLength(0);
+    });
+
+    it('is idempotent and does not attach duplicate window listeners when called multiple times', () => {
+      const crashlytics = getCrashlytics(app);
+
+      expect(listeners['error']).toHaveLength(1);
+      expect(listeners['unhandledrejection']).toHaveLength(1);
+
+      // Subsequent call while already registered should be a no-op
+      const secondUnsub = registerGlobalErrorListeners(crashlytics);
+      expect(listeners['error']).toHaveLength(1);
+      expect(listeners['unhandledrejection']).toHaveLength(1);
+
+      // Invoking secondUnsub should not remove the active listeners
+      secondUnsub();
+      expect(listeners['error']).toHaveLength(1);
+      expect(listeners['unhandledrejection']).toHaveLength(1);
+    });
+
+    it('captures uncaught errors and unhandled rejections and skips already logged errors', () => {
+      const unsub = registerGlobalErrorListeners(fakeCrashlytics);
+
+      // Trigger error listener
+      const error = new Error('uncaught error');
+      listeners['error'][0]({ error } as any);
+
+      expect(emittedLogs).toHaveLength(1);
+      expect(emittedLogs[0].body).toBe('uncaught error');
+
+      // Trigger unhandledrejection listener
+      const rejection = new Error('unhandled rejection');
+      listeners['unhandledrejection'][0]({ reason: rejection } as any);
+
+      expect(emittedLogs).toHaveLength(2);
+      expect(emittedLogs[1].body).toBe('unhandled rejection');
+
+      // Trigger already logged error
+      const alreadyLoggedError = new Error('duplicate error');
+      (alreadyLoggedError as ErrorWithSymbol)[ALREADY_LOGGED_FLAG] = true;
+      listeners['error'][0]({ error: alreadyLoggedError } as any);
+
+      // Should not emit duplicate log
+      expect(emittedLogs).toHaveLength(2);
+
+      unsub();
     });
   });
 

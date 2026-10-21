@@ -4,21 +4,21 @@ This guide covers the incremental steps to enable automatic route navigation tra
 
 ### Step 1: Update your Client Provider
 
-In your existing client-side provider component (e.g., `src/components/CrashlyticsProvider.tsx`), import `<CrashlyticsRoutes>` from `@firebase/crashlytics/next-navigation` and mount it alongside `<FirebaseCrashlytics>`:
+In your existing client-side provider component (e.g., `src/components/CrashlyticsProvider.tsx`), replace `<FirebaseCrashlytics>` with `<CrashlyticsRoutes>` from `@firebase/crashlytics/next-navigation`:
 
 ```diff
 // src/components/CrashlyticsProvider.tsx
 'use client';
 
 import React from 'react';
-+import { FirebaseCrashlytics } from '@firebase/crashlytics/react';
+-import { FirebaseCrashlytics } from '@firebase/crashlytics/react';
 +import { CrashlyticsRoutes } from '@firebase/crashlytics/next-navigation';
 import { app } from '../lib/firebase'; // Your existing Firebase App singleton
 
 export function CrashlyticsProvider({ children }: { children: React.ReactNode }) {
   return (
     <>
-+      <FirebaseCrashlytics firebaseApp={app} />
+-      <FirebaseCrashlytics firebaseApp={app} />
 +      <CrashlyticsRoutes firebaseApp={app} />
       {children}
     </>

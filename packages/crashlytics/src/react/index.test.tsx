@@ -16,6 +16,7 @@
  */
 
 import * as crashlytics from '../api';
+import { registerGlobalErrorListeners } from '../helpers';
 import { FirebaseApp } from '@firebase/app';
 import { Crashlytics } from '../public-types';
 import { FirebaseCrashlytics } from '.';
@@ -60,6 +61,7 @@ describe('FirebaseCrashlytics', () => {
   let fakeCrashlytics: Crashlytics;
   let fakeTracer: any;
   let fakeContextManager: any;
+  let cleanupListeners: (() => void) | undefined;
 
   beforeEach(() => {
     fakeApp = { name: 'fakeApp' } as FirebaseApp;
@@ -91,10 +93,15 @@ describe('FirebaseCrashlytics', () => {
 
     getCrashlyticsStub = vi
       .spyOn(crashlytics, 'getCrashlytics')
-      .mockReturnValue(fakeCrashlytics);
+      .mockImplementation(() => {
+        cleanupListeners = registerGlobalErrorListeners(fakeCrashlytics);
+        return fakeCrashlytics;
+      });
   });
 
   afterEach(() => {
+    cleanupListeners?.();
+    cleanupListeners = undefined;
     vi.restoreAllMocks();
   });
 
