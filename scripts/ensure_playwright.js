@@ -36,25 +36,25 @@ function isChromiumInstalled() {
     const revision = parts[chromiumDirIndex].substring('chromium-'.length);
     const msPlaywrightRoot = parts.slice(0, chromiumDirIndex).join(path.sep);
 
-    let platformSuffix = '';
-    let exeName = 'headless_shell';
-    if (process.platform === 'win32') {
-      platformSuffix = 'win';
-      exeName = 'headless_shell.exe';
-    } else if (process.platform === 'darwin') {
-      platformSuffix = 'mac';
-    } else {
-      platformSuffix = 'linux';
-    }
-
-    const headlessShellPath = path.join(
+    const headlessShellDir = path.join(
       msPlaywrightRoot,
-      `chromium_headless_shell-${revision}`,
-      `chrome-${platformSuffix}`,
-      exeName
+      `chromium_headless_shell-${revision}`
     );
+    if (!fs.existsSync(headlessShellDir)) return false;
 
-    return fs.existsSync(headlessShellPath);
+    const exeNames =
+      process.platform === 'win32'
+        ? ['chrome-headless-shell.exe', 'headless_shell.exe']
+        : ['chrome-headless-shell', 'headless_shell'];
+
+    const subdirs = fs.readdirSync(headlessShellDir, { withFileTypes: true });
+    return subdirs.some(
+      entry =>
+        entry.isDirectory() &&
+        exeNames.some(exe =>
+          fs.existsSync(path.join(headlessShellDir, entry.name, exe))
+        )
+    );
   } catch {
     return false;
   }

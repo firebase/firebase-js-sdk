@@ -29,16 +29,68 @@ function getConcurrency() {
   }
   const totalMemGB = os.totalmem() / (1024 * 1024 * 1024);
   const memoryCap = Math.floor(totalMemGB / 1.5);
-  const cpuCap = process.env.CI ? 2 : Math.max(2, Math.floor(os.cpus().length / 2));
+  const cpuCap = process.env.CI
+    ? 2
+    : Math.max(2, Math.floor(os.cpus().length / 2));
   return Math.max(1, Math.min(12, Math.min(cpuCap, memoryCap)));
 }
 
 const maxForks = getConcurrency();
 
+function createPlaywrightProvider() {
+  const baseProvider = playwright({
+    launchOptions: {
+      args: ['--disk-cache-size=1', '--media-cache-size=1']
+    }
+  });
+
+  const origFactory = baseProvider.providerFactory;
+  baseProvider.providerFactory = project => {
+    const provider = origFactory(project);
+    const origCreateContext = provider.createContext.bind(provider);
+
+    provider.createContext = async (sessionId, openBrowserOptions) => {
+      const hasExistingContext = provider.contexts.has(sessionId);
+      const context = await origCreateContext(sessionId, openBrowserOptions);
+      if (!hasExistingContext) {
+        // Keep at least one route active on the context at all times so Playwright
+        // never disables network request interception / cache disabling when
+        // mocker.clear() removes per-test routes between test files.
+        await context.route(
+          /^https?:\/\/__vitest_keep_interception_enabled__/,
+          route => route.continue()
+        );
+      }
+      return context;
+    };
+
+    // Use webkit-style direct transformRequest fulfillment for automock/autospy/redirect
+    // to eliminate 302 redirect round-trip and ensure Cache-Control: no-store on Chromium.
+    provider.mocker = provider.createMocker.call(
+      new Proxy(provider, {
+        get(target, prop, receiver) {
+          if (prop === 'browserName') {
+            return 'webkit';
+          }
+          const value = Reflect.get(target, prop, receiver);
+          return typeof value === 'function' ? value.bind(target) : value;
+        }
+      })
+    );
+
+    return provider;
+  };
+
+  return baseProvider;
+}
+
 export function createBaseConfig(importMetaUrl, customConfig = {}) {
-  const packageDir = typeof importMetaUrl === 'string'
-    ? (importMetaUrl.startsWith('file:') ? path.dirname(fileURLToPath(importMetaUrl)) : importMetaUrl)
-    : process.cwd();
+  const packageDir =
+    typeof importMetaUrl === 'string'
+      ? importMetaUrl.startsWith('file:')
+        ? path.dirname(fileURLToPath(importMetaUrl))
+        : importMetaUrl
+      : process.cwd();
 
   const setupFile = path.resolve(packageDir, 'test/setup.ts');
   const setupFiles = fs.existsSync(setupFile) ? [setupFile] : [];
@@ -46,7 +98,9 @@ export function createBaseConfig(importMetaUrl, customConfig = {}) {
   const base = defineConfig({
     test: {
       globals: true,
-      reporters: process.env.GITHUB_ACTIONS ? ['default', 'github-actions'] : ['default'],
+      reporters: process.env.GITHUB_ACTIONS
+        ? ['default', 'github-actions']
+        : ['default'],
       projects: [
         {
           test: {
@@ -86,14 +140,8 @@ export function createBaseConfig(importMetaUrl, customConfig = {}) {
             maxWorkers: maxForks,
             browser: {
               enabled: true,
-              provider: playwright({
-                launchOptions: {
-                  args: ['--disk-cache-size=1', '--media-cache-size=1']
-                }
-              }),
-              instances: [
-                { browser: 'chromium' }
-              ],
+              provider: createPlaywrightProvider(),
+              instances: [{ browser: 'chromium' }],
               headless: true
             },
             isolate: true,
