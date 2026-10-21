@@ -11,118 +11,49 @@ This guide details how to integrate Firebase Crashlytics into an Angular applica
 
 ## Automatic Error Capturing
 
-### Step 1: Map the Firebase App Injection Token
-
-To ensure robust token lifecycles, configure a modular singleton provider in `src/app/firebase.config.ts` that prevents component initialization conflicts:
-
-```typescript
-// src/app/firebase.config.ts
-import { InjectionToken } from '@angular/core';
-import { FirebaseApp, getApps, initializeApp } from '@firebase/app';
-
-// Custom InjectionToken protects module resolution namespaces
-export const FIREBASE_APP = new InjectionToken<FirebaseApp>('FirebaseApp');
-
-const firebaseConfig = {
-  apiKey: "AIzaSyA...",
-  projectId: "your-app-id",
-  appId: "1:1234567890:web:abcdef123456",
-  // ... rest of config options
-};
-
-export function provideFirebaseApp(): FirebaseApp {
-  const apps = getApps();
-  return apps.length > 0 ? apps[0] : initializeApp(firebaseConfig);
-}
-```
-
-### Step 2: Register the Custom Error Handler
-
-Integrate with Angular's global error-catching runtime. Overwrite Angular's default `ErrorHandler` in `src/app/app.config.ts` (or your root module) with `FirebaseErrorHandler`:
+Integrate with Angular's global error-catching runtime and automatic route tracking by adding `provideCrashlytics(() => app)` to your application's providers in `src/app/app.config.ts`:
 
 ```typescript
 // src/app/app.config.ts
-import { ApplicationConfig, ErrorHandler } from '@angular/core';
+import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { FirebaseErrorHandler } from '@firebase/crashlytics/angular';
-import { FIREBASE_APP, provideFirebaseApp } from './firebase.config';
+import { provideCrashlytics } from '@firebase/crashlytics/angular';
+import { app } from '../lib/firebase'; // Shared initialization script
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    // Provide the core Firebase App dependency token
-    {
-      provide: FIREBASE_APP,
-      useFactory: provideFirebaseApp
-    },
-    // Wire Angular runtime uncaught errors to Firebase Crashlytics
-    {
-      provide: ErrorHandler,
-      useFactory: (app: FirebaseApp) => new FirebaseErrorHandler(app),
-      deps: [FIREBASE_APP]
-    }
+    provideCrashlytics(() => app)
   ]
 };
 ```
 
-### Step 3: Track Route Changes & Enable Breadcrumbs
+### Enable Breadcrumbs
 
-To automatically track navigation changes, update the route path attribute, and log view boundary telemetry with breadcrumbs enabled when navigating between routes, initialize `setupCrashlyticsRoutes` with `provideEnvironmentInitializer` in `src/app/app.config.ts` and pass `{ features: [breadcrumbs()] }`:
+To enable Session Breadcrumbs & Logs when navigating between routes or logging custom events, pass `{ features: [breadcrumbs()] }` in the options parameter of `provideCrashlytics`:
 
 ```typescript
 // src/app/app.config.ts
-import {
-  ApplicationConfig,
-  DestroyRef,
-  ErrorHandler,
-  inject,
-  provideEnvironmentInitializer
-} from '@angular/core';
-import { provideRouter, Router } from '@angular/router';
+import { ApplicationConfig } from '@angular/core';
+import { provideRouter } from '@angular/router';
 import { breadcrumbs } from '@firebase/crashlytics';
-import {
-  CrashlyticsOptions,
-  FirebaseErrorHandler,
-  setupCrashlyticsRoutes
-} from '@firebase/crashlytics/angular';
-import { FIREBASE_APP, provideFirebaseApp } from './firebase.config';
+import { provideCrashlytics } from '@firebase/crashlytics/angular';
+import { app } from '../lib/firebase';
 import { routes } from './app.routes';
-
-const crashlyticsOptions: CrashlyticsOptions = {
-  features: [breadcrumbs()]
-};
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    // Provide the core Firebase App dependency token
-    {
-      provide: FIREBASE_APP,
-      useFactory: provideFirebaseApp
-    },
-    // Wire Angular runtime uncaught errors to Firebase Crashlytics
-    {
-      provide: ErrorHandler,
-      useFactory: (app: FirebaseApp) =>
-        new FirebaseErrorHandler(app, crashlyticsOptions),
-      deps: [FIREBASE_APP]
-    },
-    // Configure automatic route navigation tracking
-    provideEnvironmentInitializer(() => {
-      setupCrashlyticsRoutes({
-        firebaseApp: inject(FIREBASE_APP),
-        router: inject(Router),
-        destroyRef: inject(DestroyRef),
-        crashlyticsOptions
-      });
+    provideCrashlytics(() => app, {
+      features: [breadcrumbs()]
     })
   ]
 };
 ```
 
 > [!NOTE]
-> The `FirebaseErrorHandler` tracks all zone crashes. It uses internal `Router` instances to build dynamic routes (like `/dashboard/user/:id`) rather than logging literal URLs, keeping telemetry free of personally identifiable information (PII).
+> `provideCrashlytics()` registers a custom `ErrorHandler` to track uncaught zone crashes and uses internal `Router` instances to build dynamic routes (like `/dashboard/user/:id`) rather than logging literal URLs, keeping telemetry free of personally identifiable information (PII).
 
 ---
 

@@ -20,6 +20,7 @@ import * as crashlytics from '../api';
 import {
   Component,
   DestroyRef,
+  ErrorHandler,
   Injector,
   provideExperimentalZonelessChangeDetection,
   runInInjectionContext
@@ -29,7 +30,8 @@ import {
   FirebaseErrorHandler,
   setupCrashlyticsRoutes,
   getSafeRoutePath,
-  getRawPath
+  getRawPath,
+  provideCrashlytics
 } from '.';
 import { Crashlytics } from '../public-types';
 import { Router, RouterModule } from '@angular/router';
@@ -316,5 +318,91 @@ describe('setupCrashlyticsRoutes', () => {
     });
 
     expect(getCrashlyticsStub).toHaveBeenCalledWith(app, crashlyticsOptions);
+  });
+});
+
+describe('provideCrashlytics', () => {
+  let app: FirebaseApp;
+  let fakeCrashlytics: Crashlytics;
+  let attributesStore: AttributesStore;
+
+  beforeEach(() => {
+    app = initializeApp({ projectId: 'p', appId: 'fakeapp' });
+    attributesStore = new AttributesStore(app.options);
+    fakeCrashlytics = {
+      attributesStore,
+      loggerProvider: {
+        getLogger: () => ({
+          emit: () => {}
+        })
+      }
+    } as unknown as Crashlytics;
+
+    vi.spyOn(crashlytics, 'getCrashlytics').mockReturnValue(fakeCrashlytics);
+    vi.spyOn(crashlytics, 'recordError').mockImplementation(() => {});
+  });
+
+  afterEach(async () => {
+    vi.restoreAllMocks();
+    await deleteApp(app);
+  });
+
+  it('registers FirebaseErrorHandler as Angular ErrorHandler and eagerly initializes it', () => {
+    TestBed.configureTestingModule({
+      imports: [RouterModule.forRoot([])],
+      providers: [
+        provideExperimentalZonelessChangeDetection(),
+        provideCrashlytics(() => app)
+      ]
+    });
+
+    const errorHandler = TestBed.inject(ErrorHandler);
+    expect(errorHandler).toBeInstanceOf(FirebaseErrorHandler);
+  });
+
+  it('automatically configures route tracking and logs view boundaries on navigation', async () => {
+    const logViewBoundaryStub = vi
+      .spyOn(crashlytics, 'logViewBoundary')
+      .mockImplementation(() => {});
+
+    TestBed.configureTestingModule({
+      imports: [
+        RouterModule.forRoot([
+          { path: 'home', component: MockComponent },
+          { path: 'users/:id', component: MockComponent }
+        ])
+      ],
+      providers: [
+        provideExperimentalZonelessChangeDetection(),
+        provideCrashlytics(() => app)
+      ]
+    });
+
+    const router = TestBed.inject(Router);
+    await router.navigate(['/home']);
+    expect(logViewBoundaryStub).toHaveBeenCalledWith(fakeCrashlytics, '/home');
+
+    await router.navigate(['/users/456']);
+    expect(logViewBoundaryStub).toHaveBeenCalledWith(
+      fakeCrashlytics,
+      '/users/:id'
+    );
+  });
+
+  it('forwards CrashlyticsOptions to getCrashlytics', () => {
+    const getCrashlyticsStub =
+      crashlytics.getCrashlytics as unknown as MockInstance;
+    const options = { appVersion: '3.0.0' };
+
+    TestBed.configureTestingModule({
+      imports: [RouterModule.forRoot([])],
+      providers: [
+        provideExperimentalZonelessChangeDetection(),
+        provideCrashlytics(() => app, options)
+      ]
+    });
+
+    TestBed.inject(ErrorHandler);
+    expect(getCrashlyticsStub).toHaveBeenCalledWith(app, options);
   });
 });

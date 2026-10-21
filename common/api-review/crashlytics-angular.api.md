@@ -5,10 +5,8 @@
 ```ts
 
 import { AnyValueMap } from '@opentelemetry/api-logs';
-import { DestroyRef } from '@angular/core';
-import { ErrorHandler } from '@angular/core';
+import { EnvironmentProviders } from '@angular/core';
 import { FirebaseApp } from '@firebase/app';
-import { Router } from '@angular/router';
 
 // @public
 export interface Crashlytics {
@@ -30,19 +28,10 @@ export interface CrashlyticsOptions {
 }
 
 // @public
-export class FirebaseErrorHandler implements ErrorHandler {
-    constructor(app: FirebaseApp, crashlyticsOptions?: CrashlyticsOptions);
-    // (undocumented)
-    handleError(error: unknown): void;
-}
-
-// @public
-export function setupCrashlyticsRoutes(input: {
-    firebaseApp: FirebaseApp;
-    router: Router;
-    destroyRef: DestroyRef;
-    crashlyticsOptions?: CrashlyticsOptions;
-}): void;
+export function provideCrashlytics(
+getAppFn: () => FirebaseApp,
+options?: CrashlyticsOptions
+): EnvironmentProviders;
 
 // (No @packageDocumentation comment for this package)
 
