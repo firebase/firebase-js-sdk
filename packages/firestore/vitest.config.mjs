@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import ts from 'typescript';
@@ -23,24 +22,13 @@ import createBaseConfig from '../../config/vitest.base.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// The `test-firestore` job in `.github/workflows/test-all.yml` runs
-// `find ./packages/firestore/coverage -type f -name "lcov.info"`, which fails
-// if the `coverage` directory does not exist. Create an empty placeholder in CI
-// until Vitest coverage is configured.
-// TODO: Re-enable test coverage reporting across all migrated packages as a
-// follow-up task after the main unit test migration is complete.
-if (process.env.CI) {
-  const coverageDir = path.resolve(__dirname, 'coverage');
-  fs.mkdirSync(coverageDir, { recursive: true });
-  const lcovPath = path.resolve(coverageDir, 'lcov.info');
-  if (!fs.existsSync(lcovPath)) {
-    fs.writeFileSync(lcovPath, '');
-  }
-}
-
 function stripTypeExportsPlugin() {
   // TODO: Use ts.transpileModule per file, for speed
   let program;
+  const enableSourceMap =
+    Boolean(process.env.FIREBASE_CI_TEST_START_TIME) ||
+    process.env.COVERAGE === 'true' ||
+    process.argv.some(arg => arg.startsWith('--coverage'));
   return {
     name: 'strip-type-exports',
     enforce: 'pre',
@@ -61,7 +49,8 @@ function stripTypeExportsPlugin() {
           ...parsedConfig.options,
           module: ts.ModuleKind.ESNext,
           target: ts.ScriptTarget.ESNext,
-          sourceMap: false,
+          sourceMap: enableSourceMap,
+          inlineSources: enableSourceMap,
           inlineSourceMap: false
         });
       }
@@ -70,13 +59,16 @@ function stripTypeExportsPlugin() {
         return null;
       }
       let emittedCode = null;
+      let emittedMap = null;
       program.emit(sf, (fileName, data) => {
         if (fileName.endsWith('.js')) {
           emittedCode = data;
+        } else if (fileName.endsWith('.js.map')) {
+          emittedMap = data;
         }
       });
       if (emittedCode !== null) {
-        return { code: emittedCode, map: null };
+        return { code: emittedCode, map: emittedMap };
       }
       return null;
     }
