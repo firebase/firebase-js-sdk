@@ -15,44 +15,48 @@
  * limitations under the License.
  */
 
-import { By, until, WebDriver } from 'selenium-webdriver';
-import { JsLoadCondition } from './js_load_condition';
+import { Page } from 'playwright';
+import { AuthDriver } from './auth_driver';
 
-const ADD_ACCOUNT_BUTTON = By.css('.js-new-account');
-const SIGN_IN_BUTTON = By.id('sign-in');
-const EMAIL_INPUT = By.id('email-input');
-const DISPLAY_NAME_INPUT = By.id('display-name-input');
-const SCREEN_NAME_INPUT = By.id('screen-name-input');
-const PROFILE_PHOTO_INPUT = By.id('profile-photo-input');
-const ACCOUNT_LIST_ITEMS = By.css('#accounts-list li');
+const ADD_ACCOUNT_BUTTON = '.js-new-account';
+const SIGN_IN_BUTTON = '#sign-in';
+const EMAIL_INPUT = '#email-input';
+const DISPLAY_NAME_INPUT = '#display-name-input';
+const SCREEN_NAME_INPUT = '#screen-name-input';
+const PROFILE_PHOTO_INPUT = '#profile-photo-input';
+const ACCOUNT_LIST_ITEMS = '#accounts-list li';
 
 export class IdPPage {
   static PAGE_TITLE = 'Auth Emulator IDP Login Widget';
 
-  constructor(private readonly driver: WebDriver) {}
+  constructor(private readonly driver: AuthDriver | Page) {}
+
+  private get page(): Page {
+    return 'page' in this.driver ? this.driver.page : this.driver;
+  }
 
   async pageLoad(): Promise<void> {
-    await this.driver.wait(until.titleContains('Auth Emulator'));
-    await this.driver.wait(new JsLoadCondition('toggleForm'));
+    await this.page.waitForFunction(
+      () =>
+        document.title.includes('Auth Emulator') &&
+        typeof (window as unknown as Record<string, unknown>)['toggleForm'] !==
+          'undefined'
+    );
   }
 
   async clickAddAccount(): Promise<void> {
-    await this.driver.wait(until.elementLocated(ADD_ACCOUNT_BUTTON));
-    await this.driver.findElement(ADD_ACCOUNT_BUTTON).click();
+    await this.page.locator(ADD_ACCOUNT_BUTTON).click();
   }
 
   async clickSignIn(): Promise<void> {
-    await this.driver.wait(until.elementLocated(SIGN_IN_BUTTON));
-    const button = await this.driver.findElement(SIGN_IN_BUTTON);
-    await this.driver.wait(until.elementIsEnabled(button));
-    await button.click();
+    await this.page.locator(SIGN_IN_BUTTON).click();
   }
 
   async selectExistingAccountByEmail(email: string): Promise<void> {
-    await this.driver.wait(until.elementLocated(ACCOUNT_LIST_ITEMS));
-    const accounts = await this.driver.findElements(ACCOUNT_LIST_ITEMS);
+    await this.page.locator(ACCOUNT_LIST_ITEMS).first().waitFor();
+    const accounts = await this.page.locator(ACCOUNT_LIST_ITEMS).all();
     for (const account of accounts) {
-      if ((await account.getText()).includes(email)) {
+      if ((await account.innerText()).includes(email)) {
         await account.click();
         return;
       }
@@ -75,10 +79,9 @@ export class IdPPage {
     return this.fillInput(PROFILE_PHOTO_INPUT, profilePhoto);
   }
 
-  private async fillInput(input: By, text: string): Promise<void> {
-    await this.driver.wait(until.elementLocated(input));
-    const el = await this.driver.findElement(input);
+  private async fillInput(selector: string, text: string): Promise<void> {
+    const el = this.page.locator(selector);
     await el.click();
-    await el.sendKeys(text);
+    await el.fill(text);
   }
 }

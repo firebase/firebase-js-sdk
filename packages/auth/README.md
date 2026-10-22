@@ -35,14 +35,10 @@ environmental variables. In addition to the commands listed above, the below
 commands also run various tests:
 
   * `yarn test:integration:local` — Executes Node and browser emulator
-    integration tests, as well as the Selenium WebDriver tests
+    integration tests, as well as the Playwright WebDriver tests
   
-  * `yarn test:webdriver` — Executes only the Selenium WebDriver
+  * `yarn test:webdriver` — Executes only the Playwright WebDriver
     integration tests
-
-Note - The webdriver tests require the Chrome webdriver to match the version of Chrome running locally.
-In the CI environment, this is ensured using the environment variable [here.](https://github.com/firebase/firebase-js-sdk/blob/6e80a678fe0c31046860554cec0459a2be34d22b/.github/workflows/test-changed-auth.yml#L7)
-When running locally, change the chromedriver version in [package.json](https://github.com/firebase/firebase-js-sdk/blob/6e80a678fe0c31046860554cec0459a2be34d22b/packages/auth/package.json#L124) to match your local Chrome version and run `yarn install`.
 
 
 For example, to run all integration and WebDriver tests against the emulator,
@@ -129,11 +125,9 @@ curl   -H "Authorization: Bearer $(gcloud auth print-access-token)"   -H "Conten
 }'
 ```
 
-### Selenium Webdriver tests
+### Playwright WebDriver tests
 
-These tests assume that you have both Firefox and Chrome installed on your
-computer and in your `$PATH`. The tests will error out if this is not the case.
 The WebDriver tests talk to the emulator, but unlike the headless integration
-tests, these run in a browser robot environment; the assertions themselves run
-in Node. When you run these tests a small Express server will be started to
-serve the static files the browser robot uses.
+tests, these run in a Playwright-controlled browser environment; the assertions
+themselves run in Node. When you run these tests a small Express server will be
+started to serve the static files the browser uses.

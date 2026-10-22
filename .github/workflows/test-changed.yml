@@ -75,8 +75,6 @@ jobs:
       - name: install Firefox stable
         run: npx @puppeteer/browsers install firefox@stable
       - name: Test setup and yarn install
-        env:
-          CHROMEDRIVER_SKIP_DOWNLOAD: true
         run: |
           cp config/ci.config.json config/project.json
           yarn
@@ -103,8 +101,6 @@ jobs:
         with:
           node-version: 24.19.0
       - name: Test setup and yarn install
-        env:
-          CHROMEDRIVER_SKIP_DOWNLOAD: true
         run: |
           cp config/ci.config.json config/project.json
           yarn

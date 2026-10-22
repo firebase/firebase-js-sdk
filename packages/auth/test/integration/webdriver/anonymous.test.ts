@@ -56,7 +56,7 @@ browserDescribe('WebDriver anonymous auth test', driver => {
     const { user: before }: UserCredential = await driver.call(
       AnonFunction.SIGN_IN_ANONYMOUSLY
     );
-    await driver.webDriver.navigate().refresh();
+    await driver.page.reload();
     await driver.injectConfigAndInitAuth();
 
     // At this point we aren't waiting for auth to "settle"
