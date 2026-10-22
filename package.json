@@ -89,6 +89,7 @@
     "@typescript-eslint/eslint-plugin-tslint": "7.0.2",
     "@typescript-eslint/parser": "7.18.0",
     "@vitest/browser-playwright": "4.1.10",
+    "@vitest/coverage-v8": "4.1.10",
     "babel-loader": "10.1.1",
     "babel-plugin-istanbul": "8.0.0",
     "chai": "4.5.0",
