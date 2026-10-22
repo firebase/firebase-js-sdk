@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * @license
  * Copyright 2025 Google LLC
@@ -20,10 +21,14 @@ const path = require('node:path');
 const child_process = require('node:child_process');
 
 // Ensure that the project is set up as expected.
-const rootPath = path.resolve(
+// Resolve dist relative to this script's location first (supports monorepo hoisting),
+// falling back to process.cwd() if needed.
+const localDistPath = path.resolve(__dirname, 'dist');
+const cwdDistPath = path.resolve(
   process.cwd(),
   './node_modules/@firebase/crashlytics/dist'
 );
+const rootPath = fs.existsSync(localDistPath) ? localDistPath : cwdDistPath;
 if (!fs.existsSync(rootPath)) {
   console.error(
     `Error setting Firebase constants. Directory does not exist: ${rootPath}`
@@ -37,7 +42,7 @@ if (!fs.existsSync(rootPath)) {
 /** Logs a usage string to the console. */
 function logUsageString() {
   console.log(`
-Usage: node setconstants.js [options]
+Usage: crashlytics-setconstants [options]
 
 Options:
   --appVersion=<version>  Set the app version (e.g. 1.2.0). If not provided, the current git commit
