@@ -2,6 +2,22 @@
 
 This guide covers the incremental steps to enable Session Breadcrumbs & Logs for Next.js App Router applications in the Firebase Crashlytics private preview.
 
+### Next.js 15.3+: Client Instrumentation (`instrumentation-client.ts`)
+
+In `src/instrumentation-client.ts`, pass `features: [breadcrumbs()]` to `getCrashlytics`:
+
+```diff
+// src/instrumentation-client.ts
+-import { getCrashlytics } from '@firebase/crashlytics';
++import { getCrashlytics, breadcrumbs } from '@firebase/crashlytics';
+import { app } from './lib/firebase';
+
+-getCrashlytics(app);
++getCrashlytics(app, { features: [breadcrumbs()] });
+```
+
+### Next.js < 15.3: Client Component Layout
+
 In your existing client-side provider component (e.g., `src/components/CrashlyticsProvider.tsx`), define a `crashlyticsOptions` object with `features: [breadcrumbs()]` and pass it to `<FirebaseCrashlytics>`:
 
 ```diff
