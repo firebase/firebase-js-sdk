@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { User } from '../../../src/auth/user';
 import { Query, queryToTarget } from '../../../src/core/query';
@@ -47,15 +45,14 @@ import * as PersistenceTestHelpers from './persistence_test_helpers';
 import { TestDocumentOverlayCache } from './test_document_overlay_cache';
 import { TestIndexManager } from './test_index_manager';
 
-describe('IndexedDb IndexBackfiller', () => {
-  if (!IndexedDbPersistence.isAvailable()) {
-    console.warn('No IndexedDB. Skipping IndexedDb IndexBackfiller tests.');
-    return;
+describe.skipIf(!IndexedDbPersistence.isAvailable())(
+  'IndexedDb IndexBackfiller',
+  () => {
+    genericIndexBackfillerTests(queue =>
+      PersistenceTestHelpers.testIndexedDbPersistence({ queue })
+    );
   }
-  genericIndexBackfillerTests(queue =>
-    PersistenceTestHelpers.testIndexedDbPersistence({ queue })
-  );
-});
+);
 
 function genericIndexBackfillerTests(
   newPersistence: (queue: AsyncQueue) => Promise<Persistence>
@@ -112,21 +109,17 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(2);
+      expect(documentsProcessed).toBe(2);
     }
 
     {
       const fieldIndex = await getFieldIndex('coll1');
-      expect(fieldIndex.indexState.offset.readTime).to.be.deep.equal(
-        version(10)
-      );
+      expect(fieldIndex.indexState.offset.readTime).toEqual(version(10));
     }
 
     {
       const fieldIndex = await getFieldIndex('coll2');
-      expect(fieldIndex.indexState.offset.readTime).to.be.deep.equal(
-        version(20)
-      );
+      expect(fieldIndex.indexState.offset.readTime).toEqual(version(20));
     }
 
     await addDocs(
@@ -138,21 +131,17 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(4);
+      expect(documentsProcessed).toBe(4);
     }
 
     {
       const fieldIndex = await getFieldIndex('coll1');
-      expect(fieldIndex.indexState.offset.readTime).to.be.deep.equal(
-        version(51)
-      );
+      expect(fieldIndex.indexState.offset.readTime).toEqual(version(51));
     }
 
     {
       const fieldIndex = await getFieldIndex('coll2');
-      expect(fieldIndex.indexState.offset.readTime).to.be.deep.equal(
-        version(61)
-      );
+      expect(fieldIndex.indexState.offset.readTime).toEqual(version(61));
     }
   });
 
@@ -169,13 +158,13 @@ function genericIndexBackfillerTests(
     // Documents before read time should not be fetched.
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(0);
+      expect(documentsProcessed).toBe(0);
     }
 
     {
       // Read time should be the highest read time from the cache.
       const fieldIndex = await getFieldIndex('coll1');
-      expect(fieldIndex.indexState.offset).to.be.deep.equal(
+      expect(fieldIndex.indexState.offset).toEqual(
         new IndexOffset(version(10), DocumentKey.empty(), -1)
       );
     }
@@ -185,15 +174,13 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(1);
+      expect(documentsProcessed).toBe(1);
     }
 
     {
       // Field indexes should now hold the latest read time
       const fieldIndex = await getFieldIndex('coll1');
-      expect(fieldIndex.indexState.offset.readTime).to.be.deep.equal(
-        version(19)
-      );
+      expect(fieldIndex.indexState.offset.readTime).toEqual(version(19));
     }
   });
 
@@ -209,7 +196,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(4);
+      expect(documentsProcessed).toBe(4);
     }
   });
 
@@ -223,7 +210,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill(2);
-      expect(documentsProcessed).to.equal(2);
+      expect(documentsProcessed).toBe(2);
     }
 
     await expectQueryResults(
@@ -234,7 +221,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill(2);
-      expect(documentsProcessed).to.equal(1);
+      expect(documentsProcessed).toBe(1);
     }
 
     await expectQueryResults(
@@ -256,7 +243,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill(2);
-      expect(documentsProcessed).to.equal(2);
+      expect(documentsProcessed).toBe(2);
     }
 
     await expectQueryResults(
@@ -267,7 +254,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill(2);
-      expect(documentsProcessed).to.equal(1);
+      expect(documentsProcessed).toBe(1);
     }
 
     await expectQueryResults(
@@ -287,16 +274,16 @@ function genericIndexBackfillerTests(
       Helpers.doc('coll2/docA', 30, { ['foo']: 1 })
     );
 
-    expect(await testIndexManager.getNextCollectionGroupToUpdate()).to.equal(
+    expect(await testIndexManager.getNextCollectionGroupToUpdate()).toBe(
       'coll1'
     );
 
     {
       const documentsProcessed = await backfiller.backfill(2);
-      expect(documentsProcessed).to.equal(2);
+      expect(documentsProcessed).toBe(2);
     }
 
-    expect(await testIndexManager.getNextCollectionGroupToUpdate()).to.equal(
+    expect(await testIndexManager.getNextCollectionGroupToUpdate()).toBe(
       'coll2'
     );
   });
@@ -328,13 +315,13 @@ function genericIndexBackfillerTests(
     );
 
     // Check that coll3 is the next collection ID the backfiller should update
-    expect(await testIndexManager.getNextCollectionGroupToUpdate()).to.equal(
+    expect(await testIndexManager.getNextCollectionGroupToUpdate()).toBe(
       'coll3'
     );
 
     {
       const documentsProcessed = await backfiller.backfill(1);
-      expect(documentsProcessed).to.equal(1);
+      expect(documentsProcessed).toBe(1);
     }
 
     await expectQueryResults(
@@ -354,7 +341,7 @@ function genericIndexBackfillerTests(
     );
 
     const documentsProcessed = await backfiller.backfill(3);
-    expect(documentsProcessed).to.equal(3);
+    expect(documentsProcessed).toBe(3);
 
     await expectQueryResults(
       Helpers.query('coll1', Helpers.orderBy('foo')),
@@ -379,7 +366,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(0);
+      expect(documentsProcessed).toBe(0);
     }
 
     await addDocs(
@@ -389,7 +376,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(2);
+      expect(documentsProcessed).toBe(2);
     }
   });
 
@@ -404,7 +391,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill(2);
-      expect(documentsProcessed).to.equal(2);
+      expect(documentsProcessed).toBe(2);
     }
 
     await expectQueryResults(
@@ -415,7 +402,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill(2);
-      expect(documentsProcessed).to.equal(2);
+      expect(documentsProcessed).toBe(2);
     }
 
     await expectQueryResults(
@@ -436,7 +423,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill(2);
-      expect(documentsProcessed).to.equal(2);
+      expect(documentsProcessed).toBe(2);
     }
 
     await expectQueryResults(
@@ -447,12 +434,12 @@ function genericIndexBackfillerTests(
 
     {
       const fieldIndex = await getFieldIndex('coll1');
-      expect(fieldIndex.indexState.offset.largestBatchId).to.be.equal(2);
+      expect(fieldIndex.indexState.offset.largestBatchId).toBe(2);
     }
 
     {
       const documentsProcessed = await backfiller.backfill(2);
-      expect(documentsProcessed).to.equal(2);
+      expect(documentsProcessed).toBe(2);
     }
 
     await expectQueryResults(
@@ -465,7 +452,7 @@ function genericIndexBackfillerTests(
 
     {
       const fieldIndex = await getFieldIndex('coll1');
-      expect(fieldIndex.indexState.offset.largestBatchId).to.be.equal(4);
+      expect(fieldIndex.indexState.offset.largestBatchId).toBe(4);
     }
   });
 
@@ -476,7 +463,7 @@ function genericIndexBackfillerTests(
     await addSetMutationToOverlay(3, 'coll1/docE');
 
     const documentsProcessed = await backfiller.backfill(2);
-    expect(documentsProcessed).to.equal(4);
+    expect(documentsProcessed).toBe(4);
 
     await expectQueryResults(
       Helpers.query('coll1', Helpers.orderBy('foo')),
@@ -494,7 +481,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill(2);
-      expect(documentsProcessed).to.equal(2);
+      expect(documentsProcessed).toBe(2);
     }
 
     await expectQueryResults(
@@ -508,7 +495,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill(2);
-      expect(documentsProcessed).to.equal(0);
+      expect(documentsProcessed).toBe(0);
     }
   });
 
@@ -523,7 +510,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(1);
+      expect(documentsProcessed).toBe(1);
     }
 
     await expectQueryResults(query);
@@ -532,7 +519,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(1);
+      expect(documentsProcessed).toBe(1);
     }
 
     await expectQueryResults(query, 'coll/doc');
@@ -549,7 +536,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(1);
+      expect(documentsProcessed).toBe(1);
     }
 
     await expectQueryResults(query, 'coll/doc');
@@ -558,7 +545,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(1);
+      expect(documentsProcessed).toBe(1);
     }
 
     await expectQueryResults(query);
@@ -570,11 +557,11 @@ function genericIndexBackfillerTests(
     await addSetMutationToOverlay(1, 'coll/doc');
 
     const documentsProcessed = await backfiller.backfill();
-    expect(documentsProcessed).to.equal(1);
+    expect(documentsProcessed).toBe(1);
 
     const fieldIndex = await getFieldIndex('coll');
-    expect(fieldIndex.indexState.offset.readTime).to.be.deep.equal(version(5));
-    expect(fieldIndex.indexState.offset.largestBatchId).to.be.equal(1);
+    expect(fieldIndex.indexState.offset.readTime).toEqual(version(5));
+    expect(fieldIndex.indexState.offset.largestBatchId).toBe(1);
   });
 
   it('Applies set to remote doc', async () => {
@@ -583,7 +570,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(1);
+      expect(documentsProcessed).toBe(1);
     }
 
     const mutation = Helpers.patchMutation('coll/doc', { 'foo': '1' });
@@ -591,7 +578,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(1);
+      expect(documentsProcessed).toBe(1);
     }
 
     await expectQueryResults(
@@ -609,7 +596,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(1);
+      expect(documentsProcessed).toBe(1);
     }
 
     await expectQueryResults(queryA, 'coll/doc');
@@ -620,7 +607,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(1);
+      expect(documentsProcessed).toBe(1);
     }
 
     await expectQueryResults(queryA, 'coll/doc');
@@ -634,14 +621,14 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(1);
+      expect(documentsProcessed).toBe(1);
     }
 
     {
       const matching = await testIndexManager.getDocumentsMatchingTarget(
         queryToTarget(query)
       );
-      expect(matching).is.not.eql([]);
+      expect(matching).not.toEqual([]);
     }
 
     const mutation = Helpers.deleteMutation('coll/doc');
@@ -649,14 +636,14 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(1);
+      expect(documentsProcessed).toBe(1);
     }
 
     {
       const matching = await testIndexManager.getDocumentsMatchingTarget(
         queryToTarget(query)
       );
-      expect(matching).is.eql([]);
+      expect(matching).toEqual([]);
     }
   });
 
@@ -671,7 +658,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(2);
+      expect(documentsProcessed).toBe(2);
     }
 
     await expectQueryResults(queryA, 'coll/doc1');
@@ -681,7 +668,7 @@ function genericIndexBackfillerTests(
 
     {
       const documentsProcessed = await backfiller.backfill();
-      expect(documentsProcessed).to.equal(2);
+      expect(documentsProcessed).toBe(2);
     }
 
     await expectQueryResults(queryA, 'coll/doc1');
@@ -702,7 +689,7 @@ function genericIndexBackfillerTests(
   async function getFieldIndex(collectionGroup: string): Promise<FieldIndex> {
     const fieldIndexes =
       await testIndexManager.getFieldIndexes(collectionGroup);
-    expect(fieldIndexes).length(1);
+    expect(fieldIndexes).toHaveLength(1);
     return fieldIndexes[0];
   }
 
@@ -725,9 +712,9 @@ function genericIndexBackfillerTests(
       queryToTarget(query)
     );
     if (actualKeys === null) {
-      expect(expectedKeys).to.be.empty;
+      expect(expectedKeys).toHaveLength(0);
     } else {
-      expect(actualKeys.map(k => k.path.canonicalString())).to.eql(
+      expect(actualKeys.map(k => k.path.canonicalString())).toEqual(
         expectedKeys
       );
     }

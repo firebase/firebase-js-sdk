@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   and as apiAnd,
@@ -52,9 +50,9 @@ describe('Error Handling', () => {
         )
       );
 
-    expect(
-      runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])
-    ).to.deep.equal([doc1, doc2, doc3, doc4, doc5, doc6]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])).toEqual(
+      [doc1, doc2, doc3, doc4, doc5, doc6]
+    );
   });
 
   it('where_partialError_and', () => {
@@ -79,7 +77,7 @@ describe('Error Handling', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7])
-    ).to.deep.equal([doc7]);
+    ).toEqual([doc7]);
   });
 
   it('where_partialError_xor', () => {
@@ -104,7 +102,7 @@ describe('Error Handling', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6, doc7])
-    ).to.deep.equal([doc7]);
+    ).toEqual([doc7]);
   });
 
   it('where_not_error', () => {
@@ -117,7 +115,7 @@ describe('Error Handling', () => {
       .database()
       .where(not(field('a').asBoolean()));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1]);
   });
 
   it('where_errorProducingFunction_returnsEmpty', () => {
@@ -130,6 +128,6 @@ describe('Error Handling', () => {
       .database()
       .where(divide(constant('100'), constant('50')).equal(constant(2)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toHaveLength(0);
   });
 });

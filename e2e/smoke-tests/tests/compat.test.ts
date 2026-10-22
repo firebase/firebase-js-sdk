@@ -26,7 +26,6 @@ import 'firebase/compat/messaging';
 import 'firebase/compat/performance';
 import 'firebase/compat/database';
 import { config, testAccount } from '../firebase-config';
-import 'jest';
 
 describe('COMPAT', () => {
   let app: firebase.app.App;
@@ -107,9 +106,6 @@ describe('COMPAT', () => {
     let firestore: firebase.firestore.Firestore;
     it('init firestore', () => {
       firestore = firebase.firestore();
-      // @ts-ignore Super hacky way to deactive useFetchStreams
-      // which don't work in jsdom
-      firestore._delegate._settings.useFetchStreams = false;
     });
     it('set(), get(), where()', async () => {
       await firestore.collection('testCollection').doc('trueDoc').set({
@@ -129,7 +125,7 @@ describe('COMPAT', () => {
     it('onSnapshot() reflects CRUD operations', async () => {
       const testDocRef = firestore.doc('testCollection/testDoc');
       let expectedSnap: any = {};
-      testDocRef.onSnapshot(snap => {
+      const unsub = testDocRef.onSnapshot(snap => {
         expect(snap.exists).toBe(expectedSnap.exists);
         if (snap.exists) {
           expect(snap.data()).toEqual(expectedSnap.data);
@@ -144,6 +140,7 @@ describe('COMPAT', () => {
       await testDocRef.update({ word: 'bye', newProp: ['a'] });
       expectedSnap = { exists: false };
       await testDocRef.delete();
+      unsub();
     });
   });
 
@@ -174,15 +171,7 @@ describe('COMPAT', () => {
 
   describe('MESSAGING', () => {
     it('init messaging', () => {
-      // @ts-ignore Stub missing browser APIs that FCM depends on
-      window.indexedDB = { open: () => Promise.resolve() };
-      // @ts-ignore Stub missing browser APIs that FCM depends on
-      navigator.serviceWorker = { addEventListener: () => {} };
       firebase.messaging();
-      // @ts-ignore
-      delete window.indexedDB;
-      // @ts-ignore
-      delete navigator.serviceWorker;
     });
   });
 

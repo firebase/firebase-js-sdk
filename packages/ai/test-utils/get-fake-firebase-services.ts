@@ -94,6 +94,5 @@ export const fakeAI: AI = {
       appId: 'my-appid'
     }
   },
-  backend: new AgentPlatformBackend('global'),
-  location: 'global'
+  backend: new AgentPlatformBackend('global')
 };

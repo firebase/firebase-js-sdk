@@ -16,7 +16,6 @@
  */
 
 import { isNode } from '@firebase/util';
-import { expect } from 'chai';
 
 import {
   DocumentReference,
@@ -55,10 +54,12 @@ describe('Bundle', () => {
 
 describe('CollectionReference', () => {
   it('support equality checking with isEqual()', () => {
-    expect(refEqual(collectionReference('foo'), collectionReference('foo'))).to
-      .be.true;
-    expect(refEqual(collectionReference('foo'), collectionReference('bar'))).to
-      .be.false;
+    expect(
+      refEqual(collectionReference('foo'), collectionReference('foo'))
+    ).toBe(true);
+    expect(
+      refEqual(collectionReference('foo'), collectionReference('bar'))
+    ).toBe(false);
   });
 
   it('JSON.stringify() does not throw', () => {
@@ -70,10 +71,10 @@ describe('DocumentReference', () => {
   it('support equality checking with isEqual()', () => {
     expect(
       refEqual(documentReference('rooms/foo'), documentReference('rooms/foo'))
-    ).to.be.true;
+    ).toBe(true);
     expect(
       refEqual(documentReference('rooms/foo'), documentReference('rooms/bar'))
-    ).to.be.false;
+    ).toBe(false);
   });
 
   it('JSON.stringify() does not throw', () => {
@@ -89,7 +90,7 @@ describe('DocumentReference', () => {
   it('toJSON() includes correct JSON fields', () => {
     const docRef = documentReference('foo/bar');
     const json = docRef.toJSON();
-    expect(json).to.deep.equal({
+    expect(json).toEqual({
       type: 'firestore/documentReference/1.0',
       referencePath: 'foo/bar'
     });
@@ -99,7 +100,7 @@ describe('DocumentReference', () => {
     const db = newTestFirestore();
     expect(() => {
       DocumentReference.fromJSON(db, {});
-    }).to.throw("JSON missing required field: 'type'");
+    }).toThrow("JSON missing required field: 'type'");
   });
 
   it('fromJSON() throws with missing type data', () => {
@@ -110,7 +111,7 @@ describe('DocumentReference', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw("JSON missing required field: 'type'");
+    }).toThrow("JSON missing required field: 'type'");
   });
 
   it('fromJSON() throws with invalid type data', () => {
@@ -122,7 +123,7 @@ describe('DocumentReference', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw("JSON field 'type' must be a string");
+    }).toThrow("JSON field 'type' must be a string");
   });
 
   it('fromJSON() throws with missing bundleSource', () => {
@@ -133,7 +134,7 @@ describe('DocumentReference', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw("JSON missing required field: 'bundleSource'");
+    }).toThrow("JSON missing required field: 'bundleSource'");
   });
 
   it('fromJSON() throws with invalid bundleSource type', () => {
@@ -145,7 +146,7 @@ describe('DocumentReference', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw("JSON field 'bundleSource' must be a string");
+    }).toThrow("JSON field 'bundleSource' must be a string");
   });
 
   it('fromJSON() throws with invalid bundleSource value', () => {
@@ -157,7 +158,7 @@ describe('DocumentReference', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw("Expected 'bundleSource' field to equal 'DocumentSnapshot'");
+    }).toThrow("Expected 'bundleSource' field to equal 'DocumentSnapshot'");
   });
 
   it('fromJSON() throws with missing bundleName', () => {
@@ -168,7 +169,7 @@ describe('DocumentReference', () => {
         bundleSource: 'DocumentSnapshot',
         bundle: 'test bundle'
       });
-    }).to.throw("JSON missing required field: 'bundleName'");
+    }).toThrow("JSON missing required field: 'bundleName'");
   });
 
   it('fromJSON() throws with invalid bundleName', () => {
@@ -180,7 +181,7 @@ describe('DocumentReference', () => {
         bundleName: 1,
         bundle: 'test bundle'
       });
-    }).to.throw("JSON field 'bundleName' must be a string");
+    }).toThrow("JSON field 'bundleName' must be a string");
   });
 
   it('fromJSON() throws with missing bundle', () => {
@@ -191,7 +192,7 @@ describe('DocumentReference', () => {
         bundleSource: 'DocumentSnapshot',
         bundleName: 'test name'
       });
-    }).to.throw("JSON missing required field: 'bundle'");
+    }).toThrow("JSON missing required field: 'bundle'");
   });
 
   it('fromJSON() throws with invalid bundle', () => {
@@ -203,7 +204,7 @@ describe('DocumentReference', () => {
         bundleName: 'test name',
         bundle: 1
       });
-    }).to.throw("JSON field 'bundle' must be a string");
+    }).toThrow("JSON field 'bundle' must be a string");
   });
 
   it('fromJSON() does not throw', () => {
@@ -220,9 +221,9 @@ describe('DocumentReference', () => {
     const docRef = documentReference('foo/bar');
     const json = docRef.toJSON();
     const deserializedDocRef = DocumentReference.fromJSON(db, json);
-    expect(docRef.id).to.equal(deserializedDocRef.id);
-    expect(docRef.path).to.equal(deserializedDocRef.path);
-    expect(docRef.toJSON()).to.deep.equal(deserializedDocRef.toJSON());
+    expect(docRef.id).toBe(deserializedDocRef.id);
+    expect(docRef.path).toBe(deserializedDocRef.path);
+    expect(docRef.toJSON()).toEqual(deserializedDocRef.toJSON());
   });
 });
 
@@ -233,38 +234,38 @@ describe('DocumentSnapshot', () => {
         documentSnapshot('rooms/foo', { a: 1 }, true),
         documentSnapshot('rooms/foo', { a: 1 }, true)
       )
-    ).to.be.true;
+    ).toBe(true);
     expect(
       snapshotEqual(
         documentSnapshot('rooms/foo', null, true),
         documentSnapshot('rooms/foo', null, true)
       )
-    ).to.be.true;
+    ).toBe(true);
     // will do both !left.isEqual(right) and !right.isEqual(left).
     expect(
       snapshotEqual(
         documentSnapshot('rooms/foo', { a: 1 }, true),
         documentSnapshot('rooms/foo', null, true)
       )
-    ).to.be.false;
+    ).toBe(false);
     expect(
       snapshotEqual(
         documentSnapshot('rooms/foo', { a: 1 }, true),
         documentSnapshot('rooms/bar', { a: 1 }, true)
       )
-    ).to.be.false;
+    ).toBe(false);
     expect(
       snapshotEqual(
         documentSnapshot('rooms/foo', { a: 1 }, true),
         documentSnapshot('rooms/bar', { b: 1 }, true)
       )
-    ).to.be.false;
+    ).toBe(false);
     expect(
       snapshotEqual(
         documentSnapshot('rooms/foo', { a: 1 }, true),
         documentSnapshot('rooms/bar', { a: 1 }, false)
       )
-    ).to.be.false;
+    ).toBe(false);
   });
 
   it('JSON.stringify() does not throw', () => {
@@ -279,8 +280,8 @@ describe('DocumentSnapshot', () => {
     ).toJSON();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const json = snapshotJson as any;
-    expect(json.bundle).to.exist;
-    expect(json.bundle.length).to.be.greaterThan(0);
+    expect(json.bundle).toBeDefined();
+    expect(json.bundle.length).toBeGreaterThan(0);
   });
 
   it('toJSON returns a bundle containing NOT_SUPPORTED in non-node environments', () => {
@@ -292,8 +293,8 @@ describe('DocumentSnapshot', () => {
       ).toJSON();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const json = snapshotJson as any;
-      expect(json.bundle).to.exist;
-      expect(json.bundle).to.equal('NOT SUPPORTED');
+      expect(json.bundle).toBeDefined();
+      expect(json.bundle).toBe('NOT SUPPORTED');
     }
   });
 
@@ -306,8 +307,8 @@ describe('DocumentSnapshot', () => {
       ).toJSON();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const json = snapshotJson as any;
-      expect(json.bundle).to.exist;
-      expect(json.bundle.length).to.equal(0);
+      expect(json.bundle).toBeDefined();
+      expect(json.bundle.length).toBe(0);
     }
   });
 
@@ -319,7 +320,7 @@ describe('DocumentSnapshot', () => {
         /*fromCache=*/ true,
         /*hasPendingWrites=*/ true
       ).toJSON();
-    }).to.throw(
+    }).toThrow(
       `DocumentSnapshot.toJSON() attempted to serialize a document with pending writes. ` +
         `Await waitForPendingWrites() before invoking toJSON().`
     );
@@ -360,15 +361,15 @@ describe('DocumentSnapshot', () => {
       );
       const db = firestore();
       const docSnapFromJSON = documentSnapshotFromJSON(db, docSnap.toJSON());
-      expect(docSnapFromJSON).to.exist;
+      expect(docSnapFromJSON).toBeDefined();
       const data = docSnapFromJSON.data();
-      expect(docSnapFromJSON).to.not.be.undefined;
-      expect(docSnapFromJSON).to.not.be.null;
+      expect(docSnapFromJSON).toBeDefined();
+      expect(docSnapFromJSON).not.toBeNull();
       if (data) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        expect((data as any).a).to.exist;
+        expect((data as any).a).toBeDefined();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        expect((data as any).a).to.equal(1);
+        expect((data as any).a).toBe(1);
       }
     }
   });
@@ -376,8 +377,8 @@ describe('DocumentSnapshot', () => {
 
 describe('Query', () => {
   it('support equality checking with isEqual()', () => {
-    expect(queryEqual(query('foo'), query('foo'))).to.be.true;
-    expect(queryEqual(query('foo'), query('bar'))).to.be.false;
+    expect(queryEqual(query('foo'), query('foo'))).toBe(true);
+    expect(queryEqual(query('foo'), query('bar'))).toBe(false);
   });
 
   it('JSON.stringify() does not throw', () => {
@@ -392,13 +393,13 @@ describe('QuerySnapshot', () => {
         querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
         querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false)
       )
-    ).to.be.true;
+    ).toBe(true);
     expect(
       snapshotEqual(
         querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
         querySnapshot('bar', {}, { a: { a: 1 } }, keys(), false, false)
       )
-    ).to.be.false;
+    ).toBe(false);
     expect(
       snapshotEqual(
         querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
@@ -411,37 +412,37 @@ describe('QuerySnapshot', () => {
           false
         )
       )
-    ).to.be.false;
+    ).toBe(false);
     expect(
       snapshotEqual(
         querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
         querySnapshot('foo', {}, { a: { b: 1 } }, keys(), false, false)
       )
-    ).to.be.false;
+    ).toBe(false);
     expect(
       snapshotEqual(
         querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
         querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false)
       )
-    ).to.be.false;
+    ).toBe(false);
     expect(
       snapshotEqual(
         querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
         querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/b'), false, false)
       )
-    ).to.be.false;
+    ).toBe(false);
     expect(
       snapshotEqual(
         querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
         querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), true, false)
       )
-    ).to.be.false;
+    ).toBe(false);
     expect(
       snapshotEqual(
         querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
         querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, true)
       )
-    ).to.be.false;
+    ).toBe(false);
     // hasCachedResults should affect querySnapshot equality
     expect(
       snapshotEqual(
@@ -464,7 +465,7 @@ describe('QuerySnapshot', () => {
           true
         )
       )
-    ).to.be.true;
+    ).toBe(true);
     expect(
       snapshotEqual(
         querySnapshot(
@@ -486,7 +487,7 @@ describe('QuerySnapshot', () => {
           false
         )
       )
-    ).to.be.false;
+    ).toBe(false);
   });
 
   it('JSON.stringify() does not throw', () => {
@@ -506,8 +507,8 @@ describe('QuerySnapshot', () => {
     ).toJSON();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const json = snapshotJson as any;
-    expect(json.bundle).to.exist;
-    expect(json.bundle.length).to.be.greaterThan(0);
+    expect(json.bundle).toBeDefined();
+    expect(json.bundle.length).toBeGreaterThan(0);
   });
 
   it('toJSON returns a bundle containing NOT_SUPPORTED in non-node environments', () => {
@@ -522,8 +523,8 @@ describe('QuerySnapshot', () => {
       ).toJSON();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const json = snapshotJson as any;
-      expect(json.bundle).to.exist;
-      expect(json.bundle).to.equal('NOT SUPPORTED');
+      expect(json.bundle).toBeDefined();
+      expect(json.bundle).toBe('NOT SUPPORTED');
     }
   });
 
@@ -539,8 +540,8 @@ describe('QuerySnapshot', () => {
       ).toJSON();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const json = snapshotJson as any;
-      expect(json.bundle).to.exist;
-      expect(json.bundle.length).to.be.greaterThan(0);
+      expect(json.bundle).toBeDefined();
+      expect(json.bundle.length).toBeGreaterThan(0);
     }
   });
 
@@ -554,7 +555,7 @@ describe('QuerySnapshot', () => {
         false,
         false
       ).toJSON()
-    ).to.throw(
+    ).toThrow(
       `QuerySnapshot.toJSON() attempted to serialize a document with pending writes. ` +
         `Await waitForPendingWrites() before invoking toJSON().`
     );
@@ -564,7 +565,7 @@ describe('QuerySnapshot', () => {
     const db = newTestFirestore();
     expect(() => {
       querySnapshotFromJSON(db, {});
-    }).to.throw("JSON missing required field: 'type'");
+    }).toThrow("JSON missing required field: 'type'");
   });
 
   it('fromJSON() throws with missing type data', () => {
@@ -575,7 +576,7 @@ describe('QuerySnapshot', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw("JSON missing required field: 'type'");
+    }).toThrow("JSON missing required field: 'type'");
   });
 
   it('fromJSON() throws with invalid type data', () => {
@@ -587,7 +588,7 @@ describe('QuerySnapshot', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw("JSON field 'type' must be a string");
+    }).toThrow("JSON field 'type' must be a string");
   });
 
   it('fromJSON() throws with missing bundle source data', () => {
@@ -598,7 +599,7 @@ describe('QuerySnapshot', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw("JSON missing required field: 'bundleSource'");
+    }).toThrow("JSON missing required field: 'bundleSource'");
   });
 
   it('fromJSON() throws with invalid bundleSource type', () => {
@@ -610,7 +611,7 @@ describe('QuerySnapshot', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw("JSON field 'bundleSource' must be a string");
+    }).toThrow("JSON field 'bundleSource' must be a string");
   });
 
   it('fromJSON() throws with invalid bundleSource value', () => {
@@ -622,7 +623,7 @@ describe('QuerySnapshot', () => {
         bundleName: 'test name',
         bundle: 'test bundle'
       });
-    }).to.throw("Expected 'bundleSource' field to equal 'QuerySnapshot'");
+    }).toThrow("Expected 'bundleSource' field to equal 'QuerySnapshot'");
   });
 
   it('fromJSON() throws with missing bundleName', () => {
@@ -633,7 +634,7 @@ describe('QuerySnapshot', () => {
         bundleSource: 'QuerySnapshot',
         bundle: 'test bundle'
       });
-    }).to.throw("JSON missing required field: 'bundleName'");
+    }).toThrow("JSON missing required field: 'bundleName'");
   });
 
   it('fromJSON() throws with invalid bundleName', () => {
@@ -645,7 +646,7 @@ describe('QuerySnapshot', () => {
         bundleName: 1,
         bundle: 'test bundle'
       });
-    }).to.throw("JSON field 'bundleName' must be a string");
+    }).toThrow("JSON field 'bundleName' must be a string");
   });
 
   it('fromJSON() throws with missing bundle field', () => {
@@ -656,7 +657,7 @@ describe('QuerySnapshot', () => {
         bundleSource: 'QuerySnapshot',
         bundleName: 'test name'
       });
-    }).to.throw("JSON missing required field: 'bundle'");
+    }).toThrow("JSON missing required field: 'bundle'");
   });
 
   it('fromJSON() throws with invalid bundle field', () => {
@@ -668,7 +669,7 @@ describe('QuerySnapshot', () => {
         bundleName: 'test name',
         bundle: 1
       });
-    }).to.throw("JSON field 'bundle' must be a string");
+    }).toThrow("JSON field 'bundle' must be a string");
   });
 
   it('fromJSON does not throw', () => {
@@ -706,25 +707,25 @@ describe('QuerySnapshot', () => {
       );
       const db = firestore();
       const querySnap = querySnapshotFromJSON(db, snapshot.toJSON());
-      expect(querySnap).to.exist;
+      expect(querySnap).toBeDefined();
       if (querySnap !== undefined) {
         const docs = querySnap.docs;
-        expect(docs).to.not.be.undefined;
-        expect(docs).to.not.be.null;
+        expect(docs).toBeDefined();
+        expect(docs).not.toBeNull();
         if (docs) {
-          expect(docs.length).to.equal(2);
+          expect(docs.length).toBe(2);
           if (docs.length === 2) {
             let docData = docs[0].data();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let data = docData as any;
-            expect(data.a).to.exist;
-            expect(data.a).to.equal(1);
+            expect(data.a).toBeDefined();
+            expect(data.a).toBe(1);
 
             docData = docs[1].data();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             data = docData as any;
-            expect(data.bar).to.exist;
-            expect(data.bar).to.equal(2);
+            expect(data.bar).toBeDefined();
+            expect(data.bar).toBe(2);
           }
         }
       }
@@ -741,9 +742,9 @@ describe('QuerySnapshot', () => {
       });
       const db = firestore();
       const querySnap = querySnapshotFromJSON(db, snapshot.toJSON());
-      expect(querySnap).to.exist;
+      expect(querySnap).toBeDefined();
       const titles = querySnap.docs.map(d => d.data()['title']);
-      expect(titles).to.deep.equal(['A', 'B', 'C']);
+      expect(titles).toEqual(['A', 'B', 'C']);
     }
   });
 
@@ -767,10 +768,10 @@ describe('QuerySnapshot', () => {
 
 describe('SnapshotMetadata', () => {
   it('from DocumentSnapshot support equality checking with isEqual()', () => {
-    expect(documentSnapshot('rooms/foo', {}, true).metadata).to.deep.equal(
+    expect(documentSnapshot('rooms/foo', {}, true).metadata).toEqual(
       documentSnapshot('rooms/foo', {}, true).metadata
     );
-    expect(documentSnapshot('rooms/foo', {}, true).metadata).to.not.deep.equal(
+    expect(documentSnapshot('rooms/foo', {}, true).metadata).not.toEqual(
       documentSnapshot('rooms/foo', {}, false).metadata
     );
   });
@@ -778,24 +779,20 @@ describe('SnapshotMetadata', () => {
   it('from QuerySnapshot support equality checking with isEqual()', () => {
     expect(
       querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata
-    ).to.deep.equal(
+    ).toEqual(
       querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata
     );
     expect(
       querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata
-    ).to.not.deep.equal(
-      querySnapshot('foo', {}, {}, keys(), true, false).metadata
-    );
+    ).not.toEqual(querySnapshot('foo', {}, {}, keys(), true, false).metadata);
     expect(
       querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata
-    ).to.not.deep.equal(
+    ).not.toEqual(
       querySnapshot('foo', {}, {}, keys('foo/a'), false, false).metadata
     );
     expect(
       querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata
-    ).to.not.deep.equal(
-      querySnapshot('foo', {}, {}, keys(), false, false).metadata
-    );
+    ).not.toEqual(querySnapshot('foo', {}, {}, keys(), false, false).metadata);
   });
 });
 
@@ -808,7 +805,7 @@ describe('Settings', () => {
         experimentalForceLongPolling: true,
         experimentalAutoDetectLongPolling: true
       })
-    ).to.throw(
+    ).toThrow(
       `experimentalForceLongPolling and experimentalAutoDetectLongPolling cannot be used together.`
     );
   });
@@ -816,8 +813,8 @@ describe('Settings', () => {
   it('long polling should be in auto-detect mode by default', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
-    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.true;
-    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+    expect(db._getSettings().experimentalAutoDetectLongPolling).toBe(true);
+    expect(db._getSettings().experimentalForceLongPolling).toBe(false);
   });
 
   it('long polling should be in force mode if force=true', () => {
@@ -826,8 +823,8 @@ describe('Settings', () => {
     db._setSettings({
       experimentalForceLongPolling: true
     });
-    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
-    expect(db._getSettings().experimentalForceLongPolling).to.be.true;
+    expect(db._getSettings().experimentalAutoDetectLongPolling).toBe(false);
+    expect(db._getSettings().experimentalForceLongPolling).toBe(true);
   });
 
   it('long polling should be in auto-detect mode if autoDetect=true', () => {
@@ -836,8 +833,8 @@ describe('Settings', () => {
     db._setSettings({
       experimentalAutoDetectLongPolling: true
     });
-    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.true;
-    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+    expect(db._getSettings().experimentalAutoDetectLongPolling).toBe(true);
+    expect(db._getSettings().experimentalForceLongPolling).toBe(false);
   });
 
   it('long polling should be in auto-detect mode if force=false', () => {
@@ -846,8 +843,8 @@ describe('Settings', () => {
     db._setSettings({
       experimentalForceLongPolling: false
     });
-    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.true;
-    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+    expect(db._getSettings().experimentalAutoDetectLongPolling).toBe(true);
+    expect(db._getSettings().experimentalForceLongPolling).toBe(false);
   });
 
   it('long polling should be disabled if autoDetect=false', () => {
@@ -856,8 +853,8 @@ describe('Settings', () => {
     db._setSettings({
       experimentalAutoDetectLongPolling: false
     });
-    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
-    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+    expect(db._getSettings().experimentalAutoDetectLongPolling).toBe(false);
+    expect(db._getSettings().experimentalForceLongPolling).toBe(false);
   });
 
   it('long polling should be in auto-detect mode if autoDetect=true and force=false', () => {
@@ -867,8 +864,8 @@ describe('Settings', () => {
       experimentalAutoDetectLongPolling: true,
       experimentalForceLongPolling: false
     });
-    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.true;
-    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+    expect(db._getSettings().experimentalAutoDetectLongPolling).toBe(true);
+    expect(db._getSettings().experimentalForceLongPolling).toBe(false);
   });
 
   it('long polling should be in force mode if autoDetect=false and force=true', () => {
@@ -878,8 +875,8 @@ describe('Settings', () => {
       experimentalAutoDetectLongPolling: false,
       experimentalForceLongPolling: true
     });
-    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
-    expect(db._getSettings().experimentalForceLongPolling).to.be.true;
+    expect(db._getSettings().experimentalAutoDetectLongPolling).toBe(false);
+    expect(db._getSettings().experimentalForceLongPolling).toBe(true);
   });
 
   it('long polling should be disabled if autoDetect=false and force=false', () => {
@@ -889,15 +886,16 @@ describe('Settings', () => {
       experimentalAutoDetectLongPolling: false,
       experimentalForceLongPolling: false
     });
-    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
-    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+    expect(db._getSettings().experimentalAutoDetectLongPolling).toBe(false);
+    expect(db._getSettings().experimentalForceLongPolling).toBe(false);
   });
 
   it('timeoutSeconds is undefined by default', () => {
     // Use a new instance of Firestore in order to configure settings.
     const db = newTestFirestore();
-    expect(db._getSettings().experimentalLongPollingOptions.timeoutSeconds).to
-      .be.undefined;
+    expect(
+      db._getSettings().experimentalLongPollingOptions.timeoutSeconds
+    ).toBeUndefined();
   });
 
   it('timeoutSeconds minimum value is allowed', () => {
@@ -906,7 +904,7 @@ describe('Settings', () => {
     db._setSettings({ experimentalLongPollingOptions: { timeoutSeconds: 5 } });
     expect(
       db._getSettings().experimentalLongPollingOptions.timeoutSeconds
-    ).to.equal(5);
+    ).toBe(5);
   });
 
   it('timeoutSeconds maximum value is allowed', () => {
@@ -915,7 +913,7 @@ describe('Settings', () => {
     db._setSettings({ experimentalLongPollingOptions: { timeoutSeconds: 30 } });
     expect(
       db._getSettings().experimentalLongPollingOptions.timeoutSeconds
-    ).to.equal(30);
+    ).toBe(30);
   });
 
   it('timeoutSeconds typical value is allowed', () => {
@@ -924,7 +922,7 @@ describe('Settings', () => {
     db._setSettings({ experimentalLongPollingOptions: { timeoutSeconds: 25 } });
     expect(
       db._getSettings().experimentalLongPollingOptions.timeoutSeconds
-    ).to.equal(25);
+    ).toBe(25);
   });
 
   it('timeoutSeconds floating point value is allowed', () => {
@@ -935,7 +933,7 @@ describe('Settings', () => {
     });
     expect(
       db._getSettings().experimentalLongPollingOptions.timeoutSeconds
-    ).to.equal(12.3456);
+    ).toBe(12.3456);
   });
 
   it('timeoutSeconds value one less than minimum throws', () => {
@@ -943,7 +941,7 @@ describe('Settings', () => {
     const db = newTestFirestore();
     expect(() =>
       db._setSettings({ experimentalLongPollingOptions: { timeoutSeconds: 4 } })
-    ).to.throw(/invalid.*timeout.*4.*\(.*5.*\)/i);
+    ).toThrow(/invalid.*timeout.*4.*\(.*5.*\)/i);
   });
 
   it('timeoutSeconds value one more than maximum throws', () => {
@@ -953,7 +951,7 @@ describe('Settings', () => {
       db._setSettings({
         experimentalLongPollingOptions: { timeoutSeconds: 31 }
       })
-    ).to.throw(/invalid.*timeout.*31.*\(.*30.*\)/i);
+    ).toThrow(/invalid.*timeout.*31.*\(.*30.*\)/i);
   });
 
   it('timeoutSeconds value of 0 throws', () => {
@@ -961,7 +959,7 @@ describe('Settings', () => {
     const db = newTestFirestore();
     expect(() =>
       db._setSettings({ experimentalLongPollingOptions: { timeoutSeconds: 0 } })
-    ).to.throw(/invalid.*timeout.*0.*\(.*5.*\)/i);
+    ).toThrow(/invalid.*timeout.*0.*\(.*5.*\)/i);
   });
 
   it('timeoutSeconds value of -0 throws', () => {
@@ -971,7 +969,7 @@ describe('Settings', () => {
       db._setSettings({
         experimentalLongPollingOptions: { timeoutSeconds: -0 }
       })
-    ).to.throw(/invalid.*timeout.*0.*\(.*5.*\)/i);
+    ).toThrow(/invalid.*timeout.*0.*\(.*5.*\)/i);
   });
 
   it('timeoutSeconds value of -1 throws', () => {
@@ -981,7 +979,7 @@ describe('Settings', () => {
       db._setSettings({
         experimentalLongPollingOptions: { timeoutSeconds: -1 }
       })
-    ).to.throw(/invalid.*timeout.*-1.*\(.*5.*\)/i);
+    ).toThrow(/invalid.*timeout.*-1.*\(.*5.*\)/i);
   });
 
   it('timeoutSeconds value of -infinity throws', () => {
@@ -993,7 +991,7 @@ describe('Settings', () => {
           timeoutSeconds: Number.NEGATIVE_INFINITY
         }
       })
-    ).to.throw(/invalid.*timeout.*-Infinity.*\(.*5.*\)/i);
+    ).toThrow(/invalid.*timeout.*-Infinity.*\(.*5.*\)/i);
   });
 
   it('timeoutSeconds value of +infinity throws', () => {
@@ -1005,7 +1003,7 @@ describe('Settings', () => {
           timeoutSeconds: Number.POSITIVE_INFINITY
         }
       })
-    ).to.throw(/invalid.*timeout.*Infinity.*\(.*30.*\)/i);
+    ).toThrow(/invalid.*timeout.*Infinity.*\(.*30.*\)/i);
   });
 
   it('timeoutSeconds value of NaN throws', () => {
@@ -1015,7 +1013,7 @@ describe('Settings', () => {
       db._setSettings({
         experimentalLongPollingOptions: { timeoutSeconds: Number.NaN }
       })
-    ).to.throw(/invalid.*timeout.*NaN/i);
+    ).toThrow(/invalid.*timeout.*NaN/i);
   });
 
   it('long polling autoDetect=[something truthy] should be coerced to true', () => {
@@ -1025,7 +1023,7 @@ describe('Settings', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       experimentalAutoDetectLongPolling: 1 as any
     });
-    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.true;
+    expect(db._getSettings().experimentalAutoDetectLongPolling).toBe(true);
   });
 
   it('long polling autoDetect=[something falsy] should be coerced to false', () => {
@@ -1035,7 +1033,7 @@ describe('Settings', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       experimentalAutoDetectLongPolling: 0 as any
     });
-    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
+    expect(db._getSettings().experimentalAutoDetectLongPolling).toBe(false);
   });
 
   it('long polling autoDetect=null should be coerced to false', () => {
@@ -1045,7 +1043,7 @@ describe('Settings', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       experimentalAutoDetectLongPolling: null as any
     });
-    expect(db._getSettings().experimentalAutoDetectLongPolling).to.be.false;
+    expect(db._getSettings().experimentalAutoDetectLongPolling).toBe(false);
   });
 
   it('long polling force=[something truthy] should be coerced to true', () => {
@@ -1055,7 +1053,7 @@ describe('Settings', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       experimentalForceLongPolling: 'I am truthy' as any
     });
-    expect(db._getSettings().experimentalForceLongPolling).to.be.true;
+    expect(db._getSettings().experimentalForceLongPolling).toBe(true);
   });
 
   it('long polling force=[something falsy] should be coerced to false', () => {
@@ -1065,7 +1063,7 @@ describe('Settings', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       experimentalForceLongPolling: NaN as any
     });
-    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+    expect(db._getSettings().experimentalForceLongPolling).toBe(false);
   });
 
   it('long polling force=null should be coerced to false', () => {
@@ -1075,7 +1073,7 @@ describe('Settings', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       experimentalForceLongPolling: null as any
     });
-    expect(db._getSettings().experimentalForceLongPolling).to.be.false;
+    expect(db._getSettings().experimentalForceLongPolling).toBe(false);
   });
 
   it('gets settings from useEmulator', () => {
@@ -1083,8 +1081,8 @@ describe('Settings', () => {
     const db = newTestFirestore();
     connectFirestoreEmulator(db, '127.0.0.1', 9000);
 
-    expect(db._getSettings().host).to.equal('127.0.0.1:9000');
-    expect(db._getSettings().ssl).to.be.false;
+    expect(db._getSettings().host).toBe('127.0.0.1:9000');
+    expect(db._getSettings().ssl).toBe(false);
   });
 
   it('gets privateSettings from useEmulator', () => {
@@ -1093,23 +1091,28 @@ describe('Settings', () => {
     const emulatorOptions = { mockUserToken: 'test' };
     connectFirestoreEmulator(db, '127.0.0.1', 9000, emulatorOptions);
 
-    expect(db._getSettings().host).to.exist.and.to.equal('127.0.0.1:9000');
-    expect(db._getSettings().ssl).to.exist.and.to.be.false;
-    expect(db._getEmulatorOptions()).to.equal(emulatorOptions);
+    expect(db._getSettings().host).toBe('127.0.0.1:9000');
+    expect(db._getSettings().ssl).toBe(false);
+    expect(db._getEmulatorOptions()).toBe(emulatorOptions);
   });
 
   it('sets ssl to true if cloud workstation host', () => {
-    // Use a new instance of Firestore in order to configure settings.
-    const db = newTestFirestore();
-    const emulatorOptions = { mockUserToken: 'test' };
-    const workstationHost = 'abc.cloudworkstations.dev';
-    connectFirestoreEmulator(db, workstationHost, 9000, emulatorOptions);
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue({ ok: true } as Response);
+    try {
+      // Use a new instance of Firestore in order to configure settings.
+      const db = newTestFirestore();
+      const emulatorOptions = { mockUserToken: 'test' };
+      const workstationHost = 'abc.cloudworkstations.dev';
+      connectFirestoreEmulator(db, workstationHost, 9000, emulatorOptions);
 
-    expect(db._getSettings().host).to.exist.and.to.equal(
-      `${workstationHost}:9000`
-    );
-    expect(db._getSettings().ssl).to.exist.and.to.be.true;
-    expect(db._getEmulatorOptions()).to.equal(emulatorOptions);
+      expect(db._getSettings().host).toBe(`${workstationHost}:9000`);
+      expect(db._getSettings().ssl).toBe(true);
+      expect(db._getEmulatorOptions()).toBe(emulatorOptions);
+    } finally {
+      fetchSpy.mockRestore();
+    }
   });
 
   it('prefers host from useEmulator to host from settings', () => {
@@ -1118,8 +1121,8 @@ describe('Settings', () => {
     db._setSettings({ host: 'other.host' });
     connectFirestoreEmulator(db, '127.0.0.1', 9000);
 
-    expect(db._getSettings().host).to.equal('127.0.0.1:9000');
-    expect(db._getSettings().ssl).to.be.false;
+    expect(db._getSettings().host).toBe('127.0.0.1:9000');
+    expect(db._getSettings().ssl).toBe(false);
   });
 
   it('sets credentials based on mockUserToken object', async () => {
@@ -1129,10 +1132,10 @@ describe('Settings', () => {
     connectFirestoreEmulator(db, '127.0.0.1', 9000, { mockUserToken });
 
     const credentials = db._authCredentials;
-    expect(credentials).to.be.instanceOf(EmulatorAuthCredentialsProvider);
+    expect(credentials).toBeInstanceOf(EmulatorAuthCredentialsProvider);
     const token = await credentials.getToken();
-    expect(token!.type).to.eql('OAuth');
-    expect(token!.user!.uid).to.eql(mockUserToken.sub);
+    expect(token!.type).toEqual('OAuth');
+    expect(token!.user!.uid).toEqual(mockUserToken.sub);
   });
 
   it('sets credentials based on mockUserToken string', async () => {
@@ -1143,10 +1146,10 @@ describe('Settings', () => {
     });
 
     const credentials = db._authCredentials;
-    expect(credentials).to.be.instanceOf(EmulatorAuthCredentialsProvider);
+    expect(credentials).toBeInstanceOf(EmulatorAuthCredentialsProvider);
     const token = await credentials.getToken();
-    expect(token!.type).to.eql('OAuth');
-    expect(token!.user).to.eql(User.MOCK_USER);
+    expect(token!.type).toEqual('OAuth');
+    expect(token!.user).toEqual(User.MOCK_USER);
   });
 
   it('allows setting grpcFlowControlWindow to a positive integer', () => {
@@ -1154,7 +1157,7 @@ describe('Settings', () => {
     db._setSettings({
       grpcFlowControlWindow: 512 * 1024
     });
-    expect(db._getSettings().grpcFlowControlWindow).to.equal(512 * 1024);
+    expect(db._getSettings().grpcFlowControlWindow).toBe(512 * 1024);
   });
 
   it('throws when setting grpcFlowControlWindow to non-positive value', () => {
@@ -1163,13 +1166,13 @@ describe('Settings', () => {
       db._setSettings({
         grpcFlowControlWindow: 0
       })
-    ).to.throw(/grpcFlowControlWindow must be a positive integer/);
+    ).toThrow(/grpcFlowControlWindow must be a positive integer/);
 
     expect(() =>
       db._setSettings({
         grpcFlowControlWindow: -50
       })
-    ).to.throw(/grpcFlowControlWindow must be a positive integer/);
+    ).toThrow(/grpcFlowControlWindow must be a positive integer/);
   });
 
   it('throws when setting grpcFlowControlWindow to a non-integer', () => {
@@ -1178,13 +1181,13 @@ describe('Settings', () => {
       db._setSettings({
         grpcFlowControlWindow: 12.5
       })
-    ).to.throw(/grpcFlowControlWindow must be a positive integer/);
+    ).toThrow(/grpcFlowControlWindow must be a positive integer/);
 
     expect(() =>
       db._setSettings({
         grpcFlowControlWindow: '100' as unknown as number
       })
-    ).to.throw(/grpcFlowControlWindow must be a positive integer/);
+    ).toThrow(/grpcFlowControlWindow must be a positive integer/);
   });
 
   it('throws when setting grpcFlowControlWindow above 2147483647', () => {
@@ -1193,7 +1196,7 @@ describe('Settings', () => {
       db._setSettings({
         grpcFlowControlWindow: 2147483648
       })
-    ).to.throw(
+    ).toThrow(
       /grpcFlowControlWindow must be a positive integer and cannot exceed 2147483647/
     );
   });

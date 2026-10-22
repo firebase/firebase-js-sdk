@@ -77,6 +77,30 @@ export interface GenerateContentRequest extends BaseParams {
 }
 
 /**
+ * Request parameters for using a server prompt template with
+ * {@link TemplateGenerativeModel.generateContent | `TemplateGenerativeModel.generateContent()`} and
+ * {@link TemplateGenerativeModel.generateContentStream | `TemplateGenerativeModel.generateContentStream()`}.
+ *
+ * @beta
+ */
+export interface TemplateRequest {
+  /**
+   * The ID of the server prompt template to use.
+   */
+  templateId: string;
+  /**
+   * A key-value map of variables to populate the template with.
+   */
+  templateVariables: Record<string, unknown>;
+  /**
+   * Optional tool configuration for this request. Only retrieval/grounding
+   * configs are supported for server prompt templates with unary and streaming
+   * `generateContent`.
+   */
+  toolConfig?: TemplateToolConfig;
+}
+
+/**
  * Request sent through {@link TemplateGenerativeModel.generateContent}
  * @internal
  */
@@ -369,7 +393,9 @@ export interface StartChatParams extends BaseParams {
 }
 
 /**
- * Params for {@link TemplateGenerativeModel.startChat}.
+ * Parameters for starting a template-based chat session with
+ * {@link TemplateGenerativeModel.startChat}.
+ *
  * @beta
  */
 export interface StartTemplateChatParams extends Omit<
@@ -377,13 +403,17 @@ export interface StartTemplateChatParams extends Omit<
   'tools'
 > {
   /**
-   * The ID of the server-side template to execute.
+   * The ID of the server prompt template to use.
    */
   templateId: string;
   /**
    * A key-value map of variables to populate the template with.
    */
-  templateVariables?: Record<string, unknown>;
+  templateVariables: Record<string, unknown>;
+  /**
+   * Optional. A list of template tools that the model can use to access
+   * external systems or execute client functions.
+   */
   tools?: TemplateTool[];
 }
 
@@ -449,12 +479,16 @@ export interface SingleRequestOptions extends RequestOptions {
    * An `AbortSignal` instance that allows cancelling ongoing requests (like `generateContent` or
    * `generateImages`).
    *
+   * @remarks
    * If provided, calling `abort()` on the corresponding `AbortController`
    * will attempt to cancel the underlying HTTP request. An `AbortError` will be thrown
    * if cancellation is successful.
    *
    * Note that this will not cancel the request in the backend, so any applicable billing charges
    * will still be applied despite cancellation.
+   *
+   * Also see {@link https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal | AbortSignal}
+   * documentation.
    *
    * @example
    * ```javascript
@@ -470,7 +504,6 @@ export interface SingleRequestOptions extends RequestOptions {
    * // To cancel request:
    * controller.abort();
    * ```
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
    */
   signal?: AbortSignal;
 }
@@ -594,15 +627,7 @@ export interface GoogleSearch {}
  *
  * @public
  */
-export interface GoogleMaps {
-  /**
-   * @deprecated The `enableWidget` feature has been deprecated by the Grounding for Google Maps
-   * service.
-   *
-   * If true, include the widget context token in the response.
-   */
-  enableWidget?: boolean;
-}
+export interface GoogleMaps {}
 
 /**
  * A tool that allows you to provide additional context to the models in the form of public web
@@ -711,7 +736,7 @@ export interface TemplateFunctionDeclarationInternal extends Omit<
 export interface TemplateFunctionDeclarationsTool {
   /**
    * Optional. One or more function declarations
-   * to be passed to the server-side template execution.
+   * to be passed to the server prompt template execution.
    */
   functionDeclarations?: TemplateFunctionDeclaration[];
 }
@@ -723,7 +748,7 @@ export interface TemplateFunctionDeclarationsTool {
 export interface TemplateFunctionDeclarationsToolInternal {
   /**
    * Optional. One or more function declarations
-   * to be passed to the server-side template execution.
+   * to be passed to the server prompt template execution.
    */
   templateFunctions?: TemplateFunctionDeclarationInternal[];
 }

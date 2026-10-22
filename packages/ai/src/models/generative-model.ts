@@ -36,13 +36,13 @@ import {
   ToolConfig,
   SingleRequestOptions
 } from '../types';
-import { ChatSession } from '../methods/chat-session';
+import { ChatSessionImpl } from '../methods/chat-session';
 import { countTokens } from '../methods/count-tokens';
 import {
   formatGenerateContentInput,
   formatSystemInstruction
 } from '../requests/request-helpers';
-import { AI, AIErrorCode, InferenceMode } from '../public-types';
+import { AI, AIErrorCode, ChatSession, InferenceMode } from '../public-types';
 import { AIModel } from './ai-model';
 import { ChromeAdapter } from '../types/chrome-adapter';
 import { AIError } from '../errors';
@@ -100,7 +100,7 @@ export class GenerativeModel extends AIModel {
    * {@link https://developer.chrome.com/docs/ai/prompt-api#use_the_prompt_api | Prompt API docs }
    * for more details on this requirement.
    *
-   * @param onDownloadProgress A callback called repeatedly as the
+   * @param onDownloadProgress - A callback called repeatedly as the
    * download progresses that provides a `progressValue` between 0
    * and 1 representing how much of the download is complete. This
    * will be ignored if `monitor` was populated in
@@ -202,7 +202,7 @@ export class GenerativeModel extends AIModel {
    * multi-turn chats.
    */
   startChat(startChatParams?: StartChatParams): ChatSession {
-    return new ChatSession(
+    return new ChatSessionImpl(
       this._apiSettings,
       this.model,
       this.chromeAdapter,

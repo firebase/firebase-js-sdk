@@ -54,7 +54,7 @@ export function createBaseConfig(importMetaUrl, customConfig = {}) {
             globals: true,
             environment: 'node',
             pool: 'forks',
-            forks: { maxForks },
+            maxWorkers: maxForks,
             isolate: true,
             passWithNoTests: false,
             include: ['test/**/*.test.ts', 'src/**/*.test.ts'],
@@ -63,12 +63,34 @@ export function createBaseConfig(importMetaUrl, customConfig = {}) {
           }
         },
         {
+          plugins: [
+            {
+              name: 'disable-vite-etag-cache',
+              configureServer(server) {
+                server.middlewares.use((req, res, next) => {
+                  delete req.headers['if-none-match'];
+                  res.setHeader('Cache-Control', 'no-store');
+                  next();
+                });
+              }
+            }
+          ],
+          server: {
+            headers: {
+              'Cache-Control': 'no-store'
+            }
+          },
           test: {
             name: 'browser',
             globals: true,
+            maxWorkers: maxForks,
             browser: {
               enabled: true,
-              provider: playwright(),
+              provider: playwright({
+                launchOptions: {
+                  args: ['--disk-cache-size=1', '--media-cache-size=1']
+                }
+              }),
               instances: [
                 { browser: 'chromium' }
               ],

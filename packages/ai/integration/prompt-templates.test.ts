@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { BackendType, getTemplateGenerativeModel } from '../src';
 import { promptTemplatesTestConfigs } from './constants';
 
@@ -24,20 +23,19 @@ const templateBackendSuffix = (
 ): 'googleai' | 'vertexai' =>
   backendType === BackendType.GOOGLE_AI ? 'googleai' : 'vertexai';
 
-describe('Prompt templates', function () {
-  this.timeout(20_000);
+describe('Prompt templates', { timeout: 20_000 }, () => {
   promptTemplatesTestConfigs.forEach(testConfig => {
     describe(`${testConfig.toString()}`, () => {
       describe('Generative Model', () => {
         it('successfully generates content', async () => {
           const model = getTemplateGenerativeModel(testConfig.ai);
-          const { response } = await model.generateContent(
-            `sassy-greeting-${templateBackendSuffix(
+          const { response } = await model.generateContent({
+            templateId: `sassy-greeting-${templateBackendSuffix(
               testConfig.ai.backend.backendType
             )}`,
-            { name: 'John' }
-          );
-          expect(response.text()).to.contain('John'); // Template asks to address directly by name
+            templateVariables: { name: 'John' }
+          });
+          expect(response.text()).toContain('John'); // Template asks to address directly by name
         });
       });
     });

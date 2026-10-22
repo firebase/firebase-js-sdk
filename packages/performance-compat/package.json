@@ -25,10 +25,10 @@
     "build:deps": "lerna run build --scope @firebase/performance-compat --include-dependencies",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:all",
-    "test:all": "run-p --npm-path npm test:browser",
+    "test:all": "vitest run",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
-    "test:browser": "karma start",
-    "test:browser:debug": "karma start --browsers Chrome --auto-watch",
+    "test:browser": "vitest run",
+    "test:browser:debug": "vitest --browser.headless=false",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
     "prettier": "prettier --cache --write '{src,test}/**/*.{js,ts}'",
     "add-compat-overloads": "ts-node-script ../../scripts/build/create-overloads.ts -i ../performance/dist/src/index.d.ts -o dist/src/index.d.ts -a -r FirebasePerformance:FirebasePerformanceCompat -r FirebaseApp:FirebaseAppCompat --moduleToEnhance @firebase/performance"
@@ -52,7 +52,7 @@
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.37.0",
     "typescript": "5.5.4",
-    "@firebase/app-compat": "0.5.18"
+    "@firebase/app-compat": "0.5.19"
   },
   "repository": {
     "directory": "packages/performance-compat",
@@ -62,11 +62,5 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/src/index.d.ts",
-  "nyc": {
-    "extension": [
-      ".ts"
-    ],
-    "reportDir": "./coverage/node"
-  }
+  "typings": "dist/src/index.d.ts"
 }

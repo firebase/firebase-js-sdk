@@ -1,12 +1,12 @@
 /**
  * @license
- * Copyright 2024 Google LLC
+ * Copyright 2026 Google LLC
  *
- * Licensed under the Apache License, Version 2.0x00 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0x00
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
 
 import { FirestoreIndexValueWriter } from '../../../src/index/firestore_index_value_writer';
 import { IndexByteEncoder } from '../../../src/index/index_byte_encoder';
@@ -86,29 +85,29 @@ describe('Firestore Index Value Writer', () => {
       };
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value1, value3, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value1, value4, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value1, value5, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
 
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.DESCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value1, value3, IndexKind.DESCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value1, value4, IndexKind.DESCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value1, value5, IndexKind.DESCENDING)
-      ).to.equal(0);
+      ).toBe(0);
     });
 
     it('can handle timestamps with 0 nanoseconds', () => {
@@ -123,23 +122,23 @@ describe('Firestore Index Value Writer', () => {
       };
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value1, value3, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value1, value4, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
 
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.DESCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value1, value3, IndexKind.DESCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value1, value4, IndexKind.DESCENDING)
-      ).to.equal(0);
+      ).toBe(0);
     });
 
     it('can compare timestamps with  different formats', () => {
@@ -156,41 +155,41 @@ describe('Firestore Index Value Writer', () => {
       };
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value1, value3, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value1, value4, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value2, value3, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value2, value4, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value3, value4, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
 
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.DESCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value1, value3, IndexKind.DESCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value1, value4, IndexKind.DESCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value2, value3, IndexKind.DESCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value2, value4, IndexKind.DESCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value3, value4, IndexKind.DESCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
     });
 
     it('reproduces year 2286 timestamp string comparison bug', () => {
@@ -204,7 +203,7 @@ describe('Firestore Index Value Writer', () => {
       // So the index value writer incorrectly sorts Year 2286 before Year 2026 (ascending).
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
-      ).to.equal(1); // 1 indicates value1 (2026) > value2 (2286), which is a bug!
+      ).toBe(1); // 1 indicates value1 (2026) > value2 (2286), which is a bug!
     });
 
     it('sorts vector as a different type from array and map, with unique rules', () => {
@@ -254,34 +253,34 @@ describe('Firestore Index Value Writer', () => {
       // Array sorts before vector
       expect(
         compareIndexEncodedValues(array1, vector1, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(array1, vector1, IndexKind.DESCENDING)
-      ).to.equal(1);
+      ).toBe(1);
 
       // Vector sorts before map
       expect(
         compareIndexEncodedValues(vector3, map1, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(vector3, map1, IndexKind.DESCENDING)
-      ).to.equal(1);
+      ).toBe(1);
 
       // Shorter vectors sort before longer vectors
       expect(
         compareIndexEncodedValues(vector1, vector2, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(vector1, vector2, IndexKind.DESCENDING)
-      ).to.equal(1);
+      ).toBe(1);
 
       // Vectors of the same length sort by value
       expect(
         compareIndexEncodedValues(vector2, vector3, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(vector2, vector3, IndexKind.DESCENDING)
-      ).to.equal(1);
+      ).toBe(1);
     });
   });
 
@@ -307,23 +306,23 @@ describe('Firestore Index Value Writer', () => {
 
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value2, value1, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value1, value1, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
 
       expect(
         compareIndexEncodedValues(value3, value2, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value2, value3, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value3, value1, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
     });
 
     it('can compare BSON Timestamps', () => {
@@ -360,33 +359,33 @@ describe('Firestore Index Value Writer', () => {
 
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value2, value1, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value1, value1, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
 
       expect(
         compareIndexEncodedValues(value3, value1, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value3, value2, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value2, value3, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
 
       expect(
         compareIndexEncodedValues(value4, value1, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value4, value2, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value4, value3, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
     });
 
     it('reproduces BSON Timestamp index key instability based on field insertion order', () => {
@@ -426,7 +425,7 @@ describe('Firestore Index Value Writer', () => {
       // This expectation will FAIL if index key encoding is stable (equal), but currently PASSES because they differ.
       expect(
         compareIndexEncodedValues(valueA, valueB, IndexKind.ASCENDING)
-      ).to.not.equal(0);
+      ).not.toBe(0);
     });
 
     it('can compare BSON Binary', () => {
@@ -470,33 +469,33 @@ describe('Firestore Index Value Writer', () => {
 
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value2, value1, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value1, value1, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
 
       expect(
         compareIndexEncodedValues(value3, value2, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value2, value3, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value3, value1, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
 
       expect(
         compareIndexEncodedValues(value4, value2, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value2, value4, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value4, value1, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
     });
 
     it('can compare standard blobs vs. subtyped blobs in indexes', () => {
@@ -533,42 +532,42 @@ describe('Firestore Index Value Writer', () => {
           sub1Bytes123,
           IndexKind.ASCENDING
         )
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(
           sub1Bytes123,
           stdBytes123,
           IndexKind.ASCENDING
         )
-      ).to.equal(1);
+      ).toBe(1);
 
       // Subtype 0 (standard) < Subtype 1 (subtyped), even with greater payload byte values ([255] < [0])
       expect(
         compareIndexEncodedValues(stdBytes255, sub1Bytes0, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(sub1Bytes0, stdBytes255, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
 
       // Subtype 1 < Subtype 2
       expect(
         compareIndexEncodedValues(sub1Bytes123, sub2Bytes1, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(sub2Bytes1, sub1Bytes123, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
 
       // Equalities
       expect(
         compareIndexEncodedValues(stdBytes123, stdBytes123, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(
           sub1Bytes123,
           sub1Bytes123,
           IndexKind.ASCENDING
         )
-      ).to.equal(0);
+      ).toBe(0);
     });
 
     it('asserts standard blobs and BSON binary subtype 0 are encoded identically', () => {
@@ -589,7 +588,7 @@ describe('Firestore Index Value Writer', () => {
       // compareBlobsAndSubtype(rawBytes, bsonBinarySubtype0) compares subtypes (0 vs 0),
       // and then compares the data byte-by-byte ([1, 2, 3] vs [1, 2, 3]).
       // So they are EQUAL (valueEquals is true, valueCompare is 0).
-      expect(valueCompare(rawBytes, bsonBinarySubtype0)).to.equal(0);
+      expect(valueCompare(rawBytes, bsonBinarySubtype0)).toBe(0);
 
       // 2. In cache index comparison:
       // Both now encode raw bytes identically, so their index keys match.
@@ -599,7 +598,7 @@ describe('Firestore Index Value Writer', () => {
           bsonBinarySubtype0,
           IndexKind.ASCENDING
         )
-      ).to.equal(0);
+      ).toBe(0);
     });
 
     it('can compare BSON Regex', () => {
@@ -636,33 +635,33 @@ describe('Firestore Index Value Writer', () => {
 
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value2, value1, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value1, value1, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
 
       expect(
         compareIndexEncodedValues(value3, value2, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value2, value3, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value3, value1, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
 
       expect(
         compareIndexEncodedValues(value4, value1, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value4, value2, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value4, value3, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
     });
 
     it('can compare BSON Int32', () => {
@@ -685,33 +684,33 @@ describe('Firestore Index Value Writer', () => {
 
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value2, value1, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value1, value1, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
 
       expect(
         compareIndexEncodedValues(value3, value2, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value2, value3, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value3, value1, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
 
       expect(
         compareIndexEncodedValues(value4, value1, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value4, value2, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value4, value3, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
     });
 
     it('can compare BSON Decimal128', () => {
@@ -734,33 +733,33 @@ describe('Firestore Index Value Writer', () => {
 
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value2, value1, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value1, value1, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
 
       expect(
         compareIndexEncodedValues(value3, value2, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value2, value3, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value3, value1, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
 
       expect(
         compareIndexEncodedValues(value4, value1, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value4, value2, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value4, value3, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
     });
 
     it('can compare BSON Decimal128 special cases', () => {
@@ -784,36 +783,36 @@ describe('Firestore Index Value Writer', () => {
       // order should be: NaNs are equal, and less than -Infinity
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value2, value1, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value1, value3, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value1, value4, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
 
       expect(
         compareIndexEncodedValues(value2, value2, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value2, value3, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value2, value4, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
 
       expect(
         compareIndexEncodedValues(value3, value4, IndexKind.ASCENDING)
-      ).to.equal(-1);
+      ).toBe(-1);
       expect(
         compareIndexEncodedValues(value4, value3, IndexKind.ASCENDING)
-      ).to.equal(1);
+      ).toBe(1);
       expect(
         compareIndexEncodedValues(value4, value4, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
     });
 
     it('can compare BSON MinKey', () => {
@@ -839,13 +838,13 @@ describe('Firestore Index Value Writer', () => {
 
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value1, value3, IndexKind.DESCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value1, value1, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
     });
 
     it('can compare BSON MaxKey', () => {
@@ -871,13 +870,13 @@ describe('Firestore Index Value Writer', () => {
 
       expect(
         compareIndexEncodedValues(value1, value2, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value1, value3, IndexKind.DESCENDING)
-      ).to.equal(0);
+      ).toBe(0);
       expect(
         compareIndexEncodedValues(value1, value1, IndexKind.ASCENDING)
-      ).to.equal(0);
+      ).toBe(0);
     });
   });
 });

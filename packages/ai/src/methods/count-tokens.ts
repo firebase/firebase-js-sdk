@@ -25,6 +25,7 @@ import {
   AIErrorCode
 } from '../types';
 import { makeRequest, Task } from '../requests/request';
+import { cleanCountTokensRequestForWire } from '../requests/request-helpers';
 import { ApiSettings } from '../types/internal';
 import * as GoogleAIMapper from '../googleai-mappers';
 import { BackendType } from '../public-types';
@@ -36,6 +37,7 @@ export async function countTokensOnCloud(
   params: CountTokensRequest,
   singleRequestOptions?: SingleRequestOptions
 ): Promise<CountTokensResponse> {
+  params = cleanCountTokensRequestForWire(params);
   let body: string = '';
   if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
     const mappedParams = GoogleAIMapper.mapCountTokensRequest(params, model);

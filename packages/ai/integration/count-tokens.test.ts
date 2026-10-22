@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import {
   Content,
   GenerationConfig,
@@ -75,6 +74,7 @@ describe('Count Tokens', () => {
           role: 'system',
           parts: [
             {
+              type: 'text',
               text: 'You are a friendly and helpful assistant.'
             }
           ]
@@ -88,22 +88,17 @@ describe('Count Tokens', () => {
 
         const response = await model.countTokens('Why is the sky blue?');
 
-        expect(response.promptTokensDetails).to.exist;
-        expect(response.promptTokensDetails!.length).to.equal(1);
-        expect(response.promptTokensDetails![0].modality).to.equal(
-          Modality.TEXT
-        );
+        expect(response.promptTokensDetails).toBeDefined();
+        expect(response.promptTokensDetails!.length).toBe(1);
+        expect(response.promptTokensDetails![0].modality).toBe(Modality.TEXT);
         if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
-          expect(response.totalTokens).to.equal(7);
-          expect(response.totalBillableCharacters).to.be.undefined;
-          expect(response.promptTokensDetails![0].tokenCount).to.equal(7);
+          expect(response.totalTokens).toBe(7);
+          expect(response.promptTokensDetails![0].tokenCount).toBe(7);
         } else if (
-          testConfig.ai.backend.backendType === BackendType.VERTEX_AI ||
           testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM
         ) {
-          expect(response.totalTokens).to.equal(6);
-          expect(response.totalBillableCharacters).to.equal(16);
-          expect(response.promptTokensDetails![0].tokenCount).to.equal(6);
+          expect(response.totalTokens).toBe(6);
+          expect(response.promptTokensDetails![0].tokenCount).toBe(6);
         }
       });
 
@@ -112,6 +107,7 @@ describe('Count Tokens', () => {
           model: testConfig.model
         });
         const imagePart: Part = {
+          type: 'inlineData',
           inlineData: {
             mimeType: IMAGE_MIME_TYPE,
             data: TINY_IMG_BASE64
@@ -130,30 +126,27 @@ describe('Count Tokens', () => {
         }
 
         if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
-          expect(response.totalTokens).to.equal(expectedImageTokens + 1); // There will be 1 unexpected text token
-          expect(response.totalBillableCharacters).to.be.undefined; // Incorrect behavior
-          expect(response.promptTokensDetails!.length).to.equal(2);
-          expect(response.promptTokensDetails![0]).to.deep.equal({
+          expect(response.totalTokens).toBe(expectedImageTokens + 1); // There will be 1 unexpected text token
+          expect(response.promptTokensDetails!.length).toBe(2);
+          expect(response.promptTokensDetails![0]).toEqual({
             modality: Modality.TEXT, // Note: 1 unexpected text token observed for Google AI with image-only input.
             tokenCount: 1
           });
-          expect(response.promptTokensDetails![1]).to.deep.equal({
+          expect(response.promptTokensDetails![1]).toEqual({
             modality: Modality.IMAGE,
             tokenCount: expectedImageTokens
           });
         } else if (
-          testConfig.ai.backend.backendType === BackendType.VERTEX_AI ||
           testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM
         ) {
-          expect(response.totalTokens).to.equal(expectedImageTokens);
-          expect(response.totalBillableCharacters).to.be.undefined; // Incorrect behavior
-          expect(response.promptTokensDetails!.length).to.equal(1);
-          // Note: No text tokens are present for Vertex AI with image-only input.
-          expect(response.promptTokensDetails![0]).to.deep.equal({
+          expect(response.totalTokens).toBe(expectedImageTokens);
+          expect(response.promptTokensDetails!.length).toBe(1);
+          // Note: No text tokens are present for Agent Platform with image-only input.
+          expect(response.promptTokensDetails![0]).toEqual({
             modality: Modality.IMAGE,
             tokenCount: expectedImageTokens
           });
-          expect(response.promptTokensDetails![0].tokenCount).to.equal(
+          expect(response.promptTokensDetails![0].tokenCount).toBe(
             expectedImageTokens
           );
         }
@@ -164,6 +157,7 @@ describe('Count Tokens', () => {
           model: testConfig.model
         });
         const audioPart: InlineDataPart = {
+          type: 'inlineData',
           inlineData: {
             mimeType: AUDIO_MIME_TYPE,
             data: TINY_MP3_BASE64
@@ -172,7 +166,7 @@ describe('Count Tokens', () => {
 
         const response = await model.countTokens([audioPart]);
 
-        expect(response.promptTokensDetails).to.exist;
+        expect(response.promptTokensDetails).toBeDefined();
         const textDetails = response.promptTokensDetails!.find(
           d => d.modality === Modality.TEXT
         );
@@ -181,37 +175,36 @@ describe('Count Tokens', () => {
         );
 
         if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
-          expect(response.totalTokens).to.equal(6);
-          expect(response.promptTokensDetails!.length).to.equal(2);
-          expect(textDetails).to.deep.equal({
+          expect(response.totalTokens).toBe(6);
+          expect(response.promptTokensDetails!.length).toBe(2);
+          expect(textDetails).toEqual({
             modality: Modality.TEXT,
             tokenCount: 1
           });
-          expect(audioDetails).to.deep.equal({
+          expect(audioDetails).toEqual({
             modality: Modality.AUDIO,
             tokenCount: 5
           });
         } else if (
-          testConfig.ai.backend.backendType === BackendType.VERTEX_AI ||
           testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM
         ) {
-          expect(response.totalTokens).to.be.undefined;
-          expect(response.promptTokensDetails!.length).to.equal(1); // Note: Text modality details absent for Vertex AI with audio-only input.
-          expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO }); // Note: Audio tokenCount is undefined for Vertex AI with audio-only input.
+          expect(response.totalTokens).toBeUndefined();
+          expect(response.promptTokensDetails!.length).toBe(1); // Note: Text modality details absent for Agent Platform with audio-only input.
+          expect(audioDetails).toEqual({ modality: Modality.AUDIO }); // Note: Audio tokenCount is undefined for Agent Platform with audio-only input.
         }
-
-        expect(response.totalBillableCharacters).to.be.undefined; // Incorrect behavior
       });
 
       it('text, image, and audio input', async () => {
         const model = getGenerativeModel(testConfig.ai, {
           model: testConfig.model
         });
-        const textPart: Part = { text: 'Describe these:' };
+        const textPart: Part = { type: 'text', text: 'Describe these:' };
         const imagePart: Part = {
+          type: 'inlineData',
           inlineData: { mimeType: IMAGE_MIME_TYPE, data: TINY_IMG_BASE64 }
         };
         const audioPart: Part = {
+          type: 'inlineData',
           inlineData: { mimeType: AUDIO_MIME_TYPE, data: TINY_MP3_BASE64 }
         };
 
@@ -228,8 +221,8 @@ describe('Count Tokens', () => {
         const audioDetails = response.promptTokensDetails!.find(
           d => d.modality === Modality.AUDIO
         );
-        expect(response.promptTokensDetails).to.exist;
-        expect(response.promptTokensDetails!.length).to.equal(3);
+        expect(response.promptTokensDetails).toBeDefined();
+        expect(response.promptTokensDetails!.length).toBe(3);
 
         let expectedImageTokenCount;
         if (testConfig.model === 'gemini-3-pro-preview') {
@@ -241,36 +234,30 @@ describe('Count Tokens', () => {
           expectedImageTokenCount = 258;
         }
 
-        expect(imageDetails).to.deep.equal({
+        expect(imageDetails).toEqual({
           modality: Modality.IMAGE,
           tokenCount: expectedImageTokenCount
         });
 
         if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
-          expect(response.totalTokens).to.equal(expectedImageTokenCount + 9);
-          expect(response.totalBillableCharacters).to.be.undefined;
-          expect(textDetails).to.deep.equal({
+          expect(response.totalTokens).toBe(expectedImageTokenCount + 9);
+          expect(textDetails).toEqual({
             modality: Modality.TEXT,
             tokenCount: 4
           });
-          expect(audioDetails).to.deep.equal({
+          expect(audioDetails).toEqual({
             modality: Modality.AUDIO,
             tokenCount: 5
           });
         } else if (
-          testConfig.ai.backend.backendType === BackendType.VERTEX_AI ||
           testConfig.ai.backend.backendType === BackendType.AGENT_PLATFORM
         ) {
-          expect(response.totalTokens).to.equal(expectedImageTokenCount + 3);
-          expect(textDetails).to.deep.equal({
+          expect(response.totalTokens).toBe(expectedImageTokenCount + 3);
+          expect(textDetails).toEqual({
             modality: Modality.TEXT,
             tokenCount: 3
           });
-          const expectedText = 'Describe these:';
-          expect(response.totalBillableCharacters).to.equal(
-            expectedText.length - 1
-          ); // Note: BillableCharacters observed as (text length - 1) for Vertex AI.
-          expect(audioDetails).to.deep.equal({ modality: Modality.AUDIO }); // Incorrect behavior because there's no tokenCount
+          expect(audioDetails).toEqual({ modality: Modality.AUDIO }); // Incorrect behavior because there's no tokenCount
         }
       });
 
@@ -283,6 +270,7 @@ describe('Count Tokens', () => {
           model: testConfig.model
         });
         const filePart: FileDataPart = {
+          type: 'fileData',
           fileData: {
             mimeType: IMAGE_MIME_TYPE,
             fileUri: `gs://${FIREBASE_CONFIG.storageBucket}/images/tree.png`
@@ -297,14 +285,11 @@ describe('Count Tokens', () => {
         } else {
           expectedFileTokens = 258;
         }
-        expect(response.totalTokens).to.equal(expectedFileTokens);
-        expect(response.totalBillableCharacters).to.be.undefined;
-        expect(response.promptTokensDetails).to.exist;
-        expect(response.promptTokensDetails!.length).to.equal(1);
-        expect(response.promptTokensDetails![0].modality).to.equal(
-          Modality.IMAGE
-        );
-        expect(response.promptTokensDetails![0].tokenCount).to.equal(
+        expect(response.totalTokens).toBe(expectedFileTokens);
+        expect(response.promptTokensDetails).toBeDefined();
+        expect(response.promptTokensDetails!.length).toBe(1);
+        expect(response.promptTokensDetails![0].modality).toBe(Modality.IMAGE);
+        expect(response.promptTokensDetails![0].tokenCount).toBe(
           expectedFileTokens
         );
       });

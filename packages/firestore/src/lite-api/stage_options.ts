@@ -565,3 +565,155 @@ export type SortStageOptions = StageOptions & {
    */
   orderings: Ordering[];
 };
+
+/**
+ * Options for defining a `delete` stage in a {@link @firebase/firestore/pipelines#Pipeline}.
+ */
+export type DeleteStageOptions = StageOptions;
+
+/**
+ * Options for defining an `update` stage in a {@link @firebase/firestore/pipelines#Pipeline}.
+ *
+ * Each input document is updated in place at the path specified by its
+ * `__name__` field. If an input document does not have a `__name__` field (for
+ * example, when inputs come from
+ * {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)} without
+ * `__name__` or after `.removeFields('__name__')`), the operation fails.
+ *
+ * The `update` stage does not create documents. If the document at an input
+ * document's `__name__` path does not exist, the input document is skipped and
+ * is not counted in `documents_modified`. When the pipeline is executed with
+ * `atomic: true`, the pipeline instead fails with a `NOT_FOUND` error and no
+ * documents are updated.
+ */
+export type UpdateStageOptions = StageOptions & {
+  /**
+   * Optional aliased expressions specifying the fields to update or add to
+   * each document. When omitted or empty, each input document is written back
+   * using all of its current pipeline fields.
+   */
+  transformedFields?: AliasedExpression[];
+};
+
+/**
+ * Options for defining an `insert` stage in a {@link @firebase/firestore/pipelines#Pipeline}.
+ *
+ * The target document path for each inserted document is determined by the
+ * combination of `collection` and `documentIdExpression`:
+ * - **Neither set:** Inserts each document at its existing `__name__` path.
+ *   If an input document does not have a `__name__` field (for example, when
+ *   inputs come from {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)} without
+ *   `__name__` or after `.removeFields('__name__')`), the operation fails.
+ * - **`collection` only:** Inserts into `collection`. If the input document
+ *   has a `__name__` field, its document ID is reused; otherwise a new
+ *   document ID is auto-generated (for example, when inputs come from
+ *   {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)} or after `.removeFields('__name__')`).
+ * - **`documentIdExpression` only:** Inserts into the input document's parent
+ *   collection using the evaluated document ID. Requires each input document
+ *   to have a `__name__` field; otherwise the operation fails.
+ * - **Both `collection` and `documentIdExpression` set:** Inserts into
+ *   `collection` using the evaluated document ID.
+ *
+ * The operation fails if a document already exists at any target path. In
+ * particular, setting neither `collection` nor `documentIdExpression` fails
+ * for documents read from the database, because they already exist at their
+ * `__name__` path.
+ */
+export type InsertStageOptions = StageOptions & {
+  /**
+   * The target collection path or {@link @firebase/firestore#CollectionReference} to insert
+   * documents into. Required when input documents do not have a `__name__`
+   * field. If omitted, the input document's parent collection is used.
+   */
+  collection?: string | CollectionReference;
+  /**
+   * Determines the document ID for each inserted document within the target
+   * collection.
+   *
+   * - When a `string` is provided (for example, `'orderId'`), it is
+   *   interpreted as a **field reference** (`field('orderId')`) whose value in
+   *   each pipeline document is used as the target document ID — **not** as a
+   *   literal document ID string.
+   * - When an {@link @firebase/firestore/pipelines#Expression} is provided, it is evaluated for each
+   *   document to produce the target document ID. To use a fixed literal
+   *   document ID, pass `constant('my-doc-id')`.
+   * - The evaluated result must be a non-empty string containing a bare
+   *   document ID (without `/` path separators).
+   * - When omitted:
+   *   - If `collection` is specified, the document ID is taken from the input
+   *     document's `__name__` field if present, or auto-generated otherwise
+   *     (for example, when inputs come from
+   *     {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)} or after `.removeFields('__name__')`).
+   *   - If `collection` is also omitted, each input document must have a
+   *     `__name__` field specifying its full target path, or the operation
+   *     fails.
+   */
+  documentIdExpression?: string | Expression;
+};
+
+/**
+ * Options for defining an `upsert` stage in a {@link @firebase/firestore/pipelines#Pipeline}.
+ *
+ * The target document path for each upserted document is determined by the
+ * combination of `collection` and `documentIdExpression`:
+ * - **Neither set:** Upserts each input document in place at its existing
+ *   `__name__` path. If an input document does not have a `__name__` field
+ *   (for example, when inputs come from
+ *   {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)} without
+ *   `__name__` or after `.removeFields('__name__')`), the operation fails.
+ * - **`collection` only:** Upserts into `collection`. If the input document
+ *   has a `__name__` field, its document ID is reused; otherwise a new
+ *   document ID is auto-generated (for example, when inputs come from
+ *   {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)} or after `.removeFields('__name__')`).
+ * - **Both `collection` and `documentIdExpression` set:** Upserts into
+ *   `collection` using the evaluated document ID.
+ *
+ * If no document exists at the target path, it is created. If one exists, it
+ * is replaced entirely by the written document; existing fields are not
+ * merged.
+ */
+export type UpsertStageOptions = StageOptions & {
+  /**
+   * The target collection path or {@link @firebase/firestore#CollectionReference} to upsert
+   * documents into. Required when input documents do not have a `__name__`
+   * field. If omitted, each input document's existing `__name__` path is used.
+   */
+  collection?: string | CollectionReference;
+  /**
+   * Determines the document ID for each upserted document within `collection`.
+   *
+   * - When a `string` is provided (for example, `'userId'`), it is
+   *   interpreted as a **field reference** (`field('userId')`) whose value in
+   *   each pipeline document is used as the target document ID — **not** as a
+   *   literal document ID string.
+   * - When an {@link @firebase/firestore/pipelines#Expression} is provided, it is evaluated for each
+   *   document to produce the target document ID. To use a fixed literal
+   *   document ID, pass `constant('my-doc-id')`.
+   * - The evaluated result must be a non-empty string containing a bare
+   *   document ID (without `/` path separators).
+   * - When omitted and `collection` is specified, the document ID is taken
+   *   from the input document's `__name__` field if present, or auto-generated
+   *   otherwise (for example, when inputs come from
+   *   {@link @firebase/firestore/pipelines#PipelineSource.(literals:1)} or after `.removeFields('__name__')`).
+   */
+  documentIdExpression?: string | Expression;
+  /**
+   * Optional aliased expressions specifying fields to add to each input
+   * pipeline document before it is written. A field with the same name as an
+   * existing field overwrites that field. All other fields of the input
+   * document are still written.
+   */
+  additionalFields?: AliasedExpression[];
+};
+
+/**
+ * Options for defining a `literals` stage on a {@link @firebase/firestore/pipelines#PipelineSource}.
+ */
+export type LiteralsStageOptions = StageOptions & {
+  /**
+   * The array of literal document objects to emit into the pipeline.
+   * Each object represents a document map where keys are field names and
+   * values are constants or {@link @firebase/firestore/pipelines#Expression} instances.
+   */
+  documents: Array<Record<string, unknown>>;
+};

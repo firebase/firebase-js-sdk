@@ -10,10 +10,10 @@
   },
   "devDependencies": {
     "chromedriver": "151.0.5",
-    "firebase": "12.19.0",
+    "firebase": "13.0.0",
     "selenium-assistant": "6.1.1"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.12.0"
   }
 }

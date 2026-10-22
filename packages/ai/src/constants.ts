@@ -19,8 +19,6 @@ import { version } from '../package.json';
 
 export const AI_TYPE = 'AI';
 
-export const LEGACY_DEFAULT_LOCATION = 'us-central1';
-
 export const DEFAULT_LOCATION = 'global';
 
 export const DEFAULT_DOMAIN = 'firebasevertexai.googleapis.com';
@@ -41,4 +39,4 @@ export const DEFAULT_FETCH_TIMEOUT_MS = 180 * 1000;
 /**
  * Defines the name of the default in-cloud model to use for hybrid inference.
  */
-export const DEFAULT_HYBRID_IN_CLOUD_MODEL = 'gemini-2.5-flash-lite';
+export const DEFAULT_HYBRID_IN_CLOUD_MODEL = 'gemini-3.5-flash-lite';

@@ -27,6 +27,21 @@ export interface PipelineExecuteOptions {
   pipeline: Pipeline;
 
   /**
+   * If `true`, the pipeline is executed in a new read-write transaction that
+   * is committed automatically when the pipeline completes, so all writes
+   * made by DML stages (`insert`, `upsert`, `update`, `delete`) succeed or
+   * fail together.
+   *
+   * If `false` or omitted, DML writes are applied per document without a
+   * transaction, and the pipeline may partially succeed. Some DML pipelines
+   * (e.g. an `upsert` from a `literals()` source) can only be executed
+   * atomically, and are otherwise rejected with "The non-transactional DML
+   * operation was rejected because it was impossible to guarantee
+   * document-level atomicity."
+   */
+  atomic?: boolean;
+
+  /**
    * Specify the index mode.
    */
   indexMode?: 'recommended';

@@ -21,8 +21,6 @@
 /* eslint-disable camelcase -- use consistent field names for the search tests */
 
 import { FirebaseError } from '@firebase/util';
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
@@ -45,7 +43,8 @@ import {
   DocumentReference,
   deleteDoc,
   FirestoreError,
-  getDocs
+  getDocs,
+  getDoc
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection, withTestDbs } from '../util/helpers';
 import {
@@ -201,9 +200,6 @@ import {
   getTargetBackend,
   TargetBackend
 } from '../util/settings';
-
-use(chaiAsPromised);
-
 const timestampDeltaMS = 10000;
 
 let beginDocCreation: number = 0;
@@ -238,15 +234,15 @@ function expectResults(
 ): void {
   const docs = snapshot.results;
 
-  expect(docs.length).to.equal(data.length);
+  expect(docs.length).toBe(data.length);
 
   if (data.length > 0) {
     if (typeof data[0] === 'string') {
       const actualIds = docs.map(doc => doc.id);
-      expect(actualIds).to.deep.equal(data);
+      expect(actualIds).toEqual(data);
     } else {
       docs.forEach(r => {
-        expect(r.data()).to.deep.equal(data.shift());
+        expect(r.data()).toEqual(data.shift());
       });
     }
   }
@@ -404,7 +400,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       const snapshot = await execute(
         firestore.pipeline().collection(randomCol.path).limit(0)
       );
-      expect(snapshot.results.length).to.equal(0);
+      expect(snapshot.results.length).toBe(0);
     });
 
     it('full snapshot as expected', async () => {
@@ -413,7 +409,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         .collection(randomCol.path)
         .sort(ascending('__name__'));
       const snapshot = await execute(ppl);
-      expect(snapshot.results.length).to.equal(10);
+      expect(snapshot.results.length).toBe(10);
       expectResults(
         snapshot,
         'book1',
@@ -437,10 +433,11 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         .limit(1);
       const snapshot1 = await execute(ppl);
       const snapshot2 = await execute(ppl);
-      expect(snapshot1.results.length).to.equal(1);
-      expect(snapshot2.results.length).to.equal(1);
-      expect(pipelineResultEqual(snapshot1.results[0], snapshot2.results[0])).to
-        .be.true;
+      expect(snapshot1.results.length).toBe(1);
+      expect(snapshot2.results.length).toBe(1);
+      expect(
+        pipelineResultEqual(snapshot1.results[0], snapshot2.results[0])
+      ).toBe(true);
     });
 
     it('returns execution time', async () => {
@@ -450,10 +447,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       const snapshot = await execute(pipeline);
       const end = new Date().valueOf();
 
-      expect(snapshot.executionTime.toDate().valueOf()).to.approximately(
-        (start + end) / 2,
-        timestampDeltaMS
-      );
+      expect(
+        Math.abs(snapshot.executionTime.toDate().valueOf() - (start + end) / 2)
+      ).toBeLessThanOrEqual(timestampDeltaMS);
     });
 
     it('returns execution time for an empty query', async () => {
@@ -463,32 +459,35 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       const snapshot = await execute(pipeline);
       const end = new Date().valueOf();
 
-      expect(snapshot.results.length).to.equal(0);
+      expect(snapshot.results.length).toBe(0);
 
-      expect(snapshot.executionTime.toDate().valueOf()).to.approximately(
-        (start + end) / 2,
-        timestampDeltaMS
-      );
+      expect(
+        Math.abs(snapshot.executionTime.toDate().valueOf() - (start + end) / 2)
+      ).toBeLessThanOrEqual(timestampDeltaMS);
     });
 
     it('returns create and update time for each document', async () => {
       const pipeline = firestore.pipeline().collection(randomCol.path);
 
       let snapshot = await execute(pipeline);
-      expect(snapshot.results.length).to.equal(10);
+      expect(snapshot.results.length).toBe(10);
       snapshot.results.forEach(doc => {
-        expect(doc.createTime).to.not.be.null;
-        expect(doc.updateTime).to.not.be.null;
+        expect(doc.createTime).not.toBeNull();
+        expect(doc.updateTime).not.toBeNull();
 
-        expect(doc.createTime!.toDate().valueOf()).to.approximately(
-          (beginDocCreation + endDocCreation) / 2,
-          timestampDeltaMS
-        );
-        expect(doc.updateTime!.toDate().valueOf()).to.approximately(
-          (beginDocCreation + endDocCreation) / 2,
-          timestampDeltaMS
-        );
-        expect(doc.createTime?.valueOf()).to.equal(doc.updateTime?.valueOf());
+        expect(
+          Math.abs(
+            doc.createTime!.toDate().valueOf() -
+              (beginDocCreation + endDocCreation) / 2
+          )
+        ).toBeLessThanOrEqual(timestampDeltaMS);
+        expect(
+          Math.abs(
+            doc.updateTime!.toDate().valueOf() -
+              (beginDocCreation + endDocCreation) / 2
+          )
+        ).toBeLessThanOrEqual(timestampDeltaMS);
+        expect(doc.createTime?.valueOf()).toBe(doc.updateTime?.valueOf());
       });
 
       const wb = writeBatch(firestore);
@@ -498,11 +497,11 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       await wb.commit();
 
       snapshot = await execute(pipeline);
-      expect(snapshot.results.length).to.equal(10);
+      expect(snapshot.results.length).toBe(10);
       snapshot.results.forEach(doc => {
-        expect(doc.createTime).to.not.be.null;
-        expect(doc.updateTime).to.not.be.null;
-        expect(doc.createTime!.toDate().valueOf()).to.be.lessThan(
+        expect(doc.createTime).not.toBeNull();
+        expect(doc.updateTime).not.toBeNull();
+        expect(doc.createTime!.toDate().valueOf()).toBeLessThan(
           doc.updateTime!.toDate().valueOf()
         );
       });
@@ -518,12 +517,11 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       const snapshot = await execute(pipeline);
       const end = new Date().valueOf();
 
-      expect(snapshot.results.length).to.equal(1);
+      expect(snapshot.results.length).toBe(1);
 
-      expect(snapshot.executionTime.toDate().valueOf()).to.approximately(
-        (start + end) / 2,
-        timestampDeltaMS
-      );
+      expect(
+        Math.abs(snapshot.executionTime.toDate().valueOf() - (start + end) / 2)
+      ).toBeLessThanOrEqual(timestampDeltaMS);
     });
 
     it('returns undefined create and update time for each result in an aggregate query', async () => {
@@ -537,11 +535,11 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 
       const snapshot = await execute(pipeline);
 
-      expect(snapshot.results.length).to.equal(8);
+      expect(snapshot.results.length).toBe(8);
 
       snapshot.results.forEach(doc => {
-        expect(doc.updateTime).to.be.undefined;
-        expect(doc.createTime).to.be.undefined;
+        expect(doc.updateTime).toBeUndefined();
+        expect(doc.createTime).toBeUndefined();
       });
     });
   });
@@ -551,7 +549,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       const snapshot = await execute(
         firestore.pipeline().collection(randomCol)
       );
-      expect(snapshot.results.length).to.equal(10);
+      expect(snapshot.results.length).toBe(10);
     });
 
     it('supports list of documents as source', async () => {
@@ -566,7 +564,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             doc(randomCol, 'book3').path
           ])
       );
-      expect(snapshot.results.length).to.equal(3);
+      expect(snapshot.results.length).toBe(3);
     });
 
     it('reject CollectionReference for another DB', async () => {
@@ -574,7 +572,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 
       expect(() => {
         firestore.pipeline().collection(collection(db2, 'foo'));
-      }).to.throw(/Invalid CollectionReference/);
+      }).toThrow(/Invalid CollectionReference/);
 
       await terminate(db2);
     });
@@ -584,7 +582,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 
       expect(() => {
         firestore.pipeline().documents([doc(db2, 'foo/bar')]);
-      }).to.throw(/Invalid DocumentReference/);
+      }).toThrow(/Invalid DocumentReference/);
 
       await terminate(db2);
     });
@@ -627,7 +625,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .sort(ascending('order'))
       );
       expectResults(snapshot, doc1.id, doc2.id);
-    }).timeout(30_000);
+    }, 30_000);
   });
 
   describe('supported data types', () => {
@@ -755,7 +753,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               }).as('foo')
             )
         );
-      }).to.throw(
+      }).toThrow(
         'Function map() called with invalid data. Unsupported field value: undefined'
       );
     });
@@ -769,7 +767,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .limit(1)
             .select(array([1, undefined]).as('foo'))
         );
-      }).to.throw(
+      }).toThrow(
         'Function array() called with invalid data. Unsupported field value: undefined'
       );
     });
@@ -834,7 +832,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           )
       );
 
-      expect(snapshot.results.length).to.equal(1);
+      expect(snapshot.results.length).toBe(1);
 
       expectResults(snapshot, {
         title: 'The Lord of the Rings',
@@ -927,7 +925,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .pipeline()
             .collection(randomCol.path)
             .aggregate(countAll().as('count'), count('foo').as('count'))
-        ).to.throw("Duplicate alias or field 'count'");
+        ).toThrow("Duplicate alias or field 'count'");
       });
 
       it('throws on duplicate group aliases', async () => {
@@ -939,7 +937,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               accumulators: [countAll().as('count')],
               groups: ['bax', field('bar').as('bax')]
             })
-        ).to.throw("Duplicate alias or field 'bax'");
+        ).toThrow("Duplicate alias or field 'bax'");
       });
 
       it('supports aggregate options', async () => {
@@ -985,7 +983,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
                 groups: ['genre']
               })
           )
-        ).to.be.rejected;
+        ).rejects.toThrow();
       });
 
       it('returns group and accumulate results', async () => {
@@ -1072,7 +1070,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         );
         const data = snapshot.results[0].data();
         data['allDistinctRatings'].sort((a: number, b: number) => a - b);
-        expect(data).to.deep.equal({
+        expect(data).toEqual({
           allDistinctRatings: [4.0, 4.1, 4.2, 4.3, 4.5, 4.6, 4.7]
         });
       });
@@ -1199,7 +1197,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .collection(randomCol.path)
             .limit(1)
             .select(constant(1).as('foo'), constant(2).as('foo'));
-        }).to.throw("Duplicate alias or field 'foo'");
+        }).toThrow("Duplicate alias or field 'foo'");
       });
 
       it('supports options', async () => {
@@ -1283,7 +1281,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .select('title', 'author')
             .addFields(constant('bar').as('foo'), constant('baz').as('foo'))
             .sort(field('author').ascending())
-        ).to.throw("Duplicate alias or field 'foo'");
+        ).toThrow("Duplicate alias or field 'foo'");
       });
 
       it('supports options', async () => {
@@ -1880,7 +1878,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         const snapshot = await execute(
           firestore.pipeline().collection(randomCol.path).sample(3)
         );
-        expect(snapshot.results.length).to.equal(3);
+        expect(snapshot.results.length).toBe(3);
       });
 
       it('run pipeline with sample limit of {documents: 3}', async () => {
@@ -1890,7 +1888,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .collection(randomCol.path)
             .sample({ documents: 3 })
         );
-        expect(snapshot.results.length).to.equal(3);
+        expect(snapshot.results.length).toBe(3);
       });
 
       it('run pipeline with sample limit of {percentage: 0.6}', async () => {
@@ -1907,7 +1905,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           avgSize += snapshot.results.length;
         }
         avgSize /= numIterations;
-        expect(avgSize).to.be.closeTo(6, 1);
+        expect(Math.abs(avgSize - 6)).toBeLessThanOrEqual(1);
       });
     });
 
@@ -2359,6 +2357,554 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         );
       });
     });
+
+    describe('dml stage', () => {
+      it('can execute delete stage multiple documents', async () => {
+        const deletePpl = firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(equal(field('genre'), 'Science Fiction'))
+          .delete();
+
+        const deleteRes = await execute(deletePpl);
+        expectResults(deleteRes, { documents_modified: 2 });
+
+        const docSnap1 = await getDoc(doc(randomCol, 'book1'));
+        expect(docSnap1.exists()).to.be.false;
+
+        const docSnap10 = await getDoc(doc(randomCol, 'book10'));
+        expect(docSnap10.exists()).to.be.false;
+      });
+
+      it('can execute update stage with addFields', async () => {
+        const ppl = firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book3')))
+          .addFields(field(documentIdFieldPath()).documentId().as('id'))
+          .update(constant('baz').as('foo'));
+
+        const res = await execute(ppl);
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, 'book3'));
+        expect(docSnap.get('foo')).to.equal('baz');
+        expect(docSnap.get('id')).to.equal('book3');
+      });
+
+      it('can update multiple documents and remove fields', async () => {
+        const res = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal(field('genre'), 'Science Fiction'))
+            .removeFields('awards')
+            .update(constant('Updated').as('status'))
+        );
+        expectResults(res, { documents_modified: 2 });
+
+        const docSnap1 = await getDoc(doc(randomCol, 'book1'));
+        expect(docSnap1.get('status')).to.equal('Updated');
+        expect(docSnap1.get('awards')).to.be.undefined;
+
+        const docSnap10 = await getDoc(doc(randomCol, 'book10'));
+        expect(docSnap10.get('status')).to.equal('Updated');
+        expect(docSnap10.get('awards')).to.be.undefined;
+      });
+
+      it('can update with expressions', async () => {
+        const res = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
+            .update(add(field('rating'), constant(1.0)).as('rating'))
+        );
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, 'book1'));
+        expect(docSnap.get('rating')).to.equal(5.2);
+      });
+
+      it('can update with single variadic expression', async () => {
+        const res = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
+            .update(constant('UpdatedVariadic').as('status'))
+        );
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, 'book1'));
+        expect(docSnap.get('status')).to.equal('UpdatedVariadic');
+      });
+
+      it('can update with multiple variadic expressions', async () => {
+        const res = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
+            .update(
+              constant('UpdatedMulti').as('status'),
+              constant(99).as('newField')
+            )
+        );
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, 'book1'));
+        expect(docSnap.get('status')).to.equal('UpdatedMulti');
+        expect(docSnap.get('newField')).to.equal(99);
+      });
+
+      it('can update non existing document modifies zero documents', async () => {
+        const nonExistingId = 'nonExistingId_123';
+        const res = await execute(
+          firestore
+            .pipeline()
+            .documents([doc(randomCol, nonExistingId)])
+            .update(constant('Updated').as('status'))
+        );
+        expectResults(res, { documents_modified: 0 });
+      });
+
+      it('can execute update stage atomically', async () => {
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
+            .update(constant('AtomicUpdate').as('status')),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, 'book1'));
+        expect(docSnap.get('status')).to.equal('AtomicUpdate');
+      });
+
+      it('can execute delete stage with atomic explicitly set to false', async () => {
+        const deleteRes = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book2')))
+            .delete(),
+          atomic: false
+        });
+        expectResults(deleteRes, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, 'book2'));
+        expect(docSnap.exists()).to.be.false;
+      });
+
+      it('can insert a new document with auto-generated ID', async () => {
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
+            .removeFields('__name__')
+            .insert({ collection: randomCol }),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const snap = await execute(
+          firestore.pipeline().collection(randomCol.path)
+        );
+        expect(snap.results.length).to.equal(11);
+      });
+
+      it('can insert a document into a different collection', async () => {
+        const targetColName = randomCol.id + '_target';
+        const targetColRef = collection(firestore, targetColName);
+
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
+            .insert({ collection: targetColRef }),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const snap = await execute(
+          firestore.pipeline().collection(targetColRef.path)
+        );
+        expect(snap.results.length).to.equal(1);
+        expect(snap.results[0].get('title')).to.equal(
+          "The Hitchhiker's Guide to the Galaxy"
+        );
+
+        await execute({
+          pipeline: firestore.pipeline().collection(targetColRef.path).delete(),
+          atomic: true
+        });
+      });
+
+      it('can insert a document using a field value as the document ID', async () => {
+        const targetColName = randomCol.id + '_target_custom_id';
+        const targetColRef = collection(firestore, targetColName);
+
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
+            .addFields(constant('my_custom_id_123').as('customIdField'))
+            .insert({
+              collection: targetColRef,
+              documentIdExpression: 'customIdField'
+            }),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(targetColRef, 'my_custom_id_123'));
+        expect(docSnap.exists()).to.be.true;
+        expect(docSnap.get('title')).to.equal(
+          "The Hitchhiker's Guide to the Galaxy"
+        );
+
+        await execute({
+          pipeline: firestore.pipeline().collection(targetColRef.path).delete(),
+          atomic: true
+        });
+      });
+
+      it('can insert a document using an expression as the document ID', async () => {
+        const targetColName = randomCol.id + '_target_expr_id';
+        const targetColRef = collection(firestore, targetColName);
+
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
+            .insert({
+              collection: targetColRef,
+              documentIdExpression: field('genre')
+            }),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(targetColRef, 'Science Fiction'));
+        expect(docSnap.exists()).to.be.true;
+        expect(docSnap.get('title')).to.equal(
+          "The Hitchhiker's Guide to the Galaxy"
+        );
+
+        await execute({
+          pipeline: firestore.pipeline().collection(targetColRef.path).delete(),
+          atomic: true
+        });
+      });
+
+      it('can upsert (insert) a new document if it does not exist', async () => {
+        const nonExistingId = 'new_upsert_doc_id';
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
+            .upsert({
+              additionalFields: [
+                constant('Sci-Fi').as('genre'),
+                constant('New Book Title').as('title')
+              ],
+              collection: randomCol,
+              documentIdExpression: constant(nonExistingId)
+            }),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, nonExistingId));
+        expect(docSnap.exists()).to.be.true;
+        expect(docSnap.get('title')).to.equal('New Book Title');
+        expect(docSnap.get('genre')).to.equal('Sci-Fi');
+      });
+
+      it('can upsert (update) an existing document by modifying fields', async () => {
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
+            .upsert({
+              additionalFields: [
+                constant('Comedy Sci-Fi').as('genre'),
+                add(field('rating'), constant(0.5)).as('rating')
+              ]
+            }),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, 'book1'));
+        expect(docSnap.get('genre')).to.equal('Comedy Sci-Fi');
+        expect(docSnap.get('rating')).to.equal(4.7);
+      });
+
+      it('can upsert with variadic expressions', async () => {
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
+            .upsert(
+              constant('Comedy Sci-Fi').as('genre'),
+              add(field('rating'), constant(0.5)).as('rating')
+            ),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(randomCol, 'book1'));
+        expect(docSnap.get('genre')).to.equal('Comedy Sci-Fi');
+        expect(docSnap.get('rating')).to.equal(4.7);
+      });
+
+      it('can upsert with options only', async () => {
+        const targetColName = randomCol.id + '_target_upsert_options_only';
+        const targetColRef = collection(firestore, targetColName);
+
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
+            .addFields(constant('opt_only_id').as('targetId'))
+            .upsert({
+              collection: targetColRef,
+              documentIdExpression: 'targetId'
+            }),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(targetColRef, 'opt_only_id'));
+        expect(docSnap.exists()).to.be.true;
+
+        await execute({
+          pipeline: firestore.pipeline().collection(targetColRef.path).delete(),
+          atomic: true
+        });
+      });
+
+      it('can upsert with custom target collection and specific document ID field', async () => {
+        const targetColName = randomCol.id + '_target_upsert';
+        const targetColRef = collection(firestore, targetColName);
+
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
+            .addFields(constant('upserted_fixed_id').as('targetId'))
+            .upsert({
+              additionalFields: [
+                constant('Upserted Genre').as('genre'),
+                constant('Upserted Title').as('title')
+              ],
+              collection: targetColRef,
+              documentIdExpression: 'targetId'
+            }),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(targetColRef, 'upserted_fixed_id'));
+        expect(docSnap.exists()).to.be.true;
+        expect(docSnap.get('title')).to.equal('Upserted Title');
+        expect(docSnap.get('genre')).to.equal('Upserted Genre');
+
+        await execute({
+          pipeline: firestore.pipeline().collection(targetColRef.path).delete(),
+          atomic: true
+        });
+      });
+
+      it('can upsert with additionalFields provided in options', async () => {
+        const targetColName = randomCol.id + '_target_upsert_options';
+        const targetColRef = collection(firestore, targetColName);
+
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(field(documentIdFieldPath()).equal(doc(randomCol, 'book1')))
+            .addFields(constant('upserted_opt_id').as('targetId'))
+            .upsert({
+              collection: targetColRef,
+              documentIdExpression: 'targetId',
+              additionalFields: [
+                constant('Options Genre').as('genre'),
+                constant('Options Title').as('title')
+              ]
+            }),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+
+        const docSnap = await getDoc(doc(targetColRef, 'upserted_opt_id'));
+        expect(docSnap.exists()).to.be.true;
+        expect(docSnap.get('title')).to.equal('Options Title');
+        expect(docSnap.get('genre')).to.equal('Options Genre');
+
+        await execute({
+          pipeline: firestore.pipeline().collection(targetColRef.path).delete(),
+          atomic: true
+        });
+      });
+
+      it('can execute pipeline with literals stage source', async () => {
+        const emptyCol = collection(firestore, randomCol.id + '_empty');
+        const res = await execute(
+          firestore
+            .pipeline()
+            .literals([
+              { name: 'Alice', age: 30 },
+              { name: 'Bob', age: 25 }
+            ])
+            .union(firestore.pipeline().collection(emptyCol.path))
+        );
+        expect(res.results.length).to.equal(2);
+        expect(res.results[0].data()).to.deep.equal({ name: 'Alice', age: 30 });
+        expect(res.results[1].data()).to.deep.equal({ name: 'Bob', age: 25 });
+      });
+
+      it('can execute literals stage containing expressions', async () => {
+        const emptyCol = collection(firestore, randomCol.id + '_empty');
+        const res = await execute(
+          firestore
+            .pipeline()
+            .literals([
+              {
+                base: 10,
+                doubled: multiply(constant(10), constant(2))
+              }
+            ])
+            .union(firestore.pipeline().collection(emptyCol.path))
+        );
+        expect(res.results.length).to.equal(1);
+        expect(res.results[0].data()).to.deep.equal({ base: 10, doubled: 20 });
+      });
+
+      it('can execute literals stage with nested expressions', async () => {
+        const emptyCol = collection(firestore, randomCol.id + '_empty');
+        const res = await execute(
+          firestore
+            .pipeline()
+            .literals([
+              {
+                nested: { sum: add(constant(1), constant(2)), label: 'x' },
+                arr: [1, add(constant(3), constant(4))],
+                deep: { a: { b: [{ c: add(constant(5), constant(6)) }] } }
+              }
+            ])
+            .union(firestore.pipeline().collection(emptyCol.path))
+        );
+        expect(res.results.length).to.equal(1);
+        expect(res.results[0].data()).to.deep.equal({
+          nested: { sum: 3, label: 'x' },
+          arr: [1, 7],
+          deep: { a: { b: [{ c: 11 }] } }
+        });
+      });
+
+      it('can execute literals stage with nested constant values', async () => {
+        const emptyCol = collection(firestore, randomCol.id + '_empty');
+        const res = await execute(
+          firestore
+            .pipeline()
+            .literals([
+              {
+                emptyMap: {},
+                emptyArr: [],
+                nested: { a: 1, b: [true, null, 'str'], c: { d: 2.5 } }
+              }
+            ])
+            .union(firestore.pipeline().collection(emptyCol.path))
+        );
+        expect(res.results.length).to.equal(1);
+        expect(res.results[0].data()).to.deep.equal({
+          emptyMap: {},
+          emptyArr: [],
+          nested: { a: 1, b: [true, null, 'str'], c: { d: 2.5 } }
+        });
+      });
+
+      it('can perform insert from literals source (atomic: true) and validates non-transactional restrictions', async () => {
+        const targetColRef = collection(
+          firestore,
+          randomCol.id + '_lit_insert'
+        );
+        const emptyCol = collection(firestore, randomCol.id + '_empty');
+
+        // 1. Raw literals without atomic: rejected by Firebase Security Rules
+        await expect(
+          execute(
+            firestore
+              .pipeline()
+              .literals([{ name: 'Literal Inserted', age: 42 }])
+              .insert({ collection: targetColRef })
+          )
+        ).rejects.toThrow(
+          /PERMISSION_DENIED|Missing or insufficient permissions/i
+        );
+
+        // 2. Unioned literals without atomic: rejected by StageValidator (not pure literals)
+        let caughtErr: Error | undefined;
+        try {
+          await execute(
+            firestore
+              .pipeline()
+              .literals([{ name: 'Literal Inserted', age: 42 }])
+              .union(firestore.pipeline().collection(emptyCol.path))
+              .insert({ collection: targetColRef })
+          );
+        } catch (e) {
+          caughtErr = e as Error;
+        }
+        expect(caughtErr).to.exist;
+        expect(caughtErr?.message).to.match(/non-transactional/i);
+
+        // 3. Unioned literals with atomic: true: successfully executed
+        const res = await execute({
+          pipeline: firestore
+            .pipeline()
+            .literals([{ name: 'Literal Inserted', age: 42 }])
+            .union(firestore.pipeline().collection(emptyCol.path))
+            .insert({ collection: targetColRef }),
+          atomic: true
+        });
+        expectResults(res, { documents_modified: 1 });
+      });
+
+      it('rejects non-transactional upsert from literals source', async () => {
+        const targetColRef = collection(
+          firestore,
+          randomCol.id + '_lit_upsert'
+        );
+        await expect(
+          execute(
+            firestore
+              .pipeline()
+              .literals([{ id: 'doc1', title: 'Literal Upserted' }])
+              .upsert({
+                additionalFields: [constant('Literal Upserted').as('title')],
+                collection: targetColRef,
+                documentIdExpression: 'id'
+              })
+          )
+        ).rejects.toThrow(/The non-transactional DML operation was rejected/);
+      });
+    });
   });
 
   describe('error handling', () => {
@@ -2376,12 +2922,12 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 
         expect.fail('expected pipeline.execute() to throw');
       } catch (e: unknown) {
-        expect(e instanceof FirebaseError).to.be.true;
+        expect(e instanceof FirebaseError).toBe(true);
         const err = e as FirebaseError;
-        expect(err['code']).to.equal('invalid-argument');
-        expect(typeof err['message']).to.equal('string');
+        expect(err['code']).toBe('invalid-argument');
+        expect(typeof err['message']).toBe('string');
 
-        expect(err['message']).to.match(
+        expect(err['message']).toMatch(
           /Expected fields to be MAP_VALUE, but was FIELD_REFERENCE_VALUE./
         );
       }
@@ -2544,7 +3090,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .select(arrayLength('tags').as('tagsCount'))
           .where(equal('tagsCount', 3))
       );
-      expect(snapshot.results.length).to.equal(10);
+      expect(snapshot.results.length).toBe(10);
     });
 
     it('testStrConcat', async () => {
@@ -2665,7 +3211,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .collection(randomCol.path)
           .where(regexContains('title', '(?i)(the|of)'))
       );
-      expect(snapshot.results.length).to.equal(5);
+      expect(snapshot.results.length).toBe(5);
     });
 
     it('testRegexFind', async () => {
@@ -2710,7 +3256,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .collection(randomCol.path)
           .where(regexMatch('title', '.*(?i)(the|of).*'))
       );
-      expect(snapshot.results.length).to.equal(5);
+      expect(snapshot.results.length).toBe(5);
     });
 
     it('testArithmeticOperations', async () => {
@@ -3070,10 +3616,13 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       );
 
       const res = snapshot.results[0].data();
-      expect(res.existingKeys).to.have.members(['foo']);
-      expect(res.keys).to.have.members(['a', 'b']);
-      expect(res.empty_keys).to.deep.equal([]);
-      expect(res.nested_keys).to.have.members(['a']);
+      expect(res.existingKeys).toEqual(expect.arrayContaining(['foo']));
+      expect(res.existingKeys).toHaveLength(1);
+      expect(res.keys).toEqual(expect.arrayContaining(['a', 'b']));
+      expect(res.keys).toHaveLength(2);
+      expect(res.empty_keys).toEqual([]);
+      expect(res.nested_keys).toEqual(expect.arrayContaining(['a']));
+      expect(res.nested_keys).toHaveLength(1);
     });
 
     it('test mapValues', async () => {
@@ -3091,10 +3640,14 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           )
       );
       const res = snapshot.results[0].data();
-      expect(res.existingValues).to.have.members([1]);
-      expect(res.values).to.have.members([1, 2]);
-      expect(res.empty_values).to.deep.equal([]);
-      expect(res.nested_values).to.deep.include.members([{ nested: true }]);
+      expect(res.existingValues).toEqual(expect.arrayContaining([1]));
+      expect(res.existingValues).toHaveLength(1);
+      expect(res.values).toEqual(expect.arrayContaining([1, 2]));
+      expect(res.values).toHaveLength(2);
+      expect(res.empty_values).toEqual([]);
+      expect(res.nested_values).toEqual(
+        expect.arrayContaining([{ nested: true }])
+      );
     });
 
     it('test mapEntries', async () => {
@@ -3112,15 +3665,19 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           )
       );
       const res = snapshot.results[0].data();
-      expect(res.existingEntries).to.deep.include.members([{ k: 'foo', v: 1 }]);
-      expect(res.entries).to.deep.include.members([
-        { k: 'a', v: 1 },
-        { k: 'b', v: 2 }
-      ]);
-      expect(res.empty_entries).to.deep.equal([]);
-      expect(res.nested_entries).to.deep.include.members([
-        { k: 'a', v: { nested: true } }
-      ]);
+      expect(res.existingEntries).toEqual(
+        expect.arrayContaining([{ k: 'foo', v: 1 }])
+      );
+      expect(res.entries).toEqual(
+        expect.arrayContaining([
+          { k: 'a', v: 1 },
+          { k: 'b', v: 2 }
+        ])
+      );
+      expect(res.empty_entries).toEqual([]);
+      expect(res.nested_entries).toEqual(
+        expect.arrayContaining([{ k: 'a', v: { nested: true } }])
+      );
     });
 
     describe('rawFunction', () => {
@@ -3233,7 +3790,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .limit(1)
           .select(array([1, 2, 3, 4]).as('metadata'))
       );
-      expect(snapshot.results.length).to.equal(1);
+      expect(snapshot.results.length).toBe(1);
       expectResults(snapshot, {
         metadata: [1, 2, 3, 4]
       });
@@ -3250,7 +3807,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             array([1, 2, field('genre'), multiply('rating', 10)]).as('metadata')
           )
       );
-      expect(snapshot.results.length).to.equal(1);
+      expect(snapshot.results.length).toBe(1);
       expectResults(snapshot, {
         metadata: [1, 2, 'Fantasy', 47]
       });
@@ -3523,7 +4080,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .where(equal('title', 'The Lord of the Rings'))
             .select(arraySlice('tags', 1, -1).as('negativeLengthSlice'))
         )
-      ).to.be.rejectedWith(/length must be non-negative/);
+      ).rejects.toThrow(/length must be non-negative/);
     });
 
     it('supports arrayFirstN', async () => {
@@ -4072,7 +4629,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           )
       );
 
-      expect(snapshot.results.length).to.equal(1);
+      expect(snapshot.results.length).toBe(1);
       expectResults(snapshot, {
         metadata: {
           foo: 'bar'
@@ -4095,7 +4652,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           )
       );
 
-      expect(snapshot.results.length).to.equal(1);
+      expect(snapshot.results.length).toBe(1);
       expectResults(snapshot, {
         metadata: {
           genre: 'Fantasy',
@@ -4231,7 +4788,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         minus10micros: new Timestamp(1741380234, 999990000),
         minus10millis: new Timestamp(1741380234, 990000000)
       });
-    }).timeout(10000);
+    }, 10000);
 
     it('supports byteLength', async () => {
       const snapshot = await execute(
@@ -4361,9 +4918,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .limit(1)
           .select(field('rating').exp().as('expRating'))
       );
-      expect(snapshot.results[0].get('expRating')).to.be.approximately(
+      expect(snapshot.results[0].get('expRating')).toBeCloseTo(
         109.94717245212352,
-        0.00001
+        5
       );
     });
 
@@ -4376,9 +4933,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .limit(1)
           .select(exp('rating').as('expRating'))
       );
-      expect(snapshot.results[0].get('expRating')).to.be.approximately(
+      expect(snapshot.results[0].get('expRating')).toBeCloseTo(
         109.94717245212351,
-        0.000001
+        6
       );
     });
 
@@ -4391,10 +4948,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .limit(1)
           .select(field('rating').pow(2).as('powerRating'))
       );
-      expect(snapshot.results[0].get('powerRating')).to.be.approximately(
-        17.64,
-        0.0001
-      );
+      expect(snapshot.results[0].get('powerRating')).toBeCloseTo(17.64, 4);
     });
 
     it('can compute the power of a numeric value with the top-level function', async () => {
@@ -4406,10 +4960,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .limit(1)
           .select(pow('rating', 2).as('powerRating'))
       );
-      expect(snapshot.results[0].get('powerRating')).to.be.approximately(
-        17.64,
-        0.0001
-      );
+      expect(snapshot.results[0].get('powerRating')).toBeCloseTo(17.64, 4);
     });
 
     it('testRand', async () => {
@@ -4420,11 +4971,11 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .select(rand().as('randomNumber'))
           .limit(1)
       );
-      expect(snapshot.results.length).to.equal(1);
+      expect(snapshot.results.length).toBe(1);
       const randomNumber = snapshot.results[0].data()['randomNumber'] as number;
-      expect(randomNumber).to.be.a('number');
-      expect(randomNumber).to.be.gte(0);
-      expect(randomNumber).to.be.lt(1);
+      expect(typeof randomNumber).toBe('number');
+      expect(randomNumber).toBeGreaterThanOrEqual(0);
+      expect(randomNumber).toBeLessThan(1);
     });
 
     it('can round a numeric value', async () => {
@@ -4698,7 +5249,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .limit(1)
           .select(field('rating').ln().as('lnRating'))
       );
-      expect(snapshot.results[0]!.data().lnRating).to.be.closeTo(1.435, 0.001);
+      expect(snapshot.results[0]!.data().lnRating).toBeCloseTo(1.435, 3);
     });
 
     it('can compute the natural logarithm of a numeric value with the top-level function', async () => {
@@ -4710,7 +5261,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .limit(1)
           .select(ln('rating').as('lnRating'))
       );
-      expect(snapshot.results[0]!.data().lnRating).to.be.closeTo(1.435, 0.001);
+      expect(snapshot.results[0]!.data().lnRating).toBeCloseTo(1.435, 3);
     });
 
     it('can compute the natural logarithm of a numeric value with the top-level function', async () => {
@@ -5231,10 +5782,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .limit(1)
           .select(field('rating').log10().as('log10Rating'))
       );
-      expect(snapshot.results[0]!.data().log10Rating).to.be.closeTo(
-        0.672,
-        0.001
-      );
+      expect(snapshot.results[0]!.data().log10Rating).toBeCloseTo(0.672, 3);
     });
 
     it('can compute the base-10 logarithm of a numeric value with the top-level function', async () => {
@@ -5246,10 +5794,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .limit(1)
           .select(log10('rating').as('log10Rating'))
       );
-      expect(snapshot.results[0]!.data().log10Rating).to.be.closeTo(
-        0.672,
-        0.001
-      );
+      expect(snapshot.results[0]!.data().log10Rating).toBeCloseTo(0.672, 3);
     });
 
     it('can concat fields', async () => {
@@ -5280,10 +5825,10 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .select('now')
       );
       const now = snapshot.results[0].get('now') as Timestamp;
-      expect(now).instanceof(Timestamp);
+      expect(now).toBeInstanceOf(Timestamp);
       expect(
         now.toDate().getUTCSeconds() - new Date().getUTCSeconds()
-      ).lessThan(5000);
+      ).toBeLessThan(5000);
     });
 
     it('supports ifAbsent', async () => {
@@ -5522,7 +6067,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         diffSecond: 9296,
         diffHourNeg: -2
       });
-    }).timeout(10000);
+    }, 10000);
 
     it('supports timestamp extraction', async () => {
       const snapshot = await execute(
@@ -5559,7 +6104,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         dayOfYear: 67,
         hourLa: 4
       });
-    }).timeout(10000);
+    }, 10000);
 
     it('supports split', async () => {
       const results = await execute(
@@ -5613,7 +6158,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
                 .as('dontSplitStringAndBytes')
             )
         )
-      ).to.be.rejected;
+      ).rejects.toThrow();
     });
 
     it('supports type', async () => {
@@ -5848,7 +6393,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
                 ).as('result')
               )
           )
-        ).to.be.rejectedWith(/all switch cases evaluate to false/);
+        ).rejects.toThrow(/all switch cases evaluate to false/);
       });
     });
 
@@ -6025,8 +6570,8 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (snapshot as any)._pipeline.stages[0].optionsProto.force_index
             .stringValue
-        ).equal('primary');
-        expect(snapshot.results.length).to.equal(10);
+        ).toBe('primary');
+        expect(snapshot.results.length).toBe(10);
       });
 
       it('CollectionGroup Stage', async () => {
@@ -6040,8 +6585,8 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (snapshot as any)._pipeline.stages[0].optionsProto.force_index
             .stringValue
-        ).equal('primary');
-        expect(snapshot.results.length).to.equal(10);
+        ).toBe('primary');
+        expect(snapshot.results.length).toBe(10);
       });
     });
   });
@@ -6383,7 +6928,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .define(field('title').as('bookTitle'))
               .addFields(reviewsSub.toScalarExpression().as('reviewData'))
           )
-        ).to.be.rejectedWith(/Subpipeline returned multiple results/);
+        ).rejects.toThrow(/Subpipeline returned multiple results/);
       });
     });
 
@@ -6453,7 +6998,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .select('price')
           );
 
-          expect(results.results).to.be.empty;
+          expect(results.results).toHaveLength(0);
 
           const doc2Ref = doc(firestore, `${collName}/doc2`);
           await setDoc(doc2Ref, { price: 50 });
@@ -6593,10 +7138,10 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         );
         expect.fail('Should have thrown an error');
       } catch (e: unknown) {
-        expect(e).to.be.an.instanceOf(FirebaseError);
+        expect(e).toBeInstanceOf(FirebaseError);
         const err = e as FirestoreError;
-        expect(err.code).to.equal('invalid-argument');
-        expect(err.message).to.match(/unknown variable/i);
+        expect(err.code).toBe('invalid-argument');
+        expect(err.message).toMatch(/unknown variable/i);
       }
     });
     it('variable shadowing collision', async () => {
@@ -6777,7 +7322,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           }
 
           const results = await execute(currentSubquery);
-          expect(results.results.length).to.be.greaterThan(0);
+          expect(results.results.length).toBeGreaterThan(0);
         }
       );
     });
@@ -6840,7 +7385,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
     it('direct execution of subcollection pipeline', async () => {
       const sub = subcollection('reviews');
 
-      await expect(execute(sub)).to.be.rejectedWith(
+      await expect(execute(sub)).rejects.toThrow(
         /This pipeline was created without a database/
       );
     });
@@ -6952,7 +7497,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
   let withTestDbsPromise: Promise<unknown> | undefined;
 
   // Search tests will use restaurant docs
-  before(async () => {
+  beforeAll(async () => {
     // TODO(search) - Migrate this over to IndexTestHelper when search supports the equal filter.
     // Note: using a static collection of documents for every search test has an inherent risk
     // of flakiness. Search requires an index on the collection, which is the reason we use a pre-defined
@@ -6977,7 +7522,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
     await setupDeferred.promise;
   });
 
-  after(async () => {
+  afterAll(async () => {
     testSuiteDeferred?.resolve();
     await withTestDbsPromise;
   });
@@ -7174,9 +7719,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .select('name', 'searchScore');
 
           const snapshot = await execute(ppl);
-          expect(snapshot.results.length).to.equal(1);
-          expect(snapshot.results[0].get('name')).to.equal('The Golden Waffle');
-          expect(snapshot.results[0].get('searchScore')).to.be.greaterThan(0);
+          expect(snapshot.results.length).toBe(1);
+          expect(snapshot.results[0].get('name')).toBe('The Golden Waffle');
+          expect(snapshot.results[0].get('searchScore')).toBeGreaterThan(0);
         });
 
         // TODO(search) enable with backend support
@@ -7331,7 +7876,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               // queryEnhancement: 'disabled'
             });
 
-          await expect(execute(ppl)).to.be.rejectedWith(/3 INVALID_ARGUMENT.*/);
+          await expect(execute(ppl)).rejects.toThrow(/3 INVALID_ARGUMENT.*/);
         });
       });
 
@@ -7591,7 +8136,7 @@ apiDescribe.skipClassic('Pipeline window functions', persistence => {
   let testDeferred: Deferred<void>;
   let withTestCollectionPromise: Promise<unknown>;
 
-  before(async () => {
+  beforeAll(async () => {
     const setupDeferred = new Deferred<void>();
     testDeferred = new Deferred<void>();
     withTestCollectionPromise = withTestCollection(
@@ -7607,7 +8152,7 @@ apiDescribe.skipClassic('Pipeline window functions', persistence => {
     await setupDeferred.promise;
   });
 
-  after(async () => {
+  afterAll(async () => {
     testDeferred?.resolve();
     await withTestCollectionPromise;
   });
@@ -7735,7 +8280,7 @@ apiDescribe.skipClassic('Pipeline window functions', persistence => {
             count('quantity').as('windowCount')
           )
       )
-    ).to.be.rejectedWith(FirebaseError, /range/i);
+    ).rejects.toThrow(/range/i);
   });
 
   it('validates duplicate aliases and invalid user data in the SDK', async () => {
@@ -7777,7 +8322,7 @@ apiDescribe.skip('Pipeline window functions (count)', persistence => {
   let testDeferred: Deferred<void>;
   let withTestCollectionPromise: Promise<unknown>;
 
-  before(async () => {
+  beforeAll(async () => {
     const setupDeferred = new Deferred<void>();
     testDeferred = new Deferred<void>();
     withTestCollectionPromise = withTestCollection(
@@ -7793,7 +8338,7 @@ apiDescribe.skip('Pipeline window functions (count)', persistence => {
     await setupDeferred.promise;
   });
 
-  after(async () => {
+  afterAll(async () => {
     testDeferred?.resolve();
     await withTestCollectionPromise;
   });
@@ -8570,7 +9115,7 @@ apiDescribe.skip('Pipeline window functions (count)', persistence => {
               count('quantity').as('windowCount')
             )
         )
-      ).to.be.rejectedWith(FirebaseError, /range/i);
+      ).rejects.toThrow(/range/i);
     });
 
     it('rejects mixing stage level and accumulator level framing', async () => {
@@ -8591,7 +9136,7 @@ apiDescribe.skip('Pipeline window functions (count)', persistence => {
                 .as('windowCount')
             )
         )
-      ).to.be.rejectedWith(FirebaseError);
+      ).rejects.toThrow(FirebaseError);
     });
 
     it('rejects partially specified accumulator level framing', async () => {
@@ -8610,7 +9155,7 @@ apiDescribe.skip('Pipeline window functions (count)', persistence => {
               count('quantity').as('unframed')
             )
         )
-      ).to.be.rejectedWith(FirebaseError);
+      ).rejects.toThrow(FirebaseError);
     });
   });
 });
@@ -8624,7 +9169,7 @@ apiDescribe.skip('Pipeline window functions (aggregators)', persistence => {
   let testDeferred: Deferred<void>;
   let withTestCollectionPromise: Promise<unknown>;
 
-  before(async () => {
+  beforeAll(async () => {
     const setupDeferred = new Deferred<void>();
     testDeferred = new Deferred<void>();
     withTestCollectionPromise = withTestCollection(
@@ -8640,7 +9185,7 @@ apiDescribe.skip('Pipeline window functions (aggregators)', persistence => {
     await setupDeferred.promise;
   });
 
-  after(async () => {
+  afterAll(async () => {
     testDeferred?.resolve();
     await withTestCollectionPromise;
   });
@@ -9236,7 +9781,7 @@ apiDescribe.skip('Pipeline window functions (ranking)', persistence => {
   let testDeferred: Deferred<void>;
   let withTestCollectionPromise: Promise<unknown>;
 
-  before(async () => {
+  beforeAll(async () => {
     const setupDeferred = new Deferred<void>();
     testDeferred = new Deferred<void>();
     withTestCollectionPromise = withTestCollection(
@@ -9252,7 +9797,7 @@ apiDescribe.skip('Pipeline window functions (ranking)', persistence => {
     await setupDeferred.promise;
   });
 
-  after(async () => {
+  afterAll(async () => {
     testDeferred?.resolve();
     await withTestCollectionPromise;
   });
