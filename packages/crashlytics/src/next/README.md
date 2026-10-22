@@ -1,6 +1,6 @@
 # Next.js Setup Guide - Firebase Crashlytics
 
-This guide details how to integrate Firebase Crashlytics into a Next.js application for automatic error reporting (client-side and server-side request instrumentation), manual error tracking, and stack trace de-obfuscation.
+This guide details how to integrate Firebase Crashlytics into a Next.js application for automatic error reporting (client-side), manual error tracking, and stack trace de-obfuscation.
 
 ---
 
@@ -59,17 +59,6 @@ export default function RootLayout({
 
 > [!NOTE]
 > If you have existing error boundary components in your application and would like to capture those errors in Crashlytics as well, make sure to follow the steps in [Programmatic Error Capturing](../../docs/ADVANCED_USAGE.md#programmatic-error-capturing) to add a call to `recordError`.
-
-### Server-Side / Request Error Instrumentation
-
-Automatically report uncaught errors from server routes to Firebase Crashlytics by defining `onRequestError` in Next.js's [instrumentation file](https://nextjs.org/docs/app/guides/instrumentation):
-
-```typescript
-// instrumentation.ts
-import { nextOnRequestError } from '@firebase/crashlytics';
-
-export const onRequestError = nextOnRequestError();
-```
 
 ---
 
