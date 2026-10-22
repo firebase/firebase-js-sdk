@@ -14,9 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const expect = require('chai').expect;
-
 module.exports = response => {
-  expect(response).to.exist;
-  expect(response.success).to.equal(1);
+  expect(response).toBeDefined();
+  expect(response.success).toBe(1);
 };
