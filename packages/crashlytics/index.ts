@@ -25,4 +25,3 @@ export {
   unregisterLoggerInstrumentations
 } from './src/breadcrumbs';
 export * from './src/public-types';
-export * from './src/next';
