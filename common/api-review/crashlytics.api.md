@@ -6,7 +6,6 @@
 
 import { AnyValueMap } from '@opentelemetry/api-logs';
 import { FirebaseApp } from '@firebase/app';
-import type { Instrumentation } from 'next';
 
 // @public
 export function breadcrumbs(): CrashlyticsFeature;
@@ -39,19 +38,12 @@ app?: FirebaseApp,
 options?: CrashlyticsOptions
 ): Crashlytics;
 
-export { Instrumentation }
-
 // @public
 export function log(
 crashlytics: Crashlytics,
 message: string,
 attributes?: AnyValueMap
 ): void;
-
-// @public
-export function nextOnRequestError(
-crashlyticsOptions?: CrashlyticsOptions
-): Instrumentation.onRequestError;
 
 // @public
 export function recordError(
