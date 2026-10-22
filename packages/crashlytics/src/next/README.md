@@ -11,22 +11,38 @@ This guide details how to integrate Firebase Crashlytics into a Next.js applicat
 
 ## Automatic Error Capturing
 
-### Client-Side / App Router Layout
+### Next.js 15.3+ (Recommended): Client Instrumentation (`instrumentation-client.ts`)
 
-In Next.js App Router, `layout.tsx` is a Server Component by default. Because `FirebaseApp` is non-serializable, wrap `<CrashlyticsRoutes>` (from `@firebase/crashlytics/next-navigation` to initialize Crashlytics, capture uncaught errors, track route changes, and update route path attributes) in a Client Component (e.g., `src/components/CrashlyticsProvider.tsx`) marked with the `"use client"` directive:
+Next.js 15.3+ includes native client-side instrumentation via `instrumentation-client.ts` (or `instrumentation-client.js`). Next.js executes this file in the browser before React hydration begins.
+
+Create `src/instrumentation-client.ts` (or `instrumentation-client.ts` in your project root if not using a `src/` directory) and initialize Crashlytics:
+
+```typescript
+// src/instrumentation-client.ts
+import { getCrashlytics } from '@firebase/crashlytics';
+import { app } from './lib/firebase'; // Shared initialization script
+
+getCrashlytics(app);
+```
+
+This single file initializes Crashlytics before React hydration and automatically registers global error listeners (`error` and `unhandledrejection`) with zero modifications to `src/app/layout.tsx` or any React component.
+
+### Next.js < 15.3: Client-Side / App Router Layout
+
+For Next.js versions earlier than 15.3, `layout.tsx` is a Server Component by default. Because `FirebaseApp` is non-serializable, wrap `<FirebaseCrashlytics>` (from `@firebase/crashlytics/react` to initialize Crashlytics and capture uncaught errors) in a Client Component (e.g., `src/components/CrashlyticsProvider.tsx`) marked with the `"use client"` directive:
 
 ```tsx
 // src/components/CrashlyticsProvider.tsx
 'use client';
 
 import React from 'react';
-import { CrashlyticsRoutes } from '@firebase/crashlytics/next-navigation';
+import { FirebaseCrashlytics } from '@firebase/crashlytics/react';
 import { app } from '../lib/firebase'; // Shared initialization script
 
 export function CrashlyticsProvider({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <CrashlyticsRoutes firebaseApp={app} />
+      <FirebaseCrashlytics firebaseApp={app} />
       {children}
     </>
   );
