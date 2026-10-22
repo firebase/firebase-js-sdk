@@ -103,7 +103,7 @@ export function createBaseConfig(importMetaUrl, customConfig = {}) {
     );
   const enableCoverage =
     isChromiumOnly &&
-    ((Boolean(process.env.CI) && process.env.CI !== 'false') ||
+    (Boolean(process.env.FIREBASE_CI_TEST_START_TIME) ||
       process.env.COVERAGE === 'true');
 
   const base = defineConfig({

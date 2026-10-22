@@ -25,6 +25,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 function stripTypeExportsPlugin() {
   // TODO: Use ts.transpileModule per file, for speed
   let program;
+  const enableSourceMap =
+    Boolean(process.env.FIREBASE_CI_TEST_START_TIME) ||
+    process.env.COVERAGE === 'true' ||
+    process.argv.some(arg => arg.startsWith('--coverage'));
   return {
     name: 'strip-type-exports',
     enforce: 'pre',
@@ -45,8 +49,8 @@ function stripTypeExportsPlugin() {
           ...parsedConfig.options,
           module: ts.ModuleKind.ESNext,
           target: ts.ScriptTarget.ESNext,
-          sourceMap: true,
-          inlineSources: true,
+          sourceMap: enableSourceMap,
+          inlineSources: enableSourceMap,
           inlineSourceMap: false
         });
       }
