@@ -88,6 +88,17 @@ export function registerRemoteConfig(): void {
 
     const logger = new Logger(packageName);
 
+    // Deprecated: server templates can't be fetched from client apps.
+    // Warn before lowering the log level, otherwise the warning is hidden.
+    if (options?.templateId === 'firebase-server') {
+      logger.warn(
+        'Fetching the "firebase-server" template from a client app is not ' +
+          'supported and requests will fail. Server templates can only be ' +
+          'read with the Firebase Admin SDK. The `templateId` and ' +
+          '`initialFetchResponse` options are deprecated.'
+      );
+    }
+
     // Sets ERROR as the default log level.
     // See RemoteConfig#setLogLevel for corresponding normalization to ERROR log level.
     logger.logLevel = FirebaseLogLevel.ERROR;

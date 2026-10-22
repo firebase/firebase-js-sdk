@@ -27,6 +27,11 @@ export interface RemoteConfigOptions
 
 ## RemoteConfigOptions.initialFetchResponse
 
+> Warning: This API is now obsolete.
+> 
+> Remote Config server-side rendering (SSR) hydration is no longer supported. This option will be removed in a future major release.
+> 
+
 Hydrates the state with an initial fetch response.
 
 <b>Signature:</b>
@@ -36,6 +41,11 @@ initialFetchResponse?: FetchResponse;
 ```
 
 ## RemoteConfigOptions.templateId
+
+> Warning: This API is now obsolete.
+> 
+> Fetching non-default templates from client apps is not supported. Server templates (`"firebase-server"`<!-- -->) can only be read by the Admin SDK and are rejected by client fetch and real-time requests. This option will be removed in a future major release.
+> 
 
 The ID of the template to use. If not provided, defaults to "firebase".
 
