@@ -129,8 +129,14 @@ export async function _getRedirectUrl(
 
 function getHandlerBase({ config }: AuthInternal): string {
   if (!config.emulator) {
-    return `https://${config.authDomain}/${WIDGET_PATH}`;
-  }
+    const isLocalhost =
+      config.authDomain?.split(':')[0] === 'localhost' ||
+      config.authDomain?.split(':')[0] === '127.0.0.1';
 
+    return (
+      (isLocalhost ? 'http' : 'https') +
+      `://${config.authDomain}/${WIDGET_PATH}`
+    );
+  }
   return _emulatorUrl(config, EMULATOR_WIDGET_PATH);
 }
