@@ -11,38 +11,22 @@ This guide details how to integrate Firebase Crashlytics into a Next.js applicat
 
 ## Automatic Error Capturing
 
-### Next.js 15.3+ (Recommended): Client Instrumentation (`instrumentation-client.ts`)
+### Option 1 (Recommended): App Router Layout with Route Tracking
 
-Next.js 15.3+ includes native client-side instrumentation via `instrumentation-client.ts` (or `instrumentation-client.js`). Next.js executes this file in the browser before React hydration begins.
-
-Create `src/instrumentation-client.ts` (or `instrumentation-client.ts` in your project root if not using a `src/` directory) and initialize Crashlytics:
-
-```typescript
-// src/instrumentation-client.ts
-import { getCrashlytics } from '@firebase/crashlytics';
-import { app } from './lib/firebase'; // Shared initialization script
-
-getCrashlytics(app);
-```
-
-This single file initializes Crashlytics before React hydration and automatically registers global error listeners (`error` and `unhandledrejection`) with zero modifications to `src/app/layout.tsx` or any React component.
-
-### Next.js < 15.3: Client-Side / App Router Layout
-
-For Next.js versions earlier than 15.3, `layout.tsx` is a Server Component by default. Because `FirebaseApp` is non-serializable, wrap `<FirebaseCrashlytics>` (from `@firebase/crashlytics/react` to initialize Crashlytics and capture uncaught errors) in a Client Component (e.g., `src/components/CrashlyticsProvider.tsx`) marked with the `"use client"` directive:
+In Next.js App Router, `layout.tsx` is a Server Component by default. Because `FirebaseApp` is non-serializable, wrap `<CrashlyticsRoutes>` (from `@firebase/crashlytics/next-navigation`) in a Client Component (e.g., `src/components/CrashlyticsProvider.tsx`) marked with the `"use client"` directive. `<CrashlyticsRoutes>` initializes Crashlytics, captures uncaught errors, and attaches parameterized route templates (such as `/users/:id` instead of raw URLs containing PII) to error reports:
 
 ```tsx
 // src/components/CrashlyticsProvider.tsx
 'use client';
 
 import React from 'react';
-import { FirebaseCrashlytics } from '@firebase/crashlytics/react';
+import { CrashlyticsRoutes } from '@firebase/crashlytics/next-navigation';
 import { app } from '../lib/firebase'; // Shared initialization script
 
 export function CrashlyticsProvider({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <FirebaseCrashlytics firebaseApp={app} />
+      <CrashlyticsRoutes firebaseApp={app} />
       {children}
     </>
   );
@@ -72,6 +56,20 @@ export default function RootLayout({
   );
 }
 ```
+
+### Option 2 (Next.js 15.3+): Zero-Component Client Instrumentation (`instrumentation-client.ts`)
+
+If you are using Next.js 15.3+ and prefer not to modify `src/app/layout.tsx`, you can initialize Crashlytics in `src/instrumentation-client.ts` (or `instrumentation-client.ts` in your project root if not using a `src/` directory). Next.js executes this file in the browser before React hydration begins:
+
+```typescript
+// src/instrumentation-client.ts
+import { getCrashlytics } from '@firebase/crashlytics';
+import { app } from './lib/firebase'; // Shared initialization script
+
+getCrashlytics(app);
+```
+
+This single file initializes Crashlytics before React hydration and automatically registers global error listeners (`error` and `unhandledrejection`) with zero modifications to `src/app/layout.tsx` or any React component. Note that because this approach does not mount `<CrashlyticsRoutes>` in the React tree, error reports will not automatically include parameterized route paths (`app.screen.id`).
 
 > [!NOTE]
 > If you have existing error boundary components in your application and would like to capture those errors in Crashlytics as well, make sure to follow the steps in [Programmatic Error Capturing](../../docs/ADVANCED_USAGE.md#programmatic-error-capturing) to add a call to `recordError`.

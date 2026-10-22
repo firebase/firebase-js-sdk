@@ -2,9 +2,37 @@
 
 This guide covers the incremental steps to enable Session Breadcrumbs & Logs for Next.js App Router applications in the Firebase Crashlytics private preview.
 
-### Next.js 15.3+: Client Instrumentation (`instrumentation-client.ts`)
+### Option 1 (Recommended): App Router Layout (`<CrashlyticsRoutes>`)
 
-In `src/instrumentation-client.ts`, pass `features: [breadcrumbs()]` to `getCrashlytics`:
+In your existing client-side provider component (e.g., `src/components/CrashlyticsProvider.tsx`), define a `crashlyticsOptions` object with `features: [breadcrumbs()]` and pass it to `<CrashlyticsRoutes>`:
+
+```diff
+// src/components/CrashlyticsProvider.tsx
+'use client';
+
+import React from 'react';
++import { breadcrumbs } from '@firebase/crashlytics';
+import { CrashlyticsRoutes } from '@firebase/crashlytics/next-navigation';
+import { app } from '../lib/firebase'; // Your existing Firebase App singleton
+
++const crashlyticsOptions = { features: [breadcrumbs()] };
++
+export function CrashlyticsProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <CrashlyticsRoutes
+        firebaseApp={app}
++        crashlyticsOptions={crashlyticsOptions}
+      />
+      {children}
+    </>
+  );
+}
+```
+
+### Option 2 (Next.js 15.3+): Client Instrumentation (`instrumentation-client.ts`)
+
+If you initialized Crashlytics in `src/instrumentation-client.ts`, pass `features: [breadcrumbs()]` to `getCrashlytics`:
 
 ```diff
 // src/instrumentation-client.ts
@@ -16,32 +44,4 @@ import { app } from './lib/firebase';
 +getCrashlytics(app, { features: [breadcrumbs()] });
 ```
 
-### Next.js < 15.3: Client Component Layout
-
-In your existing client-side provider component (e.g., `src/components/CrashlyticsProvider.tsx`), define a `crashlyticsOptions` object with `features: [breadcrumbs()]` and pass it to `<FirebaseCrashlytics>`:
-
-```diff
-// src/components/CrashlyticsProvider.tsx
-'use client';
-
-import React from 'react';
-+import { breadcrumbs } from '@firebase/crashlytics';
-import { FirebaseCrashlytics } from '@firebase/crashlytics/react';
-import { app } from '../lib/firebase'; // Your existing Firebase App singleton
-
-+const crashlyticsOptions = { features: [breadcrumbs()] };
-+
-export function CrashlyticsProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <FirebaseCrashlytics
-        firebaseApp={app}
-+        crashlyticsOptions={crashlyticsOptions}
-      />
-      {children}
-    </>
-  );
-}
-```
-
-**Note:** Crashlytics must be initialized with the same options everywhere in your app. If you also set up [navigation tracking](./_navigation_tracking.md), pass the same `crashlyticsOptions` object to `<CrashlyticsRoutes>`.
+**Note:** Crashlytics must be initialized with the same options everywhere in your app. If you also set up [navigation tracking](../next-navigation/_navigation_tracking.md), pass the same `crashlyticsOptions` object to `<CrashlyticsRoutes>`.

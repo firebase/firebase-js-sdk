@@ -82,7 +82,7 @@ throw new Error('Testing Breadcrumbs');
 
 By default, you will get activities like network tracing, click tracking, and document load times automatically. To enable navigation tracking, you will need to add framework specific configuration.
 
-- 🔺 [Next.js Setup Guide](../src/next/_navigation_tracking.md)
+- 🔺 [Next.js Setup Guide](../src/next-navigation/_navigation_tracking.md)
 - 🛣️ [**React Router Setup Guide**](../src/react-router/_navigation_tracking.md)
 - 🅰️ [**Angular Setup Guide**](../src/angular/_navigation_tracking.md)
 

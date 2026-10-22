@@ -1,12 +1,14 @@
 ## Next Navigation Tracking Setup - Firebase Crashlytics
 
-This guide covers the incremental steps to enable automatic route navigation tracking (screen views) for Next.js App Router applications in the Firebase Crashlytics Session Breadcrumbs & Logs private preview.
+This guide covers automatic route navigation tracking (screen views) for Next.js App Router applications in the Firebase Crashlytics Session Breadcrumbs & Logs private preview.
 
-To track route changes with parameterized dynamic route templates (e.g. `/users/:id` instead of raw URLs containing user identifiers), use `<CrashlyticsRoutes>` from `@firebase/crashlytics/next-navigation`.
+Automatic route navigation tracking is enabled out of the box when you mount `<CrashlyticsRoutes>` from `@firebase/crashlytics/next-navigation` (Option 1 in the [Next.js Setup Guide](../next/README.md)).
+
+If you previously set up Crashlytics using `src/instrumentation-client.ts` (Option 2), mount `<CrashlyticsRoutes>` in your client provider and root layout to enable route tracking:
 
 ### Step 1: Create or Update your Client Provider
 
-In `src/components/CrashlyticsProvider.tsx`, mount `<CrashlyticsRoutes>` from `@firebase/crashlytics/next-navigation` (replacing `<FirebaseCrashlytics>` if you already created this provider for Next.js < 15.3):
+In `src/components/CrashlyticsProvider.tsx`, mount `<CrashlyticsRoutes>` from `@firebase/crashlytics/next-navigation`:
 
 ```tsx
 // src/components/CrashlyticsProvider.tsx
