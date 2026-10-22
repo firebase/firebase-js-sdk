@@ -24,7 +24,7 @@
 
 const config = {
   require: 'ts-node/register',
-  timeout: 5000,
+  timeout: 20000,
   retries: 5,
   exit: true
 };

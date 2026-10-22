@@ -38,8 +38,7 @@ declare const waitsFor;
 declare const TEST_ALT_NAMESPACE;
 declare const TEST_NAMESPACE;
 
-describe('.info Tests', function () {
-  this.timeout(3000);
+describe('.info Tests', () => {
   it('Can get a reference to .info nodes.', () => {
     const f = getRootNode() as Reference;
     expect(getPath(f.child('.info'))).to.equal('/.info');

@@ -1,5 +1,21 @@
 # firebase
 
+## 13.1.0
+
+### Minor Changes
+
+- [`d7bb0e1`](https://github.com/firebase/firebase-js-sdk/commit/d7bb0e16f2b13ba15f74b690596eb70ef145d4f6) [#10200](https://github.com/firebase/firebase-js-sdk/pull/10200) - Added DML stages (`delete`, `update`, `insert`, `upsert`) and the `literals` source stage to Pipelines, and added the `atomic` option to `PipelineExecuteOptions` for executing a pipeline in a single transaction.
+
+### Patch Changes
+
+- Updated dependencies [[`76123a4`](https://github.com/firebase/firebase-js-sdk/commit/76123a4cfca375022974a6f63308f6326fa45d1a), [`d7bb0e1`](https://github.com/firebase/firebase-js-sdk/commit/d7bb0e16f2b13ba15f74b690596eb70ef145d4f6)]:
+  - @firebase/auth@1.13.8
+  - @firebase/firestore@4.19.0
+  - @firebase/app@0.16.4
+  - @firebase/auth-compat@0.6.13
+  - @firebase/firestore-compat@0.4.16
+  - @firebase/app-compat@0.5.20
+
 ## 13.0.0
 
 ### Major Changes
