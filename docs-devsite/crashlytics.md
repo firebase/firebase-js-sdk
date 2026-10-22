@@ -23,8 +23,6 @@ https://github.com/firebase/firebase-js-sdk
 |  [flush(crashlytics)](./crashlytics.md#flush_16fdf66) | Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching. |
 |  [log(crashlytics, message, attributes)](./crashlytics.md#log_a58b551) | Queues a log message to be uploaded to the Firebase Crashlytics API. |
 |  [recordError(crashlytics, error, attributes)](./crashlytics.md#recorderror_6824e74) | Queues an error to be uploaded to the Firebase Crashlytics API. |
-|  <b>function(crashlyticsOptions, ...)</b> |
-|  [nextOnRequestError(crashlyticsOptions)](./crashlytics.md#nextonrequesterror_3caf5de) | Automatically report uncaught errors from server routes to Firebase Crashlytics. |
 
 ## Interfaces
 
@@ -33,12 +31,6 @@ https://github.com/firebase/firebase-js-sdk
 |  [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
 |  [CrashlyticsFeature](./crashlytics.crashlyticsfeature.md#crashlyticsfeature_interface) | An opaque feature plugin object returned by Crashlytics feature factory functions such as [breadcrumbs()](./crashlytics.md#breadcrumbs)<!-- -->. |
 |  [CrashlyticsOptions](./crashlytics.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
-
-## Namespaces
-
-|  Namespace | Description |
-|  --- | --- |
-|  [Instrumentation](./crashlytics.instrumentation.md#instrumentation_namespace) |  |
 
 ## function(app, ...)
 
@@ -169,38 +161,4 @@ export declare function recordError(crashlytics: Crashlytics, error: unknown, at
 <b>Returns:</b>
 
 void
-
-## function(crashlyticsOptions, ...)
-
-### nextOnRequestError(crashlyticsOptions) {:#nextonrequesterror_3caf5de}
-
-Automatically report uncaught errors from server routes to Firebase Crashlytics.
-
-<b>Signature:</b>
-
-```typescript
-export declare function nextOnRequestError(crashlyticsOptions?: CrashlyticsOptions): Instrumentation.onRequestError;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  crashlyticsOptions | [CrashlyticsOptions](./crashlytics.crashlyticsoptions.md#crashlyticsoptions_interface) | [CrashlyticsOptions](./crashlytics.crashlyticsoptions.md#crashlyticsoptions_interface) that configure the Crashlytics instance. |
-
-<b>Returns:</b>
-
-[Instrumentation.onRequestError](./crashlytics.instrumentation.md#instrumentationonrequesterror)
-
-A request error handler for use in Next.js' instrumentation file
-
-### Example
-
-
-```javascript
-// In instrumentation.ts (https://nextjs.org/docs/app/guides/instrumentation):
-import { nextOnRequestError } from 'firebase/crashlytics'
-export const onRequestError = nextOnRequestError();
-
-```
 
