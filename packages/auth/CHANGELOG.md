@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 1.13.8
+
+### Patch Changes
+
+- [`76123a4`](https://github.com/firebase/firebase-js-sdk/commit/76123a4cfca375022974a6f63308f6326fa45d1a) [#10462](https://github.com/firebase/firebase-js-sdk/pull/10462) (fixes [#10438](https://github.com/firebase/firebase-js-sdk/issues/10438)) - Only clear the persisted user during Auth initialization when the initial user reload fails with a user invalidation error (`auth/user-token-expired` or `auth/user-disabled`), preserving the session across transient server errors such as HTTP 5xx `UNAVAILABLE`.
+
 ## 1.13.7
 
 ### Patch Changes
