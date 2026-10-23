@@ -1021,7 +1021,7 @@ describe('AbstractTokenProvider', () => {
           .mockImplementationOnce(() => {
             throw new Error('init-add-failed');
           })
-          .mockImplementationOnce(() => {}),
+          .mockImplementationOnce(() => { }),
         removeListener: vi.fn()
       };
       const rawProvider = registerMockComponent(
