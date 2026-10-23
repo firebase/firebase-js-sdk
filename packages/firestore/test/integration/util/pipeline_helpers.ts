@@ -41,7 +41,8 @@ import {
   _enableRealtimePipeline,
   RealtimePipeline,
   RealtimePipelineSnapshot,
-  PipelineResult
+  PipelineResult,
+  PipelineSnapshot
 } from './pipeline_export';
 import { getRunEnterpriseTests } from './settings';
 
@@ -373,6 +374,39 @@ export class PipelineEventsAccumulator<T = RealtimePipelineSnapshot> {
       const events = this.events.splice(0, this.waitingFor);
       this.deferred.resolve(events);
       this.deferred = null;
+    }
+  }
+}
+
+/**
+ * Asserts that a pipeline snapshot contains exactly the given documents, in
+ * order, matched either by document ID or by document data.
+ */
+export function expectResults(
+  snapshot: PipelineSnapshot,
+  ...docs: string[]
+): void;
+export function expectResults(
+  snapshot: PipelineSnapshot,
+  ...data: DocumentData[]
+): void;
+
+export function expectResults(
+  snapshot: PipelineSnapshot,
+  ...data: DocumentData[] | string[]
+): void {
+  const docs = snapshot.results;
+
+  expect(docs.length).toBe(data.length);
+
+  if (data.length > 0) {
+    if (typeof data[0] === 'string') {
+      const actualIds = docs.map(doc => doc.id);
+      expect(actualIds).toEqual(data);
+    } else {
+      docs.forEach(r => {
+        expect(r.data()).toEqual(data.shift());
+      });
     }
   }
 }
