@@ -8157,7 +8157,7 @@ apiDescribe.skipClassic('Pipeline window functions', persistence => {
     await withTestCollectionPromise;
   });
 
-  it('encodes and decodes stage-level documents frame with string/expression partitions, array sort, constant bounds, nested alias, and array output', async () => {
+  it('computes running aggregates over a documents frame partitioned by a field and an expression and sorted by multiple keys', async () => {
     const snapshot = await execute(
       firestore
         .pipeline()
@@ -8211,7 +8211,7 @@ apiDescribe.skipClassic('Pipeline window functions', persistence => {
     );
   });
 
-  it('encodes and decodes stage-level time-unit range frame with single sort and options overload', async () => {
+  it('counts documents in a time unit range frame using the options overload', async () => {
     const snapshot = await execute(
       firestore
         .pipeline()
@@ -8241,7 +8241,7 @@ apiDescribe.skipClassic('Pipeline window functions', persistence => {
     );
   });
 
-  it('encodes and decodes accumulator-level over() frames with negative and fractional offsets and null results', async () => {
+  it('computes look ahead and nearby aggregates with accumulator level frames', async () => {
     const snapshot = await execute(
       firestore
         .pipeline()
@@ -8269,7 +8269,7 @@ apiDescribe.skipClassic('Pipeline window functions', persistence => {
     );
   });
 
-  it('surfaces server errors for invalid window specifications', async () => {
+  it('rejects a range frame without a sort', async () => {
     await expect(
       execute(
         firestore
@@ -8283,7 +8283,7 @@ apiDescribe.skipClassic('Pipeline window functions', persistence => {
     ).rejects.toThrow(/range/i);
   });
 
-  it('validates duplicate aliases and invalid user data in the SDK', async () => {
+  it('rejects duplicate aliases and unsupported field values', async () => {
     expect(() =>
       firestore
         .pipeline()
@@ -8311,8 +8311,8 @@ apiDescribe.skipClassic('Pipeline window functions', persistence => {
 
 // Comprehensive window function functional tests. Skipped by default on CI and
 // local runs because the backend already tests window function semantics, and
-// the active suite above covers SDK encoding, decoding, server error handling,
-// and client-side validation. Un-skip manually to run the full matrix.
+// the active suite above exercises the SDK's window function code paths, server
+// errors, and client-side validation. Un-skip manually to run the full matrix.
 apiDescribe.skip('Pipeline window functions (count)', persistence => {
   addEqualityMatcher();
 
