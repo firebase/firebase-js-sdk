@@ -119,6 +119,18 @@
       },
       "default": "./data-connect/dist/esm/index.esm.js"
     },
+    "./sql": {
+      "types": "./sql/dist/sql/index.d.ts",
+      "node": {
+        "require": "./sql/dist/index.cjs.js",
+        "import": "./sql/dist/index.mjs"
+      },
+      "browser": {
+        "require": "./sql/dist/index.cjs.js",
+        "import": "./sql/dist/esm/index.esm.js"
+      },
+      "default": "./sql/dist/esm/index.esm.js"
+    },
     "./firestore": {
       "types": "./firestore/dist/firestore/index.d.ts",
       "node": {
@@ -442,6 +454,7 @@
     "@firebase/messaging-compat": "0.2.30",
     "@firebase/storage": "0.14.6",
     "@firebase/storage-compat": "0.4.6",
+    "@firebase/sql": "0.0.1",
     "@firebase/performance": "0.7.14",
     "@firebase/performance-compat": "0.2.27",
     "@firebase/remote-config": "0.9.3",
@@ -485,7 +498,8 @@
     "messaging",
     "messaging/sw",
     "database",
-    "data-connect"
+    "data-connect",
+    "sql"
   ],
   "typings": "empty.d.ts"
 }
