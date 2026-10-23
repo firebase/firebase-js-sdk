@@ -43,11 +43,12 @@ import { FirebaseAttributesSpanProcessor } from './attributes-span-processor';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
 import {
-  DEFAULT_TELEMETRY_ENDPOINT,
   DEFAULT_TELEMETRY_REGION,
-  GCP_FIREBASE_DOMAIN
+  GCP_FIREBASE_DOMAIN,
+  RESOURCE_ATTRIBUTE_KEYS
 } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
+import { getTelemetryEndpointUrl } from '../helpers';
 
 let unregisterInstrumentations: (() => void) | undefined;
 
@@ -76,23 +77,28 @@ export function createTracingProvider(
   if (typeof window === 'undefined') {
     return { tracingProvider: trace.getTracerProvider() };
   }
-  let endpointUrl =
-    crashlyticsOptions.endpointUrl || DEFAULT_TELEMETRY_ENDPOINT;
+  const endpointUrl = getTelemetryEndpointUrl(crashlyticsOptions);
 
   const { projectId, appId, apiKey } = app.options;
   const region = crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
 
-  const resource = resourceFromAttributes({
+  const resourceAttributes: Record<string, string> = {
     [GCP_FIREBASE_DOMAIN]: window.location.hostname
-  });
-
-  if (endpointUrl.endsWith('/')) {
-    endpointUrl = endpointUrl.slice(0, -1);
+  };
+  if (projectId) {
+    resourceAttributes[RESOURCE_ATTRIBUTE_KEYS.GCP_PROJECT_ID] = projectId;
   }
-  let otlpEndpoint;
+  if (appId) {
+    resourceAttributes[RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_ID] = appId;
+  }
+  if (region !== DEFAULT_TELEMETRY_REGION) {
+    resourceAttributes[RESOURCE_ATTRIBUTE_KEYS.CLOUD_REGION] = region;
+  }
+  const resource = resourceFromAttributes(resourceAttributes);
+
+  const otlpEndpoint = `${endpointUrl}/v1/traces`;
   let traceExporter;
   if (endpointUrl === 'http://localhost:4318') {
-    otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
     traceExporter = new OTLPStandardTraceExporter({
       url: otlpEndpoint,
       headers: {
@@ -101,7 +107,6 @@ export function createTracingProvider(
       }
     });
   } else {
-    otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/locations/${region}/traces`;
     traceExporter = new OTLPTraceExporter(
       {
         url: otlpEndpoint,

@@ -24,6 +24,7 @@ import {
   startNewSession,
   logVisibilityEvent,
   generateUuid,
+  getTelemetryEndpointUrl,
   isTelemetryUrl
 } from './helpers';
 import { AUTO_CONSTANTS } from './auto-constants';
@@ -358,19 +359,66 @@ describe('helpers', () => {
     });
   });
 
+  describe('getTelemetryEndpointUrl', () => {
+    it('should return the default global clienttelemetry endpoint when no options are provided', () => {
+      expect(getTelemetryEndpointUrl()).toBe(
+        'https://clienttelemetry.googleapis.com'
+      );
+      expect(getTelemetryEndpointUrl({ region: 'global' })).toBe(
+        'https://clienttelemetry.googleapis.com'
+      );
+    });
+
+    it('should return a regional REP endpoint when a non-global region is provided', () => {
+      expect(getTelemetryEndpointUrl({ region: 'us-east5' })).toBe(
+        'https://clienttelemetry.us-east5.rep.googleapis.com'
+      );
+      expect(getTelemetryEndpointUrl({ region: 'europe-west1' })).toBe(
+        'https://clienttelemetry.europe-west1.rep.googleapis.com'
+      );
+    });
+
+    it('should use custom endpointUrl and strip trailing slashes', () => {
+      expect(
+        getTelemetryEndpointUrl({
+          endpointUrl: 'https://custom-proxy.internal.net/'
+        })
+      ).toBe('https://custom-proxy.internal.net');
+      expect(
+        getTelemetryEndpointUrl({
+          endpointUrl: 'https://custom-proxy.internal.net',
+          region: 'us-east5'
+        })
+      ).toBe('https://custom-proxy.internal.net');
+    });
+  });
+
   describe('isTelemetryUrl', () => {
-    it('should identify default firebasetelemetry endpoint URLs', () => {
+    it('should identify default global and regional clienttelemetry endpoint URLs', () => {
+      expect(
+        isTelemetryUrl('https://clienttelemetry.googleapis.com/v1/logs')
+      ).toBe(true);
       expect(
         isTelemetryUrl(
-          'https://firebasetelemetry.googleapis.com/v1/projects/p/apps/a/locations/l/logs'
+          'https://clienttelemetry.us-east5.rep.googleapis.com/v1/logs'
         )
       ).toBe(true);
+      expect(
+        isTelemetryUrl(
+          'https://clienttelemetry.googleapis.com.attacker.com/v1/logs'
+        )
+      ).toBe(false);
+      expect(
+        isTelemetryUrl(
+          'https://clienttelemetry.us-east5.rep.googleapis.com.attacker.com/v1/logs'
+        )
+      ).toBe(false);
     });
 
     it('should identify custom endpoint URLs when provided', () => {
       expect(
         isTelemetryUrl(
-          'https://custom-proxy.internal.net/v1/projects/p/apps/a/locations/l/logs',
+          'https://custom-proxy.internal.net/v1/logs',
           'https://custom-proxy.internal.net'
         )
       ).toBe(true);
@@ -388,7 +436,7 @@ describe('helpers', () => {
       expect(isTelemetryUrl('https://api.example.com/data')).toBe(false);
       expect(
         isTelemetryUrl(
-          'https://example.com/search?query=firebasetelemetry.googleapis.com'
+          'https://example.com/search?query=clienttelemetry.googleapis.com'
         )
       ).toBe(false);
     });

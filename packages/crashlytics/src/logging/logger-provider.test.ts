@@ -23,9 +23,13 @@ import {
 import { AttributesStore } from '../attributes-store';
 import { breadcrumbs } from '../breadcrumbs';
 import { TelemetryStore } from '../telemetry-store';
+import { AppCheckProvider } from './appcheck-provider';
 import { FirebaseAttributesLogProcessor } from './attributes-log-processor';
 import { createLoggerProvider } from './logger-provider';
 import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
+import { SeverityNumber } from '@opentelemetry/api-logs';
+import { Provider } from '@firebase/component';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 
 describe('createLoggerProvider', () => {
   let app: FirebaseApp;
@@ -105,6 +109,139 @@ describe('createLoggerProvider', () => {
     expect(attributesEmitSpy.mock.invocationCallOrder[0]).toBeLessThan(
       onErrorEmitSpy.mock.invocationCallOrder[0]
     );
+  });
+
+  it('should populate resource attributes with gcp.project_id and gcp.firebase.app_id', () => {
+    const { loggerProvider: provider } = createLoggerProvider(
+      app,
+      {},
+      attributesStore,
+      telemetryStore,
+      []
+    );
+    const sharedState = (
+      provider as unknown as {
+        _sharedState: { resource: { attributes: Record<string, unknown> } };
+      }
+    )._sharedState;
+    expect(sharedState.resource.attributes).toMatchObject({
+      'service.name': 'firebase_telemetry_service',
+      'gcp.project_id': 'test-project',
+      'gcp.firebase.app_id': 'test-app'
+    });
+    expect(sharedState.resource.attributes).not.toHaveProperty('cloud.region');
+  });
+
+  it('should omit gcp.project_id and gcp.firebase.app_id when undefined in app options', () => {
+    const emptyApp = {
+      name: '[DEFAULT]',
+      options: {}
+    } as FirebaseApp;
+    const { loggerProvider: provider } = createLoggerProvider(
+      emptyApp,
+      {},
+      attributesStore,
+      telemetryStore,
+      []
+    );
+    const sharedState = (
+      provider as unknown as {
+        _sharedState: { resource: { attributes: Record<string, unknown> } };
+      }
+    )._sharedState;
+    expect(sharedState.resource.attributes).not.toHaveProperty(
+      'gcp.project_id'
+    );
+    expect(sharedState.resource.attributes).not.toHaveProperty(
+      'gcp.firebase.app_id'
+    );
+  });
+
+  it('should populate cloud.region resource attribute when a regional location is configured', () => {
+    const { loggerProvider: provider } = createLoggerProvider(
+      app,
+      { region: 'us-east5' },
+      attributesStore,
+      telemetryStore,
+      []
+    );
+    const sharedState = (
+      provider as unknown as {
+        _sharedState: { resource: { attributes: Record<string, unknown> } };
+      }
+    )._sharedState;
+    expect(sharedState.resource.attributes).toMatchObject({
+      'service.name': 'firebase_telemetry_service',
+      'gcp.project_id': 'test-project',
+      'gcp.firebase.app_id': 'test-app',
+      'cloud.region': 'us-east5'
+    });
+  });
+
+  it('should export logs to global clienttelemetry /v1/logs endpoint with API key and App Check headers', async () => {
+    const fetchStub = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('', { status: 200 }));
+    try {
+      const mockAppCheckProvider = {
+        getImmediate: () => ({
+          getToken: async () => ({ token: 'test-appcheck-token' })
+        }),
+        get: async () => ({
+          getToken: async () => ({ token: 'test-appcheck-token' })
+        })
+      } as unknown as Provider<AppCheckInternalComponentName>;
+      const { loggerProvider: provider } = createLoggerProvider(
+        app,
+        {},
+        attributesStore,
+        telemetryStore,
+        [new AppCheckProvider(mockAppCheckProvider)]
+      );
+      provider.getLogger('test').emit({
+        severityNumber: SeverityNumber.ERROR,
+        body: 'test error'
+      });
+      await provider.forceFlush();
+
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+      expect(fetchStub.mock.calls[0][0]).toBe(
+        'https://clienttelemetry.googleapis.com/v1/logs'
+      );
+      const headers = (fetchStub.mock.calls[0][1] as RequestInit)
+        .headers as Headers;
+      expect(headers.get('X-Goog-Api-Key')).toBe('test-api-key');
+      expect(headers.get('X-Firebase-AppCheck')).toBe('test-appcheck-token');
+    } finally {
+      fetchStub.mockRestore();
+    }
+  });
+
+  it('should export logs to regional REP clienttelemetry /v1/logs endpoint when region is set', async () => {
+    const fetchStub = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('', { status: 200 }));
+    try {
+      const { loggerProvider: provider } = createLoggerProvider(
+        app,
+        { region: 'us-east5' },
+        attributesStore,
+        telemetryStore,
+        []
+      );
+      provider.getLogger('test').emit({
+        severityNumber: SeverityNumber.ERROR,
+        body: 'test error'
+      });
+      await provider.forceFlush();
+
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+      expect(fetchStub.mock.calls[0][0]).toBe(
+        'https://clienttelemetry.us-east5.rep.googleapis.com/v1/logs'
+      );
+    } finally {
+      fetchStub.mockRestore();
+    }
   });
 
   describe('BatchLogRecordProcessor auto-flush on document hide', () => {
