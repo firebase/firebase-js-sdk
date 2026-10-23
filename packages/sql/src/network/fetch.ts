@@ -21,7 +21,10 @@ import {
   FirebaseSqlError
 } from '../core/error';
 
-let sqlFetch: typeof fetch | null = globalThis.fetch;
+/** @internal */
+export type Fetch = typeof fetch;
+
+let sqlFetch: Fetch | null = globalThis.fetch;
 
 /**
  * Sets the fetch implementation used for Firebase SQL network requests.
@@ -29,7 +32,7 @@ let sqlFetch: typeof fetch | null = globalThis.fetch;
  * @param fetchImpl - The fetch function to set as active, or null to clear it.
  * @internal
  */
-export function initializeFetch(fetchImpl: typeof fetch | null): void {
+export function initializeFetch(fetchImpl: Fetch | null): void {
   sqlFetch = fetchImpl;
 }
 
@@ -40,7 +43,7 @@ export function initializeFetch(fetchImpl: typeof fetch | null): void {
  * @throws `FirebaseSqlError` if no fetch implementation is available.
  * @internal
  */
-export function getFetch(): typeof fetch {
+export function getFetch(): Fetch {
   if (!sqlFetch) {
     throw new FirebaseSqlError(
       Code.NOT_SUPPORTED,

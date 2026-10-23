@@ -31,7 +31,6 @@ import {
   FirebaseSqlError
 } from '../core/error';
 import {
-  normalizeHeaders,
   SqlServiceSettings,
   validateSqlServiceSettings
 } from '../core/settings';
@@ -43,6 +42,12 @@ import {
   FirebaseAuthProvider,
   FirebaseAuthTokenProvider
 } from '../core/tokenProviders/FirebaseAuthTokenProvider';
+import { logDebug } from '../logger';
+import {
+  FirebaseSqlTransport,
+  FirebaseSqlTransportInterface
+} from '../network';
+import { normalizeHeaders } from '../network/headers';
 import { FIREBASE_SQL_COMPONENT_NAME } from '../util/constants';
 import { deepSortKeysForObj } from '../util/encoder';
 import { resolvePostgrestUrl } from '../util/url';
@@ -78,6 +83,9 @@ export class FirebaseSql {
   private _appCheckTokenProvider: AppCheckTokenProvider;
 
   /** @internal */
+  private _transport: FirebaseSqlTransportInterface;
+
+  /** @internal */
   constructor(
     /** The bound FirebaseApp instance. */
     readonly app: FirebaseApp,
@@ -103,6 +111,12 @@ export class FirebaseSql {
       app,
       appCheckInternalProvider
     );
+    this._transport = new FirebaseSqlTransport({
+      settings,
+      appId: app.options.appId,
+      authTokenProvider: this._authTokenProvider,
+      appCheckTokenProvider: this._appCheckTokenProvider
+    });
   }
 
   /** @internal */
@@ -206,9 +220,11 @@ export function getSql(
   const provider = _getProvider(app, FIREBASE_SQL_COMPONENT_NAME);
 
   if (provider.isInitialized(instanceIdentifier)) {
+    logDebug('Re-using cached instance');
     return provider.getImmediate({ identifier: instanceIdentifier });
   }
 
+  logDebug('Creating new Firebase SQL instance');
   return provider.initialize({
     instanceIdentifier,
     options: validatedSettings
