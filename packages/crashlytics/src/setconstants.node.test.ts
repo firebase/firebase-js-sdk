@@ -100,18 +100,12 @@ describe('setconstants.js', () => {
     const copiedScriptPath = path.join(emptyPkgDir, 'setconstants.js');
     fs.copyFileSync(originalScriptPath, copiedScriptPath);
 
-    expect(() => {
-      execFileSync(process.execPath, [copiedScriptPath], {
-        cwd: emptyPkgDir,
-        stdio: 'pipe'
-      });
-    }).toThrow();
-
     try {
       execFileSync(process.execPath, [copiedScriptPath], {
         cwd: emptyPkgDir,
         stdio: 'pipe'
       });
+      expect.fail('Expected execFileSync to throw');
     } catch (err: unknown) {
       const errorWithStderr = err as { stderr?: Buffer };
       const stderr = errorWithStderr.stderr?.toString() ?? '';
