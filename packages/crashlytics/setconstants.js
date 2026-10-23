@@ -21,14 +21,8 @@ const path = require('node:path');
 const child_process = require('node:child_process');
 
 // Ensure that the project is set up as expected.
-// Resolve dist relative to this script's location first (supports monorepo hoisting),
-// falling back to process.cwd() if needed.
-const localDistPath = path.resolve(__dirname, 'dist');
-const cwdDistPath = path.resolve(
-  process.cwd(),
-  './node_modules/@firebase/crashlytics/dist'
-);
-const rootPath = fs.existsSync(localDistPath) ? localDistPath : cwdDistPath;
+// Resolve dist relative to this script's location (supports monorepo hoisting).
+const rootPath = path.resolve(__dirname, 'dist');
 if (!fs.existsSync(rootPath)) {
   console.error(
     `Error setting Firebase constants. Directory does not exist: ${rootPath}`
