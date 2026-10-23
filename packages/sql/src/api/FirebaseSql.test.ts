@@ -79,7 +79,6 @@ describe('FirebaseSql', () => {
       );
 
       await FirebaseSql.terminate(client);
-
       expect(authTerminateSpy).toHaveBeenCalledTimes(1);
       expect(appCheckTerminateSpy).toHaveBeenCalledTimes(1);
 
