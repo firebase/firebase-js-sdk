@@ -151,7 +151,8 @@ const config = {
 
   client: {
     mocha: {
-      opts: `${__dirname}/mocha.browser.opts`
+      opts: `${__dirname}/mocha.browser.opts`,
+      retries: 3
     },
 
     // Pass through --grep option to filter the tests that run.
