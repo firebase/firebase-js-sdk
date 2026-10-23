@@ -388,8 +388,6 @@ export type FindNearestStageOptions = StageOptions & {
 };
 
 /**
- * @beta
- *
  * Specifies if the `matches` and `snippet` expressions will enhance the user
  * provided query to perform matching of synonyms, misspellings, lemmatization,
  * stemming.
@@ -403,7 +401,6 @@ export type FindNearestStageOptions = StageOptions & {
 export type QueryEnhancement = 'disabled' | 'required' | 'preferred';
 
 /**
- * @beta
  * Options defining how a search stage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(search:1)}.
  */
 export type SearchStageOptions = StageOptions & {

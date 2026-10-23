@@ -1255,7 +1255,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *
    * @param options - An object that specifies parameters for the stage.
    * @return A new `Pipeline` object with this stage appended to the stage list.
-   * @beta
    */
   search(options: SearchStageOptions): Pipeline {
     // Convert user land convenience types to internal types
