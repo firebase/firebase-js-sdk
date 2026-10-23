@@ -120,7 +120,7 @@
     "lerna": "10.0.0",
     "listr": "0.14.3",
     "lodash": "4.18.1",
-    "mocha": "11.8.0",
+    "mocha": "12.0.1",
     "node-polyfill-webpack-plugin": "2.0.1",
     "npm-run-all2": "5.0.2",
     "nyc": "15.1.0",
