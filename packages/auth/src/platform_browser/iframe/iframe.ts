@@ -39,7 +39,8 @@ const IFRAME_ATTRIBUTES = {
     height: '1px'
   },
   'aria-hidden': 'true',
-  tabindex: '-1'
+  tabindex: '-1',
+  loading: 'lazy'
 };
 
 // Map from apiHost to endpoint ID for passing into iframe. In current SDK, apiHost can be set to
