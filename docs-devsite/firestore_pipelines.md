@@ -20,7 +20,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [currentDocument()](./firestore_pipelines.md#currentdocument) | Creates an expression that represents the current document being processed. |
 |  [currentTimestamp()](./firestore_pipelines.md#currenttimestamp) | Creates an expression that evaluates to the current server timestamp. |
 |  [rand()](./firestore_pipelines.md#rand) | Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0. |
-|  [score()](./firestore_pipelines.md#score) | <b><i>(Public Preview)</i></b> Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: <code>documentMatches</code>) in the search query. If <code>SearchOptions.query</code> is not set or does not contain any text predicates, then this topicality score will always be <code>0</code>. |
+|  [score()](./firestore_pipelines.md#score) | Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: <code>documentMatches</code>) in the search query. If <code>SearchStageOptions.query</code> is not set or does not contain any text predicates, then this topicality score will always be <code>0</code>. |
 |  <b>function(array, ...)</b> |
 |  [arrayContains(array, element)](./firestore_pipelines.md#arraycontains_a00ea48) | Creates an expression that checks if an array expression contains a specific element. |
 |  [arrayContains(array, element)](./firestore_pipelines.md#arraycontains_7328608) | Creates an expression that checks if an array expression contains a specific element. |
@@ -213,7 +213,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [exp(fieldName)](./firestore_pipelines.md#exp_e5b0480) | Creates an expression that computes e to the power of the expression's result. |
 |  [first(fieldName)](./firestore_pipelines.md#first_e5b0480) | Creates an aggregation that finds the first value of a field across multiple stage inputs. |
 |  [floor(fieldName)](./firestore_pipelines.md#floor_e5b0480) | Creates an expression that computes the floor of a numeric value. |
-|  [geoDistance(fieldName, location)](./firestore_pipelines.md#geodistance_ea237a8) | <b><i>(Public Preview)</i></b> Evaluates to the distance in meters between the location in the specified field and the query location. |
+|  [geoDistance(fieldName, location)](./firestore_pipelines.md#geodistance_ea237a8) | Evaluates to the distance in meters between the location in the specified field and the query location. |
 |  [greaterThan(fieldName, expression)](./firestore_pipelines.md#greaterthan_1e91657) | Creates an expression that checks if a field's value is greater than an expression. |
 |  [greaterThan(fieldName, value)](./firestore_pipelines.md#greaterthan_65e2f32) | Creates an expression that checks if a field's value is greater than a constant value. |
 |  [greaterThanOrEqual(fieldName, value)](./firestore_pipelines.md#greaterthanorequal_2e16acb) | Creates an expression that checks if a field's value is greater than or equal to an expression. |
@@ -360,7 +360,7 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(pipeline, ...)</b> |
 |  [execute(pipeline)](./firestore_pipelines.md#execute_01df620) | Executes a pipeline and returns a Promise that represents the asynchronous operation.<!-- -->The returned Promise can be used to track the progress of the pipeline execution and retrieve the results (or handle any errors) asynchronously.<!-- -->The pipeline results are returned as a [PipelineSnapshot](./firestore_lite_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) that contains a list of [PipelineResult](./firestore_lite_pipelines.pipelineresult.md#pipelineresult_class) objects. Each [PipelineResult](./firestore_lite_pipelines.pipelineresult.md#pipelineresult_class) typically represents a single key-value map that has passed through all the stages of the pipeline; however, this might differ depending on the stages involved in the pipeline. For example:<ul> <li>If there are no stages or only transformation stages, each [PipelineResult](./firestore_lite_pipelines.pipelineresult.md#pipelineresult_class) represents a single document.</li> <li>If there is an aggregation, only a single [PipelineResult](./firestore_lite_pipelines.pipelineresult.md#pipelineresult_class) is returned, representing the aggregated results over the entire dataset.</li> <li>If there is an aggregation stage with grouping, each [PipelineResult](./firestore_lite_pipelines.pipelineresult.md#pipelineresult_class) represents a distinct group and its associated aggregated values.</li> </ul> |
 |  <b>function(rquery, ...)</b> |
-|  [documentMatches(rquery)](./firestore_pipelines.md#documentmatches_d7a12c2) | <b><i>(Public Preview)</i></b> Perform a full-text search on all indexed search fields in the document. |
+|  [documentMatches(rquery)](./firestore_pipelines.md#documentmatches_d7a12c2) | Perform a full-text search on all indexed search fields in the document. |
 |  <b>function(stringExpression, ...)</b> |
 |  [charLength(stringExpression)](./firestore_pipelines.md#charlength_c25a54a) | Creates an expression that calculates the character length of a string expression in UTF-8. |
 |  [endsWith(stringExpression, suffix)](./firestore_pipelines.md#endswith_0a0b889) | Creates an expression that checks if a string expression ends with a given postfix. |
@@ -468,7 +468,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [RemoveFieldsStageOptions](./firestore_pipelines.md#removefieldsstageoptions) | Options defining how a RemoveFieldsStage is evaluated. See [Pipeline.removeFields()](./firestore_lite_pipelines.pipeline.md#pipelineremovefields)<!-- -->. |
 |  [ReplaceWithStageOptions](./firestore_pipelines.md#replacewithstageoptions) | Options defining how a ReplaceWithStage is evaluated. See [Pipeline.replaceWith()](./firestore_lite_pipelines.pipeline.md#pipelinereplacewith)<!-- -->. |
 |  [SampleStageOptions](./firestore_pipelines.md#samplestageoptions) | Defines the options for evaluating a sample stage within a pipeline. This type combines common [StageOptions](./firestore_lite_pipelines.md#stageoptions) with a specific configuration where only one of the defined sampling methods can be applied.<!-- -->See [Pipeline.sample()](./firestore_lite_pipelines.pipeline.md#pipelinesample) to create a sample stage.. |
-|  [SearchStageOptions](./firestore_pipelines.md#searchstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a search stage is evaluated. See [Pipeline.search()](./firestore_lite_pipelines.pipeline.md#pipelinesearch)<!-- -->. |
+|  [SearchStageOptions](./firestore_pipelines.md#searchstageoptions) | Options defining how a search stage is evaluated. See [Pipeline.search()](./firestore_lite_pipelines.pipeline.md#pipelinesearch)<!-- -->. |
 |  [SelectStageOptions](./firestore_pipelines.md#selectstageoptions) | Options defining how a SelectStage is evaluated. See [Pipeline.select()](./firestore_lite_pipelines.pipeline.md#pipelineselect)<!-- -->. |
 |  [SortStageOptions](./firestore_pipelines.md#sortstageoptions) | Options defining how a SortStage is evaluated. See [Pipeline.sort()](./firestore_lite_pipelines.pipeline.md#pipelinesort)<!-- -->. |
 |  [StageOptions](./firestore_pipelines.md#stageoptions) | Options defining how a Stage is evaluated. |
@@ -585,10 +585,7 @@ rand();
 
 ### score() {:#score}
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: `documentMatches`<!-- -->) in the search query. If `SearchOptions.query` is not set or does not contain any text predicates, then this topicality score will always be `0`<!-- -->.
+Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: `documentMatches`<!-- -->) in the search query. If `SearchStageOptions.query` is not set or does not contain any text predicates, then this topicality score will always be `0`<!-- -->.
 
 This Expression can only be used within a `search` stage.
 
@@ -6555,9 +6552,6 @@ A new [Expression](./firestore_lite_pipelines.expression.md#expression_class) re
 
 ### geoDistance(fieldName, location) {:#geodistance_ea237a8}
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Evaluates to the distance in meters between the location in the specified field and the query location.
 
 This Expression can only be used within a `search` stage.
@@ -11112,9 +11106,6 @@ const results: PipelineResult[] = snapshot.results;
 
 ### documentMatches(rquery) {:#documentmatches_d7a12c2}
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Perform a full-text search on all indexed search fields in the document.
 
 This Expression can only be used within a `search` stage.
@@ -13161,9 +13152,6 @@ export declare type SampleStageOptions = StageOptions &
 ```
 
 ## SearchStageOptions
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Options defining how a search stage is evaluated. See [Pipeline.search()](./firestore_lite_pipelines.pipeline.md#pipelinesearch)<!-- -->.
 
