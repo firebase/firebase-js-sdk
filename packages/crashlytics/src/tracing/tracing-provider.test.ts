@@ -29,6 +29,9 @@ import { CompositePropagator } from '@opentelemetry/core';
 import { TelemetryStore } from '../telemetry-store';
 import { FirebaseAttributesSpanProcessor } from './attributes-span-processor';
 import { OnErrorSpanProcessor } from './on-error-span-processor';
+import { AppCheckProvider } from '../logging/appcheck-provider';
+import { Provider } from '@firebase/component';
+import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import type { MockInstance } from 'vitest';
 
 describe('createTracingProvider', () => {
@@ -256,6 +259,141 @@ describe('createTracingProvider', () => {
       documentLoadInstrumentationSpy.mock.calls.length - 1
     ][0] as any;
     expect(documentLoadConfig.semconvStabilityOptIn).toBe('http');
+  });
+
+  it('should populate resource attributes with gcp.firebase.domain, gcp.project_id, and gcp.firebase.app_id', () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const { tracingProvider: provider } = createTracingProvider(
+      mockApp,
+      {},
+      mockAttributesStore,
+      mockTelemetryStore
+    );
+    const attributes = (provider as any)._resource.attributes;
+    expect(attributes).toMatchObject({
+      'gcp.firebase.domain': window.location.hostname,
+      'gcp.project_id': 'test-project',
+      'gcp.firebase.app_id': 'test-app-id'
+    });
+    expect(attributes).not.toHaveProperty('cloud.region');
+  });
+
+  it('should omit gcp.project_id and gcp.firebase.app_id when undefined in app options', () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const emptyApp = {
+      options: {}
+    } as unknown as FirebaseApp;
+    const { tracingProvider: provider } = createTracingProvider(
+      emptyApp,
+      {},
+      mockAttributesStore,
+      mockTelemetryStore
+    );
+    const attributes = (provider as any)._resource.attributes;
+    expect(attributes).not.toHaveProperty('gcp.project_id');
+    expect(attributes).not.toHaveProperty('gcp.firebase.app_id');
+  });
+
+  it('should populate cloud.region resource attribute when a regional location is configured', () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const { tracingProvider: provider } = createTracingProvider(
+      mockApp,
+      { region: 'us-east5' },
+      mockAttributesStore,
+      mockTelemetryStore
+    );
+    const attributes = (provider as any)._resource.attributes;
+    expect(attributes).toMatchObject({
+      'gcp.firebase.domain': window.location.hostname,
+      'gcp.project_id': 'test-project',
+      'gcp.firebase.app_id': 'test-app-id',
+      'cloud.region': 'us-east5'
+    });
+  });
+
+  it('should configure OTLPTraceExporter with global clienttelemetry /v1/traces endpoint by default', async () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const fetchStub = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('ok', { status: 200 }));
+    try {
+      const mockAppCheckProvider = {
+        getImmediate: () => ({
+          getToken: async () => ({ token: 'test-appcheck-token' })
+        }),
+        get: async () => ({
+          getToken: async () => ({ token: 'test-appcheck-token' })
+        })
+      } as unknown as Provider<AppCheckInternalComponentName>;
+      const { onErrorSpanProcessor } = createTracingProvider(
+        mockApp,
+        {},
+        mockAttributesStore,
+        mockTelemetryStore,
+        [new AppCheckProvider(mockAppCheckProvider)]
+      );
+      const exporter = (onErrorSpanProcessor as any)._exporter;
+      await new Promise<void>((resolve, reject) => {
+        exporter.export([mockSpan], (res: any) => {
+          if (res.code === 0) {
+            resolve();
+          } else {
+            reject(res.error || new Error('Export failed'));
+          }
+        });
+      });
+      expect(fetchStub).toHaveBeenCalled();
+      expect(fetchStub.mock.calls[0][0]).toBe(
+        'https://clienttelemetry.googleapis.com/v1/traces'
+      );
+      const headers = (fetchStub.mock.calls[0][1] as RequestInit)
+        .headers as Headers;
+      expect(headers.get('X-Goog-Api-Key')).toBe('test-api-key');
+      expect(headers.get('X-Firebase-AppCheck')).toBe('test-appcheck-token');
+    } finally {
+      fetchStub.mockRestore();
+    }
+  });
+
+  it('should configure OTLPTraceExporter with regional REP clienttelemetry /v1/traces endpoint when region is set', async () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const fetchStub = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('ok', { status: 200 }));
+    try {
+      const { onErrorSpanProcessor } = createTracingProvider(
+        mockApp,
+        { region: 'us-east5' },
+        mockAttributesStore,
+        mockTelemetryStore
+      );
+      const exporter = (onErrorSpanProcessor as any)._exporter;
+      await new Promise<void>((resolve, reject) => {
+        exporter.export([mockSpan], (res: any) => {
+          if (res.code === 0) {
+            resolve();
+          } else {
+            reject(res.error || new Error('Export failed'));
+          }
+        });
+      });
+      expect(fetchStub).toHaveBeenCalled();
+      expect(fetchStub.mock.calls[0][0]).toBe(
+        'https://clienttelemetry.us-east5.rep.googleapis.com/v1/traces'
+      );
+    } finally {
+      fetchStub.mockRestore();
+    }
   });
 
   describe('OTLPTraceExporter', () => {
