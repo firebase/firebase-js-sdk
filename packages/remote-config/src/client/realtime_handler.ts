@@ -237,10 +237,9 @@ export class RealtimeHandler {
   }
 
   private async createRealtimeConnection(): Promise<Response> {
-    const [installationId, installationTokenResult] = await Promise.all([
-      this.firebaseInstallations.getId(),
-      this.firebaseInstallations.getToken(false)
-    ]);
+    const installationTokenResult =
+      await this.firebaseInstallations.getToken(false);
+    const installationId = await this.firebaseInstallations.getId();
     this.controller = new AbortController();
     const url = this.getRealtimeUrl();
     const realtimeConnection = await this.establishRealtimeConnection(
