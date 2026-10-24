@@ -21,13 +21,14 @@ import {
   Token
 } from '../../../src/api/credentials';
 import { DatabaseId } from '../../../src/core/database_info';
+import { Transaction } from '../../../src/core/transaction';
 import { ResourcePath } from '../../../src/model/path';
 import { Connection, Stream } from '../../../src/remote/connection';
 import {
   Datastore,
-  newDatastore,
+  invokeBatchGetDocumentsRpc,
   invokeCommitRpc,
-  invokeBatchGetDocumentsRpc
+  newDatastore
 } from '../../../src/remote/datastore';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { Code, FirestoreError } from '../../../src/util/error';
@@ -296,5 +297,56 @@ describe('Datastore', () => {
     });
     expect(authCredentials.invalidateTokenInvoked).toBe(true);
     expect(appCheckCredentials.invalidateTokenInvoked).toBe(true);
+  });
+
+  it('forwards isTransaction flag to Connection for transactional and non-transactional RPCs', async () => {
+    const connection = new MockConnection();
+    let lastRpcIsTransaction: boolean | undefined;
+    let lastStreamingRpcIsTransaction: boolean | undefined;
+
+    connection.invokeRPC = <Req, Resp>(
+      _rpcName: string,
+      _path: ResourcePath,
+      _request: Req,
+      _authToken: Token | null,
+      _appCheckToken: Token | null,
+      isTransaction?: boolean
+    ): Promise<Resp> => {
+      lastRpcIsTransaction = isTransaction;
+      return Promise.resolve({} as Resp);
+    };
+
+    connection.invokeStreamingRPC = <Req, Resp>(
+      _rpcName: string,
+      _path: ResourcePath,
+      _request: Req,
+      _authToken: Token | null,
+      _appCheckToken: Token | null,
+      _expectedResponseCount?: number,
+      isTransaction?: boolean
+    ): Promise<Resp[]> => {
+      lastStreamingRpcIsTransaction = isTransaction;
+      return Promise.resolve([]);
+    };
+
+    const datastore = newDatastore(
+      new EmptyAuthCredentialsProvider(),
+      new EmptyAppCheckTokenProvider(),
+      connection,
+      serializer
+    );
+
+    await invokeCommitRpc(datastore, []);
+    expect(lastRpcIsTransaction).toBe(false);
+
+    await invokeBatchGetDocumentsRpc(datastore, []);
+    expect(lastStreamingRpcIsTransaction).toBe(false);
+
+    const transaction = new Transaction(datastore);
+    await transaction.lookup([]);
+    expect(lastStreamingRpcIsTransaction).toBe(true);
+
+    await transaction.commit();
+    expect(lastRpcIsTransaction).toBe(true);
   });
 });
