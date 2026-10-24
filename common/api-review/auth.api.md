@@ -900,7 +900,9 @@ export interface UserInfo {
 
 // @public
 export interface UserMetadata {
+    readonly createdAt?: string | number;
     readonly creationTime?: string;
+    readonly lastLoginAt?: string | number;
     readonly lastSignInTime?: string;
 }
 
