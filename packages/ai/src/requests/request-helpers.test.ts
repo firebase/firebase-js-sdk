@@ -377,6 +377,78 @@ describe('request formatting methods', () => {
       expect(result.generationConfig?.speechConfig).to.deep.equal({});
     });
 
+    it('preserves speechMetadata on TextPart with speaker and style', () => {
+      const result = formatGenerateContentInput([
+        {
+          type: 'text',
+          text: 'Have a wonderful day!',
+          speechMetadata: {
+            speaker: 'Joe',
+            style: 'cheerful and friendly'
+          }
+        }
+      ]);
+      expect(result).to.deep.equal({
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                type: 'text',
+                text: 'Have a wonderful day!',
+                speechMetadata: {
+                  speaker: 'Joe',
+                  style: 'cheerful and friendly'
+                }
+              }
+            ]
+          }
+        ]
+      });
+    });
+
+    it('preserves partial speechMetadata (speaker only or style only) on TextPart', () => {
+      const result = formatGenerateContentInput({
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                type: 'text',
+                text: "How's it going today Jane?",
+                speechMetadata: {
+                  speaker: 'Joe'
+                }
+              },
+              {
+                type: 'text',
+                text: 'Have a wonderful day!',
+                speechMetadata: {
+                  style: 'cheerful and friendly'
+                }
+              }
+            ]
+          }
+        ]
+      });
+      expect(result.contents[0].parts).to.deep.equal([
+        {
+          type: 'text',
+          text: "How's it going today Jane?",
+          speechMetadata: {
+            speaker: 'Joe'
+          }
+        },
+        {
+          type: 'text',
+          text: 'Have a wonderful day!',
+          speechMetadata: {
+            style: 'cheerful and friendly'
+          }
+        }
+      ]);
+    });
+
     it('formats fileData as part if provided as part', () => {
       const result = formatGenerateContentInput([
         'What is this?',
@@ -413,6 +485,27 @@ describe('request formatting methods', () => {
       const original: Part = { type: 'text', text: 'hello' };
       const stripped = stripPartType(original);
       expect(stripped).to.deep.equal({ text: 'hello' });
+      expect(stripped).to.not.have.property('type');
+      expect(original).to.have.property('type', 'text');
+    });
+
+    it('strips type from TextPart with speechMetadata and preserves speechMetadata', () => {
+      const original: Part = {
+        type: 'text',
+        text: 'Hello, world!',
+        speechMetadata: {
+          speaker: 'Joe',
+          style: 'cheerful'
+        }
+      };
+      const stripped = stripPartType(original);
+      expect(stripped).to.deep.equal({
+        text: 'Hello, world!',
+        speechMetadata: {
+          speaker: 'Joe',
+          style: 'cheerful'
+        }
+      });
       expect(stripped).to.not.have.property('type');
       expect(original).to.have.property('type', 'text');
     });
