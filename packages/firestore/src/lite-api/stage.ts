@@ -881,9 +881,6 @@ type InternalSearchOptions = {
   queryEnhancement?: QueryEnhancement;
 };
 
-/**
- * @beta
- */
 export class Search extends Stage {
   constructor(private _searchOptions: InternalSearchOptions) {
     super(_searchOptions);
