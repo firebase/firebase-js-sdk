@@ -20,7 +20,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [currentDocument()](./firestore_lite_pipelines.md#currentdocument) | Creates an expression that represents the current document being processed. |
 |  [currentTimestamp()](./firestore_lite_pipelines.md#currenttimestamp) | Creates an expression that evaluates to the current server timestamp. |
 |  [rand()](./firestore_lite_pipelines.md#rand) | Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0. |
-|  [score()](./firestore_lite_pipelines.md#score) | <b><i>(Public Preview)</i></b> Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: <code>documentMatches</code>) in the search query. If <code>SearchOptions.query</code> is not set or does not contain any text predicates, then this topicality score will always be <code>0</code>. |
+|  [score()](./firestore_lite_pipelines.md#score) | Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: <code>documentMatches</code>) in the search query. If <code>SearchStageOptions.query</code> is not set or does not contain any text predicates, then this topicality score will always be <code>0</code>. |
 |  <b>function(array, ...)</b> |
 |  [arrayContains(array, element)](./firestore_lite_pipelines.md#arraycontains_a00ea48) | Creates an expression that checks if an array expression contains a specific element. |
 |  [arrayContains(array, element)](./firestore_lite_pipelines.md#arraycontains_7328608) | Creates an expression that checks if an array expression contains a specific element. |
@@ -213,7 +213,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [exp(fieldName)](./firestore_lite_pipelines.md#exp_e5b0480) | Creates an expression that computes e to the power of the expression's result. |
 |  [first(fieldName)](./firestore_lite_pipelines.md#first_e5b0480) | Creates an aggregation that finds the first value of a field across multiple stage inputs. |
 |  [floor(fieldName)](./firestore_lite_pipelines.md#floor_e5b0480) | Creates an expression that computes the floor of a numeric value. |
-|  [geoDistance(fieldName, location)](./firestore_lite_pipelines.md#geodistance_ea237a8) | <b><i>(Public Preview)</i></b> Evaluates to the distance in meters between the location in the specified field and the query location. |
+|  [geoDistance(fieldName, location)](./firestore_lite_pipelines.md#geodistance_ea237a8) | Evaluates to the distance in meters between the location in the specified field and the query location. |
 |  [greaterThan(fieldName, expression)](./firestore_lite_pipelines.md#greaterthan_1e91657) | Creates an expression that checks if a field's value is greater than an expression. |
 |  [greaterThan(fieldName, value)](./firestore_lite_pipelines.md#greaterthan_65e2f32) | Creates an expression that checks if a field's value is greater than a constant value. |
 |  [greaterThanOrEqual(fieldName, value)](./firestore_lite_pipelines.md#greaterthanorequal_2e16acb) | Creates an expression that checks if a field's value is greater than or equal to an expression. |
@@ -351,14 +351,15 @@ https://github.com/firebase/firebase-js-sdk
 |  [field(name)](./firestore_lite_pipelines.md#field_1eaaff4) | Creates a [Field](./firestore_pipelines.field.md#field_class) instance representing the field at the given path.<!-- -->The path can be a simple field name (e.g., "name") or a dot-separated path to a nested field (e.g., "address.city"). |
 |  [variable(name)](./firestore_lite_pipelines.md#variable_1eaaff4) | Creates an expression that retrieves the value of a variable bound via <code>define()</code>. |
 |  <b>function(options, ...)</b> |
+|  [execute(options)](./firestore_lite_pipelines.md#execute_9e87e31) | Executes a pipeline and returns a Promise that represents the asynchronous operation.<!-- -->The returned Promise can be used to track the progress of the pipeline execution and retrieve the results (or handle any errors) asynchronously.<!-- -->The pipeline results are returned as a [PipelineSnapshot](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) that contains a list of [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects. Each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) typically represents a single key-value map that has passed through all the stages of the pipeline; however, this might differ depending on the stages involved in the pipeline. For example:<ul> <li>If there are no stages or only transformation stages, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a single document.</li> <li>If there is an aggregation, only a single [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) is returned, representing the aggregated results over the entire dataset.</li> <li>If there is an aggregation stage with grouping, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a distinct group and its associated aggregated values.</li> </ul> |
 |  [subcollection(options)](./firestore_lite_pipelines.md#subcollection_104dbc5) | Creates a new Pipeline targeted at a subcollection relative to the current document context. This creates a pipeline without a database instance, suitable for embedding as a subquery. If executed directly, this pipeline will fail. |
 |  <b>function(path, ...)</b> |
 |  [field(path)](./firestore_lite_pipelines.md#field_34ee07d) | Creates a [Field](./firestore_pipelines.field.md#field_class) instance representing the field at the given path. |
 |  [subcollection(path)](./firestore_lite_pipelines.md#subcollection_fe1f8e4) | Creates a new Pipeline targeted at a subcollection relative to the current document context. This creates a pipeline without a database instance, suitable for embedding as a subquery. If executed directly, this pipeline will fail. |
 |  <b>function(pipeline, ...)</b> |
-|  [execute(pipeline)](./firestore_lite_pipelines.md#execute_01df620) | Executes this pipeline and returns a Promise to represent the asynchronous operation.<!-- -->The returned Promise can be used to track the progress of the pipeline execution and retrieve the results (or handle any errors) asynchronously.<!-- -->The pipeline results are returned as a [PipelineSnapshot](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) that contains a list of [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects. Each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) typically represents a single key/value map that has passed through all the stages of the pipeline, however this might differ depending on the stages involved in the pipeline. For example:<ul> <li>If there are no stages or only transformation stages, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a single document.</li> <li>If there is an aggregation, only a single [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) is returned, representing the aggregated results over the entire dataset .</li> <li>If there is an aggregation stage with grouping, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a distinct group and its associated aggregated values.</li> </ul> |
+|  [execute(pipeline)](./firestore_lite_pipelines.md#execute_01df620) | Executes a pipeline and returns a Promise that represents the asynchronous operation.<!-- -->The returned Promise can be used to track the progress of the pipeline execution and retrieve the results (or handle any errors) asynchronously.<!-- -->The pipeline results are returned as a [PipelineSnapshot](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) that contains a list of [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects. Each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) typically represents a single key-value map that has passed through all the stages of the pipeline; however, this might differ depending on the stages involved in the pipeline. For example:<ul> <li>If there are no stages or only transformation stages, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a single document.</li> <li>If there is an aggregation, only a single [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) is returned, representing the aggregated results over the entire dataset.</li> <li>If there is an aggregation stage with grouping, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a distinct group and its associated aggregated values.</li> </ul> |
 |  <b>function(rquery, ...)</b> |
-|  [documentMatches(rquery)](./firestore_lite_pipelines.md#documentmatches_d7a12c2) | <b><i>(Public Preview)</i></b> Perform a full-text search on all indexed search fields in the document. |
+|  [documentMatches(rquery)](./firestore_lite_pipelines.md#documentmatches_d7a12c2) | Perform a full-text search on all indexed search fields in the document. |
 |  <b>function(stringExpression, ...)</b> |
 |  [charLength(stringExpression)](./firestore_lite_pipelines.md#charlength_c25a54a) | Creates an expression that calculates the character length of a string expression in UTF-8. |
 |  [endsWith(stringExpression, suffix)](./firestore_lite_pipelines.md#endswith_0a0b889) | Creates an expression that checks if a string expression ends with a given postfix. |
@@ -440,6 +441,7 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Interface | Description |
 |  --- | --- |
+|  [PipelineExecuteOptions](./firestore_lite_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptions_interface) | Options defining Pipeline execution. |
 |  [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) | An interface that represents a selectable expression. |
 
 ## Type Aliases
@@ -452,17 +454,20 @@ https://github.com/firebase/firebase-js-sdk
 |  [CollectionStageOptions](./firestore_lite_pipelines.md#collectionstageoptions) | Options defining how a CollectionStage is evaluated. See [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->. |
 |  [DatabaseStageOptions](./firestore_lite_pipelines.md#databasestageoptions) | Options defining how a DatabaseStage is evaluated. See [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->. |
 |  [DefineStageOptions](./firestore_lite_pipelines.md#definestageoptions) | Options defining how a DefineStage is evaluated. See [Pipeline.define()](./firestore_pipelines.pipeline.md#pipelinedefine)<!-- -->. |
+|  [DeleteStageOptions](./firestore_lite_pipelines.md#deletestageoptions) | Options for defining a <code>delete</code> stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->. |
 |  [DistinctStageOptions](./firestore_lite_pipelines.md#distinctstageoptions) | Options defining how a DistinctStage is evaluated. See [Pipeline.distinct()](./firestore_pipelines.pipeline.md#pipelinedistinct)<!-- -->. |
 |  [DocumentsStageOptions](./firestore_lite_pipelines.md#documentsstageoptions) | Options defining how a DocumentsStage is evaluated. See [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->. |
 |  [ExpressionType](./firestore_lite_pipelines.md#expressiontype) | An enumeration of the different types of expressions. |
 |  [FindNearestStageOptions](./firestore_lite_pipelines.md#findneareststageoptions) | Options defining how a FindNearestStage is evaluated. See [Pipeline.findNearest()](./firestore_pipelines.pipeline.md#pipelinefindnearest)<!-- -->. |
+|  [InsertStageOptions](./firestore_lite_pipelines.md#insertstageoptions) | Options for defining an <code>insert</code> stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.<!-- -->The target document path for each inserted document is determined by the combination of <code>collection</code> and <code>documentIdExpression</code>: - \*\*Neither set:\*\* Inserts each document at its existing <code>__name__</code> path. If an input document does not have a <code>__name__</code> field (for example, when inputs come from [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) without <code>__name__</code> or after <code>.removeFields('__name__')</code>), the operation fails. - \*\*<code>collection</code> only:\*\* Inserts into <code>collection</code>. If the input document has a <code>__name__</code> field, its document ID is reused; otherwise a new document ID is auto-generated (for example, when inputs come from [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) or after <code>.removeFields('__name__')</code>). - \*\*<code>documentIdExpression</code> only:\*\* Inserts into the input document's parent collection using the evaluated document ID. Requires each input document to have a <code>__name__</code> field; otherwise the operation fails. - \*\*Both <code>collection</code> and <code>documentIdExpression</code> set:\*\* Inserts into <code>collection</code> using the evaluated document ID.<!-- -->The operation fails if a document already exists at any target path. In particular, setting neither <code>collection</code> nor <code>documentIdExpression</code> fails for documents read from the database, because they already exist at their <code>__name__</code> path. |
 |  [LimitStageOptions](./firestore_lite_pipelines.md#limitstageoptions) | Options defining how a LimitStage is evaluated. See [Pipeline.limit()](./firestore_pipelines.pipeline.md#pipelinelimit)<!-- -->. |
+|  [LiteralsStageOptions](./firestore_lite_pipelines.md#literalsstageoptions) | Options for defining a <code>literals</code> stage on a [PipelineSource](./firestore_pipelines.pipelinesource.md#pipelinesource_class)<!-- -->. |
 |  [OffsetStageOptions](./firestore_lite_pipelines.md#offsetstageoptions) | Options defining how an OffsetStage is evaluated. See [Pipeline.offset()](./firestore_pipelines.pipeline.md#pipelineoffset)<!-- -->. |
 |  [OneOf](./firestore_lite_pipelines.md#oneof) | Utility type to create an type that only allows one property of the Type param T to be set. |
 |  [RemoveFieldsStageOptions](./firestore_lite_pipelines.md#removefieldsstageoptions) | Options defining how a RemoveFieldsStage is evaluated. See [Pipeline.removeFields()](./firestore_pipelines.pipeline.md#pipelineremovefields)<!-- -->. |
 |  [ReplaceWithStageOptions](./firestore_lite_pipelines.md#replacewithstageoptions) | Options defining how a ReplaceWithStage is evaluated. See [Pipeline.replaceWith()](./firestore_pipelines.pipeline.md#pipelinereplacewith)<!-- -->. |
 |  [SampleStageOptions](./firestore_lite_pipelines.md#samplestageoptions) | Defines the options for evaluating a sample stage within a pipeline. This type combines common [StageOptions](./firestore_pipelines.md#stageoptions) with a specific configuration where only one of the defined sampling methods can be applied.<!-- -->See [Pipeline.sample()](./firestore_pipelines.pipeline.md#pipelinesample) to create a sample stage.. |
-|  [SearchStageOptions](./firestore_lite_pipelines.md#searchstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a search stage is evaluated. See [Pipeline.search()](./firestore_pipelines.pipeline.md#pipelinesearch)<!-- -->. |
+|  [SearchStageOptions](./firestore_lite_pipelines.md#searchstageoptions) | Options defining how a search stage is evaluated. See [Pipeline.search()](./firestore_pipelines.pipeline.md#pipelinesearch)<!-- -->. |
 |  [SelectStageOptions](./firestore_lite_pipelines.md#selectstageoptions) | Options defining how a SelectStage is evaluated. See [Pipeline.select()](./firestore_pipelines.pipeline.md#pipelineselect)<!-- -->. |
 |  [SortStageOptions](./firestore_lite_pipelines.md#sortstageoptions) | Options defining how a SortStage is evaluated. See [Pipeline.sort()](./firestore_pipelines.pipeline.md#pipelinesort)<!-- -->. |
 |  [StageOptions](./firestore_lite_pipelines.md#stageoptions) | Options defining how a Stage is evaluated. |
@@ -472,6 +477,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [TimeUnit](./firestore_lite_pipelines.md#timeunit) | Specify time units for expressions. |
 |  [UnionStageOptions](./firestore_lite_pipelines.md#unionstageoptions) | Options defining how a UnionStage is evaluated. See [Pipeline.union()](./firestore_pipelines.pipeline.md#pipelineunion)<!-- -->. |
 |  [UnnestStageOptions](./firestore_lite_pipelines.md#unneststageoptions) | Represents the specific options available for configuring an <code>UnnestStage</code> within a pipeline. |
+|  [UpdateStageOptions](./firestore_lite_pipelines.md#updatestageoptions) | Options for defining an <code>update</code> stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.<!-- -->Each input document is updated in place at the path specified by its <code>__name__</code> field. If an input document does not have a <code>__name__</code> field (for example, when inputs come from [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) without <code>__name__</code> or after <code>.removeFields('__name__')</code>), the operation fails.<!-- -->The <code>update</code> stage does not create documents. If the document at an input document's <code>__name__</code> path does not exist, the input document is skipped and is not counted in <code>documents_modified</code>. When the pipeline is executed with <code>atomic: true</code>, the pipeline instead fails with a <code>NOT_FOUND</code> error and no documents are updated. |
+|  [UpsertStageOptions](./firestore_lite_pipelines.md#upsertstageoptions) | Options for defining an <code>upsert</code> stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.<!-- -->The target document path for each upserted document is determined by the combination of <code>collection</code> and <code>documentIdExpression</code>: - \*\*Neither set:\*\* Upserts each input document in place at its existing <code>__name__</code> path. If an input document does not have a <code>__name__</code> field (for example, when inputs come from [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) without <code>__name__</code> or after <code>.removeFields('__name__')</code>), the operation fails. - \*\*<code>collection</code> only:\*\* Upserts into <code>collection</code>. If the input document has a <code>__name__</code> field, its document ID is reused; otherwise a new document ID is auto-generated (for example, when inputs come from [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) or after <code>.removeFields('__name__')</code>). - \*\*Both <code>collection</code> and <code>documentIdExpression</code> set:\*\* Upserts into <code>collection</code> using the evaluated document ID.<!-- -->If no document exists at the target path, it is created. If one exists, it is replaced entirely by the written document; existing fields are not merged. |
 |  [WhereStageOptions](./firestore_lite_pipelines.md#wherestageoptions) | Options defining how a WhereStage is evaluated. See [Pipeline.where()](./firestore_pipelines.pipeline.md#pipelinewhere)<!-- -->. |
 
 ## function()
@@ -577,10 +584,7 @@ rand();
 
 ### score() {:#score}
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: `documentMatches`<!-- -->) in the search query. If `SearchOptions.query` is not set or does not contain any text predicates, then this topicality score will always be `0`<!-- -->.
+Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: `documentMatches`<!-- -->) in the search query. If `SearchStageOptions.query` is not set or does not contain any text predicates, then this topicality score will always be `0`<!-- -->.
 
 This Expression can only be used within a `search` stage.
 
@@ -6547,9 +6551,6 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ### geoDistance(fieldName, location) {:#geodistance_ea237a8}
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Evaluates to the distance in meters between the location in the specified field and the query location.
 
 This Expression can only be used within a `search` stage.
@@ -10923,6 +10924,51 @@ db.pipeline().collection("products")
 
 ## function(options, ...)
 
+### execute(options) {:#execute_9e87e31}
+
+Executes a pipeline and returns a Promise that represents the asynchronous operation.
+
+The returned Promise can be used to track the progress of the pipeline execution and retrieve the results (or handle any errors) asynchronously.
+
+The pipeline results are returned as a [PipelineSnapshot](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) that contains a list of [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects. Each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) typically represents a single key-value map that has passed through all the stages of the pipeline; however, this might differ depending on the stages involved in the pipeline. For example:
+
+<ul> <li>If there are no stages or only transformation stages, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a single document.</li> <li>If there is an aggregation, only a single [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) is returned, representing the aggregated results over the entire dataset.</li> <li>If there is an aggregation stage with grouping, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a distinct group and its associated aggregated values.</li> </ul>
+
+<b>Signature:</b>
+
+```typescript
+export declare function execute(
+  options: PipelineExecuteOptions
+): Promise<PipelineSnapshot>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | [PipelineExecuteOptions](./firestore_lite_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptions_interface) | Specifies the pipeline to execute and other execution options. |
+
+<b>Returns:</b>
+
+Promise&lt;[PipelineSnapshot](./firestore_lite_pipelines.pipelinesnapshot.md#pipelinesnapshot_class)<!-- -->&gt;
+
+A Promise representing the asynchronous pipeline execution.
+
+### Example
+
+
+```typescript
+const snapshot: PipelineSnapshot = await execute({
+  pipeline: firestore.pipeline().collection("books")
+    .where(lessThan(field("rating"), 2))
+    .delete(),
+  atomic: true
+});
+
+const results: PipelineResult[] = snapshot.results;
+
+```
+
 ### subcollection(options) {:#subcollection_104dbc5}
 
 Creates a new Pipeline targeted at a subcollection relative to the current document context. This creates a pipeline without a database instance, suitable for embedding as a subquery. If executed directly, this pipeline will fail.
@@ -10993,13 +11039,13 @@ export declare function subcollection(path: string): Pipeline;
 
 ### execute(pipeline) {:#execute_01df620}
 
-Executes this pipeline and returns a Promise to represent the asynchronous operation.
+Executes a pipeline and returns a Promise that represents the asynchronous operation.
 
 The returned Promise can be used to track the progress of the pipeline execution and retrieve the results (or handle any errors) asynchronously.
 
-The pipeline results are returned as a [PipelineSnapshot](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) that contains a list of [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects. Each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) typically represents a single key/value map that has passed through all the stages of the pipeline, however this might differ depending on the stages involved in the pipeline. For example:
+The pipeline results are returned as a [PipelineSnapshot](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) that contains a list of [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects. Each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) typically represents a single key-value map that has passed through all the stages of the pipeline; however, this might differ depending on the stages involved in the pipeline. For example:
 
-<ul> <li>If there are no stages or only transformation stages, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a single document.</li> <li>If there is an aggregation, only a single [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) is returned, representing the aggregated results over the entire dataset .</li> <li>If there is an aggregation stage with grouping, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a distinct group and its associated aggregated values.</li> </ul>
+<ul> <li>If there are no stages or only transformation stages, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a single document.</li> <li>If there is an aggregation, only a single [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) is returned, representing the aggregated results over the entire dataset.</li> <li>If there is an aggregation stage with grouping, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a distinct group and its associated aggregated values.</li> </ul>
 
 <b>Signature:</b>
 
@@ -11024,19 +11070,16 @@ A Promise representing the asynchronous pipeline execution.
 
 ```typescript
 const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
-    .where(gt(field("rating"), 4.5))
+    .where(greaterThan(field("rating"), 4.5))
     .select("title", "author", "rating"));
 
-const results: PipelineResults = snapshot.results;
+const results: PipelineResult[] = snapshot.results;
 
 ```
 
 ## function(rquery, ...)
 
 ### documentMatches(rquery) {:#documentmatches_d7a12c2}
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Perform a full-text search on all indexed search fields in the document.
 
@@ -12897,6 +12940,16 @@ export declare type DefineStageOptions = StageOptions & {
 };
 ```
 
+## DeleteStageOptions
+
+Options for defining a `delete` stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare type DeleteStageOptions = StageOptions;
+```
+
 ## DistinctStageOptions
 
 Options defining how a DistinctStage is evaluated. See [Pipeline.distinct()](./firestore_pipelines.pipeline.md#pipelinedistinct)<!-- -->.
@@ -12955,6 +13008,23 @@ export declare type FindNearestStageOptions = StageOptions & {
 };
 ```
 
+## InsertStageOptions
+
+Options for defining an `insert` stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.
+
+The target document path for each inserted document is determined by the combination of `collection` and `documentIdExpression`<!-- -->: - \*\*Neither set:\*\* Inserts each document at its existing `__name__` path. If an input document does not have a `__name__` field (for example, when inputs come from [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) without `__name__` or after `.removeFields('__name__')`<!-- -->), the operation fails. - \*\*`collection` only:\*\* Inserts into `collection`<!-- -->. If the input document has a `__name__` field, its document ID is reused; otherwise a new document ID is auto-generated (for example, when inputs come from [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) or after `.removeFields('__name__')`<!-- -->). - \*\*`documentIdExpression` only:\*\* Inserts into the input document's parent collection using the evaluated document ID. Requires each input document to have a `__name__` field; otherwise the operation fails. - \*\*Both `collection` and `documentIdExpression` set:\*\* Inserts into `collection` using the evaluated document ID.
+
+The operation fails if a document already exists at any target path. In particular, setting neither `collection` nor `documentIdExpression` fails for documents read from the database, because they already exist at their `__name__` path.
+
+<b>Signature:</b>
+
+```typescript
+export declare type InsertStageOptions = StageOptions & {
+  collection?: string | CollectionReference;
+  documentIdExpression?: string | Expression;
+};
+```
+
 ## LimitStageOptions
 
 Options defining how a LimitStage is evaluated. See [Pipeline.limit()](./firestore_pipelines.pipeline.md#pipelinelimit)<!-- -->.
@@ -12964,6 +13034,18 @@ Options defining how a LimitStage is evaluated. See [Pipeline.limit()](./firesto
 ```typescript
 export declare type LimitStageOptions = StageOptions & {
   limit: number;
+};
+```
+
+## LiteralsStageOptions
+
+Options for defining a `literals` stage on a [PipelineSource](./firestore_pipelines.pipelinesource.md#pipelinesource_class)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare type LiteralsStageOptions = StageOptions & {
+  documents: Array<Record<string, unknown>>;
 };
 ```
 
@@ -13045,9 +13127,6 @@ export declare type SampleStageOptions = StageOptions &
 ```
 
 ## SearchStageOptions
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Options defining how a search stage is evaluated. See [Pipeline.search()](./firestore_pipelines.pipeline.md#pipelinesearch)<!-- -->.
 
@@ -13187,6 +13266,40 @@ Represents the specific options available for configuring an `UnnestStage` withi
 export declare type UnnestStageOptions = StageOptions & {
   selectable: Selectable;
   indexField?: string;
+};
+```
+
+## UpdateStageOptions
+
+Options for defining an `update` stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.
+
+Each input document is updated in place at the path specified by its `__name__` field. If an input document does not have a `__name__` field (for example, when inputs come from [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) without `__name__` or after `.removeFields('__name__')`<!-- -->), the operation fails.
+
+The `update` stage does not create documents. If the document at an input document's `__name__` path does not exist, the input document is skipped and is not counted in `documents_modified`<!-- -->. When the pipeline is executed with `atomic: true`<!-- -->, the pipeline instead fails with a `NOT_FOUND` error and no documents are updated.
+
+<b>Signature:</b>
+
+```typescript
+export declare type UpdateStageOptions = StageOptions & {
+  transformedFields?: AliasedExpression[];
+};
+```
+
+## UpsertStageOptions
+
+Options for defining an `upsert` stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.
+
+The target document path for each upserted document is determined by the combination of `collection` and `documentIdExpression`<!-- -->: - \*\*Neither set:\*\* Upserts each input document in place at its existing `__name__` path. If an input document does not have a `__name__` field (for example, when inputs come from [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) without `__name__` or after `.removeFields('__name__')`<!-- -->), the operation fails. - \*\*`collection` only:\*\* Upserts into `collection`<!-- -->. If the input document has a `__name__` field, its document ID is reused; otherwise a new document ID is auto-generated (for example, when inputs come from [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) or after `.removeFields('__name__')`<!-- -->). - \*\*Both `collection` and `documentIdExpression` set:\*\* Upserts into `collection` using the evaluated document ID.
+
+If no document exists at the target path, it is created. If one exists, it is replaced entirely by the written document; existing fields are not merged.
+
+<b>Signature:</b>
+
+```typescript
+export declare type UpsertStageOptions = StageOptions & {
+  collection?: string | CollectionReference;
+  documentIdExpression?: string | Expression;
+  additionalFields?: AliasedExpression[];
 };
 ```
 

@@ -35,6 +35,40 @@ function getConcurrency() {
 
 const maxForks = getConcurrency();
 
+/**
+ * Wraps the Playwright browser provider so that when a session uses `vi.mock()`,
+ * its `BrowserContext` registers a permanent no-op route on the first mock
+ * registration. This keeps Playwright's request interception (`Fetch.enable`
+ * and `Network.setCacheDisabled(true)`) active across `mocker.clear()` calls
+ * between test files in that session, without enabling network interception
+ * for suites that never call `vi.mock()` (such as `@firebase/firestore`
+ * live backend integration tests).
+ */
+function createPlaywrightProvider(options) {
+  const baseProvider = playwright(options);
+  return {
+    ...baseProvider,
+    providerFactory(project) {
+      const provider = baseProvider.providerFactory(project);
+      if (provider.mocker) {
+        const routedSessions = new Set();
+        const register = provider.mocker.register.bind(provider.mocker);
+        provider.mocker.register = async (sessionId, module) => {
+          if (!routedSessions.has(sessionId)) {
+            routedSessions.add(sessionId);
+            await provider
+              .getPage(sessionId)
+              .context()
+              .route(/^$/, route => route.continue());
+          }
+          return register(sessionId, module);
+        };
+      }
+      return provider;
+    }
+  };
+}
+
 export function createBaseConfig(importMetaUrl, customConfig = {}) {
   const packageDir = typeof importMetaUrl === 'string'
     ? (importMetaUrl.startsWith('file:') ? path.dirname(fileURLToPath(importMetaUrl)) : importMetaUrl)
@@ -54,7 +88,7 @@ export function createBaseConfig(importMetaUrl, customConfig = {}) {
             globals: true,
             environment: 'node',
             pool: 'forks',
-            forks: { maxForks },
+            maxWorkers: maxForks,
             isolate: true,
             passWithNoTests: false,
             include: ['test/**/*.test.ts', 'src/**/*.test.ts'],
@@ -63,12 +97,34 @@ export function createBaseConfig(importMetaUrl, customConfig = {}) {
           }
         },
         {
+          plugins: [
+            {
+              name: 'disable-vite-etag-cache',
+              configureServer(server) {
+                server.middlewares.use((req, res, next) => {
+                  delete req.headers['if-none-match'];
+                  res.setHeader('Cache-Control', 'no-store');
+                  next();
+                });
+              }
+            }
+          ],
+          server: {
+            headers: {
+              'Cache-Control': 'no-store'
+            }
+          },
           test: {
             name: 'browser',
             globals: true,
+            maxWorkers: maxForks,
             browser: {
               enabled: true,
-              provider: playwright(),
+              provider: createPlaywrightProvider({
+                launchOptions: {
+                  args: ['--disk-cache-size=1', '--media-cache-size=1']
+                }
+              }),
               instances: [
                 { browser: 'chromium' }
               ],

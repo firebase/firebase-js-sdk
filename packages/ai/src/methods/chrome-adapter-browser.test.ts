@@ -561,7 +561,7 @@ describe('ChromeAdapter', () => {
       // Asserts initialization params are proxied.
       expect(createStub).toHaveBeenCalledTimes(1);
       expect(createStub).toHaveBeenCalledWith(createOptions);
-      // Asserts Vertex input type is mapped to Chrome type.
+      // Asserts Gemini input type is mapped to Chrome type.
       expect(promptStub).toHaveBeenCalledTimes(1);
       expect(promptStub).toHaveBeenCalledWith(
         [
@@ -684,7 +684,7 @@ describe('ChromeAdapter', () => {
       // Asserts initialization params are proxied.
       expect(createStub).toHaveBeenCalledTimes(1);
       expect(createStub).toHaveBeenCalledWith(createOptions);
-      // Asserts Vertex input type is mapped to Chrome type.
+      // Asserts Gemini input type is mapped to Chrome type.
       expect(promptStub).toHaveBeenCalledTimes(1);
       expect(promptStub).toHaveBeenCalledWith(
         [
@@ -782,7 +782,7 @@ describe('ChromeAdapter', () => {
       expect(promptStub).toHaveBeenCalledWith(
         [
           {
-            // Asserts Vertex's "model" role normalized to Chrome's "assistant" role.
+            // Asserts Gemini's "model" role normalized to Chrome's "assistant" role.
             role: 'assistant',
             content: [
               {
@@ -1079,7 +1079,7 @@ describe('ChromeAdapter', () => {
       expect(promptStub).toHaveBeenCalledWith(
         [
           {
-            // Asserts Vertex's "model" role normalized to Chrome's "assistant" role.
+            // Asserts Gemini's "model" role normalized to Chrome's "assistant" role.
             role: 'assistant',
             content: [
               {

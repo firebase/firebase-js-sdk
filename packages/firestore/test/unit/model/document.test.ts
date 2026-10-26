@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   Bytes,
@@ -44,14 +42,14 @@ describe('Document', () => {
     const document = doc('rooms/Eros', 1, data);
 
     const value = document.data;
-    expect(value.value).to.deep.equal(
+    expect(value.value).toEqual(
       wrap({
         desc: 'Discuss all the project related stuff',
         owner: 'Jonny'
       })
     );
-    expect(value).not.to.equal(data);
-    expect(document.hasLocalMutations).to.equal(false);
+    expect(value).not.toBe(data);
+    expect(document.hasLocalMutations).toBe(false);
   });
 
   it('can be constructed with bson types', () => {
@@ -68,7 +66,7 @@ describe('Document', () => {
     const document = doc('rooms/Eros', 1, data);
 
     const value = document.data;
-    expect(value.value).to.deep.equal(
+    expect(value.value).toEqual(
       wrap({
         objectId: new BsonObjectId('foo'),
         binary: Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1),
@@ -80,8 +78,8 @@ describe('Document', () => {
         decimal128: new Decimal128Value('1.2e3')
       })
     );
-    expect(value).not.to.equal(data);
-    expect(document.hasLocalMutations).to.equal(false);
+    expect(value).not.toBe(data);
+    expect(document.hasLocalMutations).toBe(false);
   });
 
   it('returns fields correctly', () => {
@@ -91,17 +89,17 @@ describe('Document', () => {
     };
     const document = doc('rooms/Eros', 1, data).setHasLocalMutations();
 
-    expect(document.data.field(field('desc'))).to.deep.equal(
+    expect(document.data.field(field('desc'))).toEqual(
       wrap('Discuss all the project related stuff')
     );
-    expect(document.data.field(field('owner.title'))).to.deep.equal(
+    expect(document.data.field(field('owner.title'))).toEqual(
       wrap('scallywag')
     );
-    expect(document.hasLocalMutations).to.equal(true);
+    expect(document.hasLocalMutations).toBe(true);
   });
 
   it('equals to other same documents', () => {
-    expect(doc('a/b', 0, {}).isEqual(null)).to.equal(false);
+    expect(doc('a/b', 0, {}).isEqual(null)).toBe(false);
 
     expectEqual(doc('a/b', 3, { foo: 'bar' }), doc('a/b', 3, { foo: 'bar' }));
     expectEqual(doc('a/b', 1, { foo: NaN }), doc('a/b', 1, { foo: NaN }));

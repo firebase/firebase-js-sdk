@@ -21,6 +21,7 @@ import {
   Stage as ProtoStage
 } from '../protos/firestore_proto_api';
 import { JsonProtoSerializer, ProtoSerializable } from '../remote/serializer';
+import { Code, FirestoreError } from '../util/error';
 import { isPlainObject } from '../util/input_validation';
 import {
   aliasedAggregateToMap,
@@ -56,32 +57,39 @@ import {
   isAliasedExpr,
   documentMatches
 } from './expressions';
+import { CollectionReference, isCollectionReference } from './reference';
 import {
   AddFields,
   Aggregate,
+  Define,
+  Delete,
   Distinct,
   FindNearest,
-  RawStage,
+  Insert,
   Limit,
   Offset,
+  RawStage,
   RemoveFields,
   Replace,
   Sample,
+  Search,
   Select,
   Sort,
   Stage,
   Union,
   Unnest,
-  Where,
-  Define,
-  Search
+  Update,
+  Upsert,
+  Where
 } from './stage';
 import {
   AddFieldsStageOptions,
   AggregateStageOptions,
   DefineStageOptions,
+  DeleteStageOptions,
   DistinctStageOptions,
   FindNearestStageOptions,
+  InsertStageOptions,
   LimitStageOptions,
   OffsetStageOptions,
   RemoveFieldsStageOptions,
@@ -93,6 +101,8 @@ import {
   StageOptions,
   UnionStageOptions,
   UnnestStageOptions,
+  UpdateStageOptions,
+  UpsertStageOptions,
   WhereStageOptions
 } from './stage_options';
 import { UserDataReader, UserData } from './user_data_reader';
@@ -1085,7 +1095,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *
    * @param options - An object that specifies parameters for the stage.
    * @return A new `Pipeline` object with this stage appended to the stage list.
-   * @beta
    */
   search(options: SearchStageOptions): Pipeline {
     // Convert user land convenience types to internal types
@@ -1570,6 +1579,178 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
 
     // Add stage to the pipeline
     return this._addStage(stage);
+  }
+
+  /**
+   * Performs a delete operation on documents from previous stages.
+   *
+   * @example
+   * ```typescript
+   * // Deletes all documents in the "books" collection matching condition.
+   * firestore.pipeline().collection("books")
+   *    .where(equal(field("genre"), "Science Fiction"))
+   *    .delete();
+   * ```
+   *
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  delete(): Pipeline;
+  /**
+   * Performs a delete operation on documents from previous stages with options.
+   *
+   * @param options - Options defining how this `DeleteStage` is evaluated.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  delete(options: DeleteStageOptions): Pipeline;
+  delete(options: DeleteStageOptions = {}): Pipeline {
+    return this._addStage(new Delete(options));
+  }
+
+  /**
+   * Performs an update operation using documents from previous stages.
+   *
+   * Each input document is written to the path in its `__name__` field. See
+   * {@link @firebase/firestore/pipelines#UpdateStageOptions} for details.
+   *
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  update(): Pipeline;
+  /**
+   * Performs an update operation using documents from previous stages.
+   *
+   * Each input document is written to the path in its `__name__` field. See
+   * {@link @firebase/firestore/pipelines#UpdateStageOptions} for details.
+   *
+   * @param transformedField - The first transformation to apply.
+   * @param additionalFields - Additional transformations to apply.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  update(
+    transformedField: AliasedExpression,
+    ...additionalFields: AliasedExpression[]
+  ): Pipeline;
+  /**
+   * Performs an update operation with options.
+   *
+   * @param options - Options defining how this `UpdateStage` is evaluated and specifying the fields to update or add to each document.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  update(options: UpdateStageOptions): Pipeline;
+  update(
+    transformedFieldOrOptions?: AliasedExpression | UpdateStageOptions,
+    ...additionalFields: AliasedExpression[]
+  ): Pipeline {
+    let fields: AliasedExpression[] | undefined;
+    let options: UpdateStageOptions = {};
+
+    if (isAliasedExpr(transformedFieldOrOptions)) {
+      fields = [transformedFieldOrOptions, ...additionalFields];
+    } else if (transformedFieldOrOptions) {
+      ({ transformedFields: fields, ...options } = transformedFieldOrOptions);
+    }
+
+    const mapped =
+      fields && fields.length > 0 ? selectablesToMap(fields) : undefined;
+    return this._addStage(new Update(mapped, options));
+  }
+
+  /**
+   * Performs an insert operation using documents from previous stages.
+   *
+   * Each input document is inserted at the path in its `__name__` field. The
+   * operation fails if a target document already exists. See
+   * {@link @firebase/firestore/pipelines#InsertStageOptions} for details.
+   *
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  insert(): Pipeline;
+  /**
+   * Performs an insert operation with options.
+   *
+   * The operation fails if a target document already exists. See
+   * {@link @firebase/firestore/pipelines#InsertStageOptions} for how the
+   * target path is determined.
+   *
+   * @param options - Options defining the collection and document ID.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  insert(options: InsertStageOptions): Pipeline;
+  insert(options: InsertStageOptions = {}): Pipeline {
+    this._validateCollectionReference(options.collection);
+    return this._addStage(new Insert(options));
+  }
+
+  /**
+   * Performs an upsert operation using documents from previous stages.
+   *
+   * Each input document is written to the path in its `__name__` field. See
+   * {@link @firebase/firestore/pipelines#UpsertStageOptions} for details.
+   *
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  upsert(): Pipeline;
+  /**
+   * Performs an upsert operation using documents from previous stages.
+   *
+   * Each input document is written to the path in its `__name__` field. See
+   * {@link @firebase/firestore/pipelines#UpsertStageOptions} for details.
+   *
+   * @param additionalField - The first additional field to apply.
+   * @param additionalFields - Additional fields to apply.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  upsert(
+    additionalField: AliasedExpression,
+    ...additionalFields: AliasedExpression[]
+  ): Pipeline;
+  /**
+   * Performs an upsert operation with options.
+   *
+   * See {@link @firebase/firestore/pipelines#UpsertStageOptions} for how the
+   * target path is determined.
+   *
+   * @param options - Options defining the target collection, document ID, and additional fields.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
+   */
+  upsert(options: UpsertStageOptions): Pipeline;
+  upsert(
+    fieldOrOptions?: AliasedExpression | UpsertStageOptions,
+    ...additionalFields: AliasedExpression[]
+  ): Pipeline {
+    let options: UpsertStageOptions = {};
+
+    if (isAliasedExpr(fieldOrOptions)) {
+      options = {
+        additionalFields: [fieldOrOptions, ...additionalFields]
+      };
+    } else if (fieldOrOptions) {
+      options = fieldOrOptions;
+    }
+
+    this._validateCollectionReference(options.collection);
+    return this._addStage(new Upsert(options));
+  }
+
+  /**
+   * Validates that a user provided `CollectionReference` targets the same
+   * Firestore database as this pipeline.
+   */
+  private _validateCollectionReference(
+    collection: string | CollectionReference | undefined
+  ): void {
+    if (!this._db || !isCollectionReference(collection)) {
+      return;
+    }
+    const refDbId = collection.firestore._databaseId;
+    const pipelineDbId = this._db._databaseId;
+    if (!refDbId.isEqual(pipelineDbId)) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid CollectionReference. ` +
+          `The project ID ("${refDbId.projectId}") or the database ("${refDbId.database}") does not match ` +
+          `the project ID ("${pipelineDbId.projectId}") and database ("${pipelineDbId.database}") of the target database of this Pipeline.`
+      );
+    }
   }
 
   /**

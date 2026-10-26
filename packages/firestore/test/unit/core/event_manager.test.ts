@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
-import * as sinon from 'sinon';
 
 import {
   eventManagerListen,
@@ -68,10 +65,10 @@ describe('EventManager', () => {
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
   beforeEach(() => {
-    onListenSpy = sinon.stub().returns(Promise.resolve(0));
-    onUnlistenSpy = sinon.spy();
-    onFirstRemoteStoreListenSpy = sinon.spy();
-    onLastRemoteStoreUnlistenSpy = sinon.spy();
+    onListenSpy = vi.fn().mockReturnValue(Promise.resolve(0));
+    onUnlistenSpy = vi.fn();
+    onFirstRemoteStoreListenSpy = vi.fn();
+    onLastRemoteStoreUnlistenSpy = vi.fn();
   });
 
   function eventManagerBindSpy(eventManager: EventManager): void {
@@ -92,16 +89,16 @@ describe('EventManager', () => {
     eventManagerBindSpy(eventManager);
 
     await eventManagerListen(eventManager, fakeListener1);
-    expect(onListenSpy.calledWith(query1)).to.be.true;
+    expect(onListenSpy.mock.calls[0][0]).toEqual(query1);
 
     await eventManagerListen(eventManager, fakeListener2);
-    expect(onListenSpy.callCount).to.equal(1);
+    expect(onListenSpy.mock.calls.length).toBe(1);
 
     await eventManagerUnlisten(eventManager, fakeListener2);
-    expect(onUnlistenSpy.callCount).to.equal(0);
+    expect(onUnlistenSpy.mock.calls.length).toBe(0);
 
     await eventManagerUnlisten(eventManager, fakeListener1);
-    expect(onUnlistenSpy.calledWith(query1)).to.be.true;
+    expect(onUnlistenSpy.mock.calls[0][0]).toEqual(query1);
   });
 
   it('handles unlisten on unknown listenable gracefully', async () => {
@@ -112,7 +109,7 @@ describe('EventManager', () => {
     eventManagerBindSpy(eventManager);
 
     await eventManagerUnlisten(eventManager, fakeListener1);
-    expect(onUnlistenSpy.callCount).to.equal(0);
+    expect(onUnlistenSpy.mock.calls.length).toBe(0);
   });
 
   it('notifies listenables in the right order', async () => {
@@ -139,7 +136,7 @@ describe('EventManager', () => {
     await eventManagerListen(eventManager, fakeListener1);
     await eventManagerListen(eventManager, fakeListener2);
     await eventManagerListen(eventManager, fakeListener3);
-    expect(onListenSpy.callCount).to.equal(2);
+    expect(onListenSpy.mock.calls.length).toBe(2);
 
     // mock ViewSnapshot.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -149,11 +146,7 @@ describe('EventManager', () => {
     const viewSnap2: any = { query: query2 };
     eventManagerOnWatchChange(eventManager, [viewSnap1, viewSnap2]);
 
-    expect(eventOrder).to.deep.equal([
-      'listenable1',
-      'listenable3',
-      'listenable2'
-    ]);
+    expect(eventOrder).toEqual(['listenable1', 'listenable3', 'listenable2']);
   });
 
   it('will forward onOnlineStateChange calls', async () => {
@@ -168,9 +161,9 @@ describe('EventManager', () => {
     eventManagerBindSpy(eventManager);
 
     await eventManagerListen(eventManager, fakeListener1);
-    expect(events).to.deep.equal([OnlineState.Unknown]);
+    expect(events).toEqual([OnlineState.Unknown]);
     eventManagerOnOnlineStateChange(eventManager, OnlineState.Online);
-    expect(events).to.deep.equal([OnlineState.Unknown, OnlineState.Online]);
+    expect(events).toEqual([OnlineState.Unknown, OnlineState.Online]);
   });
 });
 
@@ -227,9 +220,9 @@ describe('QueryListener', () => {
     eventListener.onViewSnapshot(snap2);
     otherListener.onViewSnapshot(snap2);
 
-    expect(events).to.deep.equal([snap1, snap2]);
-    expect(events[0].docChanges).to.deep.equal([change1, change2]);
-    expect(events[1].docChanges).to.deep.equal([change3]);
+    expect(events).toEqual([snap1, snap2]);
+    expect(events[0].docChanges).toEqual([change1, change2]);
+    expect(events[1].docChanges).toEqual([change3]);
 
     const expectedSnap2 = {
       query: snap2.query,
@@ -241,7 +234,7 @@ describe('QueryListener', () => {
       mutatedKeys: keys(),
       hasCachedResults: snap2.hasCachedResults
     };
-    expect(otherEvents).to.deep.equal([expectedSnap2]);
+    expect(otherEvents).toEqual([expectedSnap2]);
   });
 
   it('raises error event', () => {
@@ -252,7 +245,7 @@ describe('QueryListener', () => {
     const error = new FirestoreError(Code.UNKNOWN, 'bad');
 
     listener.onError(error);
-    expect(events[0]).to.deep.equal(error);
+    expect(events[0]).toEqual(error);
   });
 
   it('raises event for empty collection after sync', () => {
@@ -270,7 +263,7 @@ describe('QueryListener', () => {
     eventListenable.onViewSnapshot(snap1); // no event
     eventListenable.onViewSnapshot(snap2); // empty event
 
-    expect(events).to.deep.equal([snap2]);
+    expect(events).toEqual([snap2]);
   });
 
   it("raises 'hasPendingWrites' for pending mutation in initial snapshot", () => {
@@ -286,7 +279,7 @@ describe('QueryListener', () => {
 
     eventListenable.onViewSnapshot(snap1);
 
-    expect(events[0].hasPendingWrites).to.be.true;
+    expect(events[0].hasPendingWrites).toBe(true);
   });
 
   it("doesn't raise 'hasPendingWrites' for committed mutation in initial snapshot", () => {
@@ -304,7 +297,7 @@ describe('QueryListener', () => {
 
     eventListenable.onViewSnapshot(snap1);
 
-    expect(events[0].hasPendingWrites).to.be.false;
+    expect(events[0].hasPendingWrites).toBe(false);
   });
 
   it('does not raise events for metadata changes unless specified', () => {
@@ -334,9 +327,9 @@ describe('QueryListener', () => {
     fullListener.onViewSnapshot(snap2); // state change event
     fullListener.onViewSnapshot(snap3); // doc2 update.
 
-    expect(filteredEvents).to.deep.equal([snap1, snap3]);
-    expect(fullEvents.length).to.deep.equal(3);
-    expect(fullEvents).to.deep.equal([snap1, snap2, snap3]);
+    expect(filteredEvents).toEqual([snap1, snap3]);
+    expect(fullEvents.length).toEqual(3);
+    expect(fullEvents).toEqual([snap1, snap2, snap3]);
   });
 
   it('raises metadata events only when specified', () => {
@@ -370,15 +363,15 @@ describe('QueryListener', () => {
     fullListener.onViewSnapshot(snap2);
     fullListener.onViewSnapshot(snap3);
 
-    expect(filteredEvents).to.deep.equal([snap1, snap3]);
-    expect(filteredEvents[0].docChanges).to.deep.equal([change1, change2]);
-    expect(filteredEvents[1].docChanges).to.deep.equal([change4]);
+    expect(filteredEvents).toEqual([snap1, snap3]);
+    expect(filteredEvents[0].docChanges).toEqual([change1, change2]);
+    expect(filteredEvents[1].docChanges).toEqual([change4]);
 
     // Second listener should receive doc2prime as added document not
     // Modified.
-    expect(fullEvents).to.deep.equal([snap1, snap2, snap3]);
+    expect(fullEvents).toEqual([snap1, snap2, snap3]);
 
-    expect(fullEvents[1].docChanges).to.deep.equal([change3]);
+    expect(fullEvents[1].docChanges).toEqual([change3]);
   });
 
   it(
@@ -414,7 +407,7 @@ describe('QueryListener', () => {
         mutatedKeys: snap2.mutatedKeys,
         hasCachedResults: snap2.hasCachedResults
       };
-      expect(filteredEvents).to.deep.equal([snap1, expectedSnap2]);
+      expect(filteredEvents).toEqual([snap1, expectedSnap2]);
     }
   );
 
@@ -450,19 +443,19 @@ describe('QueryListener', () => {
     listener.onViewSnapshot(snap2);
     listener.onViewSnapshot(snap3);
 
-    expect(snap1.docChanges).to.deep.equal([
+    expect(snap1.docChanges).toEqual([
       { type: ChangeType.Added, doc: doc1 },
       { type: ChangeType.Added, doc: doc2 }
     ]);
-    expect(snap2.docChanges).to.deep.equal([
+    expect(snap2.docChanges).toEqual([
       { type: ChangeType.Modified, doc: doc2Modified }
     ]);
-    expect(snap3.docChanges).to.deep.equal([
+    expect(snap3.docChanges).toEqual([
       { type: ChangeType.Modified, doc: doc1Acknowledged },
       { type: ChangeType.Metadata, doc: doc2Acknowledged }
     ]);
 
-    expect(events).to.deep.equal([snap1, snap2, snap3]);
+    expect(events).toEqual([snap1, snap2, snap3]);
   });
 
   it('Will wait for sync if online', () => {
@@ -507,7 +500,7 @@ describe('QueryListener', () => {
       mutatedKeys: keys(),
       hasCachedResults: snap3.hasCachedResults
     };
-    expect(events).to.deep.equal([expectedSnap]);
+    expect(events).toEqual([expectedSnap]);
   });
 
   it('Will raise initial event when going offline', () => {
@@ -553,7 +546,7 @@ describe('QueryListener', () => {
       mutatedKeys: keys(),
       hasCachedResults: snap2.hasCachedResults
     };
-    expect(events).to.deep.equal([expectedSnap1, expectedSnap2]);
+    expect(events).toEqual([expectedSnap1, expectedSnap2]);
   });
 
   it('Will raise initial event when going offline and there are no docs', () => {
@@ -580,7 +573,7 @@ describe('QueryListener', () => {
       mutatedKeys: keys(),
       hasCachedResults: snap1.hasCachedResults
     };
-    expect(events).to.deep.equal([expectedSnap]);
+    expect(events).toEqual([expectedSnap]);
   });
 
   it('Will raise initial event when offline and there are no docs', () => {
@@ -606,6 +599,6 @@ describe('QueryListener', () => {
       mutatedKeys: keys(),
       hasCachedResults: snap1.hasCachedResults
     };
-    expect(events).to.deep.equal([expectedSnap]);
+    expect(events).toEqual([expectedSnap]);
   });
 });
