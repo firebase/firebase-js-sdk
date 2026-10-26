@@ -683,7 +683,7 @@ export function documentId(
 documentPathExpr: Expression
 ): FunctionExpression;
 
-// @beta
+// @public
 export function documentMatches(
 rquery: string | Expression
 ): BooleanExpression;
@@ -1435,7 +1435,6 @@ export class Field extends Expression implements Selectable {
     readonly expressionType: ExpressionType;
     // (undocumented)
     get fieldName(): string;
-    // @beta
     geoDistance(location: GeoPoint | Expression): Expression;
     // (undocumented)
     selectable: true;
@@ -1487,7 +1486,7 @@ export class FunctionExpression extends Expression {
     /* Excluded from this release type: _readUserData */
 }
 
-// @beta
+// @public
 export function geoDistance(
 fieldName: string | Field,
 location: GeoPoint | Expression
@@ -2121,7 +2120,6 @@ export class Pipeline {
     replaceWith(options: ReplaceWithStageOptions): Pipeline;
     sample(documents: number): Pipeline;
     sample(options: SampleStageOptions): Pipeline;
-    // @beta
     search(options: SearchStageOptions): Pipeline;
     select(
     selection: Selectable | string,
@@ -2379,10 +2377,10 @@ OneOf<{
     documents: number;
 }>;
 
-// @beta
+// @public
 export function score(): Expression;
 
-// @beta
+// @public
 export type SearchStageOptions = StageOptions & {
     query: BooleanExpression | string;
     languageCode?: string;
