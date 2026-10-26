@@ -94,6 +94,14 @@ let globalInitDone: boolean = false;
  * For testing
  * @internal
  */
+export function _setWrappedGtagFunction(fn?: Gtag): void {
+  wrappedGtagFunction = fn as Gtag;
+}
+
+/**
+ * For testing
+ * @internal
+ */
 export function resetGlobalVars(
   newGlobalInitDone = false,
   newInitializationPromisesMap = {},
@@ -104,6 +112,7 @@ export function resetGlobalVars(
   dynamicConfigPromisesList = newDynamicPromises;
   dataLayerName = 'dataLayer';
   gtagName = 'gtag';
+  wrappedGtagFunction = undefined as unknown as Gtag;
 }
 
 /**

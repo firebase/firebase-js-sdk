@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2024 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   addDoc,
@@ -83,8 +81,8 @@ apiPipelineDescribe(
             );
 
             const snapshot = await storeEvent.awaitEvent();
-            expect(snapshot.metadata.fromCache).to.equal(true);
-            expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a' }]);
+            expect(snapshot.metadata.fromCache).toBe(true);
+            expect(toDataArray(snapshot)).toEqual([{ k: 'a' }]);
 
             await storeEvent.assertNoAdditionalEvents();
             unsubscribe();
@@ -113,8 +111,8 @@ apiPipelineDescribe(
                 );
 
                 const snapshot = await storeEvent.awaitEvent();
-                expect(snapshot.metadata.fromCache).to.equal(true);
-                expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a' }]);
+                expect(snapshot.metadata.fromCache).toBe(true);
+                expect(toDataArray(snapshot)).toEqual([{ k: 'a' }]);
 
                 await storeEvent.assertNoAdditionalEvents();
                 unsubscribe();
@@ -128,8 +126,8 @@ apiPipelineDescribe(
                   storeEvent.storeEvent
                 );
                 const snapshot = await storeEvent.awaitEvent();
-                expect(snapshot.metadata.fromCache).to.equal(true);
-                expect(snapshot.data()).to.deep.equal({ k: 'a' });
+                expect(snapshot.metadata.fromCache).toBe(true);
+                expect(snapshot.data()).toEqual({ k: 'a' });
 
                 await storeEvent.assertNoAdditionalEvents();
                 unsubscribe();
@@ -154,8 +152,8 @@ apiPipelineDescribe(
             );
 
             const snapshot = await storeEvent.awaitEvent();
-            expect(snapshot.metadata.fromCache).to.equal(true);
-            expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a' }]);
+            expect(snapshot.metadata.fromCache).toBe(true);
+            expect(toDataArray(snapshot)).toEqual([{ k: 'a' }]);
 
             await disableNetwork(db);
             await enableNetwork(db);
@@ -194,23 +192,21 @@ apiPipelineDescribe(
             );
 
             let snapshots = await storeEvent.awaitEvents(2);
-            expect(toDataArray(snapshots[0])).to.deep.equal([
-              { k: 'b', sort: 1 }
-            ]);
-            expect(snapshots[0].metadata).to.deep.equal(snapshots[1].metadata);
-            expect(toDataArray(snapshots[0])).to.deep.equal(
+            expect(toDataArray(snapshots[0])).toEqual([{ k: 'b', sort: 1 }]);
+            expect(snapshots[0].metadata).toEqual(snapshots[1].metadata);
+            expect(toDataArray(snapshots[0])).toEqual(
               toDataArray(snapshots[1])
             );
 
             await addDoc(coll, { k: 'c', sort: 2 });
 
             snapshots = await storeEvent.awaitEvents(2);
-            expect(toDataArray(snapshots[0])).to.deep.equal([
+            expect(toDataArray(snapshots[0])).toEqual([
               { k: 'b', sort: 1 },
               { k: 'c', sort: 2 }
             ]);
-            expect(snapshots[0].metadata).to.deep.equal(snapshots[1].metadata);
-            expect(toDataArray(snapshots[0])).to.deep.equal(
+            expect(snapshots[0].metadata).toEqual(snapshots[1].metadata);
+            expect(toDataArray(snapshots[0])).toEqual(
               toDataArray(snapshots[1])
             );
 
@@ -221,8 +217,8 @@ apiPipelineDescribe(
             await addDoc(coll, { k: 'd', sort: 3 });
 
             const snapshot = await storeEvent.awaitEvent();
-            expect(snapshot.metadata.fromCache).to.equal(true);
-            expect(toDataArray(snapshot)).to.deep.equal([
+            expect(snapshot.metadata.fromCache).toBe(true);
+            expect(toDataArray(snapshot)).toEqual([
               { k: 'b', sort: 1 },
               { k: 'c', sort: 2 },
               { k: 'd', sort: 3 }
@@ -269,12 +265,12 @@ apiPipelineDescribe(
 
             // Verify both queries get expected results.
             let snapshot = await storeLimitEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal([
+            expect(toDataArray(snapshot)).toEqual([
               { k: 'a', sort: 0 },
               { k: 'b', sort: 1 }
             ]);
             snapshot = await storeLimitToLastEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal([
+            expect(toDataArray(snapshot)).toEqual([
               { k: 'b', sort: 1 },
               { k: 'a', sort: 0 }
             ]);
@@ -288,29 +284,29 @@ apiPipelineDescribe(
               storeLimitEvent.storeEvent
             );
             snapshot = await storeLimitEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal([
+            expect(toDataArray(snapshot)).toEqual([
               { k: 'a', sort: 0 },
               { k: 'b', sort: 1 }
             ]);
-            expect(snapshot.metadata.fromCache).to.equal(true);
+            expect(snapshot.metadata.fromCache).toBe(true);
 
             // Add a document that would change the result set.
             await addDoc(coll, { k: 'd', sort: -1 });
 
             // Verify both queries get expected results.
             snapshot = await storeLimitEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal([
+            expect(toDataArray(snapshot)).toEqual([
               { k: 'd', sort: -1 },
               { k: 'a', sort: 0 }
             ]);
-            expect(snapshot.metadata.hasPendingWrites).to.equal(true);
+            expect(snapshot.metadata.hasPendingWrites).toBe(true);
 
             snapshot = await storeLimitToLastEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal([
+            expect(toDataArray(snapshot)).toEqual([
               { k: 'a', sort: 0 },
               { k: 'd', sort: -1 }
             ]);
-            expect(snapshot.metadata.hasPendingWrites).to.equal(true);
+            expect(snapshot.metadata.hasPendingWrites).toBe(true);
 
             // Un-listen to limitToLast, update a doc, then re-listen limitToLast.
             limitToLastUnlisten();
@@ -325,19 +321,19 @@ apiPipelineDescribe(
 
             // Verify both queries get expected results.
             snapshot = await storeLimitEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal([
+            expect(toDataArray(snapshot)).toEqual([
               { k: 'a', sort: -2 },
               { k: 'd', sort: -1 }
             ]);
-            expect(snapshot.metadata.hasPendingWrites).to.equal(true);
+            expect(snapshot.metadata.hasPendingWrites).toBe(true);
 
             snapshot = await storeLimitToLastEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal([
+            expect(toDataArray(snapshot)).toEqual([
               { k: 'd', sort: -1 },
               { k: 'a', sort: -2 }
             ]);
             // We listened to LimitToLast query after the doc update.
-            expect(snapshot.metadata.hasPendingWrites).to.equal(false);
+            expect(snapshot.metadata.hasPendingWrites).toBe(false);
 
             limitUnlisten();
             limitToLastUnlisten();
@@ -365,8 +361,8 @@ apiPipelineDescribe(
               storeDefaultEvent.storeEvent
             );
             let snapshot = await storeDefaultEvent.awaitRemoteEvent();
-            expect(toDataArray(snapshot)).to.deep.equal([{ k: 'b', sort: 1 }]);
-            expect(snapshot.metadata.fromCache).to.equal(false);
+            expect(toDataArray(snapshot)).toEqual([{ k: 'b', sort: 1 }]);
+            expect(snapshot.metadata.fromCache).toBe(false);
 
             // Listen to the same query from cache
             const storeCacheEvent =
@@ -378,9 +374,9 @@ apiPipelineDescribe(
               storeCacheEvent.storeEvent
             );
             snapshot = await storeCacheEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal([{ k: 'b', sort: 1 }]);
+            expect(toDataArray(snapshot)).toEqual([{ k: 'b', sort: 1 }]);
             // The metadata is sync with server due to the default listener
-            expect(snapshot.metadata.fromCache).to.equal(false);
+            expect(snapshot.metadata.fromCache).toBe(false);
 
             await storeDefaultEvent.assertNoAdditionalEvents();
             await storeCacheEvent.assertNoAdditionalEvents();
@@ -413,8 +409,8 @@ apiPipelineDescribe(
             );
             let snapshot = await storeCacheEvent.awaitEvent();
             // Cache is empty
-            expect(toDataArray(snapshot)).to.deep.equal([]);
-            expect(snapshot.metadata.fromCache).to.equal(true);
+            expect(toDataArray(snapshot)).toEqual([]);
+            expect(snapshot.metadata.fromCache).toBe(true);
 
             // Listen to the same query from server
             const storeDefaultEvent =
@@ -426,14 +422,14 @@ apiPipelineDescribe(
             );
             snapshot = await storeDefaultEvent.awaitEvent();
             const expectedData = [{ k: 'b', sort: 1 }];
-            expect(toDataArray(snapshot)).to.deep.equal(expectedData);
-            expect(snapshot.metadata.fromCache).to.equal(false);
+            expect(toDataArray(snapshot)).toEqual(expectedData);
+            expect(snapshot.metadata.fromCache).toBe(false);
 
             // Default listener updates the cache, which triggers cache listener to raise snapshot.
             snapshot = await storeCacheEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal(expectedData);
+            expect(toDataArray(snapshot)).toEqual(expectedData);
             // The metadata is sync with server due to the default listener
-            expect(snapshot.metadata.fromCache).to.equal(false);
+            expect(snapshot.metadata.fromCache).toBe(false);
 
             await storeDefaultEvent.assertNoAdditionalEvents();
             await storeCacheEvent.assertNoAdditionalEvents();
@@ -465,15 +461,15 @@ apiPipelineDescribe(
             );
 
             let snapshot = await storeEvent.awaitEvent();
-            expect(snapshot.metadata.fromCache).to.equal(true);
-            expect(toDataArray(snapshot)).to.deep.equal([{ k: 'b', sort: 1 }]);
+            expect(snapshot.metadata.fromCache).toBe(true);
+            expect(toDataArray(snapshot)).toEqual([{ k: 'b', sort: 1 }]);
 
             await addDoc(coll, { k: 'c', sort: 2 });
 
             snapshot = await storeEvent.awaitEvent();
-            expect(snapshot.metadata.hasPendingWrites).to.equal(true);
-            expect(snapshot.metadata.fromCache).to.equal(true);
-            expect(toDataArray(snapshot)).to.deep.equal([
+            expect(snapshot.metadata.hasPendingWrites).toBe(true);
+            expect(snapshot.metadata.fromCache).toBe(true);
+            expect(toDataArray(snapshot)).toEqual([
               { k: 'b', sort: 1 },
               { k: 'c', sort: 2 }
             ]);
@@ -508,8 +504,8 @@ apiPipelineDescribe(
               storeCacheEvent.storeEvent
             );
             let snapshot = await storeCacheEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal([{ k: 'b', sort: 1 }]);
-            expect(snapshot.metadata.fromCache).to.equal(true);
+            expect(toDataArray(snapshot)).toEqual([{ k: 'b', sort: 1 }]);
+            expect(snapshot.metadata.fromCache).toBe(true);
 
             // Listen to the same query from server
             const storeDefaultEvent =
@@ -521,17 +517,17 @@ apiPipelineDescribe(
               storeDefaultEvent.storeEvent
             );
             snapshot = await storeDefaultEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal([{ k: 'b', sort: 1 }]);
+            expect(toDataArray(snapshot)).toEqual([{ k: 'b', sort: 1 }]);
             // First snapshot will be raised from cache.
-            expect(snapshot.metadata.fromCache).to.equal(true);
+            expect(snapshot.metadata.fromCache).toBe(true);
             snapshot = await storeDefaultEvent.awaitEvent();
             // Second snapshot will be raised from server result
-            expect(snapshot.metadata.fromCache).to.equal(false);
+            expect(snapshot.metadata.fromCache).toBe(false);
 
             // As listening to metadata changes, the cache listener also gets triggered and synced
             // with default listener.
             snapshot = await storeCacheEvent.awaitEvent();
-            expect(snapshot.metadata.fromCache).to.equal(false);
+            expect(snapshot.metadata.fromCache).toBe(false);
 
             await addDoc(coll, { k: 'c', sort: 2 });
 
@@ -541,23 +537,23 @@ apiPipelineDescribe(
               { k: 'b', sort: 1 },
               { k: 'c', sort: 2 }
             ];
-            expect(toDataArray(snapshot)).to.deep.equal(expectedData);
-            expect(snapshot.metadata.hasPendingWrites).to.equal(true);
-            expect(snapshot.metadata.fromCache).to.equal(false);
+            expect(toDataArray(snapshot)).toEqual(expectedData);
+            expect(snapshot.metadata.hasPendingWrites).toBe(true);
+            expect(snapshot.metadata.fromCache).toBe(false);
 
             snapshot = await storeCacheEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal(expectedData);
-            expect(snapshot.metadata.hasPendingWrites).to.equal(true);
-            expect(snapshot.metadata.fromCache).to.equal(false);
+            expect(toDataArray(snapshot)).toEqual(expectedData);
+            expect(snapshot.metadata.hasPendingWrites).toBe(true);
+            expect(snapshot.metadata.fromCache).toBe(false);
 
             // Local mutation gets acknowledged by the server
             snapshot = await storeDefaultEvent.awaitEvent();
-            expect(snapshot.metadata.hasPendingWrites).to.equal(false);
-            expect(snapshot.metadata.fromCache).to.equal(false);
+            expect(snapshot.metadata.hasPendingWrites).toBe(false);
+            expect(snapshot.metadata.fromCache).toBe(false);
 
             snapshot = await storeCacheEvent.awaitEvent();
-            expect(snapshot.metadata.hasPendingWrites).to.equal(false);
-            expect(snapshot.metadata.fromCache).to.equal(false);
+            expect(snapshot.metadata.hasPendingWrites).toBe(false);
+            expect(snapshot.metadata.fromCache).toBe(false);
 
             cacheUnlisten();
             defaultUnlisten();
@@ -603,7 +599,7 @@ apiPipelineDescribe(
             await addDoc(coll, { k: 'c', sort: -1 });
 
             const snapshot = await storeCacheEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal([
+            expect(toDataArray(snapshot)).toEqual([
               { k: 'c', sort: -1 },
               { k: 'b', sort: 1 }
             ]);
@@ -652,7 +648,7 @@ apiPipelineDescribe(
             await addDoc(coll, { k: 'c', sort: -1 });
 
             const snapshot = await storeDefaultEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal([
+            expect(toDataArray(snapshot)).toEqual([
               { k: 'c', sort: -1 },
               { k: 'b', sort: 1 }
             ]);
@@ -684,7 +680,7 @@ apiPipelineDescribe(
             );
             let snapshot = await storeDefaultEvent.awaitEvent();
             let expectedData = [{ k: 'b', sort: 1 }];
-            expect(toDataArray(snapshot)).to.deep.equal(expectedData);
+            expect(toDataArray(snapshot)).toEqual(expectedData);
 
             // Listen to the same query from cache
             const storeCacheEvent =
@@ -696,7 +692,7 @@ apiPipelineDescribe(
               storeCacheEvent.storeEvent
             );
             snapshot = await storeCacheEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal(expectedData);
+            expect(toDataArray(snapshot)).toEqual(expectedData);
 
             // Un-listen to the default listener, add a doc and re-listen.
             defaultUnlisten();
@@ -707,7 +703,7 @@ apiPipelineDescribe(
               { k: 'b', sort: 1 },
               { k: 'c', sort: 2 }
             ];
-            expect(toDataArray(snapshot)).to.deep.equal(expectedData);
+            expect(toDataArray(snapshot)).toEqual(expectedData);
 
             defaultUnlisten = onSnapshot(
               pipelineMode,
@@ -715,7 +711,7 @@ apiPipelineDescribe(
               storeDefaultEvent.storeEvent
             );
             snapshot = await storeDefaultEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal(expectedData);
+            expect(toDataArray(snapshot)).toEqual(expectedData);
 
             // Un-listen to cache, update a doc, then re-listen to cache.
             cacheUnlisten();
@@ -726,7 +722,7 @@ apiPipelineDescribe(
               { k: 'c', sort: 2 },
               { k: 'b', sort: 3 }
             ];
-            expect(toDataArray(snapshot)).to.deep.equal(expectedData);
+            expect(toDataArray(snapshot)).toEqual(expectedData);
 
             cacheUnlisten = onSnapshot(
               pipelineMode,
@@ -736,7 +732,7 @@ apiPipelineDescribe(
             );
 
             snapshot = await storeCacheEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal(expectedData);
+            expect(toDataArray(snapshot)).toEqual(expectedData);
 
             defaultUnlisten();
             cacheUnlisten();
@@ -765,7 +761,7 @@ apiPipelineDescribe(
             );
 
             const snapshot = await storeEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal([{ k: 'a', sort: 0 }]);
+            expect(toDataArray(snapshot)).toEqual([{ k: 'a', sort: 0 }]);
             unsubscribe();
           });
         });
@@ -773,7 +769,7 @@ apiPipelineDescribe(
         it('can raise initial snapshot from cache, even if it is empty', () => {
           return withTestCollection(persistence, {}, async coll => {
             let snapshot = await getDocs(pipelineMode, coll); // Populate the cache.
-            expect(toDataArray(snapshot)).to.deep.equal([]); // Precondition check.
+            expect(toDataArray(snapshot)).toEqual([]); // Precondition check.
 
             const storeEvent = new PipelineEventsAccumulator<QuerySnapshot>();
             onSnapshot(
@@ -783,8 +779,8 @@ apiPipelineDescribe(
               storeEvent.storeEvent
             );
             snapshot = await storeEvent.awaitEvent();
-            expect(snapshot.metadata.fromCache).to.be.true;
-            expect(toDataArray(snapshot)).to.deep.equal([]);
+            expect(snapshot.metadata.fromCache).toBe(true);
+            expect(toDataArray(snapshot)).toEqual([]);
           });
         });
 
@@ -799,7 +795,7 @@ apiPipelineDescribe(
             );
 
             const snapshot = await accumulator.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal([]);
+            expect(toDataArray(snapshot)).toEqual([]);
 
             const docRef = doc(coll);
             // Use a transaction to perform a write without triggering any local events.
@@ -835,7 +831,7 @@ apiPipelineDescribe(
             );
             let snapshot = await storeDefaultEvent.awaitRemoteEvent();
             let expectedData = [{ k: 'b', sort: 1 }];
-            expect(toDataArray(snapshot)).to.deep.equal(expectedData);
+            expect(toDataArray(snapshot)).toEqual(expectedData);
 
             // Listen to the same query from cache
             const storeCacheEvent =
@@ -847,7 +843,7 @@ apiPipelineDescribe(
               storeCacheEvent.storeEvent
             );
             snapshot = await storeCacheEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal(expectedData);
+            expect(toDataArray(snapshot)).toEqual(expectedData);
 
             // Use a transaction to mock server side updates
             const docRef = doc(coll);
@@ -861,13 +857,13 @@ apiPipelineDescribe(
               { k: 'b', sort: 1 },
               { k: 'c', sort: 2 }
             ];
-            expect(toDataArray(snapshot)).to.deep.equal(expectedData);
-            expect(snapshot.metadata.fromCache).to.be.false;
+            expect(toDataArray(snapshot)).toEqual(expectedData);
+            expect(snapshot.metadata.fromCache).toBe(false);
 
             // Cache listener raises snapshot as well
             snapshot = await storeCacheEvent.awaitEvent();
-            expect(toDataArray(snapshot)).to.deep.equal(expectedData);
-            expect(snapshot.metadata.fromCache).to.be.false;
+            expect(toDataArray(snapshot)).toEqual(expectedData);
+            expect(snapshot.metadata.fromCache).toBe(false);
 
             defaultUnlisten();
             cacheUnlisten();

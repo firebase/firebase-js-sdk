@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { AppCheckToken, OAuthToken, Token } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
@@ -83,7 +81,7 @@ describe('RestConnection', () => {
       null,
       null
     );
-    expect(connection.lastUrl).to.equal(
+    expect(connection.lastUrl).toBe(
       'http://example.com/v1/projects/testproject/databases/(default)/documents:commit?key=rest-connection-test-api-key'
     );
   });
@@ -98,7 +96,7 @@ describe('RestConnection', () => {
       new OAuthToken('owner', User.UNAUTHENTICATED),
       new AppCheckToken('some-app-check-token')
     );
-    expect(connection.lastHeaders).to.deep.equal({
+    expect(connection.lastHeaders).toEqual({
       'Authorization': 'Bearer owner',
       'Content-Type': 'text/plain',
       'X-Firebase-GMPID': 'test-app-id',
@@ -119,7 +117,7 @@ describe('RestConnection', () => {
       null,
       new AppCheckToken('')
     );
-    expect(connection.lastHeaders).to.deep.equal({
+    expect(connection.lastHeaders).toEqual({
       'Content-Type': 'text/plain',
       'X-Firebase-GMPID': 'test-app-id',
       'X-Goog-Api-Client': `gl-js/ fire/${SDK_VERSION}`,
@@ -154,10 +152,8 @@ describe('RestConnection', () => {
       null,
       null
     );
-    expect(conn.lastHeaders['x-goog-firestore-api-requester']).to.equal(
-      'console'
-    );
-    expect(conn.lastHeaders['x-custom-header']).to.equal('val');
+    expect(conn.lastHeaders['x-goog-firestore-api-requester']).toBe('console');
+    expect(conn.lastHeaders['x-custom-header']).toBe('val');
   });
 
   it('returns success', async () => {
@@ -171,7 +167,7 @@ describe('RestConnection', () => {
       null,
       null
     );
-    expect(response).to.deep.equal({ response: true });
+    expect(response).toEqual({ response: true });
   });
 
   it('returns error', () => {
@@ -187,6 +183,6 @@ describe('RestConnection', () => {
         null,
         null
       )
-    ).to.be.eventually.rejectedWith(error);
+    ).rejects.toThrow(error);
   });
 });

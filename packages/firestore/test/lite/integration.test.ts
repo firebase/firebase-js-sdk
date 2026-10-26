@@ -17,8 +17,6 @@
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { initializeApp } from '@firebase/app';
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import {
   aggregateQuerySnapshotEqual,
@@ -115,9 +113,6 @@ import {
   withTestDoc,
   withTestDocAndInitialData
 } from './helpers';
-
-use(chaiAsPromised);
-
 describe('Firestore', () => {
   it('can provide setting', () => {
     const app = initializeApp(
@@ -125,7 +120,7 @@ describe('Firestore', () => {
       'test-app-initializeFirestore'
     );
     const fs1 = initializeFirestore(app, { host: 'localhost', ssl: false });
-    expect(fs1).to.be.an.instanceOf(Firestore);
+    expect(fs1).toBeInstanceOf(Firestore);
   });
 
   it('returns same default instance from named app', () => {
@@ -136,7 +131,8 @@ describe('Firestore', () => {
     const fs1 = getFirestore(app);
     const fs2 = getFirestore(app);
     const fs3 = getFirestore(app, '(default)');
-    expect(fs1).to.be.equal(fs2).and.equal(fs3);
+    expect(fs1).toBe(fs2);
+    expect(fs1).toBe(fs3);
   });
 
   it('returns different instance from named app', () => {
@@ -149,16 +145,16 @@ describe('Firestore', () => {
     const fs3 = getFirestore(app);
     const fs4 = getFirestore(app, 'name1');
     const fs5 = getFirestore(app, 'name2');
-    expect(fs1).to.not.be.equal(fs2);
-    expect(fs1).to.not.be.equal(fs3);
-    expect(fs1).to.not.be.equal(fs4);
-    expect(fs1).to.not.be.equal(fs5);
-    expect(fs2).to.not.be.equal(fs3);
-    expect(fs2).to.not.be.equal(fs4);
-    expect(fs2).to.not.be.equal(fs5);
-    expect(fs3).to.not.be.equal(fs4);
-    expect(fs3).to.not.be.equal(fs5);
-    expect(fs4).to.not.be.equal(fs5);
+    expect(fs1).not.toBe(fs2);
+    expect(fs1).not.toBe(fs3);
+    expect(fs1).not.toBe(fs4);
+    expect(fs1).not.toBe(fs5);
+    expect(fs2).not.toBe(fs3);
+    expect(fs2).not.toBe(fs4);
+    expect(fs2).not.toBe(fs5);
+    expect(fs3).not.toBe(fs4);
+    expect(fs3).not.toBe(fs5);
+    expect(fs4).not.toBe(fs5);
   });
 
   it('returns same default instance from default app', () => {
@@ -171,10 +167,10 @@ describe('Firestore', () => {
     const fs3 = getFirestore(app);
     const fs4 = getFirestore('(default)');
     const fs5 = getFirestore(app, '(default)');
-    expect(fs1).to.be.equal(fs2);
-    expect(fs1).to.be.equal(fs3);
-    expect(fs1).to.be.equal(fs4);
-    expect(fs1).to.be.equal(fs5);
+    expect(fs1).toBe(fs2);
+    expect(fs1).toBe(fs3);
+    expect(fs1).toBe(fs4);
+    expect(fs1).toBe(fs5);
   });
 
   it('returns different instance from different named app', () => {
@@ -190,9 +186,9 @@ describe('Firestore', () => {
     const fs1 = getFirestore();
     const fs2 = getFirestore(app1);
     const fs3 = getFirestore(app2);
-    expect(fs1).to.not.be.equal(fs2);
-    expect(fs1).to.not.be.equal(fs3);
-    expect(fs2).to.not.be.equal(fs3);
+    expect(fs1).not.toBe(fs2);
+    expect(fs1).not.toBe(fs3);
+    expect(fs2).not.toBe(fs3);
   });
 
   it('cannot call initializeFirestore() twice', () => {
@@ -204,7 +200,7 @@ describe('Firestore', () => {
 
     expect(() => {
       initializeFirestore(app, {});
-    }).to.throw('Firestore can only be initialized once per app.');
+    }).toThrow('Firestore can only be initialized once per app.');
   });
 
   it('cannot use once terminated', () => {
@@ -227,7 +223,7 @@ describe('Firestore', () => {
       getDoc(doc(firestore, 'coll/doc'));
       expect.fail();
     } catch (e) {
-      expect((e as Error)?.message).to.equal(
+      expect((e as Error)?.message).toBe(
         'The client has already been terminated.'
       );
     }
@@ -251,45 +247,45 @@ describe('doc', () => {
   it('can be used relative to Firestore root', () => {
     return withTestDb(db => {
       const result = doc(db, 'coll/doc');
-      expect(result).to.be.an.instanceOf(DocumentReference);
-      expect(result.id).to.equal('doc');
-      expect(result.path).to.equal('coll/doc');
+      expect(result).toBeInstanceOf(DocumentReference);
+      expect(result.id).toBe('doc');
+      expect(result.path).toBe('coll/doc');
     });
   });
 
   it('can be used relative to collection', () => {
     return withTestDb(db => {
       const result = doc(collection(db, 'coll'), 'doc');
-      expect(result).to.be.an.instanceOf(DocumentReference);
-      expect(result.id).to.equal('doc');
-      expect(result.path).to.equal('coll/doc');
+      expect(result).toBeInstanceOf(DocumentReference);
+      expect(result.id).toBe('doc');
+      expect(result.path).toBe('coll/doc');
     });
   });
 
   it('can be used with multiple arguments', () => {
     return withTestDb(db => {
       const result = doc(db, 'coll1/doc1', 'coll2', 'doc2');
-      expect(result).to.be.an.instanceOf(DocumentReference);
-      expect(result.id).to.equal('doc2');
-      expect(result.path).to.equal('coll1/doc1/coll2/doc2');
+      expect(result).toBeInstanceOf(DocumentReference);
+      expect(result.id).toBe('doc2');
+      expect(result.path).toBe('coll1/doc1/coll2/doc2');
     });
   });
 
   it('strips leading and trailing slashes', () => {
     return withTestDb(db => {
       const result = doc(db, '/coll', 'doc/');
-      expect(result).to.be.an.instanceOf(DocumentReference);
-      expect(result.id).to.equal('doc');
-      expect(result.path).to.equal('coll/doc');
+      expect(result).toBeInstanceOf(DocumentReference);
+      expect(result.id).toBe('doc');
+      expect(result.path).toBe('coll/doc');
     });
   });
 
   it('can be relative to doc', () => {
     return withTestDb(db => {
       const result = doc(doc(db, 'coll/doc'), 'subcoll/subdoc');
-      expect(result).to.be.an.instanceOf(DocumentReference);
-      expect(result.id).to.equal('subdoc');
-      expect(result.path).to.equal('coll/doc/subcoll/subdoc');
+      expect(result).toBeInstanceOf(DocumentReference);
+      expect(result.id).toBe('subdoc');
+      expect(result.path).toBe('coll/doc/subcoll/subdoc');
     });
   });
 
@@ -298,21 +294,21 @@ describe('doc', () => {
       expect(() =>
         // @ts-expect-error
         doc({}, 'coll/doc')
-      ).to.throw(
+      ).toThrow(
         'Expected first argument to doc() to be a CollectionReference, a DocumentReference or FirebaseFirestore'
       );
-      expect(() => doc(db, 'coll')).to.throw(
+      expect(() => doc(db, 'coll')).toThrow(
         'Invalid document reference. Document references must have an even ' +
           'number of segments, but coll has 1.'
       );
-      expect(() => doc(db, '')).to.throw(
+      expect(() => doc(db, '')).toThrow(
         'Function doc() cannot be called with an empty path.'
       );
-      expect(() => doc(collection(db, 'coll'), 'doc/coll')).to.throw(
+      expect(() => doc(collection(db, 'coll'), 'doc/coll')).toThrow(
         'Invalid document reference. Document references must have an even ' +
           'number of segments, but coll/doc/coll has 3.'
       );
-      expect(() => doc(db, 'coll//doc')).to.throw(
+      expect(() => doc(db, 'coll//doc')).toThrow(
         'Invalid segment (coll//doc). Paths must not contain // in them.'
       );
     });
@@ -322,7 +318,7 @@ describe('doc', () => {
     return withTestDb(db => {
       const coll = collection(db, 'coll');
       const ref = doc(coll);
-      expect(ref.id.length).to.equal(20);
+      expect(ref.id.length).toBe(20);
     });
   });
 });
@@ -331,36 +327,36 @@ describe('collection', () => {
   it('can be used relative to Firestore root', () => {
     return withTestDb(db => {
       const result = collection(db, 'coll/doc/subcoll');
-      expect(result).to.be.an.instanceOf(CollectionReference);
-      expect(result.id).to.equal('subcoll');
-      expect(result.path).to.equal('coll/doc/subcoll');
+      expect(result).toBeInstanceOf(CollectionReference);
+      expect(result.id).toBe('subcoll');
+      expect(result.path).toBe('coll/doc/subcoll');
     });
   });
 
   it('can be used relative to Firestore root with multiple arguments', () => {
     return withTestDb(db => {
       const result = collection(db, 'coll1/doc1', '/coll2', 'doc2/', '/coll3/');
-      expect(result).to.be.an.instanceOf(CollectionReference);
-      expect(result.id).to.equal('coll3');
-      expect(result.path).to.equal('coll1/doc1/coll2/doc2/coll3');
+      expect(result).toBeInstanceOf(CollectionReference);
+      expect(result.id).toBe('coll3');
+      expect(result.path).toBe('coll1/doc1/coll2/doc2/coll3');
     });
   });
 
   it('can be used relative to collection', () => {
     return withTestDb(db => {
       const result = collection(collection(db, 'coll'), 'doc/subcoll');
-      expect(result).to.be.an.instanceOf(CollectionReference);
-      expect(result.id).to.equal('subcoll');
-      expect(result.path).to.equal('coll/doc/subcoll');
+      expect(result).toBeInstanceOf(CollectionReference);
+      expect(result.id).toBe('subcoll');
+      expect(result.path).toBe('coll/doc/subcoll');
     });
   });
 
   it('can be used relative to doc', () => {
     return withTestDb(db => {
       const result = collection(doc(db, 'coll/doc'), 'subcoll');
-      expect(result).to.be.an.instanceOf(CollectionReference);
-      expect(result.id).to.equal('subcoll');
-      expect(result.path).to.equal('coll/doc/subcoll');
+      expect(result).toBeInstanceOf(CollectionReference);
+      expect(result.id).toBe('subcoll');
+      expect(result.path).toBe('coll/doc/subcoll');
     });
   });
 
@@ -374,22 +370,22 @@ describe('collection', () => {
         'doc3/',
         '/coll4/'
       );
-      expect(result).to.be.an.instanceOf(CollectionReference);
-      expect(result.id).to.equal('coll4');
-      expect(result.path).to.equal('coll1/doc1/coll2/doc2/coll3/doc3/coll4');
+      expect(result).toBeInstanceOf(CollectionReference);
+      expect(result.id).toBe('coll4');
+      expect(result.path).toBe('coll1/doc1/coll2/doc2/coll3/doc3/coll4');
     });
   });
 
   it('validates path', () => {
     return withTestDb(db => {
-      expect(() => collection(db, 'coll/doc')).to.throw(
+      expect(() => collection(db, 'coll/doc')).toThrow(
         'Invalid collection reference. Collection references must have an odd ' +
           'number of segments, but coll/doc has 2.'
       );
-      expect(() => collection(doc(db, 'coll/doc'), '')).to.throw(
+      expect(() => collection(doc(db, 'coll/doc'), '')).toThrow(
         'Function collection() cannot be called with an empty path'
       );
-      expect(() => collection(doc(db, 'coll/doc'), 'coll/doc')).to.throw(
+      expect(() => collection(doc(db, 'coll/doc'), 'coll/doc')).toThrow(
         'Invalid collection reference. Collection references must have an odd ' +
           'number of segments, but coll/doc/coll/doc has 4.'
       );
@@ -402,8 +398,8 @@ describe('parent', () => {
     return withTestDb(db => {
       const coll = collection(db, 'coll/doc/coll');
       const result = coll.parent;
-      expect(result).to.be.an.instanceOf(DocumentReference);
-      expect(result!.path).to.equal('coll/doc');
+      expect(result).toBeInstanceOf(DocumentReference);
+      expect(result!.path).toBe('coll/doc');
     });
   });
 
@@ -411,8 +407,8 @@ describe('parent', () => {
     return withTestDb(db => {
       const coll = doc(db, 'coll/doc');
       const result = coll.parent;
-      expect(result).to.be.an.instanceOf(CollectionReference);
-      expect(result.path).to.equal('coll');
+      expect(result).toBeInstanceOf(CollectionReference);
+      expect(result.path).toBe('coll');
     });
   });
 
@@ -420,7 +416,7 @@ describe('parent', () => {
     return withTestDb(db => {
       const coll = collection(db, 'coll');
       const result = coll.parent;
-      expect(result).to.be.null;
+      expect(result).toBeNull();
     });
   });
 });
@@ -429,28 +425,28 @@ describe('getDoc()', () => {
   it('can get a non-existing document', () => {
     return withTestDoc(async docRef => {
       const docSnap = await getDoc(docRef);
-      expect(docSnap.exists()).to.be.false;
+      expect(docSnap.exists()).toBe(false);
     });
   });
 
   it('can get an existing document', () => {
     return withTestDocAndInitialData({ val: 1 }, async docRef => {
       const docSnap = await getDoc(docRef);
-      expect(docSnap.exists()).to.be.true;
+      expect(docSnap.exists()).toBe(true);
     });
   });
 
   it('can get doc with a deserialized reference', () => {
     return withTestDocAndInitialData({ val: 1 }, async docRef => {
       const docSnap = await getDoc(docRef);
-      expect(docSnap.exists()).to.be.true;
+      expect(docSnap.exists()).toBe(true);
       const json = docRef.toJSON();
       const deserializedDocRef = DocumentReference.fromJSON(
         docSnap._firestore,
         json
       );
       const docSnap2 = await getDoc(deserializedDocRef);
-      expect(docSnap2.exists()).to.be.true;
+      expect(docSnap2.exists()).toBe(true);
     });
   });
 });
@@ -544,11 +540,11 @@ describe('WriteBatch', () => {
       const batch = writeBatch(doc.firestore);
       batch.set(doc, { doc: 1 });
       const op = batch.commit();
-      expect(() => batch.delete(doc)).to.throw(
+      expect(() => batch.delete(doc)).toThrow(
         'A write batch can no longer be used after commit() has been called.'
       );
       await op;
-      expect(() => batch.delete(doc)).to.throw(
+      expect(() => batch.delete(doc)).toThrow(
         'A write batch can no longer be used after commit() has been called.'
       );
     });
@@ -613,7 +609,7 @@ describe('Transaction', () => {
         transaction.update(doc, 'counter', snap.get('counter') + 1);
       });
       const result = await getDoc(doc);
-      expect(result.get('counter')).to.equal(2);
+      expect(result.get('counter')).toBe(2);
     });
   });
 
@@ -621,11 +617,11 @@ describe('Transaction', () => {
     return withTestDoc(async doc => {
       await runTransaction(doc.firestore, async transaction => {
         const snap = await transaction.get(doc);
-        expect(snap.exists()).to.be.false;
+        expect(snap.exists()).toBe(false);
         transaction.set(doc, { counter: 1 });
       });
       const result = await getDoc(doc);
-      expect(result.get('counter')).to.equal(1);
+      expect(result.get('counter')).toBe(1);
     });
   });
 
@@ -639,11 +635,11 @@ describe('Transaction', () => {
       await deleteDoc(doc);
       await runTransaction(doc.firestore, async transaction => {
         const snap = await transaction.get(doc);
-        expect(snap.exists()).to.be.false;
+        expect(snap.exists()).toBe(false);
         transaction.set(doc, { counter: 1 });
       });
       const result = await getDoc(doc);
-      expect(result.get('counter')).to.equal(1);
+      expect(result.get('counter')).toBe(1);
     });
   });
 
@@ -661,9 +657,9 @@ describe('Transaction', () => {
 
         transaction.set(doc, { counter: 1 });
       });
-      expect(retryCounter).to.equal(2);
+      expect(retryCounter).toBe(2);
       const result = await getDoc(doc);
-      expect(result.get('counter')).to.equal(1);
+      expect(result.get('counter')).toBe(1);
     });
   });
 });
@@ -687,7 +683,7 @@ function genericMutationTests(
         await setDoc(docRef, {});
         await deleteDoc(docRef);
         const docSnap = await getDoc(docRef);
-        expect(docSnap.exists()).to.be.false;
+        expect(docSnap.exists()).toBe(false);
       });
     });
   });
@@ -697,7 +693,7 @@ function genericMutationTests(
       return withTestDoc(async docRef => {
         await setDoc(docRef, { val: 1 });
         const docSnap = await getDoc(docRef);
-        expect(docSnap.data()).to.deep.equal({ val: 1 });
+        expect(docSnap.data()).toEqual({ val: 1 });
       });
     });
 
@@ -705,7 +701,7 @@ function genericMutationTests(
       return withTestDocAndInitialData({ foo: 1 }, async docRef => {
         await setDoc(docRef, { bar: 2 }, { merge: true });
         const docSnap = await getDoc(docRef);
-        expect(docSnap.data()).to.deep.equal({ foo: 1, bar: 2 });
+        expect(docSnap.data()).toEqual({ foo: 1, bar: 2 });
       });
     });
 
@@ -717,7 +713,7 @@ function genericMutationTests(
           { mergeFields: ['bar', new FieldPath('baz', 'foobar')] }
         );
         const docSnap = await getDoc(docRef);
-        expect(docSnap.data()).to.deep.equal({
+        expect(docSnap.data()).toEqual({
           foo: 1,
           bar: 2,
           baz: { foobar: 3 }
@@ -735,8 +731,8 @@ function genericMutationTests(
           { merge: true }
         );
         const postDoc = await getDoc(ref);
-        expect(postDoc.get('title')).to.equal('olive');
-        expect(postDoc.get('author')).to.equal('author');
+        expect(postDoc.get('title')).toBe('olive');
+        expect(postDoc.get('author')).toBe('author');
       });
     });
 
@@ -746,21 +742,19 @@ function genericMutationTests(
         await setDoc(ref, new Post('walnut', 'author'));
         await setDoc(ref, { title: 'olive' }, { mergeFields: ['title'] });
         const postDoc = await getDoc(ref);
-        expect(postDoc.get('title')).to.equal('olive');
-        expect(postDoc.get('author')).to.equal('author');
+        expect(postDoc.get('title')).toBe('olive');
+        expect(postDoc.get('author')).toBe('author');
       });
     });
 
     it('throws when user input fails validation', () => {
       return withTestDoc(async docRef => {
         if (validationUsesPromises) {
-          return expect(
-            setDoc(docRef, { val: undefined })
-          ).to.eventually.be.rejectedWith(
+          return expect(setDoc(docRef, { val: undefined })).rejects.toThrow(
             /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         } else {
-          expect(() => setDoc(docRef, { val: undefined })).to.throw(
+          expect(() => setDoc(docRef, { val: undefined })).toThrow(
             /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         }
@@ -775,7 +769,7 @@ function genericMutationTests(
           const docRef = doc(collection(db, 'test-collection'));
           await setDoc(docRef, { val: undefined });
           const docSnap = await getDoc(docRef);
-          expect(docSnap.data()).to.deep.equal({});
+          expect(docSnap.data()).toEqual({});
         }
       );
     });
@@ -786,7 +780,7 @@ function genericMutationTests(
       return withTestDocAndInitialData({ foo: 1, bar: 1 }, async docRef => {
         await updateDoc(docRef, { foo: 2, baz: 2 });
         const docSnap = await getDoc(docRef);
-        expect(docSnap.data()).to.deep.equal({ foo: 2, bar: 1, baz: 2 });
+        expect(docSnap.data()).toEqual({ foo: 2, bar: 1, baz: 2 });
       });
     });
 
@@ -794,7 +788,7 @@ function genericMutationTests(
       return withTestDocAndInitialData({ foo: 1, bar: 1 }, async docRef => {
         await updateDoc(docRef, 'foo', 2, new FieldPath('baz'), 2);
         const docSnap = await getDoc(docRef);
-        expect(docSnap.data()).to.deep.equal({ foo: 2, bar: 1, baz: 2 });
+        expect(docSnap.data()).toEqual({ foo: 2, bar: 1, baz: 2 });
       });
     });
 
@@ -805,8 +799,7 @@ function genericMutationTests(
       'enforces that document exists',
       () => {
         return withTestDoc(async docRef => {
-          await expect(updateDoc(docRef, { foo: 2, baz: 2 })).to.eventually.be
-            .rejected;
+          await expect(updateDoc(docRef, { foo: 2, baz: 2 })).rejects.toThrow();
         });
       }
     );
@@ -814,13 +807,11 @@ function genericMutationTests(
     it('throws when user input fails validation', () => {
       return withTestDoc(async docRef => {
         if (validationUsesPromises) {
-          return expect(
-            updateDoc(docRef, { val: undefined })
-          ).to.eventually.be.rejectedWith(
+          return expect(updateDoc(docRef, { val: undefined })).rejects.toThrow(
             /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         } else {
-          expect(() => updateDoc(docRef, { val: undefined })).to.throw(
+          expect(() => updateDoc(docRef, { val: undefined })).toThrow(
             /Function .* called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
           );
         }
@@ -834,13 +825,13 @@ describe('addDoc()', () => {
     return withTestCollection(async collRef => {
       const docRef = await addDoc(collRef, { val: 1 });
       const docSnap = await getDoc(docRef);
-      expect(docSnap.data()).to.deep.equal({ val: 1 });
+      expect(docSnap.data()).toEqual({ val: 1 });
     });
   });
 
   it('throws when user input fails validation', () => {
     return withTestCollection(async collRef => {
-      expect(() => addDoc(collRef, { val: undefined })).to.throw(
+      expect(() => addDoc(collRef, { val: undefined })).toThrow(
         /Function addDoc\(\) called with invalid data. Unsupported field value: undefined \(found in field val in document .*\)/
       );
     });
@@ -851,32 +842,32 @@ describe('DocumentSnapshot', () => {
   it('can represent missing data', () => {
     return withTestDoc(async docRef => {
       const docSnap = await getDoc(docRef);
-      expect(docSnap.exists()).to.be.false;
-      expect(docSnap.data()).to.be.undefined;
+      expect(docSnap.exists()).toBe(false);
+      expect(docSnap.data()).toBeUndefined();
     });
   });
 
   it('can return data', () => {
     return withTestDocAndInitialData({ foo: 1 }, async docRef => {
       const docSnap = await getDoc(docRef);
-      expect(docSnap.exists()).to.be.true;
-      expect(docSnap.data()).to.deep.equal({ foo: 1 });
+      expect(docSnap.exists()).toBe(true);
+      expect(docSnap.data()).toEqual({ foo: 1 });
     });
   });
 
   it('can return single field', () => {
     return withTestDocAndInitialData({ foo: 1, bar: 2 }, async docRef => {
       const docSnap = await getDoc(docRef);
-      expect(docSnap.get('foo')).to.equal(1);
-      expect(docSnap.get(new FieldPath('bar'))).to.equal(2);
+      expect(docSnap.get('foo')).toBe(1);
+      expect(docSnap.get(new FieldPath('bar'))).toBe(2);
     });
   });
 
   it('can return nested field', () => {
     return withTestDocAndInitialData({ foo: { bar: 1 } }, async docRef => {
       const docSnap = await getDoc(docRef);
-      expect(docSnap.get('foo.bar')).to.equal(1);
-      expect(docSnap.get(new FieldPath('foo', 'bar'))).to.equal(1);
+      expect(docSnap.get('foo.bar')).toBe(1);
+      expect(docSnap.get(new FieldPath('foo', 'bar'))).toBe(1);
     });
   });
 
@@ -887,7 +878,7 @@ describe('DocumentSnapshot', () => {
       if (docSnap.exists()) {
         documentData = docSnap.data(); // "data" is typed as non-null
       }
-      expect(documentData).to.deep.equal({ foo: 1 });
+      expect(documentData).toEqual({ foo: 1 });
     });
   });
 
@@ -897,7 +888,7 @@ describe('DocumentSnapshot', () => {
       async docRef => {
         const docSnap = await getDoc(docRef);
         const bytes = docSnap.get('bytes');
-        expect(bytes.constructor.name).to.equal('Bytes');
+        expect(bytes.constructor.name).toBe('Bytes');
       }
     );
   });
@@ -911,45 +902,45 @@ describe('deleteDoc()', () => {
 
 describe('FieldValue', () => {
   it('support equality checking with isEqual()', () => {
-    expect(deleteField().isEqual(deleteField())).to.be.true;
-    expect(serverTimestamp().isEqual(serverTimestamp())).to.be.true;
-    expect(deleteField().isEqual(serverTimestamp())).to.be.false;
-    expect(arrayUnion().isEqual(arrayUnion())).to.be.true;
-    expect(arrayUnion('a').isEqual(arrayUnion('a'))).to.be.true;
-    expect(arrayUnion('a').isEqual(arrayUnion('b'))).to.be.false;
-    expect(arrayUnion('a', 'b').isEqual(arrayUnion('b', 'a'))).to.be.false;
-    expect(arrayRemove().isEqual(arrayRemove())).to.be.true;
-    expect(arrayRemove('a').isEqual(arrayRemove('a'))).to.be.true;
-    expect(arrayRemove('a').isEqual(arrayRemove('b'))).to.be.false;
-    expect(arrayRemove('a', 'b').isEqual(arrayRemove('b', 'a'))).to.be.false;
-    expect(increment(1).isEqual(increment(1))).to.be.true;
-    expect(increment(1).isEqual(increment(2))).to.be.false;
+    expect(deleteField().isEqual(deleteField())).toBe(true);
+    expect(serverTimestamp().isEqual(serverTimestamp())).toBe(true);
+    expect(deleteField().isEqual(serverTimestamp())).toBe(false);
+    expect(arrayUnion().isEqual(arrayUnion())).toBe(true);
+    expect(arrayUnion('a').isEqual(arrayUnion('a'))).toBe(true);
+    expect(arrayUnion('a').isEqual(arrayUnion('b'))).toBe(false);
+    expect(arrayUnion('a', 'b').isEqual(arrayUnion('b', 'a'))).toBe(false);
+    expect(arrayRemove().isEqual(arrayRemove())).toBe(true);
+    expect(arrayRemove('a').isEqual(arrayRemove('a'))).toBe(true);
+    expect(arrayRemove('a').isEqual(arrayRemove('b'))).toBe(false);
+    expect(arrayRemove('a', 'b').isEqual(arrayRemove('b', 'a'))).toBe(false);
+    expect(increment(1).isEqual(increment(1))).toBe(true);
+    expect(increment(1).isEqual(increment(2))).toBe(false);
 
-    expect(minimum(1).isEqual(minimum(1))).to.be.true;
-    expect(minimum(1).isEqual(minimum(2))).to.be.false;
-    expect(maximum(1).isEqual(maximum(1))).to.be.true;
-    expect(maximum(1).isEqual(maximum(2))).to.be.false;
+    expect(minimum(1).isEqual(minimum(1))).toBe(true);
+    expect(minimum(1).isEqual(minimum(2))).toBe(false);
+    expect(maximum(1).isEqual(maximum(1))).toBe(true);
+    expect(maximum(1).isEqual(maximum(2))).toBe(false);
 
     // Test NaN equality
-    expect(minimum(NaN).isEqual(minimum(NaN))).to.be.true;
-    expect(maximum(NaN).isEqual(maximum(NaN))).to.be.true;
+    expect(minimum(NaN).isEqual(minimum(NaN))).toBe(true);
+    expect(maximum(NaN).isEqual(maximum(NaN))).toBe(true);
   });
 
   it('support instanceof checks', () => {
-    expect(deleteField()).to.be.an.instanceOf(FieldValue);
-    expect(serverTimestamp()).to.be.an.instanceOf(FieldValue);
-    expect(increment(1)).to.be.an.instanceOf(FieldValue);
-    expect(arrayUnion('a')).to.be.an.instanceOf(FieldValue);
-    expect(arrayRemove('a')).to.be.an.instanceOf(FieldValue);
-    expect(minimum(1)).to.be.an.instanceOf(FieldValue);
-    expect(maximum(1)).to.be.an.instanceOf(FieldValue);
+    expect(deleteField()).toBeInstanceOf(FieldValue);
+    expect(serverTimestamp()).toBeInstanceOf(FieldValue);
+    expect(increment(1)).toBeInstanceOf(FieldValue);
+    expect(arrayUnion('a')).toBeInstanceOf(FieldValue);
+    expect(arrayRemove('a')).toBeInstanceOf(FieldValue);
+    expect(minimum(1)).toBeInstanceOf(FieldValue);
+    expect(maximum(1)).toBeInstanceOf(FieldValue);
   });
 
   it('can apply arrayUnion', () => {
     return withTestDocAndInitialData({ 'val': ['foo'] }, async docRef => {
       await updateDoc(docRef, 'val', arrayUnion('bar'));
       const snap = await getDoc(docRef);
-      expect(snap.data()).to.deep.equal({ 'val': ['foo', 'bar'] });
+      expect(snap.data()).toEqual({ 'val': ['foo', 'bar'] });
     });
   });
 
@@ -959,7 +950,7 @@ describe('FieldValue', () => {
       async docRef => {
         await updateDoc(docRef, 'val', arrayRemove('bar'));
         const snap = await getDoc(docRef);
-        expect(snap.data()).to.deep.equal({ 'val': ['foo'] });
+        expect(snap.data()).toEqual({ 'val': ['foo'] });
       }
     );
   });
@@ -968,7 +959,7 @@ describe('FieldValue', () => {
     return withTestDocAndInitialData({ 'val': null }, async docRef => {
       await updateDoc(docRef, 'val', serverTimestamp());
       const snap = await getDoc(docRef);
-      expect(snap.get('val')).to.be.an.instanceOf(Timestamp);
+      expect(snap.get('val')).toBeInstanceOf(Timestamp);
     });
   });
 
@@ -976,7 +967,7 @@ describe('FieldValue', () => {
     return withTestDocAndInitialData({ 'val': 2 }, async docRef => {
       await updateDoc(docRef, 'val', minimum(1));
       const snap = await getDoc(docRef);
-      expect(snap.data()).to.deep.equal({ 'val': 1 });
+      expect(snap.data()).toEqual({ 'val': 1 });
     });
   });
 
@@ -984,7 +975,7 @@ describe('FieldValue', () => {
     return withTestDocAndInitialData({ 'val': 1 }, async docRef => {
       await updateDoc(docRef, 'val', minimum(2));
       const snap = await getDoc(docRef);
-      expect(snap.data()).to.deep.equal({ 'val': 1 });
+      expect(snap.data()).toEqual({ 'val': 1 });
     });
   });
 
@@ -992,7 +983,7 @@ describe('FieldValue', () => {
     return withTestDocAndInitialData({ 'val': 1 }, async docRef => {
       await updateDoc(docRef, 'val', maximum(2));
       const snap = await getDoc(docRef);
-      expect(snap.data()).to.deep.equal({ 'val': 2 });
+      expect(snap.data()).toEqual({ 'val': 2 });
     });
   });
 
@@ -1000,7 +991,7 @@ describe('FieldValue', () => {
     return withTestDocAndInitialData({ 'val': 2 }, async docRef => {
       await updateDoc(docRef, 'val', maximum(1));
       const snap = await getDoc(docRef);
-      expect(snap.data()).to.deep.equal({ 'val': 2 });
+      expect(snap.data()).toEqual({ 'val': 2 });
     });
   });
 
@@ -1008,7 +999,7 @@ describe('FieldValue', () => {
     return withTestDocAndInitialData({ 'val': 'string' }, async docRef => {
       await updateDoc(docRef, 'val', minimum(1));
       const snap = await getDoc(docRef);
-      expect(snap.data()).to.deep.equal({ 'val': 1 });
+      expect(snap.data()).toEqual({ 'val': 1 });
     });
   });
 
@@ -1016,7 +1007,7 @@ describe('FieldValue', () => {
     return withTestDocAndInitialData({ 'val': 'string' }, async docRef => {
       await updateDoc(docRef, 'val', maximum(1));
       const snap = await getDoc(docRef);
-      expect(snap.data()).to.deep.equal({ 'val': 1 });
+      expect(snap.data()).toEqual({ 'val': 1 });
     });
   });
 
@@ -1024,7 +1015,7 @@ describe('FieldValue', () => {
     return withTestDocAndInitialData({ 'val': 'foo' }, async docRef => {
       await updateDoc(docRef, 'val', deleteField());
       const snap = await getDoc(docRef);
-      expect(snap.data()).to.deep.equal({});
+      expect(snap.data()).toEqual({});
     });
   });
 });
@@ -1034,11 +1025,11 @@ describe('Query', () => {
     actual: QuerySnapshot<DocumentData>,
     ...expected: DocumentData[]
   ): void {
-    expect(actual.empty).to.equal(expected.length === 0);
-    expect(actual.size).to.equal(expected.length);
+    expect(actual.empty).toBe(expected.length === 0);
+    expect(actual.size).toBe(expected.length);
 
     for (let i = 0; i < expected.length; ++i) {
-      expect(actual.docs[i].data()).to.deep.equal(expected[i]);
+      expect(actual.docs[i].data()).toEqual(expected[i]);
     }
   }
 
@@ -1217,10 +1208,10 @@ describe('Query', () => {
 
   it('validates collection groups', () => {
     return withTestDb(firestore => {
-      expect(() => collectionGroup(firestore, '')).to.throw(
+      expect(() => collectionGroup(firestore, '')).toThrow(
         'Function collectionGroup() cannot be called with an empty collection id.'
       );
-      expect(() => collectionGroup(firestore, '/')).to.throw(
+      expect(() => collectionGroup(firestore, '/')).toThrow(
         "Invalid collection ID '/' passed to function collectionGroup(). Collection IDs must not contain '/'."
       );
     });
@@ -1253,16 +1244,16 @@ describe('equality', () => {
       const coll1b = doc(firestore, 'a/b').parent;
       const coll2 = collection(firestore, 'c');
 
-      expect(refEqual(coll1a, coll1b)).to.be.true;
-      expect(refEqual(coll1a, coll2)).to.be.false;
+      expect(refEqual(coll1a, coll1b)).toBe(true);
+      expect(refEqual(coll1a, coll2)).toBe(false);
 
       const coll1c = collection(firestore, 'a').withConverter({
         toFirestore: (data: DocumentData) => data as DocumentData,
         fromFirestore: snap => snap.data()
       });
-      expect(refEqual(coll1a, coll1c)).to.be.false;
+      expect(refEqual(coll1a, coll1c)).toBe(false);
 
-      expect(refEqual(coll1a, doc(firestore, 'a/b'))).to.be.false;
+      expect(refEqual(coll1a, doc(firestore, 'a/b'))).toBe(false);
     });
   });
 
@@ -1272,16 +1263,16 @@ describe('equality', () => {
       const doc1b = doc(collection(firestore, 'a'), 'b');
       const doc2 = doc(firestore, 'a/c');
 
-      expect(refEqual(doc1a, doc1b)).to.be.true;
-      expect(refEqual(doc1a, doc2)).to.be.false;
+      expect(refEqual(doc1a, doc1b)).toBe(true);
+      expect(refEqual(doc1a, doc2)).toBe(false);
 
       const doc1c = collection(firestore, 'a').withConverter({
         toFirestore: (data: DocumentData) => data as DocumentData,
         fromFirestore: snap => snap.data()
       });
-      expect(refEqual(doc1a, doc1c)).to.be.false;
+      expect(refEqual(doc1a, doc1c)).toBe(false);
 
-      expect(refEqual(doc1a, collection(firestore, 'a'))).to.be.false;
+      expect(refEqual(doc1a, collection(firestore, 'a'))).toBe(false);
     });
   });
 
@@ -1294,9 +1285,9 @@ describe('equality', () => {
         const query2 = query(collRef, orderBy('foo', 'desc'));
         const query3 = query(collection(collRef, 'a/b'), orderBy('foo'));
 
-        expect(queryEqual(query1a, query1b)).to.be.true;
-        expect(queryEqual(query1a, query2)).to.be.false;
-        expect(queryEqual(query1a, query3)).to.be.false;
+        expect(queryEqual(query1a, query1b)).toBe(true);
+        expect(queryEqual(query1a, query2)).toBe(false);
+        expect(queryEqual(query1a, query3)).toBe(false);
       }
     );
   });
@@ -1313,13 +1304,13 @@ describe('equality', () => {
         const snap1b = await getDocs(query1b);
         const snap2 = await getDocs(query2);
 
-        expect(snapshotEqual(snap1a, snap1b)).to.be.true;
-        expect(snapshotEqual(snap1a, snap2)).to.be.false;
+        expect(snapshotEqual(snap1a, snap1b)).toBe(true);
+        expect(snapshotEqual(snap1a, snap2)).toBe(false);
 
         // Re-run the query with an additional result.
         await addDoc(collRef, { foo: 3 });
         const snap1c = await getDocs(query1a);
-        expect(snapshotEqual(snap1a, snap1c)).to.be.false;
+        expect(snapshotEqual(snap1a, snap1c)).toBe(false);
       }
     );
   });
@@ -1330,13 +1321,13 @@ describe('equality', () => {
       async collRef => {
         const snap1a = await getDocs(collRef);
         const snap1b = await getDocs(collRef);
-        expect(snapshotEqual(snap1a.docs[0], snap1b.docs[0])).to.be.true;
-        expect(snapshotEqual(snap1a.docs[0], snap1a.docs[0])).to.be.true;
+        expect(snapshotEqual(snap1a.docs[0], snap1b.docs[0])).toBe(true);
+        expect(snapshotEqual(snap1a.docs[0], snap1a.docs[0])).toBe(true);
 
         // Modify the document and obtain the snapshot again.
         await updateDoc(snap1a.docs[0].ref, { foo: 3 });
         const snap3 = await getDocs(collRef);
-        expect(snapshotEqual(snap1a.docs[0], snap3.docs[0])).to.be.false;
+        expect(snapshotEqual(snap1a.docs[0], snap3.docs[0])).toBe(false);
       }
     );
   });
@@ -1349,8 +1340,8 @@ describe('withConverter() support', () => {
       await setDoc(docRef, new Post('post', 'author'));
       const postData = await getDoc(docRef);
       const post = postData.data();
-      expect(post).to.not.equal(undefined);
-      expect(post!.byline()).to.equal('post, by author');
+      expect(post).not.toBe(undefined);
+      expect(post!.byline()).toBe('post, by author');
     });
   });
 
@@ -1359,7 +1350,7 @@ describe('withConverter() support', () => {
       coll = coll.withConverter(postConverter).withConverter(null);
       expect(() =>
         setDoc(doc(coll, 'post1'), new Post('post', 'author'))
-      ).to.throw();
+      ).toThrow();
     });
   });
 
@@ -1369,15 +1360,15 @@ describe('withConverter() support', () => {
       const docRef = await addDoc(coll, new Post('post', 'author'));
       const postData = await getDoc(docRef);
       const post = postData.data();
-      expect(post).to.not.equal(undefined);
-      expect(post!.byline()).to.equal('post, by author');
+      expect(post).not.toBe(undefined);
+      expect(post!.byline()).toBe('post, by author');
     });
   });
 
   it('for CollectionReference.withConverter(null) applies default converter', () => {
     return withTestDoc(async doc => {
       doc = doc.withConverter(postConverter).withConverter(null);
-      expect(() => setDoc(doc, new Post('post', 'author'))).to.throw();
+      expect(() => setDoc(doc, new Post('post', 'author'))).toThrow();
     });
   });
 
@@ -1388,8 +1379,8 @@ describe('withConverter() support', () => {
         let query1 = query(collRef, where('title', '==', 'post'));
         query1 = query1.withConverter(postConverter);
         const result = await getDocs(query1);
-        expect(result.docs[0].data()).to.be.an.instanceOf(Post);
-        expect(result.docs[0].data()!.byline()).to.equal('post, by author');
+        expect(result.docs[0].data()).toBeInstanceOf(Post);
+        expect(result.docs[0].data()!.byline()).toBe('post, by author');
       }
     );
   });
@@ -1401,7 +1392,7 @@ describe('withConverter() support', () => {
         let query1 = query(collRef, where('title', '==', 'post'));
         query1 = query1.withConverter(postConverter).withConverter(null);
         const result = await getDocs(query1);
-        expect(result.docs[0]).to.not.be.an.instanceOf(Post);
+        expect(result.docs[0]).not.toBeInstanceOf(Post);
       }
     );
   });
@@ -1412,7 +1403,7 @@ describe('withConverter() support', () => {
       const typedColl = coll.parent!;
       expect(
         refEqual(typedColl, collection(db, 'root').withConverter(postConverter))
-      ).to.be.true;
+      ).toBe(true);
     });
   });
 
@@ -1422,7 +1413,7 @@ describe('withConverter() support', () => {
         postConverter
       );
       const untypedDoc = coll.parent!;
-      expect(refEqual(untypedDoc, doc(db, 'root/doc'))).to.be.true;
+      expect(refEqual(untypedDoc, doc(db, 'root/doc'))).toBe(true);
     });
   });
 
@@ -1437,11 +1428,11 @@ describe('withConverter() support', () => {
         db,
         'users/user1/posts'
       ).withConverter(postConverter2);
-      expect(refEqual(postsCollection, postsCollection2)).to.be.false;
+      expect(refEqual(postsCollection, postsCollection2)).toBe(false);
 
       const docRef = doc(db, 'some/doc').withConverter(postConverter);
       const docRef2 = doc(db, 'some/doc').withConverter(postConverter2);
-      expect(refEqual(docRef, docRef2)).to.be.false;
+      expect(refEqual(docRef, docRef2)).toBe(false);
     });
   });
 
@@ -1450,9 +1441,7 @@ describe('withConverter() support', () => {
       const coll = collection(db, 'posts');
       const ref = doc(coll, 'post').withConverter(postConverter);
       const batch = writeBatch(db);
-      expect(() =>
-        batch.set(ref, { title: 'olive' }, { merge: true })
-      ).to.throw(
+      expect(() => batch.set(ref, { title: 'olive' }, { merge: true })).toThrow(
         'Function WriteBatch.set() called with invalid data ' +
           '(via `toFirestore()`). Unsupported field value: undefined ' +
           '(found in field author in document posts/post)'
@@ -1487,12 +1476,12 @@ describe('withConverter() support', () => {
       const ref = doc(coll, 'number').withConverter(primitiveConverter);
       await setDoc(ref, 3);
       const result = await getDoc(ref);
-      expect(result.data()).to.equal(3);
+      expect(result.data()).toBe(3);
 
       const ref2 = doc(coll, 'array').withConverter(arrayConverter);
       await setDoc(ref2, [1, 2, 3]);
       const result2 = await getDoc(ref2);
-      expect(result2.data()).to.deep.equal([1, 2, 3]);
+      expect(result2.data()).toEqual([1, 2, 3]);
     });
   });
 
@@ -2253,7 +2242,7 @@ describe('Count queries', () => {
     return withTestCollection(async coll => {
       const query_ = query(coll);
       const snapshot = await getCount(query_);
-      expect(snapshot.query).to.equal(query_);
+      expect(snapshot.query).toBe(query_);
     });
   });
 
@@ -2268,7 +2257,7 @@ describe('Count queries', () => {
             await addDoc(subColl1, { foo: 'bar' });
             await addDoc(subColl1, { foo: 'baz' });
             const snapshot1 = await getCount(subColl1);
-            expect(snapshot1.data().count).to.equal(2);
+            expect(snapshot1.data().count).toBe(2);
           });
         }
       );
@@ -2278,7 +2267,7 @@ describe('Count queries', () => {
   it('run count query on empty collection', () => {
     return withTestCollection(async coll => {
       const snapshot = await getCount(coll);
-      expect(snapshot.data().count).to.equal(0);
+      expect(snapshot.data().count).toBe(0);
     });
   });
 
@@ -2290,14 +2279,14 @@ describe('Count queries', () => {
     ];
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const snapshot = await getCount(coll);
-      expect(snapshot.data().count).to.equal(3);
+      expect(snapshot.data().count).toBe(3);
     });
   });
 
   it('run count query fails on invalid collection reference', () => {
     return withTestDb(async db => {
       const queryForRejection = collection(db, '__badpath__');
-      await expect(getCount(queryForRejection)).to.eventually.be.rejected;
+      await expect(getCount(queryForRejection)).rejects.toThrow();
     });
   });
 
@@ -2310,7 +2299,7 @@ describe('Count queries', () => {
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query_ = query(coll, where('author', '==', 'authorA'));
       const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(2);
+      expect(snapshot.data().count).toBe(2);
     });
   });
 
@@ -2323,7 +2312,7 @@ describe('Count queries', () => {
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query_ = query(coll, where('author', '==', 'authorA'), limit(1));
       const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(1);
+      expect(snapshot.data().count).toBe(1);
     });
   });
 
@@ -2336,7 +2325,7 @@ describe('Count queries', () => {
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query_ = query(coll, where('author', '==', 'authorA'), limit(3));
       const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(2);
+      expect(snapshot.data().count).toBe(2);
     });
   });
 
@@ -2350,7 +2339,7 @@ describe('Count queries', () => {
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query_ = query(coll, orderBy('title'));
       const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(3);
+      expect(snapshot.data().count).toBe(3);
     });
   });
 
@@ -2364,7 +2353,7 @@ describe('Count queries', () => {
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query_ = query(coll, orderBy('id'), startAt(2));
       const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(2);
+      expect(snapshot.data().count).toBe(2);
     });
   });
 
@@ -2378,7 +2367,7 @@ describe('Count queries', () => {
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query_ = query(coll, orderBy('id'), startAfter(2));
       const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(1);
+      expect(snapshot.data().count).toBe(1);
     });
   });
 
@@ -2392,7 +2381,7 @@ describe('Count queries', () => {
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query_ = query(coll, orderBy('id'), startAt(1), endAt(2));
       const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(2);
+      expect(snapshot.data().count).toBe(2);
     });
   });
 
@@ -2406,7 +2395,7 @@ describe('Count queries', () => {
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query_ = query(coll, orderBy('id'), startAt(1), endBefore(2));
       const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(1);
+      expect(snapshot.data().count).toBe(1);
     });
   });
 
@@ -2430,7 +2419,7 @@ describe('Count queries', () => {
         where('author', '==', 'authorA')
       ).withConverter(throwingConverter);
       const snapshot = await getCount(query_);
-      expect(snapshot.data().count).to.equal(2);
+      expect(snapshot.data().count).toBe(2);
     });
   });
 
@@ -2450,7 +2439,7 @@ describe('Count queries', () => {
       }
       await batch.commit();
       const snapshot = await getCount(collectionGroup(db, collectionGroupId));
-      expect(snapshot.data().count).to.equal(2);
+      expect(snapshot.data().count).toBe(2);
     });
   });
 
@@ -2466,8 +2455,8 @@ describe('Count queries', () => {
       const snapshot1A = await getCount(query1);
       const snapshot1B = await getCount(query1);
       const snapshot2 = await getCount(query2);
-      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot1B)).to.be.true;
-      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot2)).to.be.true;
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot1B)).toBe(true);
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot2)).toBe(true);
     });
   });
 
@@ -2484,8 +2473,8 @@ describe('Count queries', () => {
       const query2 = query(coll, where('author', '==', 'authorA'));
       const snapshot1B = await getCount(query1);
       const snapshot2 = await getCount(query2);
-      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot1B)).to.be.false;
-      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot2)).to.be.false;
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot1B)).toBe(false);
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot2)).toBe(false);
     });
   });
 
@@ -2501,14 +2490,14 @@ describe('Count queries', () => {
       const query2 = query(coll, where('author', '==', 'authorB'));
       const snapshot1 = await getCount(query1);
       const snapshot2 = await getCount(query2);
-      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
+      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).toBe(false);
     });
   });
 
   it('count query fails on a terminated Firestore', () => {
     return withTestCollection(async coll => {
       await terminate(coll.firestore);
-      expect(() => getCount(coll)).to.throw(
+      expect(() => getCount(coll)).toThrow(
         'The client has already been terminated.'
       );
     });
@@ -2524,7 +2513,7 @@ describe('Count queries', () => {
       const promise = getCount(coll);
       await terminate(coll.firestore);
       const snapshot = await promise;
-      expect(snapshot.data().count).to.equal(3);
+      expect(snapshot.data().count).toBe(3);
     });
   });
 
@@ -2542,11 +2531,11 @@ describe('Count queries', () => {
       // TODO(b/316359394) Remove the special logic for non-default databases
       // once cl/582465034 is rolled out to production.
       if (coll.firestore._databaseId.isDefaultDatabase) {
-        await expect(getCount(query_)).to.be.eventually.rejectedWith(
+        await expect(getCount(query_)).rejects.toThrow(
           /index.*https:\/\/console\.firebase\.google\.com/
         );
       } else {
-        await expect(getCount(query_)).to.be.eventually.rejected;
+        await expect(getCount(query_)).rejects.toThrow();
       }
     });
   });
@@ -2557,14 +2546,14 @@ describe('Aggregate queries', () => {
     return withTestCollection(async coll => {
       const query_ = query(coll);
       const snapshot = await getAggregate(query_, { count: count() });
-      expect(snapshot.query).to.equal(query_);
+      expect(snapshot.query).toBe(query_);
     });
   });
 
   it('run aggregate query on empty collection', () => {
     return withTestCollection(async coll => {
       const snapshot = await getAggregate(coll, { myCount: count() });
-      expect(snapshot.data().myCount).to.equal(0);
+      expect(snapshot.data().myCount).toBe(0);
     });
   });
 
@@ -2576,7 +2565,7 @@ describe('Aggregate queries', () => {
     ];
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const snapshot = await getAggregate(coll, { myCount: count() });
-      expect(snapshot.data().myCount).to.equal(3);
+      expect(snapshot.data().myCount).toBe(3);
     });
   });
 
@@ -2591,16 +2580,17 @@ describe('Aggregate queries', () => {
         myCount: count(),
         yourCount: count()
       });
-      expect(snapshot.data().myCount).to.equal(3);
-      expect(snapshot.data().yourCount).to.equal(3);
+      expect(snapshot.data().myCount).toBe(3);
+      expect(snapshot.data().yourCount).toBe(3);
     });
   });
 
   it('run aggregate query fails on invalid collection reference', () => {
     return withTestDb(async db => {
       const queryForRejection = collection(db, '__badpath__');
-      await expect(getAggregate(queryForRejection, { myCount: count() })).to
-        .eventually.be.rejected;
+      await expect(
+        getAggregate(queryForRejection, { myCount: count() })
+      ).rejects.toThrow();
     });
   });
 
@@ -2613,7 +2603,7 @@ describe('Aggregate queries', () => {
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query_ = query(coll, where('author', '==', 'authorA'));
       const snapshot = await getAggregate(query_, { myCount: count() });
-      expect(snapshot.data().myCount).to.equal(2);
+      expect(snapshot.data().myCount).toBe(2);
     });
   });
 
@@ -2626,7 +2616,7 @@ describe('Aggregate queries', () => {
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query_ = query(coll, where('author', '==', 'authorA'), limit(1));
       const snapshot = await getAggregate(query_, { myCount: count() });
-      expect(snapshot.data().myCount).to.equal(1);
+      expect(snapshot.data().myCount).toBe(1);
     });
   });
 
@@ -2639,7 +2629,7 @@ describe('Aggregate queries', () => {
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query_ = query(coll, where('author', '==', 'authorA'), limit(3));
       const snapshot = await getAggregate(query_, { myCount: count() });
-      expect(snapshot.data().myCount).to.equal(2);
+      expect(snapshot.data().myCount).toBe(2);
     });
   });
 
@@ -2653,7 +2643,7 @@ describe('Aggregate queries', () => {
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query_ = query(coll, orderBy('title'));
       const snapshot = await getAggregate(query_, { myCount: count() });
-      expect(snapshot.data().myCount).to.equal(3);
+      expect(snapshot.data().myCount).toBe(3);
     });
   });
 
@@ -2667,7 +2657,7 @@ describe('Aggregate queries', () => {
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query_ = query(coll, orderBy('id'), startAt(2));
       const snapshot = await getAggregate(query_, { myCount: count() });
-      expect(snapshot.data().myCount).to.equal(2);
+      expect(snapshot.data().myCount).toBe(2);
     });
   });
 
@@ -2681,7 +2671,7 @@ describe('Aggregate queries', () => {
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query_ = query(coll, orderBy('id'), startAfter(2));
       const snapshot = await getAggregate(query_, { myCount: count() });
-      expect(snapshot.data().myCount).to.equal(1);
+      expect(snapshot.data().myCount).toBe(1);
     });
   });
 
@@ -2695,7 +2685,7 @@ describe('Aggregate queries', () => {
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query_ = query(coll, orderBy('id'), startAt(1), endAt(2));
       const snapshot = await getAggregate(query_, { myCount: count() });
-      expect(snapshot.data().myCount).to.equal(2);
+      expect(snapshot.data().myCount).toBe(2);
     });
   });
 
@@ -2709,7 +2699,7 @@ describe('Aggregate queries', () => {
     return withTestCollectionAndInitialData(testDocs, async coll => {
       const query_ = query(coll, orderBy('id'), startAt(1), endBefore(2));
       const snapshot = await getAggregate(query_, { myCount: count() });
-      expect(snapshot.data().myCount).to.equal(1);
+      expect(snapshot.data().myCount).toBe(1);
     });
   });
 
@@ -2733,7 +2723,7 @@ describe('Aggregate queries', () => {
         where('author', '==', 'authorA')
       ).withConverter(throwingConverter);
       const snapshot = await getAggregate(query_, { myCount: count() });
-      expect(snapshot.data().myCount).to.equal(2);
+      expect(snapshot.data().myCount).toBe(2);
     });
   });
 
@@ -2756,7 +2746,7 @@ describe('Aggregate queries', () => {
         collectionGroup(db, collectionGroupId),
         { myCount: count() }
       );
-      expect(snapshot.data().myCount).to.equal(2);
+      expect(snapshot.data().myCount).toBe(2);
     });
   });
 
@@ -2772,8 +2762,8 @@ describe('Aggregate queries', () => {
       const snapshot1A = await getAggregate(query1, { myCount: count() });
       const snapshot1B = await getAggregate(query1, { myCount: count() });
       const snapshot2 = await getAggregate(query2, { myCount: count() });
-      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot1B)).to.be.true;
-      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot2)).to.be.true;
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot1B)).toBe(true);
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot2)).toBe(true);
     });
   });
 
@@ -2790,8 +2780,8 @@ describe('Aggregate queries', () => {
       const query2 = query(coll, where('author', '==', 'authorA'));
       const snapshot1B = await getAggregate(query1, { myCount: count() });
       const snapshot2 = await getAggregate(query2, { myCount: count() });
-      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot1B)).to.be.false;
-      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot2)).to.be.false;
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot1B)).toBe(false);
+      expect(aggregateQuerySnapshotEqual(snapshot1A, snapshot2)).toBe(false);
     });
   });
 
@@ -2807,14 +2797,14 @@ describe('Aggregate queries', () => {
       const query2 = query(coll, where('author', '==', 'authorB'));
       const snapshot1 = await getAggregate(query1, { myCount: count() });
       const snapshot2 = await getAggregate(query2, { myCount: count() });
-      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
+      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).toBe(false);
     });
   });
 
   it('aggregate query fails on a terminated Firestore', () => {
     return withTestCollection(async coll => {
       await terminate(coll.firestore);
-      expect(() => getAggregate(coll, { myCount: count() })).to.throw(
+      expect(() => getAggregate(coll, { myCount: count() })).toThrow(
         'The client has already been terminated.'
       );
     });
@@ -2830,7 +2820,7 @@ describe('Aggregate queries', () => {
       const promise = getAggregate(coll, { myCount: count() });
       await terminate(coll.firestore);
       const snapshot = await promise;
-      expect(snapshot.data().myCount).to.equal(3);
+      expect(snapshot.data().myCount).toBe(3);
     });
   });
 
@@ -2854,15 +2844,13 @@ describe('Aggregate queries', () => {
             getAggregate(query_, {
               myCount: count()
             })
-          ).to.be.eventually.rejectedWith(
-            /index.*https:\/\/console\.firebase\.google\.com/
-          );
+          ).rejects.toThrow(/index.*https:\/\/console\.firebase\.google\.com/);
         } else {
           await expect(
             getAggregate(query_, {
               myCount: count()
             })
-          ).to.be.eventually.rejected;
+          ).rejects.toThrow();
         }
       });
     }
@@ -2885,7 +2873,7 @@ describe('Aggregate queries - sum / average', () => {
       // following use of `aggregateQuerySnapshotEqual(...)` will cause a
       // TS error. To test the method for JS users, we ignore the TS error.
       // @ts-expect-error
-      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
+      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).toBe(false);
     });
   });
 
@@ -2904,7 +2892,7 @@ describe('Aggregate queries - sum / average', () => {
       // following use of `aggregateQuerySnapshotEqual(...)` will cause a
       // TS error. To test the method for JS users, we ignore the TS error.
       // @ts-expect-error
-      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.false;
+      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).toBe(false);
     });
   });
 
@@ -2925,7 +2913,7 @@ describe('Aggregate queries - sum / average', () => {
         foo: average('rating')
       });
 
-      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).to.be.true;
+      expect(aggregateQuerySnapshotEqual(snapshot1, snapshot2)).toBe(true);
     });
   });
 
@@ -2938,7 +2926,7 @@ describe('Aggregate queries - sum / average', () => {
       const snapshot = await getAggregate(coll, {
         totalPages: sum('pages')
       });
-      expect(snapshot.data().totalPages).to.equal(150);
+      expect(snapshot.data().totalPages).toBe(150);
     });
   });
 
@@ -2951,7 +2939,7 @@ describe('Aggregate queries - sum / average', () => {
       const snapshot = await getAggregate(coll, {
         averagePages: average('pages')
       });
-      expect(snapshot.data().averagePages).to.equal(75);
+      expect(snapshot.data().averagePages).toBe(75);
     });
   });
 
@@ -2966,9 +2954,9 @@ describe('Aggregate queries - sum / average', () => {
         averagePages: average('pages'),
         count: count()
       });
-      expect(snapshot.data().totalPages).to.equal(150);
-      expect(snapshot.data().averagePages).to.equal(75);
-      expect(snapshot.data().count).to.equal(2);
+      expect(snapshot.data().totalPages).toBe(150);
+      expect(snapshot.data().averagePages).toBe(75);
+      expect(snapshot.data().count).toBe(2);
     });
   });
 
@@ -2989,9 +2977,7 @@ describe('Aggregate queries - sum / average', () => {
           countZ: count()
         });
 
-        await expect(promise).to.eventually.be.rejectedWith(
-          /maximum number of aggregations/
-        );
+        await expect(promise).rejects.toThrow(/maximum number of aggregations/);
       });
     }
   );
@@ -3015,10 +3001,10 @@ describe('Aggregate queries - sum / average', () => {
             averageYear: average('year'),
             count: count()
           });
-          expect(snapshot.data().totalPages).to.equal(300);
-          expect(snapshot.data().averagePages).to.equal(100);
-          expect(snapshot.data().averageYear).to.equal(2007);
-          expect(snapshot.data().count).to.equal(3);
+          expect(snapshot.data().totalPages).toBe(300);
+          expect(snapshot.data().averagePages).toBe(100);
+          expect(snapshot.data().averageYear).toBe(2007);
+          expect(snapshot.data().count).toBe(3);
         });
       });
     }
@@ -3042,10 +3028,10 @@ describe('Vectors', () => {
       });
 
       const snap1 = await getDoc(ref);
-      expect(snap1.get('vector0').isEqual(vector([0.0]))).to.be.true;
-      expect(snap1.get('vector1').isEqual(vector([1, 2, 3.99]))).to.be.true;
-      expect(snap1.get('vector2').isEqual(vector([0, 0, 0]))).to.be.true;
-      expect(snap1.get('vector3').isEqual(vector([-1, -200, -999]))).to.be.true;
+      expect(snap1.get('vector0').isEqual(vector([0.0]))).toBe(true);
+      expect(snap1.get('vector1').isEqual(vector([1, 2, 3.99]))).toBe(true);
+      expect(snap1.get('vector2').isEqual(vector([0, 0, 0]))).toBe(true);
+      expect(snap1.get('vector3').isEqual(vector([-1, -200, -999]))).toBe(true);
     });
   });
 });
@@ -3077,21 +3063,24 @@ describe.skipEmulator.skipClassic('BSON types', () => {
         snap1
           .get('objectId')
           .isEqual(new BsonObjectId('507f191e810c19729de860ea'))
-      ).to.be.true;
-      expect(snap1.get('int32').isEqual(new Int32Value(2))).to.be.true;
-      expect(snap1.get('decimal128').isEqual(new Decimal128Value('1.2e3'))).to
-        .be.true;
-      expect(snap1.get('min') === MinKey.instance()).to.be.true;
-      expect(snap1.get('max') === MaxKey.instance()).to.be.true;
+      ).toBe(true);
+      expect(snap1.get('int32').isEqual(new Int32Value(2))).toBe(true);
+      expect(
+        snap1.get('decimal128').isEqual(new Decimal128Value('1.2e3'))
+      ).toBe(true);
+      expect(snap1.get('min') === MinKey.instance()).toBe(true);
+      expect(snap1.get('max') === MaxKey.instance()).toBe(true);
       expect(
         snap1
           .get('binary')
           .isEqual(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1))
-      ).to.be.true;
-      expect(snap1.get('timestamp').isEqual(new BsonTimestamp(1, 2))).to.be
-        .true;
-      expect(snap1.get('regex').isEqual(new RegexValue('^foo', 'i'))).to.be
-        .true;
+      ).toBe(true);
+      expect(snap1.get('timestamp').isEqual(new BsonTimestamp(1, 2))).toBe(
+        true
+      );
+      expect(snap1.get('regex').isEqual(new RegexValue('^foo', 'i'))).toBe(
+        true
+      );
     });
   });
 });
