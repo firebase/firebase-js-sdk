@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { Deferred } from '../../util/promise';
 import {
@@ -72,7 +70,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 
       const expectedStructuredPipelineProto =
         '{"pipeline":{"stages":[{"name":"collection","options":{},"args":[{"referenceValue":"/customers"}]},{"name":"where","options":{},"args":[{"functionValue":{"name":"equal","args":[{"fieldReferenceValue":"country"},{"stringValue":"United Kingdom"}]}}]}]}}';
-      expect(JSON.stringify(proto.structuredPipeline)).to.equal(
+      expect(JSON.stringify(proto.structuredPipeline)).toBe(
         expectedStructuredPipelineProto
       );
     });
@@ -98,7 +96,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 
       const result = await execute(pipeline);
 
-      expect(result.results[0]._fieldsProto()).to.deep.equal({
+      expect(result.results[0]._fieldsProto()).toEqual({
         'author': {
           'stringValue': 'George Orwell'
         },
@@ -194,7 +192,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .where(field('country').equal(new Map([])));
 
         _internalPipelineToExecutePipelineRequestProto(pipeline);
-      }).to.throw();
+      }).toThrow();
     });
   });
 });

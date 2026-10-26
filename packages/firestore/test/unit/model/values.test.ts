@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   GeoPoint,
@@ -482,7 +480,7 @@ describe('Values', () => {
 
     for (const group of equalityGroups) {
       for (const element of group.elements) {
-        expect(estimateByteSize(element)).to.equal(group.expectedByteSize);
+        expect(estimateByteSize(element)).toBe(group.expectedByteSize);
       }
     }
   });
@@ -523,7 +521,7 @@ describe('Values', () => {
         .sort((l, r) =>
           primitiveComparator(estimateByteSize(l), estimateByteSize(r))
         );
-      expect(expectedOrder).to.deep.equal(actualOrder);
+      expect(expectedOrder).toEqual(actualOrder);
     }
   });
 
@@ -736,21 +734,19 @@ describe('Values', () => {
   });
 
   it('canonicalizes values', () => {
-    expect(canonicalId(wrap(null))).to.equal('null');
-    expect(canonicalId(wrap(true))).to.equal('true');
-    expect(canonicalId(wrap(false))).to.equal('false');
-    expect(canonicalId(wrap(1))).to.equal('1');
-    expect(canonicalId(wrap(1.1))).to.equal('1.1');
-    expect(canonicalId(wrap(new Timestamp(30, 1000)))).to.equal(
-      'time(30,1000)'
-    );
-    expect(canonicalId(wrap('a'))).to.equal('a');
-    expect(canonicalId(wrap(blob(1, 2, 3)))).to.equal('AQID');
-    expect(canonicalId(refValue(dbId('p1', 'd1'), key('c1/doc1')))).to.equal(
+    expect(canonicalId(wrap(null))).toBe('null');
+    expect(canonicalId(wrap(true))).toBe('true');
+    expect(canonicalId(wrap(false))).toBe('false');
+    expect(canonicalId(wrap(1))).toBe('1');
+    expect(canonicalId(wrap(1.1))).toBe('1.1');
+    expect(canonicalId(wrap(new Timestamp(30, 1000)))).toBe('time(30,1000)');
+    expect(canonicalId(wrap('a'))).toBe('a');
+    expect(canonicalId(wrap(blob(1, 2, 3)))).toBe('AQID');
+    expect(canonicalId(refValue(dbId('p1', 'd1'), key('c1/doc1')))).toBe(
       'c1/doc1'
     );
-    expect(canonicalId(wrap(new GeoPoint(30, 60)))).to.equal('geo(30,60)');
-    expect(canonicalId(wrap([1, 2, 3]))).to.equal('[1,2,3]');
+    expect(canonicalId(wrap(new GeoPoint(30, 60)))).toBe('geo(30,60)');
+    expect(canonicalId(wrap([1, 2, 3]))).toBe('[1,2,3]');
     expect(
       canonicalId(
         wrap({
@@ -759,31 +755,29 @@ describe('Values', () => {
           'c': '3'
         })
       )
-    ).to.equal('{a:1,b:2,c:3}');
-    expect(canonicalId(wrap(vector([1, 1.0, -2, 3.14])))).to.equal(
+    ).toBe('{a:1,b:2,c:3}');
+    expect(canonicalId(wrap(vector([1, 1.0, -2, 3.14])))).toBe(
       '{__type__:__vector__,value:[1,1,-2,3.14]}'
     );
     expect(
       canonicalId(wrap({ 'a': ['b', { 'c': new GeoPoint(30, 60) }] }))
-    ).to.equal('{a:[b,{c:geo(30,60)}]}');
-    expect(canonicalId(wrap(new RegexValue('a', 'b')))).to.equal(
+    ).toBe('{a:[b,{c:geo(30,60)}]}');
+    expect(canonicalId(wrap(new RegexValue('a', 'b')))).toBe(
       '{__regex__:{options:b,pattern:a}}'
     );
-    expect(canonicalId(wrap(new BsonObjectId('foo')))).to.equal(
-      '{__oid__:foo}'
-    );
-    expect(canonicalId(wrap(new BsonTimestamp(1, 2)))).to.equal(
+    expect(canonicalId(wrap(new BsonObjectId('foo')))).toBe('{__oid__:foo}');
+    expect(canonicalId(wrap(new BsonTimestamp(1, 2)))).toBe(
       '{__request_timestamp__:{increment:2,seconds:1}}'
     );
-    expect(canonicalId(wrap(new Int32Value(1)))).to.equal('{__int__:1}');
-    expect(canonicalId(wrap(new Decimal128Value('-1.2e3')))).to.equal(
+    expect(canonicalId(wrap(new Int32Value(1)))).toBe('{__int__:1}');
+    expect(canonicalId(wrap(new Decimal128Value('-1.2e3')))).toBe(
       '{__decimal128__:-1.2e3}'
     );
     expect(
       canonicalId(wrap(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]), 1)))
-    ).to.equal('{__binary__:AQECAw==}');
-    expect(canonicalId(wrap(MinKey.instance()))).to.equal('{__min__:null}');
-    expect(canonicalId(wrap(MaxKey.instance()))).to.equal('{__max__:null}');
+    ).toBe('{__binary__:AQECAw==}');
+    expect(canonicalId(wrap(MinKey.instance()))).toBe('{__min__:null}');
+    expect(canonicalId(wrap(MaxKey.instance()))).toBe('{__max__:null}');
   });
 
   it('canonical IDs ignore sort order', () => {
@@ -795,7 +789,7 @@ describe('Values', () => {
           'c': '3'
         })
       )
-    ).to.equal('{a:1,b:2,c:3}');
+    ).toBe('{a:1,b:2,c:3}');
     expect(
       canonicalId(
         wrap({
@@ -804,7 +798,7 @@ describe('Values', () => {
           'a': '1'
         })
       )
-    ).to.equal('{a:1,b:2,c:3}');
+    ).toBe('{a:1,b:2,c:3}');
   });
 
   it('clones properties without normalization', () => {
@@ -836,11 +830,11 @@ describe('Values', () => {
     ];
 
     for (const value of values) {
-      expect(deepClone(value)).to.deep.equal(value);
+      expect(deepClone(value)).toEqual(value);
       const mapValue = { mapValue: { fields: { foo: value } } };
-      expect(deepClone(mapValue)).to.deep.equal(mapValue);
+      expect(deepClone(mapValue)).toEqual(mapValue);
       const arrayValue = { arrayValue: { values: [value] } };
-      expect(deepClone(arrayValue)).to.deep.equal(arrayValue);
+      expect(deepClone(arrayValue)).toEqual(arrayValue);
     }
   });
 
@@ -852,7 +846,7 @@ describe('Values', () => {
         }
       }
     };
-    expect(detectMapRepresentation(singleKeyRegularMap)).to.equal(
+    expect(detectMapRepresentation(singleKeyRegularMap)).toBe(
       MapRepresentation.REGULAR_MAP
     );
   });
@@ -872,7 +866,7 @@ describe('Values', () => {
         }
       }
     };
-    expect(isInt32Value(intZeroNumber)).to.be.true;
-    expect(isInt32Value(intZeroString)).to.be.true;
+    expect(isInt32Value(intZeroNumber)).toBe(true);
+    expect(isInt32Value(intZeroString)).toBe(true);
   });
 });

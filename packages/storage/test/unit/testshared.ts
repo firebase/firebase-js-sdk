@@ -14,11 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
-use(chaiAsPromised);
-
 import { FirebaseApp } from '@firebase/app-types';
 import { CONFIG_STORAGE_BUCKET_KEY } from '../../src/implementation/constants';
 import { StorageError } from '../../src/implementation/error';
@@ -159,13 +154,13 @@ export function assertThrows(f: () => void, code: string): StorageError {
       captured = e as StorageError;
       throw e;
     }
-  }).to.throw();
+  }).toThrow();
   // @ts-ignore Compiler does not know callback is invoked immediately and
   // thinks catch block is unreachable. This is an open TS issue:
   // https://github.com/microsoft/TypeScript/issues/11498
-  expect(captured).to.be.an.instanceof(StorageError);
+  expect(captured).toBeInstanceOf(StorageError);
   // @ts-ignore See above.
-  expect(captured.code).to.equal(code);
+  expect(captured.code).toBe(code);
   // @ts-ignore See above.
   return captured as StorageError;
 }
@@ -174,10 +169,10 @@ export function assertUint8ArrayEquals(
   arr1: Uint8Array,
   arr2: Uint8Array
 ): void {
-  expect(arr1.length).to.equal(arr2.length);
+  expect(arr1.length).toBe(arr2.length);
 
   for (let i = 0; i < arr1.length; i++) {
-    expect(arr1[i]).to.equal(arr2[i]);
+    expect(arr1[i]).toBe(arr2[i]);
   }
 }
 
@@ -186,7 +181,7 @@ export function assertObjectIncludes(
   obj: { [name: string]: any }
 ): void {
   for (const [key, value] of Object.entries(included)) {
-    expect(value).to.deep.equal(obj[key]);
+    expect(value).toEqual(obj[key]);
   }
 }
 

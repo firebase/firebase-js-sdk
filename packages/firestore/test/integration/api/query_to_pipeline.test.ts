@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2024 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
@@ -48,9 +45,6 @@ import {
   withTestCollection
 } from '../util/helpers';
 import { execute, PipelineSnapshot } from '../util/pipeline_export';
-
-use(chaiAsPromised);
-
 // This is the Query integration tests from the lite API (no cache support)
 // with some additional test cases added for more complete coverage.
 apiDescribe.skipClassic('Query to Pipeline', persistence => {
@@ -61,10 +55,10 @@ apiDescribe.skipClassic('Query to Pipeline', persistence => {
     ...expected: DocumentData[]
   ): void {
     const results = actual.results;
-    expect(results.length).to.equal(expected.length);
+    expect(results.length).toBe(expected.length);
 
     for (let i = 0; i < expected.length; ++i) {
-      expect(results[i].data()).to.deep.equal(expected[i]);
+      expect(results[i].data()).toEqual(expected[i]);
     }
   }
 

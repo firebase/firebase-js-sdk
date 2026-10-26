@@ -32,7 +32,7 @@ import { FakeWindow, SharedFakeWebStorage } from './test_platform';
 // and set the environment variable `USE_MOCK_PERSISTENCE` to `YES`.
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const globalAny = global as any;
+const globalAny = globalThis as any;
 
 const dbDir = fs.mkdtempSync(os.tmpdir() + '/firestore_tests');
 

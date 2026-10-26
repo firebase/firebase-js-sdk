@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { FirestoreError } from '../../../src';
 import { DEFAULT_TRANSACTION_OPTIONS } from '../../../src/core/transaction_options';
@@ -52,7 +50,7 @@ apiDescribe('Database transactions (with internal API)', persistence => {
         transactionPromises.push(
           runTransaction(db, async transaction => {
             const snapshot = await transaction.get(docRef);
-            expect(snapshot).to.exist;
+            expect(snapshot).toBeDefined();
             started += 1;
             resolveRead.resolve();
             await barrier.promise;
@@ -68,14 +66,14 @@ apiDescribe('Database transactions (with internal API)', persistence => {
 
       // Let all of the transactions continue and wait for them to
       // finish.
-      expect(started).to.equal(3);
+      expect(started).toBe(3);
       barrier.resolve();
       await Promise.all(transactionPromises);
 
       // Now all transaction should be completed, so check the result.
       const snapshot = await getDoc(docRef);
-      expect(snapshot).to.exist;
-      expect(snapshot.data()!['count']).to.equal(8);
+      expect(snapshot).toBeDefined();
+      expect(snapshot.data()!['count']).toBe(8);
     });
   });
 
@@ -101,7 +99,7 @@ apiDescribe('Database transactions (with internal API)', persistence => {
         transactionPromises.push(
           runTransaction(db, async transaction => {
             const snapshot = await transaction.get(docRef);
-            expect(snapshot).to.exist;
+            expect(snapshot).toBeDefined();
             counter += 1;
             resolveRead.resolve();
             await barrier.promise;
@@ -117,18 +115,18 @@ apiDescribe('Database transactions (with internal API)', persistence => {
 
       // Let all of the transactions continue and wait for them to
       // finish. There should be 3 initial transaction runs.
-      expect(counter).to.equal(3);
+      expect(counter).toBe(3);
       barrier.resolve();
       await Promise.all(transactionPromises);
 
       // Now all transaction should be completed, so check the result.
       // There should be a maximum of 3 retries: once for the 2nd update,
       // and twice for the 3rd update.
-      expect(counter).to.be.lessThan(7);
+      expect(counter).toBeLessThan(7);
       const snapshot = await getDoc(docRef);
-      expect(snapshot).to.exist;
-      expect(snapshot.data()!['count']).to.equal(8);
-      expect(snapshot.data()!['other']).to.equal('yes');
+      expect(snapshot).toBeDefined();
+      expect(snapshot.data()!['count']).toBe(8);
+      expect(snapshot.data()!['other']).toBe('yes');
     });
   });
 
@@ -156,12 +154,12 @@ apiDescribe('Database transactions (with internal API)', persistence => {
         expect.fail('transaction should fail');
       } catch (e) {
         const err = e as FirestoreError;
-        expect(err).to.exist;
-        expect(err.code).to.equal('aborted');
+        expect(err).toBeDefined();
+        expect(err.code).toBe('aborted');
       }
       const snapshot = await getDoc(docRef);
-      expect(snapshot.data()!['count']).to.equal(1234 + counter);
-      expect(counter).to.equal(DEFAULT_TRANSACTION_OPTIONS.maxAttempts);
+      expect(snapshot.data()!['count']).toBe(1234 + counter);
+      expect(counter).toBe(DEFAULT_TRANSACTION_OPTIONS.maxAttempts);
     });
   });
 
@@ -196,12 +194,12 @@ apiDescribe('Database transactions (with internal API)', persistence => {
         expect.fail('transaction should fail');
       } catch (e) {
         const err = e as FirestoreError;
-        expect(err).to.exist;
-        expect(err.code).to.equal('aborted');
+        expect(err).toBeDefined();
+        expect(err.code).toBe('aborted');
       }
       const snapshot = await getDoc(docRef);
-      expect(snapshot.data()!['count']).to.equal(1234 + counter);
-      expect(counter).to.equal(options.maxAttempts);
+      expect(snapshot.data()!['count']).toBe(1234 + counter);
+      expect(counter).toBe(options.maxAttempts);
     });
   });
 });

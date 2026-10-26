@@ -16,7 +16,6 @@
  */
 
 import stringify from 'json-stable-stringify';
-import { ExclusiveTestFunction, PendingTestFunction } from 'mocha';
 
 import { Pipeline } from '../../../lite/pipelines/pipelines';
 import { pipelineEq } from '../../../src/core/pipeline-util';
@@ -94,7 +93,7 @@ function getTestRunner(
   tags: string[],
   persistenceEnabled: boolean,
   convertToPipeline: boolean
-): ExclusiveTestFunction | PendingTestFunction {
+): typeof it | typeof it.skip | typeof it.only {
   if (tags.indexOf(NO_WEB_TAG) >= 0) {
     // eslint-disable-next-line no-restricted-properties
     return it.skip;
@@ -191,25 +190,25 @@ export function specTest(
         const mode = usePersistence ? '(Persistence)' : '(Memory)';
         const queryMode = convertToPipeline ? '(Pipeline)' : '(Query)';
         const fullName = `${mode} ${queryMode} ${name}`;
-        const queuedTest = runner(fullName, async () => {
-          const spec = builder();
-          const start = Date.now();
-          await spec.runAsTest(
-            fullName,
-            tags,
-            usePersistence,
-            convertToPipeline
-          );
-          const end = Date.now();
-          if (tags.indexOf(BENCHMARK_TAG) >= 0) {
-            // eslint-disable-next-line no-console
-            console.log(`Runtime: ${end - start} ms.`);
-          }
-        });
-
-        if (timeout !== undefined) {
-          queuedTest.timeout(timeout);
-        }
+        runner(
+          fullName,
+          async () => {
+            const spec = builder();
+            const start = Date.now();
+            await spec.runAsTest(
+              fullName,
+              tags,
+              usePersistence,
+              convertToPipeline
+            );
+            const end = Date.now();
+            if (tags.indexOf(BENCHMARK_TAG) >= 0) {
+              // eslint-disable-next-line no-console
+              console.log(`Runtime: ${end - start} ms.`);
+            }
+          },
+          timeout
+        );
       }
     }
   } else {

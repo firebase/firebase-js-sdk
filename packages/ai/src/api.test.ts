@@ -26,7 +26,7 @@ import {
 } from './api';
 import { AI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
-import { GoogleAIBackend, EnterpriseBackend } from './backend';
+import { GoogleAIBackend, AgentPlatformBackend } from './backend';
 import { fakeAI, getFullApp } from '../test-utils/get-fake-firebase-services';
 import { AI_TYPE } from './constants';
 import { logger } from './logger';
@@ -44,25 +44,25 @@ describe('Top level API', () => {
     });
     it('works with options: backend specified, limited use token', () => {
       const ai = getAI(getFullApp(), {
-        backend: new EnterpriseBackend('global'),
+        backend: new AgentPlatformBackend('global'),
         useLimitedUseAppCheckTokens: true
       });
-      expect(ai.backend).to.be.instanceOf(EnterpriseBackend);
+      expect(ai.backend).to.be.instanceOf(AgentPlatformBackend);
       expect(ai.options?.useLimitedUseAppCheckTokens).to.be.true;
     });
     it('works with options: appCheck option is falsy', () => {
       const ai = getAI(getFullApp(), {
-        backend: new EnterpriseBackend('global'),
+        backend: new AgentPlatformBackend('global'),
         useLimitedUseAppCheckTokens: undefined
       });
-      expect(ai.backend).to.be.instanceOf(EnterpriseBackend);
+      expect(ai.backend).to.be.instanceOf(AgentPlatformBackend);
       expect(ai.options?.useLimitedUseAppCheckTokens).to.be.false;
     });
     it('works with options: backend specified only', () => {
       const ai = getAI(getFullApp(), {
-        backend: new EnterpriseBackend('global')
+        backend: new AgentPlatformBackend('global')
       });
-      expect(ai.backend).to.be.instanceOf(EnterpriseBackend);
+      expect(ai.backend).to.be.instanceOf(AgentPlatformBackend);
       expect(ai.options?.useLimitedUseAppCheckTokens).to.be.false;
     });
   });
@@ -78,12 +78,12 @@ describe('Top level API', () => {
     }
   });
   it('getGenerativeModel throws if no apiKey is provided', () => {
-    const fakeVertexNoApiKey = {
+    const fakeAINoApiKey = {
       ...fakeAI,
       app: { options: { projectId: 'my-project', appId: 'my-appid' } }
     } as AI;
     try {
-      getGenerativeModel(fakeVertexNoApiKey, { model: 'my-model' });
+      getGenerativeModel(fakeAINoApiKey, { model: 'my-model' });
     } catch (e) {
       expect((e as AIError).code).includes(AIErrorCode.NO_API_KEY);
       expect((e as AIError).message).equals(
@@ -94,12 +94,12 @@ describe('Top level API', () => {
     }
   });
   it('getGenerativeModel throws if no projectId is provided', () => {
-    const fakeVertexNoProject = {
+    const fakeAINoProject = {
       ...fakeAI,
       app: { options: { apiKey: 'my-key', appId: 'my-appid' } }
     } as AI;
     try {
-      getGenerativeModel(fakeVertexNoProject, { model: 'my-model' });
+      getGenerativeModel(fakeAINoProject, { model: 'my-model' });
     } catch (e) {
       expect((e as AIError).code).includes(AIErrorCode.NO_PROJECT_ID);
       expect((e as AIError).message).equals(
@@ -110,12 +110,12 @@ describe('Top level API', () => {
     }
   });
   it('getGenerativeModel throws if no appId is provided', () => {
-    const fakeVertexNoProject = {
+    const fakeAINoAppId = {
       ...fakeAI,
       app: { options: { apiKey: 'my-key', projectId: 'my-projectid' } }
     } as AI;
     try {
-      getGenerativeModel(fakeVertexNoProject, { model: 'my-model' });
+      getGenerativeModel(fakeAINoAppId, { model: 'my-model' });
     } catch (e) {
       expect((e as AIError).code).includes(AIErrorCode.NO_APP_ID);
       expect((e as AIError).message).equals(
@@ -147,12 +147,12 @@ describe('Top level API', () => {
   });
 
   it('getLiveGenerativeModel throws if no apiKey is provided', () => {
-    const fakeVertexNoApiKey = {
+    const fakeAINoApiKey = {
       ...fakeAI,
       app: { options: { projectId: 'my-project', appId: 'my-appid' } }
     } as AI;
     try {
-      getLiveGenerativeModel(fakeVertexNoApiKey, { model: 'my-model' });
+      getLiveGenerativeModel(fakeAINoApiKey, { model: 'my-model' });
     } catch (e) {
       expect((e as AIError).code).includes(AIErrorCode.NO_API_KEY);
       expect((e as AIError).message).equals(
@@ -163,12 +163,12 @@ describe('Top level API', () => {
     }
   });
   it('getLiveGenerativeModel throws if no projectId is provided', () => {
-    const fakeVertexNoProject = {
+    const fakeAINoProject = {
       ...fakeAI,
       app: { options: { apiKey: 'my-key', appId: 'my-appid' } }
     } as AI;
     try {
-      getLiveGenerativeModel(fakeVertexNoProject, { model: 'my-model' });
+      getLiveGenerativeModel(fakeAINoProject, { model: 'my-model' });
     } catch (e) {
       expect((e as AIError).code).includes(AIErrorCode.NO_PROJECT_ID);
       expect((e as AIError).message).equals(
@@ -179,12 +179,12 @@ describe('Top level API', () => {
     }
   });
   it('getLiveGenerativeModel throws if no appId is provided', () => {
-    const fakeVertexNoProject = {
+    const fakeAINoAppId = {
       ...fakeAI,
       app: { options: { apiKey: 'my-key', projectId: 'my-project' } }
     } as AI;
     try {
-      getLiveGenerativeModel(fakeVertexNoProject, { model: 'my-model' });
+      getLiveGenerativeModel(fakeAINoAppId, { model: 'my-model' });
     } catch (e) {
       expect((e as AIError).code).includes(AIErrorCode.NO_APP_ID);
       expect((e as AIError).message).equals(

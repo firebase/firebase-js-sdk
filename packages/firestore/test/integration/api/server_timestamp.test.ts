@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
@@ -53,61 +51,40 @@ apiDescribe('Server Timestamps', persistence => {
     deep: { when: serverTimestamp() }
   };
 
-  // A document reference to read and write to.
-  let docRef: DocumentReference;
-
-  let firestore: Firestore;
-
-  // Accumulator used to capture events during the test.
-  let accumulator: EventsAccumulator<DocumentSnapshot>;
-
-  // Listener registration for a listener maintained during the course of the
-  // test.
-  let unsubscribe: () => void;
-
   // Returns the expected data, with an arbitrary timestamp substituted in.
   function expectedDataWithTimestamp(timestamp: object | null): AnyTestData {
     return { a: 42, when: timestamp, deep: { when: timestamp } };
   }
 
-  /** Writes initialData and waits for the corresponding snapshot. */
-  function writeInitialData(): Promise<void> {
-    return setDoc(docRef, initialData)
-      .then(() => accumulator.awaitEvent())
-      .then(initialDataSnap => {
-        expect(initialDataSnap.data()).to.deep.equal(initialData);
-      });
-  }
-
   /** Verifies a snapshot containing setData but with resolved server timestamps. */
   function verifyTimestampsAreResolved(snap: DocumentSnapshot): void {
-    expect(snap.exists()).to.equal(true);
+    expect(snap.exists()).toBe(true);
     const when = snap.get('when');
-    expect(when).to.be.an.instanceof(Timestamp);
+    expect(when).toBeInstanceOf(Timestamp);
     // Tolerate up to 60 seconds of clock skew between client and server
     // since web tests may run in a Windows VM with a sloppy clock.
     const delta = 60;
-    expect(Math.abs(when.toDate().getTime() - Date.now())).to.be.lessThan(
+    expect(Math.abs(when.toDate().getTime() - Date.now())).toBeLessThan(
       delta * 1000
     );
 
     // Validate the rest of the document.
-    expect(snap.data()).to.deep.equal(expectedDataWithTimestamp(when));
+    expect(snap.data()).toEqual(expectedDataWithTimestamp(when));
   }
 
   /** Verifies a snapshot containing setData but with null for the timestamps. */
   function verifyTimestampsAreNull(snap: DocumentSnapshot): void {
-    expect(snap.exists()).to.equal(true);
-    expect(snap.data()).to.deep.equal(expectedDataWithTimestamp(null));
+    expect(snap.exists()).toBe(true);
+    expect(snap.data()).toEqual(expectedDataWithTimestamp(null));
   }
 
   /** Verifies a snapshot containing setData but with local estimates for server timestamps. */
   function verifyTimestampsAreEstimates(snap: DocumentSnapshot): void {
-    expect(snap.exists()).to.equal(true);
+    expect(snap.exists()).toBe(true);
     const when = snap.get('when', { serverTimestamps: 'estimate' });
-    expect(when).to.be.an.instanceof(Timestamp);
+    expect(when).toBeInstanceOf(Timestamp);
     // Validate the rest of the document.
-    expect(snap.data({ serverTimestamps: 'estimate' })).to.deep.equal(
+    expect(snap.data({ serverTimestamps: 'estimate' })).toEqual(
       expectedDataWithTimestamp(when)
     );
   }
@@ -116,34 +93,44 @@ apiDescribe('Server Timestamps', persistence => {
    * Wraps a test, getting a docRef and event accumulator, and cleaning them
    * up when done.
    */
-  function withTestSetup(test: () => Promise<void>): Promise<void> {
-    return withTestDoc(persistence, (doc, db) => {
-      // Set variables for use during test.
-      docRef = doc;
-      firestore = db;
-
-      accumulator = new EventsAccumulator<DocumentSnapshot>();
-      unsubscribe = onSnapshot(
+  function withTestSetup(
+    test: (context: {
+      docRef: DocumentReference;
+      firestore: Firestore;
+      accumulator: EventsAccumulator<DocumentSnapshot>;
+      writeInitialData: () => Promise<void>;
+    }) => Promise<void>
+  ): Promise<void> {
+    return withTestDoc(persistence, async (docRef, firestore) => {
+      const accumulator = new EventsAccumulator<DocumentSnapshot>();
+      const unsubscribe = onSnapshot(
         docRef,
         { includeMetadataChanges: true },
         accumulator.storeEvent
       );
 
-      // wait for initial null snapshot to avoid potential races.
-      return accumulator
-        .awaitEvent()
-        .then(docSnap => {
-          expect(docSnap.exists()).to.equal(false);
-        })
-        .then(() => test())
-        .then(() => {
-          unsubscribe();
-        });
+      /** Writes initialData and waits for the corresponding snapshot. */
+      function writeInitialData(): Promise<void> {
+        return setDoc(docRef, initialData)
+          .then(() => accumulator.awaitEvent())
+          .then(initialDataSnap => {
+            expect(initialDataSnap.data()).toEqual(initialData);
+          });
+      }
+
+      try {
+        // wait for initial null snapshot to avoid potential races.
+        const docSnap = await accumulator.awaitEvent();
+        expect(docSnap.exists()).toBe(false);
+        await test({ docRef, firestore, accumulator, writeInitialData });
+      } finally {
+        unsubscribe();
+      }
     });
   }
 
   it('work via set()', () => {
-    return withTestSetup(() => {
+    return withTestSetup(({ docRef, accumulator }) => {
       return setDoc(docRef, setData)
         .then(() => accumulator.awaitLocalEvent())
         .then(snapshot => verifyTimestampsAreNull(snapshot))
@@ -153,7 +140,7 @@ apiDescribe('Server Timestamps', persistence => {
   });
 
   it('work via update()', () => {
-    return withTestSetup(() => {
+    return withTestSetup(({ docRef, accumulator, writeInitialData }) => {
       return writeInitialData()
         .then(() => updateDoc(docRef, updateData))
         .then(() => accumulator.awaitLocalEvent())
@@ -164,7 +151,7 @@ apiDescribe('Server Timestamps', persistence => {
   });
 
   it('work via transaction set()', () => {
-    return withTestSetup(() =>
+    return withTestSetup(({ docRef, firestore, accumulator }) =>
       runTransaction(firestore, async txn => {
         txn.set(docRef, setData);
       })
@@ -174,21 +161,23 @@ apiDescribe('Server Timestamps', persistence => {
   });
 
   it('work via transaction update()', () => {
-    return withTestSetup(() => {
-      return writeInitialData()
-        .then(() => accumulator.awaitRemoteEvent())
-        .then(() =>
-          runTransaction(firestore, async txn => {
-            txn.update(docRef, updateData);
-          })
-        )
-        .then(() => accumulator.awaitRemoteEvent())
-        .then(snapshot => verifyTimestampsAreResolved(snapshot));
-    });
+    return withTestSetup(
+      ({ docRef, firestore, accumulator, writeInitialData }) => {
+        return writeInitialData()
+          .then(() => accumulator.awaitRemoteEvent())
+          .then(() =>
+            runTransaction(firestore, async txn => {
+              txn.update(docRef, updateData);
+            })
+          )
+          .then(() => accumulator.awaitRemoteEvent())
+          .then(snapshot => verifyTimestampsAreResolved(snapshot));
+      }
+    );
   });
 
   it('can return estimated value', () => {
-    return withTestSetup(() => {
+    return withTestSetup(({ docRef, accumulator, writeInitialData }) => {
       return writeInitialData()
         .then(() => updateDoc(docRef, updateData))
         .then(() => accumulator.awaitLocalEvent())
@@ -197,7 +186,7 @@ apiDescribe('Server Timestamps', persistence => {
   });
 
   it('can return previous value of different type', () => {
-    return withTestSetup(() => {
+    return withTestSetup(({ docRef, accumulator, writeInitialData }) => {
       return writeInitialData()
         .then(() =>
           // Change field 'a' from a number type to a server timestamp.
@@ -206,91 +195,93 @@ apiDescribe('Server Timestamps', persistence => {
         .then(() => accumulator.awaitLocalEvent())
         .then(snapshot => {
           // Verify that we can still obtain the number.
-          expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
-            42
-          );
+          expect(snapshot.get('a', { serverTimestamps: 'previous' })).toBe(42);
         });
     });
   });
 
   it('can return previous value through consecutive updates', () => {
-    return withTestSetup(() => {
-      return writeInitialData()
-        .then(() => disableNetwork(firestore))
-        .then(() => {
-          // We set up two consecutive writes with server timestamps.
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          updateDoc(docRef, 'a', serverTimestamp());
-          // include b=1 to ensure there's a change resulting in a new snapshot.
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          updateDoc(docRef, 'a', serverTimestamp(), 'b', 1);
-          return accumulator.awaitLocalEvents(2);
-        })
-        .then(snapshots => {
-          // Both snapshot use the initial value (42) as the previous value.
-          expect(
-            snapshots[0].get('a', { serverTimestamps: 'previous' })
-          ).to.equal(42);
-          expect(
-            snapshots[1].get('a', { serverTimestamps: 'previous' })
-          ).to.equal(42);
-          return enableNetwork(firestore);
-        })
-        .then(() => accumulator.awaitRemoteEvent())
-        .then(remoteSnapshot => {
-          expect(remoteSnapshot.get('a')).to.be.an.instanceof(Timestamp);
-        });
-    });
+    return withTestSetup(
+      ({ docRef, firestore, accumulator, writeInitialData }) => {
+        return writeInitialData()
+          .then(() => disableNetwork(firestore))
+          .then(() => {
+            // We set up two consecutive writes with server timestamps.
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            updateDoc(docRef, 'a', serverTimestamp());
+            // include b=1 to ensure there's a change resulting in a new snapshot.
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            updateDoc(docRef, 'a', serverTimestamp(), 'b', 1);
+            return accumulator.awaitLocalEvents(2);
+          })
+          .then(snapshots => {
+            // Both snapshot use the initial value (42) as the previous value.
+            expect(
+              snapshots[0].get('a', { serverTimestamps: 'previous' })
+            ).toBe(42);
+            expect(
+              snapshots[1].get('a', { serverTimestamps: 'previous' })
+            ).toBe(42);
+            return enableNetwork(firestore);
+          })
+          .then(() => accumulator.awaitRemoteEvent())
+          .then(remoteSnapshot => {
+            expect(remoteSnapshot.get('a')).toBeInstanceOf(Timestamp);
+          });
+      }
+    );
   });
 
   it('uses previous value from local mutation', () => {
-    return withTestSetup(() => {
-      return writeInitialData()
-        .then(() => disableNetwork(firestore))
-        .then(() => {
-          // We set up three consecutive writes.
-          void updateDoc(docRef, 'a', serverTimestamp());
-          void updateDoc(docRef, 'a', 1337);
-          void updateDoc(docRef, 'a', serverTimestamp());
-          return accumulator.awaitLocalEvents(3);
-        })
-        .then(snapshots => {
-          // The first snapshot uses the initial value (42) as the previous value.
-          expect(
-            snapshots[0].get('a', { serverTimestamps: 'previous' })
-          ).to.equal(42);
-          // The third snapshot uses the intermediate value as the previous value.
-          expect(
-            snapshots[2].get('a', { serverTimestamps: 'previous' })
-          ).to.equal(1337);
-          return enableNetwork(firestore);
-        })
-        .then(() => accumulator.awaitRemoteEvent())
-        .then(remoteSnapshot => {
-          expect(remoteSnapshot.get('a')).to.be.an.instanceof(Timestamp);
-        });
-    });
+    return withTestSetup(
+      ({ docRef, firestore, accumulator, writeInitialData }) => {
+        return writeInitialData()
+          .then(() => disableNetwork(firestore))
+          .then(() => {
+            // We set up three consecutive writes.
+            void updateDoc(docRef, 'a', serverTimestamp());
+            void updateDoc(docRef, 'a', 1337);
+            void updateDoc(docRef, 'a', serverTimestamp());
+            return accumulator.awaitLocalEvents(3);
+          })
+          .then(snapshots => {
+            // The first snapshot uses the initial value (42) as the previous value.
+            expect(
+              snapshots[0].get('a', { serverTimestamps: 'previous' })
+            ).toBe(42);
+            // The third snapshot uses the intermediate value as the previous value.
+            expect(
+              snapshots[2].get('a', { serverTimestamps: 'previous' })
+            ).toBe(1337);
+            return enableNetwork(firestore);
+          })
+          .then(() => accumulator.awaitRemoteEvent())
+          .then(remoteSnapshot => {
+            expect(remoteSnapshot.get('a')).toBeInstanceOf(Timestamp);
+          });
+      }
+    );
   });
 
   it('fail via update() on nonexistent document.', () => {
-    return withTestSetup(() => {
+    return withTestSetup(({ docRef }) => {
       return updateDoc(docRef, updateData).then(
         () => Promise.reject('Should not have succeeded!'),
         (error: FirestoreError) => {
-          expect(error.code).to.equal('not-found');
+          expect(error.code).toBe('not-found');
         }
       );
     });
   });
 
   it('fail via transaction update() on nonexistent document.', () => {
-    return withTestSetup(() =>
+    return withTestSetup(({ docRef, firestore }) =>
       runTransaction(firestore, async txn => {
         txn.update(docRef, updateData);
       }).then(
         () => Promise.reject('Should not have succeeded!'),
         (error: FirestoreError) => {
-          expect(error.code).to.equal('not-found');
+          expect(error.code).toBe('not-found');
         }
       )
     );
