@@ -18,7 +18,6 @@ As a private preview customer, your experience is incredibly valuable to our tea
 - [Step 1: Configure Firebase/Cloud Project](#step-1-configure-firebasecloud-project)
   - [Option 1: Using Firebase Console (Recommended)](#option-1-using-firebase-console-recommended)
   - [Option 2: Using Firebase CLI](#option-2-using-firebase-cli)
-  - [Option 3: Using gcloud CLI](#option-3-using-gcloud-cli)
 - [Step 2: Core SDK Installation & Initialization](#step-2-core-sdk-installation--initialization)
 - [Step 3: Framework-Specific Setup Guides](#step-3-framework-specific-setup-guides)
 - [Step 4: Force an Initial Crash](#step-4-force-an-initial-crash)
@@ -50,14 +49,14 @@ const firebaseConfig = {
   appId: "<YOUR_FIREBASE_APP_ID>"
 };
 
-Follow the instructions in the Firebase Crashlytics Web Setup Guide GitHub READMEs for setting up the Crashlytics Web SDK. Start with the Cloud Project Setup (using the gcloud CLI), initialize the SDK, and then follow the Setup Guide for my app’s framework to enable automatic error collection. Do not set up programmatic error capturing for this project. Replace any of the "<SOME_VARIABLE>" values in the instructions with the appropriate values based on my Firebase app config above. Also make sure to set up source map uploading for stack trace de-obfuscation. If you encounter any issues during the setup process, please ask me and I can assist you further. Ensure that you have the necessary permissions to access the Firebase project and that you have the gcloud CLI installed and configured on your machine, logged in as me (ask me to log in on your behalf).
+Follow the instructions in the Firebase Crashlytics Web Setup Guide GitHub READMEs for setting up the Crashlytics Web SDK. Start with the Cloud Project Setup (using the Firebase CLI), initialize the SDK, and then follow the Setup Guide for my app’s framework to enable automatic error collection. Do not set up programmatic error capturing for this project. Replace any of the "<SOME_VARIABLE>" values in the instructions with the appropriate values based on my Firebase app config above. Also make sure to set up source map uploading for stack trace de-obfuscation. If you encounter any issues during the setup process, please ask me and I can assist you further. Ensure that you have the necessary permissions to access the Firebase project and that you have the Firebase CLI installed and configured on your machine, logged in as me (ask me to log in on your behalf).
 ```
 
 ---
 
 ## Step 1: Configure Firebase/Cloud Project
 
-Crashlytics for web leverages Google Cloud Logging, Error Reporting, and Storage under the hood. You can configure your project automatically using the Firebase Console (recommended), Firebase CLI, or manually using the `gcloud` CLI (CLI options are particularly useful when using coding agents).
+Crashlytics for web leverages Google Cloud Logging, Error Reporting, and Storage under the hood. You can configure your project automatically using the Firebase Console (recommended) or the Firebase CLI (particularly useful when using coding agents).
 
 > [!NOTE]
 > If you are coming from an existing Google Cloud project and have not previously used Firebase with that project, you must accept the Firebase Terms of Service in the Firebase Console before proceeding with project setup.
@@ -88,84 +87,6 @@ firebase crashlytics:onboard:web <YOUR_FIREBASE_APP_ID> --project <YOUR_FIREBASE
 >   firebase use <YOUR_FIREBASE_PROJECT_ID>
 >   ```
 > **Automated Setup**: This command automatically enables the required Telemetry APIs (`firebasetelemetry.googleapis.com` and `firebasetelemetryadmin.googleapis.com`), provisions the `firebase-telemetry` Cloud Logging bucket and routing sink, configures telemetry settings for your web app, and optionally sets up email alerts for new and regressed issues.
-
----
-
-### Option 3: Using gcloud CLI
-
-If you prefer configuring your project via the command line or are relying on a coding agent to execute setup steps, do the following:
-
-#### 1. User permissions and Billing
-
-Ensure that you have **Owner** permissions to your Firebase/Cloud project. This is mandatory in order to be able to add roles and APIs in the subsequent steps.
-
-Ensure your account has billing enabled. Crashlytics web support uses Cloud Logging for telemetry storage and Cloud Storage for sourcemap storage, which are paid products with a free tier. Learn more about [Logging pricing](https://cloud.google.com/stackdriver/pricing) and [Storage pricing](https://cloud.google.com/storage/pricing).
-
-#### 2. Authentication and Project Selection
-
-Authenticate with Google Cloud and select the correct project:
-
-```bash
-# Log in to Google Cloud CLI (opens a browser window for authentication)
-gcloud auth login
-
-# List all projects to locate the target Project ID
-gcloud projects list
-
-# Set the active project for subsequent commands
-gcloud config set project <PROJECT_ID>
-```
-
-#### 3. Enable the Firebase Telemetry APIs
-
-Enable the required API services in your Google Cloud project:
-
-```bash
-gcloud services enable firebasetelemetry.googleapis.com
-gcloud services enable firebasetelemetryadmin.googleapis.com
-```
-
-> [!TIP]
-> **Troubleshooting tip**: The Cloud Logging, Cloud Storage, Cloud Monitoring, and Cloud Telemetry APIs are also necessary and enabled by default. If you run into issues during setup, ensure these APIs are enabled.
-
-#### 4. Restrict/Update the API Key
-
-Find the API key used by your client app (e.g. **“Browser Key (auto created by Firebase)”**) and update its API restrictions to include `firebasetelemetry.googleapis.com`:
-
-```bash
-# 1. List all API keys in the project to find your key's ID/Name
-gcloud services api-keys list
-
-# 2. Inspect the key's current configuration to check for existing restrictions
-gcloud services api-keys describe <KEY_ID>
-
-# 3. Update the key to allow both the Telemetry API and any existing API targets
-gcloud services api-keys update <KEY_ID> \
- $(gcloud services api-keys describe <KEY_ID> \
- --format="value(restrictions.apiTargets.service)" | sed 's/,/ /g' | awk '{print "--api-target=service=" $1}') \
- --api-target=service=firebasetelemetry.googleapis.com
-```
-
-#### 5. Configure Cloud Logging Bucket and Routing Sink
-
-Create the `firebase-telemetry` log bucket with Log Analytics enabled and configure a routing sink so that telemetry logs are routed to it and visible in the Firebase Console:
-
-```bash
-# 1. Create the firebase-telemetry log bucket with Log Analytics enabled
-gcloud logging buckets create firebase-telemetry \
-  --project=<PROJECT_ID> \
-  --location=global \
-  --enable-analytics
-
-# 2. Create a routing sink to send Firebase Telemetry logs to the bucket
-gcloud logging sinks create firebase-telemetry-routing \
-  logging.googleapis.com/projects/<PROJECT_ID>/locations/global/buckets/firebase-telemetry \
-  --project=<PROJECT_ID> \
-  --log-filter='resource.type="firebasetelemetry.googleapis.com/App"'
-```
-
-> [!NOTE]
-> You must have an **Owner** role on the Cloud project or equivalent permission to do this. If the `firebase-telemetry` bucket already exists without Log Analytics enabled, run `gcloud logging buckets update firebase-telemetry --project=<PROJECT_ID> --location=global --enable-analytics` instead.
 
 ---
 
