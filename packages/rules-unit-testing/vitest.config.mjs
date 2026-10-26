@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,15 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import createBaseConfig from '../../config/vitest.base.mjs';
 
-// TODO: Real tests (coming in the following PRs).
-it('true should equal to true', () => {
-  expect(true).to.be.true;
-});
+const config = createBaseConfig(import.meta.url);
+
+// Node-only test suite: filter test projects to node runner
+if (config.test?.projects) {
+  config.test.projects = config.test.projects.filter(
+    project => project.test?.name === 'node'
+  );
+}
+
+export default config;
