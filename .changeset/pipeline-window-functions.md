@@ -3,4 +3,4 @@
 '@firebase/firestore': minor
 ---
 
-Added the `addWindowFields` stage to Pipelines for computing window functions, such as running totals and moving averages, over partitioned and sorted frames of documents, and added `over()` for framing individual aggregates.
+Added support for window functions in Pipelines, with the `addWindowFields` stage for computing aggregates such as running totals and moving averages over partitioned and sorted frames of documents, and `over()` for framing individual aggregates.
