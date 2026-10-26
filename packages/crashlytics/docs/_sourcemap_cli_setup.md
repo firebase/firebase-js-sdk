@@ -25,4 +25,4 @@ firebase crashlytics:sourcemap:upload --project <YOUR_FIREBASE_PROJECT_ID> --app
 > This command will recursively look for all source maps within the supplied `<DIRECTORY>` path.
 
 > [!CAUTION]
-> **Security Warning**: Generating source maps may expose them to the public, potentially causing your source code to be leaked. You can prevent this by configuring your server to deny access to `.js.map` files, or by deleting them after uploading to Firebase but before deploying.
+> **Security Warning**: Generating source maps may expose them to the public, potentially causing your source code to be leaked. You can prevent this by configuring your server to deny access to `.js.map` files, or by passing the `--clean` flag to `firebase crashlytics:sourcemap:upload` to automatically delete `.js.map` files after uploading them to Firebase.

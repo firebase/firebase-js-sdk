@@ -77,15 +77,13 @@ firebase crashlytics:sourcemap:upload --project <YOUR_FIREBASE_PROJECT_ID> --app
 
 ### Automate in Build Pipeline
 
-Add two new scripts to your `package.json` and invoke them from your `build` command:
+Update your `build` script in `package.json` to upload and delete source maps automatically using the `--clean` flag:
 
 ```json
 {
   "name": "enterprise-web-app",
   "scripts": {
-    "build": "vite build && npm run maps:upload && npm run maps:clean",
-    "maps:upload": "firebase crashlytics:sourcemap:upload --project <YOUR_FIREBASE_PROJECT_ID> --app <YOUR_FIREBASE_APP_ID> --debug dist",
-    "maps:clean": "node -e \"const fs = require('fs'); fs.readdirSync('dist', { recursive: true, withFileTypes: true }).forEach(f => { if(f.isFile() && f.name.endsWith('.map')) fs.rmSync(require('path').join(f.parentPath || f.path, f.name), { force: true }) })\""
+    "build": "vite build && firebase crashlytics:sourcemap:upload --project <YOUR_FIREBASE_PROJECT_ID> --app <YOUR_FIREBASE_APP_ID> --clean --debug dist"
   }
 }
 ```
