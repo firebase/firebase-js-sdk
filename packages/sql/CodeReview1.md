@@ -333,6 +333,10 @@ Suggested change:
    }
 ```
 
+#### Resolution
+- **Decision:** Addressed in `FilterBuilderImpl` in `packages/sql/src/api/impl/FilterBuilderImpl.ts` by making `#execute()` non-`async` (returning settled `Promise.reject`/`Promise.resolve` on pre-flight termination and passing the post-flight response-mapping callback directly to `this.#delegate.then(raw => ...)` inside the `try`/`finally` block) and skipping the extra `.then(onfulfilled, onrejected)` allocation in `then()` when neither callback is provided (with unit tests in `packages/sql/src/api/Builders.test.ts`).
+- **Commit:** `b48360383`
+
 ### Finding 9: (line 568): [HIGH] Sharing a single mutable `BuilderExecutionTracker` across concurrent executions of the same `FilterBuilderImpl` corrupts `clientError` attribution.
 
 `FilterBuilderImpl` is a reusable lazy `PromiseLike`, yet shares one `{ clientError: FirebaseSqlError | null }` tracker allocated at builder construction time across all `.then()` / `#execute()` calls (lines L568 and L612–L614). When the same builder instance is awaited concurrently (e.g., `Promise.all([query, query])` or retrying after a `Promise.race` timeout while an earlier execution is still pending):
