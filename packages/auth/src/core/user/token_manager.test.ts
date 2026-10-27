@@ -115,7 +115,7 @@ describe('core/user/token_manager', () => {
         Object.assign(stsTokenManager, {
           accessToken: 'old-access-token',
           refreshToken: 'old-refresh-token',
-          expirationTime: now + 100_000
+          expirationTime: now + Buffer.TOKEN_REFRESH + 100_000
         });
 
         const tokens = await stsTokenManager.getToken(auth, true);
@@ -147,7 +147,7 @@ describe('core/user/token_manager', () => {
     it('returns non-null if the refresh token is missing but token still valid', async () => {
       Object.assign(stsTokenManager, {
         accessToken: 'token',
-        expirationTime: now + 100_000
+        expirationTime: now + Buffer.TOKEN_REFRESH + 100_000
       });
       const tokens = await stsTokenManager.getToken(auth, false);
       expect(tokens).to.eql('token');
@@ -156,7 +156,7 @@ describe('core/user/token_manager', () => {
     it('throws an error if the refresh token is missing and force refresh is true', async () => {
       Object.assign(stsTokenManager, {
         accessToken: 'token',
-        expirationTime: now + 100_000
+        expirationTime: now + Buffer.TOKEN_REFRESH + 100_000
       });
       await expect(stsTokenManager.getToken(auth, true)).to.be.rejectedWith(
         FirebaseError,
@@ -191,7 +191,7 @@ describe('core/user/token_manager', () => {
       Object.assign(stsTokenManager, {
         accessToken: 'token',
         refreshToken: 'refresh',
-        expirationTime: now + 100_000
+        expirationTime: now + Buffer.TOKEN_REFRESH + 100_000
       });
 
       const tokens = (await stsTokenManager.getToken(auth))!;
