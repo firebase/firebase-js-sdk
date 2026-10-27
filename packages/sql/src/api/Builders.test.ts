@@ -222,7 +222,6 @@ function createHarness(): TestHarness {
       return new QueryBuilderImpl(delegate, state, createFetch, mapError);
     },
     rpcBuilder: (fnName = 'compute_stats') => {
-      const tracker: BuilderExecutionTracker = { clientError: null };
       const delegate = new PostgrestFilterBuilder<
         UntypedClientOptions,
         UntypedSchema,
@@ -236,13 +235,12 @@ function createHarness(): TestHarness {
         method: 'POST',
         url: new URL(`https://sql.example.test/v1/rpc/${fnName}`),
         headers: {},
-        body: {},
-        fetch: createFetch(state, tracker)
+        body: {}
       });
       return new FilterBuilderImpl<unknown, 'RPC'>(
         delegate,
         state,
-        tracker,
+        createFetch,
         mapError
       );
     }
@@ -1158,6 +1156,88 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
         code: Code.NOT_INITIALIZED,
         category: FirebaseSqlErrorCategory.SQL_CLIENT
       });
+    });
+
+    it('isolates per-execution clientError state across concurrent executions of the same FilterBuilder instance', async () => {
+      const h = createHarness();
+      const qb = h.queryBuilder('users');
+      const sharedQuery = qb.select().retry(false);
+
+      // Case 1: Execution A records clientError while Execution B succeeds with 200 OK
+      const errorA = new FirebaseSqlError(
+        Code.UNAUTHORIZED,
+        'Auth token refresh failed on A',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+      let releaseFirst!: () => void;
+      const firstGate = new Promise<void>(resolve => {
+        releaseFirst = resolve;
+      });
+
+      h.setResponder(async (req, callIndex) => {
+        if (callIndex === 0) {
+          req.tracker.clientError = errorA;
+          await firstGate;
+          const abortErr = new Error('Aborted A');
+          abortErr.name = 'AbortError';
+          throw abortErr;
+        }
+        releaseFirst();
+        return jsonResponse([{ id: 42 }]);
+      });
+
+      const [resA, resB] = await Promise.all([sharedQuery, sharedQuery]);
+      expect(resA.success).toBe(false);
+      if (!resA.success) {
+        expect(resA.error).toBe(errorA);
+        expect(resA.status).toBe(0);
+      }
+      expect(resB.success).toBe(true);
+      if (resB.success) {
+        expect(resB.data).toEqual([{ id: 42 }]);
+        expect(resB.status).toBe(200);
+      }
+
+      // Case 2: Execution A and Execution B record two distinct FirebaseSqlErrors concurrently
+      const distinctErr1 = new FirebaseSqlError(
+        Code.UNAUTHORIZED,
+        'Distinct client error 1',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+      const distinctErr2 = new FirebaseSqlError(
+        Code.NOT_SUPPORTED,
+        'Distinct client error 2',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+      let releaseBoth!: () => void;
+      const bothEntered = new Promise<void>(resolve => {
+        releaseBoth = resolve;
+      });
+
+      h.setResponder(async (req, callIndex) => {
+        if (callIndex === 2) {
+          req.tracker.clientError = distinctErr1;
+          await bothEntered;
+          const abortErr = new Error('Aborted 1');
+          abortErr.name = 'AbortError';
+          throw abortErr;
+        }
+        req.tracker.clientError = distinctErr2;
+        releaseBoth();
+        const abortErr = new Error('Aborted 2');
+        abortErr.name = 'AbortError';
+        throw abortErr;
+      });
+
+      const [errRes1, errRes2] = await Promise.all([sharedQuery, sharedQuery]);
+      expect(errRes1.success).toBe(false);
+      if (!errRes1.success) {
+        expect(errRes1.error).toBe(distinctErr1);
+      }
+      expect(errRes2.success).toBe(false);
+      if (!errRes2.success) {
+        expect(errRes2.error).toBe(distinctErr2);
+      }
     });
   });
 });

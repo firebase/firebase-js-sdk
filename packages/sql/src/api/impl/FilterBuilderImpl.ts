@@ -25,6 +25,7 @@ import {
 import { validateHeaderName } from '../../core/settings';
 import type {
   BuilderExecutionTracker,
+  CreateBuilderFetch,
   MapPostgrestError,
   ReadonlySqlClientState
 } from '../../core/state';
@@ -110,19 +111,19 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
 > {
   readonly #delegate: InternalPostgrestFilterBuilder;
   readonly #state: ReadonlySqlClientState;
-  readonly #tracker: BuilderExecutionTracker;
+  readonly #createFetch: CreateBuilderFetch;
   readonly #mapError: MapPostgrestError;
   #shouldThrowOnError = false;
 
   constructor(
     delegate: FilterDelegateHandle,
     state: ReadonlySqlClientState,
-    tracker: BuilderExecutionTracker,
+    createFetch: CreateBuilderFetch,
     mapError: MapPostgrestError
   ) {
     this.#delegate = delegate as InternalPostgrestFilterBuilder;
     this.#state = state;
-    this.#tracker = tracker;
+    this.#createFetch = createFetch;
     this.#mapError = mapError;
   }
 
@@ -545,9 +546,6 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
   }
 
   async #execute(): Promise<OperationResult<T>> {
-    // Reset per-execution clientError so re-awaiting a builder does not reuse stale errors.
-    this.#tracker.clientError = null;
-
     if (this.#state.active === null) {
       return this.#fail(
         new FirebaseSqlError(
@@ -560,7 +558,13 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
       );
     }
 
-    const raw = await this.#delegate;
+    // Bind a fresh per-execution tracker synchronously before invoking `#delegate.then(...)`,
+    // which snapshots `this.fetch` synchronously on entry before yielding.
+    const tracker: BuilderExecutionTracker = { clientError: null };
+    (this.#delegate as unknown as { fetch: typeof fetch }).fetch =
+      this.#createFetch(this.#state, tracker);
+    const pending = this.#delegate.then(res => res);
+    const raw = await pending;
 
     // Re-check state.active and tracker.clientError after awaiting #delegate in case terminate()
     // was called in-flight or the transport recorded a pre-flight/token error and aborted fetchWithRetry.
@@ -576,8 +580,8 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
       );
     }
 
-    if (this.#tracker.clientError !== null) {
-      return this.#fail(this.#tracker.clientError, 0, '');
+    if (tracker.clientError !== null) {
+      return this.#fail(tracker.clientError, 0, '');
     }
 
     // @supabase/postgrest-js sets `success: error === null` after `JSON.parse(body)`,

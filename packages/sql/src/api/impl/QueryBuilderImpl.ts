@@ -18,7 +18,6 @@
 import type { PostgrestQueryBuilder } from '@supabase/postgrest-js';
 
 import type {
-  BuilderExecutionTracker,
   CreateBuilderFetch,
   MapPostgrestError,
   ReadonlySqlClientState
@@ -102,16 +101,11 @@ export class QueryBuilderImpl implements QueryBuilder {
     columns?: string | undefined,
     options?: Readonly<QuerySelectOptions> | undefined
   ): FilterBuilder<Array<Record<string, unknown>>, 'GET'> {
-    // Reassign #delegate.fetch with a fresh tracker per operation: PostgrestQueryBuilder
-    // copies `this.fetch` by value into each newly constructed PostgrestFilterBuilder,
-    // isolating clientError state across concurrent queries built from the same QueryBuilder.
-    const tracker: BuilderExecutionTracker = { clientError: null };
-    this.#delegate.fetch = this.#createFetch(this.#state, tracker);
     const pgFilterBuilder = this.#delegate.select(columns, options);
     return new FilterBuilderImpl<Array<Record<string, unknown>>, 'GET'>(
       pgFilterBuilder,
       this.#state,
-      tracker,
+      this.#createFetch,
       this.#mapError
     );
   }
@@ -126,8 +120,6 @@ export class QueryBuilderImpl implements QueryBuilder {
     values: Row | readonly Row[],
     options?: Readonly<QueryInsertOptions> | undefined
   ): FilterBuilder<null, 'POST'> {
-    const tracker: BuilderExecutionTracker = { clientError: null };
-    this.#delegate.fetch = this.#createFetch(this.#state, tracker);
     const pgFilterBuilder = this.#delegate.insert(
       values as Record<string, unknown> | Array<Record<string, unknown>>,
       options
@@ -135,7 +127,7 @@ export class QueryBuilderImpl implements QueryBuilder {
     return new FilterBuilderImpl<null, 'POST'>(
       pgFilterBuilder,
       this.#state,
-      tracker,
+      this.#createFetch,
       this.#mapError
     );
   }
@@ -150,8 +142,6 @@ export class QueryBuilderImpl implements QueryBuilder {
     values: Row | readonly Row[],
     options?: Readonly<QueryUpsertOptions> | undefined
   ): FilterBuilder<null, 'POST'> {
-    const tracker: BuilderExecutionTracker = { clientError: null };
-    this.#delegate.fetch = this.#createFetch(this.#state, tracker);
     const pgFilterBuilder = this.#delegate.upsert(
       values as Record<string, unknown> | Array<Record<string, unknown>>,
       options
@@ -159,7 +149,7 @@ export class QueryBuilderImpl implements QueryBuilder {
     return new FilterBuilderImpl<null, 'POST'>(
       pgFilterBuilder,
       this.#state,
-      tracker,
+      this.#createFetch,
       this.#mapError
     );
   }
@@ -174,8 +164,6 @@ export class QueryBuilderImpl implements QueryBuilder {
     values: Row,
     options?: Readonly<QueryUpdateOptions> | undefined
   ): FilterBuilder<null, 'PATCH'> {
-    const tracker: BuilderExecutionTracker = { clientError: null };
-    this.#delegate.fetch = this.#createFetch(this.#state, tracker);
     const pgFilterBuilder = this.#delegate.update(
       values as Record<string, unknown>,
       options
@@ -183,7 +171,7 @@ export class QueryBuilderImpl implements QueryBuilder {
     return new FilterBuilderImpl<null, 'PATCH'>(
       pgFilterBuilder,
       this.#state,
-      tracker,
+      this.#createFetch,
       this.#mapError
     );
   }
@@ -191,13 +179,11 @@ export class QueryBuilderImpl implements QueryBuilder {
   delete(
     options?: Readonly<QueryDeleteOptions> | undefined
   ): FilterBuilder<null, 'DELETE'> {
-    const tracker: BuilderExecutionTracker = { clientError: null };
-    this.#delegate.fetch = this.#createFetch(this.#state, tracker);
     const pgFilterBuilder = this.#delegate.delete(options);
     return new FilterBuilderImpl<null, 'DELETE'>(
       pgFilterBuilder,
       this.#state,
-      tracker,
+      this.#createFetch,
       this.#mapError
     );
   }

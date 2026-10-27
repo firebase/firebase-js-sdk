@@ -37,10 +37,7 @@ import {
   SqlServiceSettings,
   validateSqlServiceSettings
 } from '../core/settings';
-import type {
-  BuilderExecutionTracker,
-  MutableSqlClientState
-} from '../core/state';
+import type { MutableSqlClientState } from '../core/state';
 import { AppCheckProvider } from '../core/tokenProviders/AppCheckTokenProvider';
 import { FirebaseAuthProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
 import { createBuilderFetch } from '../network';
@@ -231,10 +228,6 @@ export class FirebaseSql {
         FirebaseSqlErrorCategory.SQL_CLIENT
       );
     }
-    // PostgrestClient.rpc snapshots `this.fetch` synchronously into the newly
-    // constructed PostgrestFilterBuilder, giving each RPC call an isolated tracker.
-    const tracker: BuilderExecutionTracker = { clientError: null };
-    this.#postgrestClient.fetch = createBuilderFetch(this._state, tracker);
     const delegate = this.#postgrestClient.rpc(
       this.#encodeResourceSegment(fn, false),
       params as Record<string, unknown> | undefined,
@@ -243,7 +236,7 @@ export class FirebaseSql {
     return new FilterBuilderImpl<unknown, 'RPC'>(
       delegate,
       this._state,
-      tracker,
+      createBuilderFetch,
       mapPostgrestFailureToFirebaseSqlError
     );
   }
