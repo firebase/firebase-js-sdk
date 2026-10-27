@@ -97,12 +97,7 @@ type InternalPostgrestFilterBuilder = PostgrestFilterBuilder<
 >;
 
 type NonGenericDelegateMethod =
-  | 'stripNulls'
-  | 'setHeader'
-  | 'retry'
-  | 'abortSignal'
-  | 'rollback'
-  | 'or';
+  'stripNulls' | 'setHeader' | 'retry' | 'abortSignal' | 'rollback' | 'or';
 
 export type AnyPostgrestFilterBuilder = {
   readonly [K in NonGenericDelegateMethod]: (
@@ -543,9 +538,7 @@ export class FilterBuilderImpl<
       | null
       | undefined,
     onrejected?:
-      | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
-      | null
-      | undefined
+      ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null | undefined
   ): PromiseLike<TResult1 | TResult2> {
     return this.#execute().then(onfulfilled, onrejected);
   }
