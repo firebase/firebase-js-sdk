@@ -436,6 +436,10 @@ Suggested change:
 +    }
 ```
 
+#### Resolution
+- **Decision:** Skipped (not addressed; `PostgrestBuilder.then()` synchronous throws left unguarded).
+- **Commit:** N/A
+
 ### Finding 12: (line 616): [HIGH] Non-2xx HTTP error responses with a JSON `null` body resolve as `OperationSuccess` and bypass `.throwOnError()`.
 
 In `@supabase/postgrest-js`, `PostgrestBuilder.processResponse` parses non-2xx bodies via `error = JSON.parse(body)` and sets `success: error === null`. When an upstream gateway, proxy, or RPC endpoint returns a non-2xx status (e.g., `400`, `401`, `403`, `404`, `500`, `503`) with a JSON `"null"` body, `raw.error` is `null` and `raw.success` is `true` while `raw.status` remains the failing HTTP status (whereas legitimate `Preserve404` rewrites normalize `raw.status` to `200` or `204`). Because line L616 only checks `!raw.success || raw.error !== null`, the failing response resolves as `OperationSuccess<T>` with `data: null` and fails to reject when `.throwOnError()` is enabled.
