@@ -28,6 +28,61 @@ export const DEFAULT_TELEMETRY_ENDPOINT =
 /** Default region for telemetry data. */
 export const DEFAULT_TELEMETRY_REGION = 'global';
 
+/**
+ * The default endpoint for the Firebase Telemetry API, which serves the client telemetry
+ * configuration (`GetClientConfig`) used for client-side session sampling.
+ */
+export const DEFAULT_CLIENT_CONFIG_ENDPOINT =
+  'https://firebasetelemetry.googleapis.com';
+
+/** API version of the `GetClientConfig` RPC on the Firebase Telemetry API. */
+export const CLIENT_CONFIG_API_VERSION = 'v1alpha';
+
+/**
+ * How often long-running apps re-fetch the client telemetry configuration to pick up sampling
+ * rate changes. Matches the `Cache-Control: max-age` the server sets on `GetClientConfig`.
+ */
+export const CLIENT_CONFIG_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
+
+/** Timeout for a single `GetClientConfig` fetch (matches the RPC deadline). */
+export const CLIENT_CONFIG_FETCH_TIMEOUT_MS = 5000;
+
+/**
+ * Maximum time the first telemetry export waits for the initial `GetClientConfig` fetch before
+ * making the session sampling decision with the cached (or default) configuration.
+ */
+export const CLIENT_CONFIG_INITIAL_WAIT_MS = 2000;
+
+/** localStorage key prefix for the cached client telemetry configuration (per app and region). */
+export const LOCAL_STORAGE_CLIENT_CONFIG_KEY_PREFIX =
+  'firebasecrashlytics.clientconfig';
+
+/** sessionStorage key for the persisted session sampling decision. */
+export const SESSION_STORAGE_SAMPLING_DECISION_KEY =
+  'firebasecrashlytics.sampling';
+
+/** sessionStorage key marking that the telemetry debug override is active for this session. */
+export const SESSION_STORAGE_DEBUG_KEY = 'firebasecrashlytics.debug';
+
+/** Global flag developers can set to force 100% telemetry collection on a device. */
+export const TELEMETRY_DEBUG_GLOBAL_FLAG = 'FIREBASE_TELEMETRY_DEBUG';
+
+/** URL query parameter that enables the telemetry debug override for the browser session. */
+export const TELEMETRY_DEBUG_QUERY_PARAM = 'firebase_telemetry_debug';
+
+/**
+ * Attribute stamped on every exported log record and span with the session sampling rate that
+ * was in effect when the session's sampling decision was made. The backend uses it as the
+ * extrapolation weight (`1 / rate`) and to reconcile stale client rates with the live config.
+ */
+export const ATTR_KEY_SESSION_SAMPLING_RATE = 'session.sampling.rate';
+
+/**
+ * Number of hash buckets used by the deterministic session sampling decision. Must stay in sync
+ * with the backend, which re-evaluates the same decision when the configured rate is lowered.
+ */
+export const SESSION_SAMPLING_HASH_BUCKETS = 10000;
+
 /** Label keys for resource attributes in telemetry providers. */
 export const RESOURCE_ATTRIBUTE_KEYS = {
   GCP_PROJECT_ID: 'gcp.project_id',

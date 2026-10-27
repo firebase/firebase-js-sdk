@@ -24,8 +24,11 @@ import {
 } from './types';
 import { type TimeInput } from '@opentelemetry/api';
 import { hrTimeToMilliseconds, timeInputToHrTime } from '@opentelemetry/core';
+import type { FirebaseOptions } from '@firebase/app-types';
 import {
   ALREADY_LOGGED_FLAG,
+  CLIENT_CONFIG_API_VERSION,
+  DEFAULT_CLIENT_CONFIG_ENDPOINT,
   DEFAULT_TELEMETRY_ENDPOINT,
   DEFAULT_TELEMETRY_REGION
 } from './constants';
@@ -285,7 +288,55 @@ export function getTelemetryEndpointUrl(
 }
 
 /**
- * Determines whether a given URL string targets the Firebase Crashlytics telemetry ingestion endpoint.
+ * Resolves the base Firebase Telemetry API endpoint URL used for `GetClientConfig`, based on the
+ * configured region. Uses the regional endpoint (REP) format
+ * (`https://firebasetelemetry.{region}.rep.googleapis.com`) when a non-global region is specified,
+ * so the configuration is always read from the same location telemetry is exported to.
+ *
+ * `endpointUrl` is intentionally not honored here: it redirects OTLP export (e.g. to a local
+ * collector), while the sampling configuration always lives in Firebase.
+ *
+ * @internal
+ */
+export function getClientConfigEndpointUrl(
+  crashlyticsOptions: CrashlyticsOptions = {}
+): string {
+  const region = crashlyticsOptions?.region || DEFAULT_TELEMETRY_REGION;
+  if (region !== DEFAULT_TELEMETRY_REGION) {
+    return `https://firebasetelemetry.${region}.rep.googleapis.com`;
+  }
+  return DEFAULT_CLIENT_CONFIG_ENDPOINT;
+}
+
+/**
+ * Builds the fully-qualified `GetClientConfig` URL for an app, or returns `undefined` when the
+ * app options do not identify a project and app.
+ *
+ * `GetClientConfig` is a public, unauthenticated `GET` (no API key or App Check token): the
+ * project in the path is the service consumer, so a single edge-cached response serves every
+ * user of the app.
+ *
+ * @internal
+ */
+export function getClientConfigUrl(
+  firebaseOptions: FirebaseOptions,
+  crashlyticsOptions: CrashlyticsOptions = {}
+): string | undefined {
+  const { projectId, appId } = firebaseOptions;
+  if (!projectId || !appId) {
+    return undefined;
+  }
+  const region = crashlyticsOptions?.region || DEFAULT_TELEMETRY_REGION;
+  const base = getClientConfigEndpointUrl(crashlyticsOptions);
+  return (
+    `${base}/${CLIENT_CONFIG_API_VERSION}/projects/${encodeURIComponent(projectId)}` +
+    `/locations/${encodeURIComponent(region)}/apps/${encodeURIComponent(appId)}/clientConfig`
+  );
+}
+
+/**
+ * Determines whether a given URL string targets the Firebase Crashlytics telemetry ingestion endpoint
+ * or the Firebase Telemetry API client config endpoint.
  * Used to automatically drop self-referential telemetry records (e.g. from ResourceTiming or Fetch instrumentations).
  *
  * @internal
@@ -295,7 +346,7 @@ export function isTelemetryUrl(url: unknown, customEndpoint?: string): boolean {
     return false;
   }
   if (
-    /^https?:\/\/clienttelemetry\.(googleapis\.com|[a-z0-9-]+\.rep\.googleapis\.com)(\/|$)/.test(
+    /^https?:\/\/(clienttelemetry|firebasetelemetry)\.(googleapis\.com|[a-z0-9-]+\.rep\.googleapis\.com)(\/|$)/.test(
       url
     )
   ) {

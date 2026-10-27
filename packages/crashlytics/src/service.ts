@@ -23,6 +23,8 @@ import { AttributesStore } from './attributes-store';
 import type { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
 import type { OnErrorSpanProcessor } from './tracing/on-error-span-processor';
 import type { TelemetryStore } from './telemetry-store';
+import type { ClientConfigStore } from './sampling/client-config';
+import type { SessionSampler } from './sampling/session-sampler';
 import { getBreadcrumbsFeature } from './helpers';
 
 export class CrashlyticsService implements Crashlytics, _FirebaseService {
@@ -36,7 +38,9 @@ export class CrashlyticsService implements Crashlytics, _FirebaseService {
     public attributesStore: AttributesStore,
     public telemetryStore?: TelemetryStore,
     public onErrorLogRecordProcessor?: OnErrorLogRecordProcessor,
-    public onErrorSpanProcessor?: OnErrorSpanProcessor
+    public onErrorSpanProcessor?: OnErrorSpanProcessor,
+    public clientConfigStore?: ClientConfigStore,
+    public sessionSampler?: SessionSampler
   ) {}
 
   unsubscribeListeners(unsubscribe: () => void): void {
@@ -48,6 +52,7 @@ export class CrashlyticsService implements Crashlytics, _FirebaseService {
       this._unsubscribeListeners();
     }
     getBreadcrumbsFeature(this._options)?.unregisterInstrumentations();
+    this.clientConfigStore?.stop();
 
     const promises: Array<Promise<void>> = [];
     if (

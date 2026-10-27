@@ -15,10 +15,13 @@ You can configure the sampling rate for your web app to a value from **0% to 100
 
 ### How Session Sampling Works
 
-- **Per-session consistency**: Sampling decisions are made per session on the client device using a deterministic hash of the session ID and app ID. A session is either collected completely or discarded completely on the device before network transmission.
+- **Configuration fetch**: On startup the SDK loads the last known configuration (enablement state and sampling rate) from `localStorage` and refreshes it in the background with a non-blocking, unauthenticated `GET` to the Firebase Telemetry API (`firebasetelemetry.googleapis.com`, or the regional `firebasetelemetry.{region}.rep.googleapis.com` endpoint when a `region` is configured). Long-running pages re-fetch every **15 minutes**. If no configuration has ever been fetched, the SDK defaults to collecting **100%** of sessions. Fetch failures never surface to your app; the previous configuration stays in effect.
+- **Per-session consistency**: Sampling decisions are made per session on the client device using a deterministic hash of the session ID (`MurmurHash3(session.id) % 10000 / 10000 < sampling_rate`). A session is either collected completely or discarded completely on the device before network transmission. The decision is made at the first telemetry export of the session (so the freshest rate is used) and then kept for the rest of the session, including across page reloads in the same tab.
+- **Sampling rate attribute**: Every exported log record and span of a collected session carries a `session.sampling.rate` attribute with the rate the decision was made with. The backend uses it to extrapolate dashboard metrics (`1 / session.sampling.rate` per event) and to reconcile the device's rate with the live configuration.
 - **Rate update propagation**:
-  - **Lowering the sampling rate** is enforced on the server **immediately** to stop unwanted ingestion costs right away, and propagates to active client devices within **15 minutes**.
+  - **Lowering the sampling rate** is enforced on the server **immediately** (the server re-evaluates the same hash with the new rate) to stop unwanted ingestion costs right away, and propagates to active client devices within **15 minutes**.
   - **Raising the sampling rate** takes up to **15 minutes** to propagate to client devices and applies only to newly created sessions.
+- **Pausing collection**: A sampling rate of `0.0`, or disabling telemetry collection, stops the SDK from exporting any telemetry for new sessions once the configuration is picked up.
 
 ---
 
@@ -131,6 +134,11 @@ When reproducing or investigating a specific issue during local development or Q
 ```javascript
 self.FIREBASE_TELEMETRY_DEBUG = true;
 ```
+
+If an end user is experiencing an issue, you can instead ask them to open your web app with the `firebase_telemetry_debug=true` query parameter (for example `https://example.com/?firebase_telemetry_debug=true`). The SDK persists the override in `sessionStorage`, so it stays active for the lifetime of that browser session even after in-app navigation.
+
+> [!NOTE]
+> The override only affects the on-device decision. The server still enforces the configured sampling rate: if the configured rate is `0.0` (collection paused) or telemetry collection is disabled, the data is dropped on ingestion.
 
 ---
 
