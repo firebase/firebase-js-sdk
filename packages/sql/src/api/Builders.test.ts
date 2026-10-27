@@ -750,6 +750,65 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
         }
       }
 
+      for (const paddedHeader of [
+        ' authorization',
+        'x-firebase-auth-token ',
+        '\tAuthorization\n'
+      ]) {
+        let paddedErr: unknown;
+        try {
+          void qb.select().setHeader(paddedHeader, 'secret');
+        } catch (err) {
+          paddedErr = err;
+        }
+        expect(paddedErr).toBeInstanceOf(FirebaseSqlError);
+        expect((paddedErr as FirebaseSqlError).code).toBe(
+          Code.INVALID_ARGUMENT
+        );
+        expect((paddedErr as FirebaseSqlError).category).toBe(
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        );
+      }
+
+      let toStringCalls = 0;
+      const statefulHeaderName = {
+        toString(): string {
+          toStringCalls++;
+          return toStringCalls === 1 ? 'X-Single-Coerce' : 'authorization';
+        }
+      };
+      h.setResponder(() => jsonResponse([{ id: 1 }]));
+      await qb
+        .select()
+        .setHeader(statefulHeaderName as unknown as string, 'coerced-once');
+      expect(toStringCalls).toBe(1);
+      expect(h.requests[3].headers.get('x-single-coerce')).toBe('coerced-once');
+      expect(h.requests[3].headers.get('authorization')).toBeNull();
+
+      let disallowedToStringCalls = 0;
+      const statefulDisallowedName = {
+        toString(): string {
+          disallowedToStringCalls++;
+          return disallowedToStringCalls === 1 ? ' authorization' : 'X-Safe';
+        }
+      };
+      let statefulDisallowedErr: unknown;
+      try {
+        void qb
+          .select()
+          .setHeader(statefulDisallowedName as unknown as string, 'secret');
+      } catch (err) {
+        statefulDisallowedErr = err;
+      }
+      expect(disallowedToStringCalls).toBe(1);
+      expect(statefulDisallowedErr).toBeInstanceOf(FirebaseSqlError);
+      expect((statefulDisallowedErr as FirebaseSqlError).code).toBe(
+        Code.INVALID_ARGUMENT
+      );
+      expect((statefulDisallowedErr as FirebaseSqlError).category).toBe(
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+
       let fetchCalls = 0;
       h.setResponder(() => {
         fetchCalls++;

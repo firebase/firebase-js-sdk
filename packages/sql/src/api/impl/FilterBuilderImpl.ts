@@ -22,7 +22,7 @@ import {
   FirebaseSqlError,
   FirebaseSqlErrorCategory
 } from '../../core/error';
-import { validateHeaders } from '../../core/settings';
+import { validateHeaderName } from '../../core/settings';
 import type {
   BuilderExecutionTracker,
   MapPostgrestError,
@@ -145,8 +145,8 @@ export class FilterBuilderImpl<
   }
 
   setHeader(name: string, value: string): this {
-    validateHeaders({ [name]: value });
-    void this.#delegate.setHeader(name, value);
+    const headerName = validateHeaderName(name);
+    void this.#delegate.setHeader(headerName, value);
     return this;
   }
 

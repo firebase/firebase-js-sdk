@@ -23,6 +23,7 @@ import {
   DISALLOWED_HEADER_KEYS,
   normalizeHeaders,
   SqlServiceSettings,
+  validateHeaderName,
   validateHeaders,
   validateSqlServiceSettings
 } from './settings';
@@ -159,6 +160,75 @@ describe('SqlServiceSettings', () => {
       expect(normalizeHeaders({ 'X-Custom-Header': 'custom-val' })).toEqual({
         'x-custom-header': 'custom-val'
       });
+    });
+
+    it('rejects whitespace-padded disallowed headers in validateHeaderName and validateHeaders', () => {
+      for (const padded of [
+        ' authorization',
+        'x-firebase-auth-token ',
+        '\tAuthorization\n'
+      ]) {
+        let nameErr: unknown;
+        try {
+          validateHeaderName(padded);
+        } catch (err) {
+          nameErr = err;
+        }
+        expect(nameErr).toBeInstanceOf(FirebaseSqlError);
+        expect((nameErr as FirebaseSqlError).code).toBe(Code.INVALID_ARGUMENT);
+        expect((nameErr as FirebaseSqlError).category).toBe(
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        );
+
+        let headersErr: unknown;
+        try {
+          validateHeaders({ [padded]: 'secret' });
+        } catch (err) {
+          headersErr = err;
+        }
+        expect(headersErr).toBeInstanceOf(FirebaseSqlError);
+        expect((headersErr as FirebaseSqlError).code).toBe(
+          Code.INVALID_ARGUMENT
+        );
+        expect((headersErr as FirebaseSqlError).category).toBe(
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        );
+      }
+    });
+
+    it('coerces stateful toString() header name objects only once in validateHeaderName', () => {
+      let allowedCalls = 0;
+      const statefulAllowed = {
+        toString(): string {
+          allowedCalls++;
+          return allowedCalls === 1 ? 'X-Single-Coerce' : 'authorization';
+        }
+      };
+
+      const coerced = validateHeaderName(statefulAllowed as unknown as string);
+      expect(coerced).toBe('X-Single-Coerce');
+      expect(allowedCalls).toBe(1);
+
+      let disallowedCalls = 0;
+      const statefulDisallowed = {
+        toString(): string {
+          disallowedCalls++;
+          return disallowedCalls === 1 ? ' authorization' : 'X-Safe';
+        }
+      };
+
+      let err: unknown;
+      try {
+        validateHeaderName(statefulDisallowed as unknown as string);
+      } catch (caught) {
+        err = caught;
+      }
+      expect(disallowedCalls).toBe(1);
+      expect(err).toBeInstanceOf(FirebaseSqlError);
+      expect((err as FirebaseSqlError).code).toBe(Code.INVALID_ARGUMENT);
+      expect((err as FirebaseSqlError).category).toBe(
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
     });
   });
 });

@@ -113,6 +113,18 @@ export const DISALLOWED_HEADER_KEYS = new Set<string>([
   'x-firebase-client-log-type'
 ]);
 
+export function validateHeaderName(name: string): string {
+  const headerName = String(name);
+  if (DISALLOWED_HEADER_KEYS.has(headerName.trim().toLowerCase())) {
+    throw new FirebaseSqlError(
+      Code.INVALID_ARGUMENT,
+      `Cannot set protected header ${headerName}.`,
+      FirebaseSqlErrorCategory.SQL_CLIENT
+    );
+  }
+  return headerName;
+}
+
 /**
  * Validates that the given headers do not contain any protected header keys (case-insensitive).
  * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if the headers contain any protected header keys.
@@ -124,17 +136,8 @@ export function validateHeaders(
   if (!headers) {
     return;
   }
-  const lowercaseDisallowedHeaderKeys = new Set(
-    Array.from(DISALLOWED_HEADER_KEYS, key => key.toLowerCase())
-  );
-  for (const [key] of Object.entries(headers)) {
-    if (lowercaseDisallowedHeaderKeys.has(key.toLowerCase())) {
-      throw new FirebaseSqlError(
-        Code.INVALID_ARGUMENT,
-        `Cannot set protected header ${key}.`,
-        FirebaseSqlErrorCategory.SQL_CLIENT
-      );
-    }
+  for (const key of Object.keys(headers)) {
+    validateHeaderName(key);
   }
 }
 
