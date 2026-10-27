@@ -294,6 +294,10 @@ Suggested change:
    }
 ```
 
+#### Resolution
+- **Decision:** Addressed in both `validateHeaders()` and `FilterBuilderImpl.setHeader()` via a shared `validateHeaderName()` helper in `packages/sql/src/core/settings.ts` that coerces `name` once, trims surrounding whitespace, and checks `DISALLOWED_HEADER_KEYS` directly.
+- **Commit:** `400984bb6`
+
 ### Finding 8: (line 540): [MEDIUM] `async #execute()` and `await this.#delegate` add extra `Promise` allocations and pre-flight microtask hops on every query execution.
 
 Because `this.#delegate` (`PostgrestFilterBuilder`) is a custom Thenable (`PromiseLike`) rather than a native `Promise`, `const raw = await this.#delegate` (line L596) allocates an intermediate `Promise` and enqueues a `NewPromiseResolveThenableJob` microtask *before* `PostgrestBuilder.then()` begins token acquisition and `fetch`. Wrapping that inside `async #execute()` and unconditionally chaining `.then(onfulfilled, onrejected)` at line L540 adds two extra `Promise` allocations and microtask hops per query. Calling `this.#delegate.then(raw => ...)` directly starts `PostgrestBuilder.then()` synchronously in the caller's turn.
