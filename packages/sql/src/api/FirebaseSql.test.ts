@@ -690,8 +690,11 @@ describe('FirebaseSql end-to-end operations', () => {
       await FirebaseSql.getSql(appWithIds, defaultSettings)
         .from('users')
         .select();
-      await FirebaseSql.getSql(appWithoutIds, defaultSettings)
-        .rpc('ping', {}, { get: true });
+      await FirebaseSql.getSql(appWithoutIds, defaultSettings).rpc(
+        'ping',
+        {},
+        { get: true }
+      );
 
       const [url1, init1] = mockFetch.mock.calls[0];
       const headers1 = init1?.headers as Record<string, string>;
