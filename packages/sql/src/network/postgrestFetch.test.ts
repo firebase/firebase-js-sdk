@@ -232,7 +232,9 @@ describe('createBuilderFetch', () => {
     expect((thrown as Error).name).toBe('AbortError');
     expect(mockFetch).not.toHaveBeenCalled();
     expect(tracker.clientError).toBeInstanceOf(FirebaseSqlError);
-    expect(tracker.clientError?.code).toBe(Code.NOT_INITIALIZED);
+    expect((tracker as BuilderExecutionTracker).clientError?.code).toBe(
+      Code.NOT_INITIALIZED
+    );
     expect(tracker.clientError?.category).toBe(
       FirebaseSqlErrorCategory.SQL_CLIENT
     );
@@ -298,7 +300,9 @@ describe('createBuilderFetch', () => {
       builderFetch('https://example.com/postgrest/users')
     ).rejects.toMatchObject({ name: 'AbortError' });
     expect(mockFetch).not.toHaveBeenCalled();
-    expect(tracker.clientError?.code).toBe(Code.NOT_INITIALIZED);
+    expect((tracker as BuilderExecutionTracker).clientError?.code).toBe(
+      Code.NOT_INITIALIZED
+    );
   });
 
   it('propagates genuine baseFetch network errors untouched without setting tracker.clientError', async () => {

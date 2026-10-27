@@ -145,10 +145,10 @@ export class FirebaseSql {
     };
 
     this.#postgrestClient = new PostgrestClient<
-      UntypedPostgrestDatabase,
-      UntypedPostgrestClientOptions,
+      UntypedDatabase,
+      UntypedClientOptions,
       string,
-      UntypedPostgrestSchema
+      UntypedSchema
     >(this._postgrestUrl, {
       headers: this.settings.headers,
       schema: this.settings.schemaName
