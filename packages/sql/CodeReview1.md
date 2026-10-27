@@ -450,6 +450,10 @@ Suggested change:
    return undefined;
 ```
 
+#### Resolution
+- **Decision:** Skipped (not addressed; `JSON.parse` HTTP error payloads do not contain `BigInt` or circular references).
+- **Commit:** N/A (no code change).
+
 ### Finding 14: (line 108): [HIGH] Non-PostgREST JSON error shapes (`[{ error: { ... } }]`, `{ error: "<string>" }`, unnested `{ code, status }` RPC errors, and JSON string/array bodies) are misclassified or lose error messages.
 
 `PostgrestBuilder.processResponse` parses any non-2xx JSON body directly via `JSON.parse(body)`, exposing three gaps in `mapPostgrestFailureToFirebaseSqlError`:
