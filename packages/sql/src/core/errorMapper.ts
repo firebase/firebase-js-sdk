@@ -102,11 +102,17 @@ export const mapPostgrestFailureToFirebaseSqlError: MapPostgrestError = (
     );
   }
 
+  const envelopeCandidate =
+    Array.isArray(rawError) && rawError.length === 1 ? rawError[0] : rawError;
+
   // Google OnePlatform / ESF pre-adapter rejections wrap errors under a top-level
-  // `error` envelope (`{ error: { code, message, status, details } }`), which
-  // @supabase/postgrest-js leaves nested via raw JSON.parse.
-  if (isPlainRecord(rawError) && isPlainRecord(rawError.error)) {
-    const inner = rawError.error;
+  // `error` envelope (`{ error: { code, message, status, details } }` or single-element
+  // array `[{ error: { ... } }]`), which @supabase/postgrest-js leaves nested via raw JSON.parse.
+  if (
+    isPlainRecord(envelopeCandidate) &&
+    isPlainRecord(envelopeCandidate.error)
+  ) {
+    const inner = envelopeCandidate.error;
     const code = mapPlatformStatusToCode(status, inner.status);
     const message =
       typeof inner.message === 'string' && inner.message.length > 0
@@ -124,8 +130,31 @@ export const mapPostgrestFailureToFirebaseSqlError: MapPostgrestError = (
 
   if (
     isPlainRecord(rawError) &&
+    typeof rawError.error === 'string' &&
+    rawError.error.length > 0
+  ) {
+    const message =
+      typeof rawError.error_description === 'string' &&
+      rawError.error_description.length > 0
+        ? rawError.error_description
+        : typeof rawError.message === 'string' && rawError.message.length > 0
+          ? rawError.message
+          : rawError.error;
+    return new FirebaseSqlError(
+      mapPlatformStatusToCode(status, rawError.status),
+      message,
+      FirebaseSqlErrorCategory.SQL_PLATFORM,
+      normalizeDetails(rawError.details),
+      normalizeHint(rawError.hint),
+      normalizedStatus
+    );
+  }
+
+  if (
+    isPlainRecord(rawError) &&
     typeof rawError.code === 'string' &&
-    rawError.code.length > 0
+    rawError.code.length > 0 &&
+    typeof rawError.status !== 'string'
   ) {
     const message =
       typeof rawError.message === 'string' && rawError.message.length > 0
@@ -146,16 +175,23 @@ export const mapPostgrestFailureToFirebaseSqlError: MapPostgrestError = (
     typeof rawError.message === 'string' &&
     rawError.message.length > 0
       ? rawError.message
-      : statusText || `HTTP Error ${status}`;
+      : typeof rawError === 'string' && rawError.length > 0
+        ? rawError
+        : statusText || `HTTP Error ${status}`;
   const fallbackDetails = isPlainRecord(rawError)
     ? normalizeDetails(rawError.details)
-    : undefined;
+    : Array.isArray(rawError)
+      ? normalizeDetails(rawError)
+      : undefined;
   const fallbackHint = isPlainRecord(rawError)
     ? normalizeHint(rawError.hint)
     : undefined;
 
   return new FirebaseSqlError(
-    mapPlatformStatusToCode(status),
+    mapPlatformStatusToCode(
+      status,
+      isPlainRecord(rawError) ? rawError.status : undefined
+    ),
     fallbackMessage,
     FirebaseSqlErrorCategory.SQL_PLATFORM,
     fallbackDetails,

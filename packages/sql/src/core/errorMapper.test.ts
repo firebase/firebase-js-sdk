@@ -306,5 +306,138 @@ describe('mapPostgrestFailureToFirebaseSqlError', () => {
       expect(text403.category).toBe(FirebaseSqlErrorCategory.SQL_PLATFORM);
       expect(text403.status).toBe(403);
     });
+
+    it('unwraps single-element OnePlatform array envelopes [{ error: { ... } }] to SQL_PLATFORM', () => {
+      const detailsList = [{ reason: 'API_DISABLED' }];
+      const mapped = mapPostgrestFailureToFirebaseSqlError(
+        [
+          {
+            error: {
+              code: 500,
+              message: 'Method not implemented by backend.',
+              status: 'UNIMPLEMENTED',
+              details: detailsList,
+              hint: 'Enable PostgREST service'
+            }
+          }
+        ],
+        500,
+        ''
+      );
+
+      expect(mapped.code).toBe(Code.NOT_SUPPORTED);
+      expect(mapped.category).toBe(FirebaseSqlErrorCategory.SQL_PLATFORM);
+      expect(mapped.message).toBe('Method not implemented by backend.');
+      expect(mapped.details).toBe(JSON.stringify(detailsList));
+      expect(mapped.hint).toBe('Enable PostgREST service');
+      expect(mapped.status).toBe(500);
+    });
+
+    it('classifies OAuth/proxy { error: "<string>" } payloads as SQL_PLATFORM with description/message/error priority', () => {
+      const withDescription = mapPostgrestFailureToFirebaseSqlError(
+        {
+          error: 'invalid_token',
+          'error_description': 'Token expired',
+          code: 'oauth_401',
+          details: { scope: 'sql' },
+          hint: 'Refresh token'
+        },
+        401,
+        'Unauthorized'
+      );
+      expect(withDescription.code).toBe(Code.UNAUTHORIZED);
+      expect(withDescription.category).toBe(
+        FirebaseSqlErrorCategory.SQL_PLATFORM
+      );
+      expect(withDescription.message).toBe('Token expired');
+      expect(withDescription.details).toBe(JSON.stringify({ scope: 'sql' }));
+      expect(withDescription.hint).toBe('Refresh token');
+      expect(withDescription.status).toBe(401);
+
+      const withMessage = mapPostgrestFailureToFirebaseSqlError(
+        {
+          error: 'invalid_request',
+          message: 'Malformed header',
+          status: 'INVALID_ARGUMENT'
+        },
+        422,
+        ''
+      );
+      expect(withMessage.code).toBe(Code.INVALID_ARGUMENT);
+      expect(withMessage.category).toBe(FirebaseSqlErrorCategory.SQL_PLATFORM);
+      expect(withMessage.message).toBe('Malformed header');
+      expect(withMessage.status).toBe(422);
+
+      const errorOnly = mapPostgrestFailureToFirebaseSqlError(
+        { error: 'temporarily_unavailable' },
+        503,
+        ''
+      );
+      expect(errorOnly.code).toBe(Code.OTHER);
+      expect(errorOnly.category).toBe(FirebaseSqlErrorCategory.SQL_PLATFORM);
+      expect(errorOnly.message).toBe('temporarily_unavailable');
+      expect(errorOnly.status).toBe(503);
+    });
+
+    it('classifies unnested RPC status objects ({ code, status, message }) as SQL_PLATFORM instead of SQL_POSTGREST', () => {
+      const unavailable = mapPostgrestFailureToFirebaseSqlError(
+        {
+          code: 'UNAVAILABLE',
+          status: 'UNAVAILABLE',
+          message: 'Backend unavailable',
+          details: [{ retryDelay: '1s' }]
+        },
+        503,
+        'Service Unavailable'
+      );
+      expect(unavailable.code).toBe(Code.OTHER);
+      expect(unavailable.category).toBe(FirebaseSqlErrorCategory.SQL_PLATFORM);
+      expect(unavailable.message).toBe('Backend unavailable');
+      expect(unavailable.details).toBe(JSON.stringify([{ retryDelay: '1s' }]));
+      expect(unavailable.status).toBe(503);
+
+      const unimplemented = mapPostgrestFailureToFirebaseSqlError(
+        {
+          code: 'UNIMPLEMENTED',
+          status: 'UNIMPLEMENTED',
+          message: 'RPC unsupported'
+        },
+        500,
+        ''
+      );
+      expect(unimplemented.code).toBe(Code.NOT_SUPPORTED);
+      expect(unimplemented.category).toBe(
+        FirebaseSqlErrorCategory.SQL_PLATFORM
+      );
+      expect(unimplemented.message).toBe('RPC unsupported');
+      expect(unimplemented.status).toBe(500);
+    });
+
+    it('preserves JSON string error messages and array body details in status > 0 SQL_PLATFORM fallback', () => {
+      const jsonString429 = mapPostgrestFailureToFirebaseSqlError(
+        'Too Many Requests',
+        429,
+        ''
+      );
+      expect(jsonString429.code).toBe(Code.OTHER);
+      expect(jsonString429.category).toBe(
+        FirebaseSqlErrorCategory.SQL_PLATFORM
+      );
+      expect(jsonString429.message).toBe('Too Many Requests');
+      expect(jsonString429.details).toBeUndefined();
+      expect(jsonString429.status).toBe(429);
+
+      const arrayPayload = [{ field: 'limit', issue: 'must be positive' }, 2];
+      const jsonArray400 = mapPostgrestFailureToFirebaseSqlError(
+        arrayPayload,
+        400,
+        ''
+      );
+      expect(jsonArray400.code).toBe(Code.INVALID_ARGUMENT);
+      expect(jsonArray400.category).toBe(FirebaseSqlErrorCategory.SQL_PLATFORM);
+      expect(jsonArray400.message).toBe('HTTP Error 400');
+      expect(jsonArray400.details).toBe(JSON.stringify(arrayPayload));
+      expect(jsonArray400.status).toBe(400);
+    });
   });
 });
