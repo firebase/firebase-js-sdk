@@ -47,7 +47,6 @@ import {
   FirebaseSqlTransport,
   FirebaseSqlTransportInterface
 } from '../network';
-import { normalizeHeaders } from '../network/headers';
 import { FIREBASE_SQL_COMPONENT_NAME } from '../util/constants';
 import { deepSortKeysForObj } from '../util/encoder';
 import { resolvePostgrestUrl } from '../util/url';
@@ -91,12 +90,21 @@ export class FirebaseSql {
     readonly app: FirebaseApp,
     /** Resolved configuration settings. */
     readonly settings: SqlServiceSettings,
-    /** @internal */
+    /**
+     * The instance identifier for the Firebase SQL service instance.
+     * @internal
+     */
     readonly _instanceIdentifier: string,
-    /** @internal */
-    private authInternalProvider: Provider<FirebaseAuthInternalName>,
-    /** @internal */
-    private appCheckInternalProvider: Provider<AppCheckInternalComponentName>
+    /**
+     * The auth internal provider.
+     * @internal
+     */
+    authInternalProvider: Provider<FirebaseAuthInternalName>,
+    /**
+     * The app check internal provider.
+     * @internal
+     */
+    appCheckInternalProvider: Provider<AppCheckInternalComponentName>
   ) {
     this._postgrestUrl = resolvePostgrestUrl(
       this.settings,
@@ -249,7 +257,7 @@ export function getInstanceIdentifier(
   projectId: string
 ): string {
   const resolvedUrl = resolvePostgrestUrl(settings, projectId);
-  const headers = normalizeHeaders(settings.headers);
+  const headers = normalizeInstanceIdentifierHeaders(settings.headers);
   return JSON.stringify(
     deepSortKeysForObj({
       resolvedUrl,
@@ -257,4 +265,28 @@ export function getInstanceIdentifier(
       headers
     })
   );
+}
+
+/**
+ * Normalizes the given headers by lowercasing the keys and sorting entries deterministically by key.
+ * Used for computing a deterministic instance cache key - NOT used for request headers.
+ * Duplicate keys with different case names will be de-duplicated based on sorting order. Does not mutate the input object.
+ * @returns headers with lowercased keys, sorted by key
+ * @internal
+ */
+export function normalizeInstanceIdentifierHeaders(
+  headers?: Record<string, string> | undefined
+): Record<string, string> {
+  if (!headers) {
+    return {};
+  }
+  const normalizedHeaders: Record<string, string> = {};
+  // initial sort so that repeated keys in the case of a duplicate key after lowercasing have deterministic values in the normalized list
+  const sortedEntries = Object.entries(headers).sort(([a], [b]) =>
+    a < b ? -1 : a > b ? 1 : 0
+  );
+  for (const [key, value] of sortedEntries) {
+    normalizedHeaders[key.toLowerCase()] = value;
+  }
+  return normalizedHeaders;
 }

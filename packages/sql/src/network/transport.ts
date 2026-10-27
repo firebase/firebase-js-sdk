@@ -66,6 +66,8 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
   readonly settings?: SqlServiceSettings;
   protected _appId?: string;
   protected _authToken: string | null = null;
+  // TODO: Update _isUsingEmulator if we add emulator support in the future.
+  protected _isUsingEmulator = false;
   protected authProvider?: FirebaseAuthTokenProvider;
   protected appCheckProvider?: AppCheckTokenProvider;
 
@@ -74,9 +76,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
     this._appId = options.appId;
     this.authProvider = options.authTokenProvider;
     this.appCheckProvider = options.appCheckTokenProvider;
-    this.authProvider?.addTokenChangeListener(token => {
-      this.onAuthTokenChanged(token);
-    });
+    this.authProvider?.addTokenChangeListener(this.onAuthTokenChanged);
   }
 
   /**
@@ -141,11 +141,11 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
   ): RequestInit {
     const requestInit: RequestInit = Object.assign({}, init, { headers });
 
-    // Forward workstation auth cookies when targeting a custom/emulator host in
+    // Forward workstation auth cookies when targeting an emulator host in
     // Cloud Workstations, where forwarded ports require cookie auth.
     if (
-      !!this.settings?.host &&
       isCloudWorkstation(requestUrl) &&
+      this._isUsingEmulator &&
       !requestInit.credentials
     ) {
       requestInit.credentials = 'include';
@@ -174,7 +174,10 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
       refreshedToken?.accessToken &&
       refreshedToken.accessToken !== currentToken.accessToken
     ) {
-      originalResponse.body && originalResponse.body.cancel().catch(() => {});
+      // cancel original request body ReadableStream if it exists
+      if (typeof originalResponse.body?.cancel === 'function') {
+        void originalResponse.body.cancel().catch(() => {});
+      }
       const retryHeaders: Record<string, string> = Object.assign({}, headers);
       retryHeaders[FirebaseHeaders.FIREBASE_AUTH_TOKEN] =
         refreshedToken.accessToken;

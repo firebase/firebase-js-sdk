@@ -41,13 +41,18 @@ import { TokenOptions } from '../core/tokenProviders/AbstractTokenProvider';
 import { FirebaseAuthProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
 import { SDK_VERSION, setSDKVersion } from '../core/version';
 
-import { getFetch, initializeFetch } from './fetch';
+import { Fetch, getFetch, initializeFetch } from './fetch';
 import { FirebaseHeaders, getGoogApiClientValue } from './headers';
 import { FirebaseSqlTransport } from './transport';
 
 const TEST_URL =
   'https://firebasedataconnect.googleapis.com/v1/projects/p/locations/l/services/s/postgrest/todos';
 const BASE_SETTINGS: SqlServiceSettings = { serviceId: 's', location: 'l' };
+
+type FirebaseSqlTransportWithInternalProperties = FirebaseSqlTransport & {
+  _authToken: string | null;
+  _isUsingEmulator: boolean;
+};
 
 /**
  * Extracts the `Headers` sent on a specific call to the mock `fetch` function.
@@ -70,7 +75,7 @@ describe('FirebaseSqlTransport', () => {
     mockFetch = vi.fn(() =>
       Promise.resolve(new Response(JSON.stringify([]), { status: 200 }))
     );
-    initializeFetch(mockFetch as unknown as typeof fetch);
+    initializeFetch(mockFetch as Fetch);
   });
 
   afterEach(async () => {
@@ -88,18 +93,17 @@ describe('FirebaseSqlTransport', () => {
     });
 
     expect(authProvider.addTokenChangeListener).toHaveBeenCalledTimes(1);
-    const onAuthTokenChangedSpy = vi.spyOn(transport, 'onAuthTokenChanged');
+    const registeredCallback =
+      authProvider.addTokenChangeListener.mock.calls[0][0];
 
-    authProvider.emitTokenChange('updated-access-token');
-    expect(onAuthTokenChangedSpy).toHaveBeenCalledWith('updated-access-token');
+    registeredCallback('updated-access-token');
     expect(
-      (transport as unknown as { _authToken: string | null })._authToken
+      (transport as FirebaseSqlTransportWithInternalProperties)._authToken
     ).toBe('updated-access-token');
 
-    authProvider.emitTokenChange(null);
-    expect(onAuthTokenChangedSpy).toHaveBeenCalledWith(null);
+    registeredCallback(null);
     expect(
-      (transport as unknown as { _authToken: string | null })._authToken
+      (transport as FirebaseSqlTransportWithInternalProperties)._authToken
     ).toBeNull();
   });
 
@@ -139,6 +143,9 @@ describe('FirebaseSqlTransport', () => {
             host: '8080-my-workstation.cluster.cloudworkstations.dev'
           }
         });
+        (
+          workstationTransport as FirebaseSqlTransportWithInternalProperties
+        )._isUsingEmulator = true;
 
         await workstationTransport.invokePostgrestOperation(workstationUrl);
         expect(

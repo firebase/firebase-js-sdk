@@ -59,9 +59,9 @@ const FORBIDDEN_HEADERS = new Set<string>([
 ]);
 
 /** @internal */
-export const DISALLOWED_HEADER_KEYS = new Set<string>([
+export const LOWERCASE_DISALLOWED_HEADER_KEYS = new Set<string>([
   ...Object.values(FirebaseHeaders),
-  ...Array.from(FORBIDDEN_HEADERS)
+  ...Array.from(FORBIDDEN_HEADERS).map(key => key.toLowerCase())
 ]);
 
 /**
@@ -83,12 +83,8 @@ export function validateHeaders(
   if (!headers) {
     return;
   }
-  const lowercasedDisallowedKeys = new Set<string>();
-  DISALLOWED_HEADER_KEYS.forEach(key =>
-    lowercasedDisallowedKeys.add(key.toLowerCase())
-  );
-  for (const [key] of Object.entries(headers)) {
-    if (lowercasedDisallowedKeys.has(key.toLowerCase())) {
+  for (const key of Object.keys(headers)) {
+    if (LOWERCASE_DISALLOWED_HEADER_KEYS.has(key.toLowerCase())) {
       throw new FirebaseSqlError(
         Code.INVALID_ARGUMENT,
         `Cannot set protected header ${key}.`,
@@ -96,26 +92,6 @@ export function validateHeaders(
       );
     }
   }
-}
-
-/**
- * Normalizes the given headers by lowercasing the keys and sorting the values. Duplicate keys with
- * different case names will be de-duplicated based on sorting order. Does not mutate the input object.
- * @returns normalized headers with lowercased keys and values sorted
- * @internal
- */
-export function normalizeHeaders(
-  headers?: Record<string, string> | undefined
-): Record<string, string> {
-  if (!headers) {
-    return {};
-  }
-  const normalizedHeaders: Record<string, string> = {};
-  // initial sort so that repeated keys in the case of a duplicate key after lowercasing have deterministic values in the normalized list
-  for (const [key, value] of Object.entries(headers).sort()) {
-    normalizedHeaders[key.toLowerCase()] = value;
-  }
-  return normalizedHeaders;
 }
 
 /**
@@ -172,5 +148,5 @@ export function resolveRequestHeaders(
   headers.forEach((value, key) => {
     headersRecord[key] = value;
   });
-  return normalizeHeaders(headersRecord);
+  return headersRecord;
 }
