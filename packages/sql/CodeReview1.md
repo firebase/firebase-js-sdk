@@ -364,6 +364,10 @@ Suggested change:
      }
 ```
 
+#### Resolution
+- **Decision:** Addressed by passing `CreateBuilderFetch` into `FilterBuilderImpl` in `packages/sql/src/api/impl/FilterBuilderImpl.ts` (updating `QueryBuilderImpl` in `packages/sql/src/api/impl/QueryBuilderImpl.ts` and `FirebaseSql.rpc()` in `packages/sql/src/api/FirebaseSql.ts`) and allocating a fresh per-execution `BuilderExecutionTracker` synchronously before `this.#delegate.then(...)`, with concurrent same-builder execution tests in `packages/sql/src/api/Builders.test.ts`.
+- **Commit:** `3836d278c`
+
 ### Finding 10: (line 583): [MEDIUM] Direct `getFetch()` call in `FilterBuilderImpl.#execute()` breaks the `CreateBuilderFetch` injection boundary and maps fallback errors inconsistently.
 
 `FilterBuilderImpl.#execute()` (lines L31 and L582–L594) calls the global `../../network/fetch` `getFetch()` singleton directly even though transport creation is injected via `CreateBuilderFetch` and `createBuilderFetch` in `packages/sql/src/network/postgrestFetch.ts` (lines L104–L109) already calls `getFetch()` before token retrieval. Calling `getFetch()` in `#execute()` runs the lookup twice per request, couples unit tests with injected `CreateBuilderFetch` stubs to global `initializeFetch` state, and wraps non-`FirebaseSqlError` throws as `Code.NOT_SUPPORTED` (line L589) whereas `postgrestFetch.ts` wraps them as `Code.OTHER` (line L66).
