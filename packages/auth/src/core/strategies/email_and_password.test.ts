@@ -26,7 +26,12 @@ import {
 } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
-import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
+import {
+  Endpoint,
+  RecaptchaClientType,
+  RecaptchaVersion,
+  RecaptchaActionName
+} from '../../api';
 import { APIUserInfo } from '../../api/account_management/account';
 import { ServerError } from '../../api/errors';
 import { UserCredentialInternal } from '../../model/user';
@@ -314,6 +319,9 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       mockEndpoint(Endpoint.SEND_OOB_CODE, { email });
       const response = await sendPasswordResetEmail(auth, email);
       expect(response).toBe(undefined);
+      expect(recaptcha.enterprise.execute).toHaveBeenCalledWith('site-key', {
+        action: RecaptchaActionName.GET_OOB_CODE
+      });
     });
   });
 });
@@ -722,6 +730,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
         }
       );
 
+      auth.settings.appVerificationDisabledForTesting = false;
       // Mock recaptcha js loading method and manually set window.recaptcha
       vi.spyOn(jsHelpers, '_loadJS').mockImplementation(mockLoadJS);
       const recaptcha = new MockGreCAPTCHATopLevel();
@@ -755,6 +764,9 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       expect(operationType).toBe(OperationType.SIGN_IN);
       expect(user.uid).toBe(serverUser.localId);
       expect(user.isAnonymous).toBe(false);
+      expect(recaptcha.enterprise.execute).toHaveBeenCalledWith('site-key', {
+        action: RecaptchaActionName.SIGN_UP_PASSWORD
+      });
     });
   });
 });
@@ -883,6 +895,7 @@ describe('password policy cache is updated in auth flows upon error', () => {
    * Mock reCAPTCHA JS loading method and manually set window.recaptcha.
    */
   async function setUpRecaptcha(): Promise<void> {
+    auth.settings.appVerificationDisabledForTesting = false;
     // Initialize the reCAPTCHA config so the auth flows use reCAPTCHA.
     await _initializeRecaptchaConfig(auth);
 
@@ -1133,6 +1146,12 @@ describe('password policy cache is updated in auth flows upon error', () => {
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
 
+        expect(window.grecaptcha?.enterprise.execute).toHaveBeenCalledWith(
+          TEST_SITE_KEY,
+          {
+            action: RecaptchaActionName.SIGN_UP_PASSWORD
+          }
+        );
         expect(policyEndpointMock.calls.length).toBe(2);
         expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
@@ -1478,6 +1497,12 @@ describe('password policy cache is updated in auth flows upon error', () => {
         // Wait to ensure the password policy is fetched and recached.
         await waitForRecachePasswordPolicy();
 
+        expect(window.grecaptcha?.enterprise.execute).toHaveBeenCalledWith(
+          TEST_SITE_KEY,
+          {
+            action: RecaptchaActionName.SIGN_IN_WITH_PASSWORD
+          }
+        );
         expect(policyEndpointMock.calls.length).toBe(2);
         expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC

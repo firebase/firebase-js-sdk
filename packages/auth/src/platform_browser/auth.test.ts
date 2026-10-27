@@ -96,7 +96,9 @@ describe('core/auth/auth_impl', () => {
       const removeSpy = vi.spyOn(persistenceStub, '_remove');
       const newPersistence = browserLocalPersistence;
       const newStub = _getInstance<PersistenceInternal>(newPersistence);
-      const setSpy = vi.spyOn(newStub, '_set');
+      vi.spyOn(newStub, '_get').mockResolvedValue(null);
+      vi.spyOn(newStub, '_remove').mockResolvedValue();
+      const setSpy = vi.spyOn(newStub, '_set').mockResolvedValue();
 
       await auth.setPersistence(newPersistence);
       expect(getSpy).toHaveBeenCalled();

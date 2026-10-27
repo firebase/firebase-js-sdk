@@ -72,7 +72,11 @@ describe.skip(' Integration tests: Mfa enrollment using totp', () => {
     }
   });
 
-  it('should not enroll if incorrect totp supplied', async () => {
+  it('should not enroll if incorrect totp supplied', async ctx => {
+    if (emulatorUrl) {
+      ctx.skip();
+    }
+
     const cr = await signInWithEmailAndPassword(auth, email, password);
     mfaUser = multiFactor(cr.user);
     const session = await mfaUser.getSession();
@@ -89,7 +93,11 @@ describe.skip(' Integration tests: Mfa enrollment using totp', () => {
     ).rejects.toThrow('auth/invalid-verification-code');
   });
 
-  it('should enroll using correct otp', async () => {
+  it('should enroll using correct otp', async ctx => {
+    if (emulatorUrl) {
+      ctx.skip();
+    }
+
     const cr = await signInWithEmailAndPassword(auth, email, password);
     mfaUser = multiFactor(cr.user);
     const session = await mfaUser.getSession();
@@ -110,7 +118,7 @@ describe.skip(' Integration tests: Mfa enrollment using totp', () => {
 
     await expect(
       mfaUser.enroll(multiFactorAssertion, displayName)
-    ).resolves.toBeDefined();
+    ).resolves.toBeUndefined();
   });
 });
 
@@ -157,8 +165,11 @@ describe.skip('Integration tests: sign-in for mfa-enrolled users', () => {
     }
   });
 
-  it('should not allow sign-in with incorrect totp', async () => {
+  it('should not allow sign-in with incorrect totp', async ctx => {
     let resolver: any;
+    if (emulatorUrl) {
+      ctx.skip();
+    }
     try {
       await signInWithEmailAndPassword(auth, email, password);
 
@@ -181,8 +192,11 @@ describe.skip('Integration tests: sign-in for mfa-enrolled users', () => {
     }
   });
 
-  it('should allow sign-in with for correct totp and unenroll successfully', async () => {
+  it('should allow sign-in with for correct totp and unenroll successfully', async ctx => {
     let resolver: any;
+    if (emulatorUrl) {
+      ctx.skip();
+    }
     try {
       await signInWithEmailAndPassword(auth, email, password);
 
@@ -212,7 +226,7 @@ describe.skip('Integration tests: sign-in for mfa-enrolled users', () => {
 
       await expect(
         mfaUser.unenroll(resolver.hints[0].uid)
-      ).resolves.toBeDefined();
+      ).resolves.toBeUndefined();
       await expect(
         signInWithEmailAndPassword(auth, email, password)
       ).resolves.toBeDefined();

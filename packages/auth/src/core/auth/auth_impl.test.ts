@@ -62,6 +62,7 @@ describe('core/auth/auth_impl', () => {
 
   beforeEach(async () => {
     persistenceStub = _getInstance(inMemoryPersistence);
+    persistenceStub.storage = {};
     vi.spyOn(persistenceStub, '_get');
     vi.spyOn(persistenceStub, '_set');
     vi.spyOn(persistenceStub, '_remove');
@@ -1204,7 +1205,6 @@ describe('core/auth/auth_impl', () => {
         await vi.advanceTimersByTimeAsync(5000);
         await promiseVar;
         expect(auth.currentUser).toBe(user);
-        await auth._updateCurrentUser(null);
       } finally {
         vi.useRealTimers();
       }
