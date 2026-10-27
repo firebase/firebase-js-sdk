@@ -83,3 +83,13 @@
   1. After `terminate(sql)` is called, all methods on that `FirebaseSql` instance (except `terminate()` / `_delete()` itself, which is re-entrant) throw `FirebaseSqlError(Code.NOT_INITIALIZED, ..., SQL_CLIENT)`.
   2. Any active builders (`QueryBuilder`, `FilterBuilder`, `TransformBuilder`, `Builder`) created before `terminate()` continue to function normally (chaining methods/modifiers) until the builder is executed (`await` / `.then()`), at which point execution unconditionally fails with `FirebaseSqlError(Code.NOT_INITIALIZED, ..., SQL_CLIENT)` respecting `.throwOnError()` (`OperationFailure` by default, rejected promise when `.throwOnError()` is enabled).
   3. Replace `FirebaseSql`'s `_isDeleted` boolean flag with an internal mutable `State` object exposed behind a `Readonly` interface to builders. Active runtime resources live on a nullable property of `State`; `terminate()` terminates token providers, sets that `State` property to `null`, and removes the service instance. Builders hold the `Readonly` `State` reference and check it upon execution, observing `null` and failing with `FirebaseSqlError(Code.NOT_INITIALIZED)`.
+
+## Decision 8: Synchronous Validation Errors from `@supabase/postgrest-js`
+
+- **Question**: How should `@firebase/sql` handle synchronous validation errors thrown by `@supabase/postgrest-js` (`from('')` and `.csv().stripNulls()`)?
+- **Options Presented**:
+  - `WrapSync` (Recommended): Catch `postgrest-js`'s plain `Error` on `from('')` and `.csv().stripNulls()` and rethrow as `FirebaseSqlError(Code.INVALID_ARGUMENT, err.message, SQL_CLIENT)`.
+  - `RawSync`: Let `@supabase/postgrest-js`'s plain `Error` instances on `from('')` and `.csv().stripNulls()` propagate unwrapped.
+  - `StrictSync`: Same as `WrapSync`, plus also throw synchronously on `rpc('')` and `.stripNulls().csv()`.
+- **Selected Option**: `RawSync`
+- **Relevant Discussion**: Explained that `stripNulls()` came up only because `.csv()` sets `Accept: text/csv` while PostgREST null-stripping is a JSON `Accept` parameter (`;nulls=stripped`), causing `PostgrestBuilder.stripNulls()` to throw a synchronous `Error` if `Accept === 'text/csv'`. User selected `RawSync` for verbatim `@supabase/postgrest-js` synchronous throw behavior.
