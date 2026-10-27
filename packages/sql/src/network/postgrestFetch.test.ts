@@ -16,7 +16,10 @@
  */
 
 import type { AppCheckTokenResult } from '@firebase/app-check-interop-types';
-import type { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
+import type {
+  FirebaseAuthInternal,
+  FirebaseAuthTokenData
+} from '@firebase/auth-interop-types';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -52,14 +55,17 @@ interface MockProviders {
       }) => Promise<AppCheckTokenResult | null>
     >
   >;
+  setUid: (uid: string | null | undefined) => void;
   authProvider: FirebaseAuthTokenProvider;
   appCheckProvider: AppCheckTokenProvider;
 }
 
 function createMockProviders(
   initialAuth: string | null = 'auth-token-1',
-  initialAppCheck: string | null = 'appcheck-token-1'
+  initialAppCheck: string | null = 'appcheck-token-1',
+  initialUid?: string | null
 ): MockProviders {
+  let currentUid: string | null | undefined = initialUid;
   const authGetToken = vi.fn<
     (options?: {
       forceRefresh?: boolean;
@@ -72,9 +78,16 @@ function createMockProviders(
     }) => Promise<AppCheckTokenResult | null>
   >(async () => (initialAppCheck !== null ? { token: initialAppCheck } : null));
 
+  const mockAuth: FirebaseAuthInternal = {
+    getToken: authGetToken,
+    getUid: () => currentUid ?? null,
+    addAuthTokenListener: vi.fn(),
+    removeAuthTokenListener: vi.fn()
+  };
+
   const authProvider: FirebaseAuthTokenProvider = {
     getToken: authGetToken,
-    getAuth: () => undefined,
+    getAuth: () => (currentUid === undefined ? undefined : mockAuth),
     addTokenChangeListener: vi.fn(),
     removeTokenChangeListener: vi.fn(),
     terminate: vi.fn()
@@ -90,6 +103,9 @@ function createMockProviders(
   return {
     authGetToken,
     appCheckGetToken,
+    setUid: uid => {
+      currentUid = uid;
+    },
     authProvider,
     appCheckProvider
   };
@@ -491,6 +507,151 @@ describe('createBuilderFetch', () => {
       ).rejects.toMatchObject({ name: 'AbortError' });
       expect(tracker.clientError).toBe(customSqlErr);
       expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not forceRefresh or replay an anonymous 401 request when a user signs in mid-flight', async () => {
+      const providers = createMockProviders(null, null, null);
+      const state: MutableSqlClientState = {
+        active: {
+          appId: 'app-id',
+          authTokenProvider: providers.authProvider,
+          appCheckTokenProvider: providers.appCheckProvider
+        }
+      };
+      const tracker: BuilderExecutionTracker = { clientError: null };
+
+      const originalResponse = new Response('{"code":"42501"}', {
+        status: 401
+      });
+      const mockFetch = vi.fn<typeof fetch>(async () => {
+        providers.setUid('uid-signed-in');
+        providers.authGetToken.mockResolvedValue({
+          accessToken: 'signed-in-jwt'
+        });
+        return originalResponse;
+      });
+      initializeFetch(mockFetch);
+
+      const builderFetch = createBuilderFetch(state, tracker);
+      const res = await builderFetch('https://example.com/postgrest/users', {
+        method: 'POST',
+        body: '{"note":"anon"}'
+      });
+
+      expect(res).toBe(originalResponse);
+      expect(res.status).toBe(401);
+      expect(providers.authGetToken).toHaveBeenCalledTimes(1);
+      expect(providers.authGetToken).toHaveBeenCalledWith({
+        forceRefresh: false
+      });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not replay a 401 request across principals when account switches mid-flight', async () => {
+      const providers = createMockProviders(
+        'user-a-jwt',
+        'appcheck-1',
+        'uid-a'
+      );
+      const state: MutableSqlClientState = {
+        active: {
+          appId: 'app-id',
+          authTokenProvider: providers.authProvider,
+          appCheckTokenProvider: providers.appCheckProvider
+        }
+      };
+      const tracker: BuilderExecutionTracker = { clientError: null };
+
+      const originalResponse = new Response(
+        JSON.stringify({
+          error: {
+            code: 401,
+            status: 'UNAUTHENTICATED',
+            message: 'Expired'
+          }
+        }),
+        { status: 401 }
+      );
+      const mockFetch = vi.fn<typeof fetch>(async () => {
+        providers.setUid('uid-b');
+        providers.authGetToken.mockResolvedValue({
+          accessToken: 'user-b-jwt'
+        });
+        return originalResponse;
+      });
+      initializeFetch(mockFetch);
+
+      const builderFetch = createBuilderFetch(state, tracker);
+      const res = await builderFetch('https://example.com/postgrest/users', {
+        method: 'DELETE'
+      });
+
+      expect(res).toBe(originalResponse);
+      expect(res.status).toBe(401);
+      expect(providers.authGetToken).toHaveBeenCalledTimes(2);
+      expect(providers.authGetToken).toHaveBeenNthCalledWith(1, {
+        forceRefresh: false
+      });
+      expect(providers.authGetToken).toHaveBeenNthCalledWith(2, {
+        forceRefresh: true
+      });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('replays once when same principal refreshes to a new token', async () => {
+      const providers = createMockProviders(
+        'user-a-stale-jwt',
+        'appcheck-1',
+        'uid-a'
+      );
+      providers.authGetToken
+        .mockResolvedValueOnce({ accessToken: 'user-a-stale-jwt' })
+        .mockResolvedValueOnce({ accessToken: 'user-a-fresh-jwt' });
+
+      const state: MutableSqlClientState = {
+        active: {
+          appId: 'app-id',
+          authTokenProvider: providers.authProvider,
+          appCheckTokenProvider: providers.appCheckProvider
+        }
+      };
+      const tracker: BuilderExecutionTracker = { clientError: null };
+
+      const mockFetch = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              error: {
+                code: 401,
+                status: 'UNAUTHENTICATED',
+                message: 'Expired'
+              }
+            }),
+            { status: 401 }
+          )
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify([{ id: 7 }]), { status: 200 })
+        );
+      initializeFetch(mockFetch);
+
+      const builderFetch = createBuilderFetch(state, tracker);
+      const res = await builderFetch('https://example.com/postgrest/users');
+
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual([{ id: 7 }]);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      const firstHeaders = mockFetch.mock.calls[0][1]?.headers as Record<
+        string,
+        string
+      >;
+      const secondHeaders = mockFetch.mock.calls[1][1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(firstHeaders['x-firebase-auth-token']).toBe('user-a-stale-jwt');
+      expect(secondHeaders['x-firebase-auth-token']).toBe('user-a-fresh-jwt');
     });
   });
 });

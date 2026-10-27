@@ -110,6 +110,7 @@ export const createBuilderFetch: CreateBuilderFetch =
 
     let authToken: string | null = null;
     let appCheckToken: string | null = null;
+    let initialUid: string | null | undefined;
     try {
       const [authTokenData, appCheckTokenResult] = await Promise.all([
         active.authTokenProvider.getToken({ forceRefresh: false }),
@@ -119,6 +120,7 @@ export const createBuilderFetch: CreateBuilderFetch =
       appCheckToken = appCheckTokenResult?.token
         ? appCheckTokenResult.token
         : null;
+      initialUid = active.authTokenProvider.getAuth()?.getUid();
     } catch (err) {
       throwTrackedClientError(tracker, resolveClientError(state, err));
     }
@@ -145,7 +147,11 @@ export const createBuilderFetch: CreateBuilderFetch =
       headers: mergedHeaders
     });
 
-    if (response.status === 401 && state.active !== null) {
+    if (
+      response.status === 401 &&
+      authToken !== null &&
+      state.active !== null
+    ) {
       let refreshedAuthToken: string | null = null;
       try {
         const refreshedTokenData = await active.authTokenProvider.getToken({
@@ -163,9 +169,15 @@ export const createBuilderFetch: CreateBuilderFetch =
       }
 
       // Only retry when force-refresh yields a non-null token distinct from the
-      // initial attempt; avoids redundant round-trips on anonymous RLS 401s or
-      // non-Auth 401 rejections (such as invalid App Check tokens).
-      if (refreshedAuthToken !== null && refreshedAuthToken !== authToken) {
+      // initial attempt for the same Auth principal; avoids redundant round-trips
+      // on non-Auth 401 rejections (such as invalid App Check tokens) and prevents
+      // replaying in-flight requests across mid-flight account switches.
+      const refreshedUid = active.authTokenProvider.getAuth()?.getUid();
+      if (
+        refreshedAuthToken !== null &&
+        refreshedAuthToken !== authToken &&
+        refreshedUid === initialUid
+      ) {
         await response.text().catch(() => {});
         return baseFetch(input, {
           ...init,
