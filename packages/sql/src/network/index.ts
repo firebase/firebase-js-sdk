@@ -16,3 +16,4 @@
  */
 
 export * from './fetch';
+export { createBuilderFetch } from './postgrestFetch';
