@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
 import { testAuth, TestAuth, testUser } from '../../../test/helpers/mock_auth';
@@ -35,9 +32,6 @@ import { AuthErrorCode } from '../../core/errors';
 import { AppName } from '../../model/auth';
 import { _castAuth } from '../../core/auth/auth_impl';
 import { MultiFactorAssertionImpl } from '../mfa_assertion';
-
-use(chaiAsPromised);
-
 const fakeUid: string = 'uid';
 
 describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
@@ -64,7 +58,7 @@ describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
         secret,
         '123456'
       );
-      expect(assertion.factorId).to.eql(FactorId.TOTP);
+      expect(assertion.factorId).toEqual(FactorId.TOTP);
     });
   });
 
@@ -74,7 +68,7 @@ describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
         'enrollmentId',
         '123456'
       );
-      expect(assertion.factorId).to.eql(FactorId.TOTP);
+      expect(assertion.factorId).toEqual(FactorId.TOTP);
     });
   });
 
@@ -92,7 +86,7 @@ describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
         );
         await TotpMultiFactorGenerator.generateSecret(session);
       } catch (e) {
-        expect((e as any).code).to.eql(`auth/${AuthErrorCode.INTERNAL_ERROR}`);
+        expect((e as any).code).toEqual(`auth/${AuthErrorCode.INTERNAL_ERROR}`);
       }
     });
     it('generateSecret should generate a valid secret by starting enrollment', async () => {
@@ -108,20 +102,20 @@ describe('core/mfa/assertions/totp/TotpMultiFactorGenerator', () => {
         user
       );
       const secret = await TotpMultiFactorGenerator.generateSecret(session);
-      expect(mock.calls[0].request).to.eql({
+      expect(mock.calls[0].request).toEqual({
         idToken: 'enrollment-id-token',
         totpEnrollmentInfo: {}
       });
-      expect(secret.secretKey).to.eql(
+      expect(secret.secretKey).toEqual(
         startEnrollmentResponse.totpSessionInfo.sharedSecretKey
       );
-      expect(secret.codeIntervalSeconds).to.eq(
+      expect(secret.codeIntervalSeconds).toBe(
         startEnrollmentResponse.totpSessionInfo.periodSec
       );
-      expect(secret.codeLength).to.eq(
+      expect(secret.codeLength).toBe(
         startEnrollmentResponse.totpSessionInfo.verificationCodeLength
       );
-      expect(secret.hashingAlgorithm).to.eq(
+      expect(secret.hashingAlgorithm).toBe(
         startEnrollmentResponse.totpSessionInfo.hashingAlgorithm
       );
     });
@@ -176,19 +170,19 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
         serverResponse
       );
       const response = await assertion._process(auth, session);
-      expect(response).to.eql(serverResponse);
-      expect(mock.calls[0].request).to.eql({
+      expect(response).toEqual(serverResponse);
+      expect(mock.calls[0].request).toEqual({
         idToken: 'enrollment-id-token',
         totpVerificationInfo: {
           verificationCode: '123456',
           sessionInfo: 'verification-id'
         }
       });
-      expect(session.user).to.not.be.undefined;
-      expect(session.user).to.eql(user);
+      expect(session.user).toBeDefined();
+      expect(session.user).toEqual(user);
     });
 
-    context('with display name', () => {
+    describe('with display name', () => {
       it('should set the display name', async () => {
         const mock = mockEndpoint(
           Endpoint.FINALIZE_MFA_ENROLLMENT,
@@ -199,8 +193,8 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
           session,
           'display-name'
         );
-        expect(response).to.eql(serverResponse);
-        expect(mock.calls[0].request).to.eql({
+        expect(response).toEqual(serverResponse);
+        expect(mock.calls[0].request).toEqual({
           idToken: 'enrollment-id-token',
           displayName: 'display-name',
           totpVerificationInfo: {
@@ -208,8 +202,8 @@ describe('core/mfa/totp/assertions/TotpMultiFactorAssertionImpl', () => {
             sessionInfo: 'verification-id'
           }
         });
-        expect(session.user).to.not.be.undefined;
-        expect(session.user).to.eql(user);
+        expect(session.user).toBeDefined();
+        expect(session.user).toEqual(user);
       });
     });
   });
@@ -240,9 +234,9 @@ describe('Testing signin Flow', () => {
     ) as any;
     const response = await assertion._process(auth, session);
 
-    expect(response).to.eql(mockResponse);
+    expect(response).toEqual(mockResponse);
 
-    expect(mock.calls[0].request).to.eql({
+    expect(mock.calls[0].request).toEqual({
       mfaPendingCredential: 'mfa-pending-credential',
       mfaEnrollmentId: 'enrollment-id',
       totpVerificationInfo: {
@@ -257,7 +251,7 @@ describe('Testing signin Flow', () => {
       '123456'
     ) as any;
 
-    await expect(assertion._process(auth, session)).to.be.rejectedWith(
+    await expect(assertion._process(auth, session)).rejects.toThrow(
       'auth/argument-error'
     );
   });
@@ -268,7 +262,7 @@ describe('Testing signin Flow', () => {
       undefined as any
     ) as any;
 
-    await expect(assertion._process(auth, session)).to.be.rejectedWith(
+    await expect(assertion._process(auth, session)).rejects.toThrow(
       'auth/argument-error'
     );
   });
@@ -296,10 +290,10 @@ describe('core/mfa/assertions/totp/TotpSecret', async () => {
 
   describe('fromStartTotpMfaEnrollmentResponse', () => {
     it('fields from the response are parsed correctly', () => {
-      expect(secret.secretKey).to.eq('key123');
-      expect(secret.codeIntervalSeconds).to.eq(30);
-      expect(secret.codeLength).to.eq(6);
-      expect(secret.hashingAlgorithm).to.eq('SHA1');
+      expect(secret.secretKey).toBe('key123');
+      expect(secret.codeIntervalSeconds).toBe(30);
+      expect(secret.codeLength).toBe(6);
+      expect(secret.hashingAlgorithm).toBe('SHA1');
     });
   });
   describe('generateQrCodeUrl', () => {
@@ -311,32 +305,32 @@ describe('core/mfa/assertions/totp/TotpSecret', async () => {
 
     it('with account name and issuer provided', () => {
       const url = secret.generateQrCodeUrl('user@myawesomeapp', 'myawesomeapp');
-      expect(url).to.eq(
+      expect(url).toBe(
         'otpauth://totp/myawesomeapp:user@myawesomeapp?secret=key123&issuer=myawesomeapp&algorithm=SHA1&digits=6'
       );
     });
     it('only accountName provided', () => {
       const url = secret.generateQrCodeUrl('user@myawesomeapp', '');
-      expect(url).to.eq(
+      expect(url).toBe(
         `otpauth://totp/${fakeAppName}:user@myawesomeapp?secret=key123&issuer=${fakeAppName}&algorithm=SHA1&digits=6`
       );
     });
     it('only issuer provided', () => {
       const url = secret.generateQrCodeUrl('', 'myawesomeapp');
-      expect(url).to.eq(
+      expect(url).toBe(
         `otpauth://totp/myawesomeapp:${fakeEmail}?secret=key123&issuer=myawesomeapp&algorithm=SHA1&digits=6`
       );
     });
     it('with defaults', () => {
       const url = secret.generateQrCodeUrl();
-      expect(url).to.eq(
+      expect(url).toBe(
         `otpauth://totp/${fakeAppName}:${fakeEmail}?secret=key123&issuer=${fakeAppName}&algorithm=SHA1&digits=6`
       );
     });
     it('with defaults, without currentUser', async () => {
       await auth.updateCurrentUser(null);
       const url = secret.generateQrCodeUrl();
-      expect(url).to.eq(
+      expect(url).toBe(
         `otpauth://totp/${fakeAppName}:unknownuser?secret=key123&issuer=${fakeAppName}&algorithm=SHA1&digits=6`
       );
     });

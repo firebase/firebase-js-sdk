@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-const base = require('../../config/mocharc.node.js');
+import { afterEach, vi } from 'vitest';
 
-module.exports = {
-  ...base,
-  require: [base.require, 'test/setup.ts']
-};
+afterEach(() => {
+  vi.restoreAllMocks();
+});
