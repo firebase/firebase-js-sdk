@@ -765,5 +765,110 @@ describe('createBuilderFetch', () => {
       );
       expect(forceRefreshCalls).toHaveLength(1);
     });
+
+    it('cancels discarded 401 response.body without calling response.text() on refresh failure, termination, and retry', async () => {
+      const make401WithSpies = (): {
+        response: Response;
+        cancelSpy: ReturnType<typeof vi.fn>;
+        textSpy: ReturnType<typeof vi.spyOn>;
+      } => {
+        const cancelSpy = vi.fn(async () => {});
+        const stream = new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode('{"error":"expired"}'));
+          },
+          cancel: cancelSpy
+        });
+        const response = new Response(stream, { status: 401 });
+        const textSpy = vi.spyOn(response, 'text');
+        return { response, cancelSpy, textSpy };
+      };
+
+      // 1. Refresh failure cancels response.body without buffering via text()
+      const failProviders = createMockProviders('jwt-1', null, 'uid-a');
+      failProviders.authGetToken
+        .mockResolvedValueOnce({ accessToken: 'jwt-1' })
+        .mockResolvedValueOnce({ accessToken: 'jwt-1' })
+        .mockRejectedValueOnce(new Error('Refresh failed'));
+
+      const state: MutableSqlClientState = {
+        active: {
+          appId: 'app-id',
+          authTokenProvider: failProviders.authProvider,
+          appCheckTokenProvider: failProviders.appCheckProvider
+        }
+      };
+      const failCase = make401WithSpies();
+      const mockFetch = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(failCase.response);
+      initializeFetch(mockFetch);
+
+      const failTracker: BuilderExecutionTracker = { clientError: null };
+      await expect(
+        createBuilderFetch(
+          state,
+          failTracker
+        )('https://example.com/postgrest/users')
+      ).rejects.toMatchObject({ name: 'AbortError' });
+      expect(failCase.cancelSpy).toHaveBeenCalledTimes(1);
+      expect(failCase.textSpy).not.toHaveBeenCalled();
+
+      // 2. Mid-refresh termination cancels response.body without buffering via text()
+      const termProviders = createMockProviders('jwt-1', null, 'uid-a');
+      let termTokenCalls = 0;
+      termProviders.authGetToken.mockImplementation(async () => {
+        termTokenCalls++;
+        if (termTokenCalls === 3) {
+          state.active = null;
+        }
+        return { accessToken: 'jwt-1' };
+      });
+      state.active = {
+        appId: 'app-id',
+        authTokenProvider: termProviders.authProvider,
+        appCheckTokenProvider: termProviders.appCheckProvider
+      };
+      const termCase = make401WithSpies();
+      mockFetch.mockResolvedValueOnce(termCase.response);
+
+      const termTracker: BuilderExecutionTracker = { clientError: null };
+      await expect(
+        createBuilderFetch(
+          state,
+          termTracker
+        )('https://example.com/postgrest/users')
+      ).rejects.toMatchObject({ name: 'AbortError' });
+      expect(termTracker.clientError).toMatchObject({
+        code: Code.NOT_INITIALIZED
+      });
+      expect(termCase.cancelSpy).toHaveBeenCalledTimes(1);
+      expect(termCase.textSpy).not.toHaveBeenCalled();
+
+      // 3. Successful 401 retry cancels discarded 401 response.body without calling text()
+      const retryProviders = createMockProviders('jwt-1', null, 'uid-a');
+      retryProviders.authGetToken
+        .mockResolvedValueOnce({ accessToken: 'jwt-1' })
+        .mockResolvedValueOnce({ accessToken: 'jwt-1' })
+        .mockResolvedValueOnce({ accessToken: 'jwt-2' });
+      state.active = {
+        appId: 'app-id',
+        authTokenProvider: retryProviders.authProvider,
+        appCheckTokenProvider: retryProviders.appCheckProvider
+      };
+      const retryCase = make401WithSpies();
+      mockFetch
+        .mockResolvedValueOnce(retryCase.response)
+        .mockResolvedValueOnce(new Response('[{"id":1}]', { status: 200 }));
+
+      const retryTracker: BuilderExecutionTracker = { clientError: null };
+      const retryRes = await createBuilderFetch(
+        state,
+        retryTracker
+      )('https://example.com/postgrest/users');
+      expect(retryRes.status).toBe(200);
+      expect(retryCase.cancelSpy).toHaveBeenCalledTimes(1);
+      expect(retryCase.textSpy).not.toHaveBeenCalled();
+    });
   });
 });

@@ -172,10 +172,12 @@ export const createBuilderFetch: CreateBuilderFetch =
             : null;
         }
       } catch (err) {
+        await response.body?.cancel().catch(() => {});
         throwTrackedClientError(tracker, resolveClientError(state, err));
       }
 
       if (state.active === null) {
+        await response.body?.cancel().catch(() => {});
         throwTrackedClientError(tracker, createTerminatedError());
       }
 
@@ -189,7 +191,7 @@ export const createBuilderFetch: CreateBuilderFetch =
         refreshedAuthToken !== authToken &&
         refreshedUid === initialUid
       ) {
-        await response.text().catch(() => {});
+        await response.body?.cancel().catch(() => {});
         return baseFetch(input, {
           ...init,
           headers: {
