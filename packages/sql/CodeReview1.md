@@ -206,6 +206,10 @@ Suggested change:
      );
 ```
 
+#### Resolution
+- **Decision:** Addressed in `FirebaseSql.from()` and `FirebaseSql.rpc()` in `packages/sql/src/api/FirebaseSql.ts` via `#encodeResourceSegment()`, rejecting `.` and `..` with `Code.INVALID_ARGUMENT` and `encodeURIComponent`-encoding non-blank resource segments while preserving raw `Error` throws on blank `from('')` inputs (with unit tests in `packages/sql/src/api/FirebaseSql.test.ts`).
+- **Commit:** `44b10088e`
+
 ## File: packages/sql/src/api/impl/QueryBuilderImpl.ts
 ### Finding 5: (line 108): [MEDIUM] Repeated `#delegate.fetch` mutation boilerplate leaves per-request tracker closures retained on long-lived builders and clients.
 
