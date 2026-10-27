@@ -699,6 +699,10 @@ Suggested change:
  }
 ```
 
+#### Resolution
+- **Decision:** Addressed in `packages/sql/src/network/postgrestFetch.ts` by replacing `copyHeadersInit` and inline header assignments with `buildRequestHeaders()`, backed by `new Headers()`, which falls back to `input.headers` on `Request` inputs when `init?.headers === undefined`, strips `DISALLOWED_HEADER_KEYS` (trimmed and lowercased), appends duplicate tuple entries per Fetch `Headers` semantics, sets SDK headers via `headers.set(...)`, and exports own data properties via `Object.defineProperty` (preserving own descriptors across `401` retries, with unit tests in `packages/sql/src/network/postgrestFetch.test.ts`).
+- **Commit:** `a65f193b3`
+
 ### Finding 16: (line 114): [HIGH] `AbortSignal` is ignored before and during token acquisition and `401` refresh, and custom abort reasons trigger 3x `fetchWithRetry` retries.
 
 `createBuilderFetch` awaits `authTokenProvider.getToken()` and `appCheckTokenProvider.getToken()` (lines L114–L117) and `authTokenProvider.getToken({ forceRefresh: true })` on HTTP `401` (lines L151–L153) without checking `init?.signal` (or `input.signal`) or subscribing to `'abort'` events:
