@@ -56,3 +56,12 @@
   - `RejectClient`: Same as `Classified`, except client/network/abort/token failures always reject even without `.throwOnError()`.
 - **Selected Option**: `Preserve404`
 - **Relevant Discussion**: User emphasized that matching `supabase-js` SDK semantics is a very high priority. Compared `PostgrestBuilder.ts`, `PostgrestError.ts`, and `lib/fetch.ts` in `supabase-js`: `Preserve404` keeps `supabase-js`'s no-throw default `OperationResult` contract and `404` behavior intact, unwraps nested Google OnePlatform `{ error: ... }` envelopes so `message`/`code` are not lost, and normalizes all `OperationFailure` and `.throwOnError()` errors to `FirebaseSqlError`.
+
+## Decision 5: Packaging `@supabase/postgrest-js` (`2.118.0`) in `packages/sql`
+
+- **Question**: How should `@supabase/postgrest-js` (`2.118.0`) be packaged in `packages/sql`?
+- **Options Presented**:
+  - `External` (Recommended): Add `"@supabase/postgrest-js": "2.118.0"` to `packages/sql/package.json` `dependencies` and keep it external in Rollup (matching how `@supabase/supabase-js` depends on `@supabase/postgrest-js` and how other `@firebase/*` packages declare runtime dependencies, with zero public TS/JS API leakage).
+  - `Bundled`: Add `"@supabase/postgrest-js": "2.118.0"` to `devDependencies` and bundle it directly into `packages/sql/dist/*` via Rollup.
+- **Selected Option**: `External`
+- **Relevant Discussion**: Keeps `@supabase/postgrest-js` as a standard external runtime dependency in `packages/sql/package.json` (like `idb`/`re2js`/`web-vitals` in other `@firebase/*` packages and `@supabase/supabase-js`), while keeping wrapper implementations internal/private so zero `@supabase/postgrest-js` types or symbols appear in `.d.ts` or `api-extractor` reports.
