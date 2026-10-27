@@ -138,11 +138,16 @@ export type MergeDeep<New, Row> = Simplify<
 export type MergePartialResult<NewResult, Result$1, Options> = Options extends {
   merge: true;
 }
-  ? Result$1 extends unknown[]
-    ? NewResult extends unknown[]
-      ? Array<Simplify<MergeDeep<NewResult[number], Result$1[number]>>>
-      : never
-    : Simplify<MergeDeep<NewResult, Result$1>>
+  ? // Short-circuit when Result$1 is `unknown` (e.g. untyped `rpc()`): there are no
+    // known fields to merge, and falling through to `MergeDeep<NewResult, unknown>`
+    // would turn an array `NewResult` into a plain object of `Array` prototype keys.
+    unknown extends Result$1
+    ? NewResult
+    : Result$1 extends unknown[]
+      ? NewResult extends unknown[]
+        ? Array<Simplify<MergeDeep<NewResult[number], Result$1[number]>>>
+        : never
+      : Simplify<MergeDeep<NewResult, Result$1>>
   : NewResult;
 
 export interface Builder<
