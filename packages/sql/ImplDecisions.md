@@ -25,3 +25,13 @@
   - **Reserved Headers** (case-insensitive; MUST throw an exception synchronously at the point a caller attempts to set them, e.g., via `getSql()` `settings.headers` / `DISALLOWED_HEADER_KEYS` or `Builder.setHeader()`):
     - All headers in the **Required Headers** list (`x-goog-api-client`, `x-client-version`, `x-firebase-gmpid`, `x-firebase-auth-token`, `x-firebase-appcheck`)
     - `authorization` (the backend only supports `authorization` for non-Firebase clients such as Supabase SDKs and rejects requests with `INVALID_ARGUMENT` if both `authorization` and `x-firebase-auth-token` are present; Firebase SDKs must exclusively use `x-firebase-auth-token`)
+
+## Decision 2: Handling of `app.options.apiKey` on Outgoing PostgREST HTTP Requests
+
+- **Question**: How should `@firebase/sql` handle `app.options.apiKey` on outgoing PostgREST HTTP requests?
+- **Options Presented**:
+  - `Omit` (Recommended): Do not send `app.options.apiKey` as either a header or query parameter.
+  - `Header`: Send `x-goog-api-key: <apiKey>` when `app.options.apiKey` is non-empty and treat `x-goog-api-key` as reserved.
+  - `QueryParam`: Append `?key=<apiKey>` when `app.options.apiKey` is non-empty, matching `@firebase/data-connect` REST.
+- **Selected Option**: `Omit`
+- **Relevant Discussion**: Investigated `@firebase/data-connect` (sends `?key=` on REST, unused on WebSocket), `@firebase/firestore` (`x-goog-api-key` on WebChannel/gRPC, `?key=` on Lite REST), `@firebase/functions` (unused), and `google3` `PostgrestService` (`allow_without_credential: true`, `active_developer_method: false`, `is_service_consumer: true` on `projects/{project}`). Confirmed `PostgrestService` does not require an API key, `go/firebasesql:sdk:headers` omits it, and appending `?key=` would break `GET`/`HEAD` `/rpc/*` calls because `postgrestservice/request/query.go` skips stripping unprefixed params on RPC endpoints.
