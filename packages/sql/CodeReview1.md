@@ -884,6 +884,10 @@ Suggested change:
        } catch (err) {
 ```
 
+#### Resolution
+- **Decision:** Addressed in `createBuilderFetch` in `packages/sql/src/network/postgrestFetch.ts` by checking `active.authTokenProvider.getToken({ forceRefresh: false })` first on HTTP `401` and only invoking `getToken({ forceRefresh: true })` when `state.active !== null` and the cached token is `null` or unchanged from `authToken` (with staggered `401` unit test coverage in `packages/sql/src/network/postgrestFetch.test.ts` and updated assertions in `packages/sql/src/api/FirebaseSql.test.ts`).
+- **Commit:** `96ea0c6c9`
+
 ### Finding 20: (line 158): [HIGH] Discarded HTTP `401` responses leak unconsumed body streams on refresh failure/termination and buffer the entire payload via `response.text()` on retry.
 
 When the `401` token refresh rejects (line L158) or `state.active` becomes `null` during refresh (line L162), `throwTrackedClientError` abandons `response` without cancelling `response.body`, leaking the unconsumed `ReadableStream` and pinning the underlying HTTP connection in Node.js (`undici`). On the retry path (line L169), `await response.text().catch(() => {})` downloads, buffers in memory, and UTF-8-decodes the entire discarded `401` payload before issuing the retry request instead of cancelling the stream immediately via `response.body?.cancel()`.
