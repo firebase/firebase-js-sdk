@@ -106,6 +106,7 @@ export class FirebaseSql {
   /** @internal */
   readonly _postgrestUrl: string;
 
+  /** @internal */
   private readonly _state: MutableSqlClientState;
 
   readonly #postgrestClient: PostgrestClient<
