@@ -48,12 +48,13 @@
     "@firebase/app": "0.x"
   },
   "dependencies": {
+    "@firebase/app-check-interop-types": "0.3.5",
     "@firebase/auth-interop-types": "0.2.6",
     "@firebase/component": "0.7.5",
     "@firebase/logger": "0.5.2",
     "@firebase/util": "1.15.3",
-    "tslib": "^2.1.0",
-    "@firebase/app-check-interop-types": "0.3.5"
+    "@supabase/postgrest-js": "2.118.0",
+    "tslib": "^2.1.0"
   },
   "devDependencies": {
     "@firebase/app": "0.16.3",
