@@ -20,7 +20,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [currentDocument()](./firestore_lite_pipelines.md#currentdocument) | Creates an expression that represents the current document being processed. |
 |  [currentTimestamp()](./firestore_lite_pipelines.md#currenttimestamp) | Creates an expression that evaluates to the current server timestamp. |
 |  [rand()](./firestore_lite_pipelines.md#rand) | Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0. |
-|  [rank()](./firestore_lite_pipelines.md#rank) | Creates a window function that computes the rank of the current document within its window frame. Documents that compare equal in the window sort order receive the same rank, and the next rank is offset by the number of tied documents. |
+|  [rank()](./firestore_lite_pipelines.md#rank) | Returns the rank of each document within its partition according to the window's sort order. Documents with equal sort values receive the same rank, and the following rank is skipped. The window must specify exactly one sort ordering. |
 |  [score()](./firestore_lite_pipelines.md#score) | Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: <code>documentMatches</code>) in the search query. If <code>SearchStageOptions.query</code> is not set or does not contain any text predicates, then this topicality score will always be <code>0</code>. |
 |  <b>function(array, ...)</b> |
 |  [arrayContains(array, element)](./firestore_lite_pipelines.md#arraycontains_a00ea48) | Creates an expression that checks if an array expression contains a specific element. |
@@ -591,7 +591,7 @@ rand();
 
 ### rank() {:#rank}
 
-Creates a window function that computes the rank of the current document within its window frame. Documents that compare equal in the window sort order receive the same rank, and the next rank is offset by the number of tied documents.
+Returns the rank of each document within its partition according to the window's sort order. Documents with equal sort values receive the same rank, and the following rank is skipped. The window must specify exactly one sort ordering.
 
 <b>Signature:</b>
 

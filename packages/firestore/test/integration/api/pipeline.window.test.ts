@@ -241,6 +241,44 @@ apiDescribe.skipClassic('Pipeline window functions', persistence => {
     );
   });
 
+  it('computes rank', async () => {
+    const snapshot = await execute(
+      firestore
+        .pipeline()
+        .collection(productSales)
+        .addWindowFields(
+          { sort: ascending('salesPrice') },
+          rank().as('priceRank')
+        )
+        .sort(ascending('date'))
+        .select('salesPrice', 'priceRank')
+    );
+
+    expectResults(
+      snapshot,
+      {
+        salesPrice: 12,
+        priceRank: 1
+      },
+      {
+        salesPrice: 30,
+        priceRank: 2
+      },
+      {
+        salesPrice: 30,
+        priceRank: 2
+      },
+      {
+        salesPrice: 60,
+        priceRank: 4
+      },
+      {
+        salesPrice: 60,
+        priceRank: 4
+      }
+    );
+  });
+
   it('rejects a range frame without a sort', async () => {
     await expect(
       execute(
@@ -1757,73 +1795,3 @@ comprehensiveDescribe(
     });
   }
 );
-
-// Un-skip once the backend supports `rank()`.
-apiDescribe.skip('Pipeline window functions (ranking)', persistence => {
-  addEqualityMatcher();
-
-  let firestore: Firestore;
-  let productSales: CollectionReference;
-
-  let testDeferred: Deferred<void>;
-  let withTestCollectionPromise: Promise<unknown>;
-
-  beforeAll(async () => {
-    const setupDeferred = new Deferred<void>();
-    testDeferred = new Deferred<void>();
-    withTestCollectionPromise = withTestCollection(
-      persistence,
-      windowTestDocs,
-      async (col, db) => {
-        productSales = col;
-        firestore = db;
-        setupDeferred.resolve();
-        return testDeferred.promise;
-      }
-    );
-    await setupDeferred.promise;
-  });
-
-  afterAll(async () => {
-    testDeferred?.resolve();
-    await withTestCollectionPromise;
-  });
-
-  it('computes rank', async () => {
-    const snapshot = await execute(
-      firestore
-        .pipeline()
-        .collection(productSales)
-        .addWindowFields(
-          { sort: [ascending('salesPrice'), ascending('date')] },
-          rank().as('priceRank')
-        )
-        .sort(ascending('date'))
-        .select('salesPrice', 'priceRank')
-    );
-
-    expectResults(
-      snapshot,
-      {
-        salesPrice: 12,
-        priceRank: 1
-      },
-      {
-        salesPrice: 30,
-        priceRank: 2
-      },
-      {
-        salesPrice: 30,
-        priceRank: 2
-      },
-      {
-        salesPrice: 60,
-        priceRank: 4
-      },
-      {
-        salesPrice: 60,
-        priceRank: 4
-      }
-    );
-  });
-});
