@@ -75,3 +75,11 @@
   - `Unchanged`: Leave `src/api/index.ts` unchanged.
 - **Selected Option**: `AllTypes`
 - **Relevant Discussion**: Exports every public type/interface across `Builder.ts`, `QueryBuilder.ts`, `FilterBuilder.ts`, `TransformBuilder.ts`, and `FirebaseSqlRpcOptions` so callers have full TypeScript type access and `api-extractor` (`common/api-review/sql.api.md`) has zero `ae-forgotten-export` warnings, while keeping concrete PostgREST wrapper classes completely internal/unexported.
+
+## Decision 7: `terminate()` Lifecycle and Shared Internal `State` Object Design
+
+- **Question**: How should `@firebase/sql` handle `terminate(sql)` across `FirebaseSql` methods and active builders?
+- **Options / User Specification**:
+  1. After `terminate(sql)` is called, all methods on that `FirebaseSql` instance (except `terminate()` / `_delete()` itself, which is re-entrant) throw `FirebaseSqlError(Code.NOT_INITIALIZED, ..., SQL_CLIENT)`.
+  2. Any active builders (`QueryBuilder`, `FilterBuilder`, `TransformBuilder`, `Builder`) created before `terminate()` continue to function normally (chaining methods/modifiers) until the builder is executed (`await` / `.then()`), at which point execution unconditionally fails with `FirebaseSqlError(Code.NOT_INITIALIZED, ..., SQL_CLIENT)` respecting `.throwOnError()` (`OperationFailure` by default, rejected promise when `.throwOnError()` is enabled).
+  3. Replace `FirebaseSql`'s `_isDeleted` boolean flag with an internal mutable `State` object exposed behind a `Readonly` interface to builders. Active runtime resources live on a nullable property of `State`; `terminate()` terminates token providers, sets that `State` property to `null`, and removes the service instance. Builders hold the `Readonly` `State` reference and check it upon execution, observing `null` and failing with `FirebaseSqlError(Code.NOT_INITIALIZED)`.
