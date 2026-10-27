@@ -11,7 +11,6 @@
   "updateInternalDependencies": "patch",
   "ignore": [
     "firebase-firestore-integration-test",
-    "firebase-messaging-integration-test",
     "firebase-compat-interop-test",
     "firebase-compat-typings-test",
     "@firebase/changelog-generator",
