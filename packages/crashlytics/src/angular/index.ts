@@ -229,7 +229,7 @@ export function setupCrashlyticsRoutes({
  * @param options - Optional. {@link CrashlyticsOptions} that configure the Crashlytics instance.
  * @returns An {@link @angular/core#EnvironmentProviders} instance to include in `ApplicationConfig.providers`.
  *
- * @public
+ * @beta
  */
 export function provideCrashlytics(
   getAppFn: () => FirebaseApp,

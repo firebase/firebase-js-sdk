@@ -97,7 +97,7 @@ export function getParameterizedRoute(
  * }
  * ```
  *
- * @public
+ * @beta
  */
 export function CrashlyticsRoutes({
   firebaseApp,

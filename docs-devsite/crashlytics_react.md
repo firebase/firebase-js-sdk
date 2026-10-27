@@ -15,19 +15,22 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  [FirebaseCrashlytics({ firebaseApp, crashlyticsOptions }, input)](./crashlytics_react.md#firebasecrashlytics_097ca29) | Registers event listeners for uncaught errors.<!-- -->This should be installed near the root of your application. Caught errors, including those implicitly caught by Error Boundaries, will not be captured by this component. |
+|  [FirebaseCrashlytics({ firebaseApp, crashlyticsOptions }, input)](./crashlytics_react.md#firebasecrashlytics_097ca29) | <b><i>(Public Preview)</i></b> Registers event listeners for uncaught errors.<!-- -->This should be installed near the root of your application. Caught errors, including those implicitly caught by Error Boundaries, will not be captured by this component. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [Crashlytics](./crashlytics_react.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
-|  [CrashlyticsFeature](./crashlytics_react.crashlyticsfeature.md#crashlyticsfeature_interface) | An opaque feature plugin object returned by Crashlytics feature factory functions such as [breadcrumbs()](./crashlytics.md#breadcrumbs)<!-- -->. |
-|  [CrashlyticsOptions](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [Crashlytics](./crashlytics_react.crashlytics.md#crashlytics_interface) | <b><i>(Public Preview)</i></b> An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [CrashlyticsFeature](./crashlytics_react.crashlyticsfeature.md#crashlyticsfeature_interface) | <b>(EXPERIMENTAL)</b> An opaque feature plugin object returned by Crashlytics feature factory functions such as [breadcrumbs()](./crashlytics.md#breadcrumbs)<!-- -->. |
+|  [CrashlyticsOptions](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptions_interface) | <b><i>(Public Preview)</i></b> Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
 
 ## function({ firebaseApp, crashlyticsOptions }, ...)
 
 ### FirebaseCrashlytics({ firebaseApp, crashlyticsOptions }, input) {:#firebasecrashlytics_097ca29}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Registers event listeners for uncaught errors.
 

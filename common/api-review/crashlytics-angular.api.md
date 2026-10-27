@@ -8,7 +8,7 @@ import { AnyValueMap } from '@opentelemetry/api-logs';
 import { EnvironmentProviders } from '@angular/core';
 import { FirebaseApp } from '@firebase/app';
 
-// @public
+// @beta
 export interface Crashlytics {
     app: FirebaseApp;
 }
@@ -16,18 +16,19 @@ export interface Crashlytics {
 // @public
 export interface CrashlyticsFeature {}
 
-// @public
+// @beta
 export interface CrashlyticsOptions {
     appVersion?: string;
     captureUnhandledErrors?: boolean;
     customAttributes?: AnyValueMap;
     endpointUrl?: string;
+    // @public
     features?: CrashlyticsFeature[];
     region?: string;
     registerGlobalLoggerProvider?: boolean;
 }
 
-// @public
+// @beta
 export function provideCrashlytics(
 getAppFn: () => FirebaseApp,
 options?: CrashlyticsOptions

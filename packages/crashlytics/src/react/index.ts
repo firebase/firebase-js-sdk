@@ -67,7 +67,7 @@ export * from '../public-types';
  * @param crashlyticsOptions - {@link CrashlyticsOptions} that configure the Crashlytics instance.
  * @returns The default {@link Crashlytics} instance for the given {@link @firebase/app#FirebaseApp}.
  *
- * @public
+ * @beta
  */
 export function FirebaseCrashlytics({
   firebaseApp,

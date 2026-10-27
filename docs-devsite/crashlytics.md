@@ -10,31 +10,35 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # @firebase/crashlytics
+The Firebase Crashlytics Web SDK.
 
 ## Functions
 
 |  Function | Description |
 |  --- | --- |
 |  <b>function(app, ...)</b> |
-|  [getCrashlytics(app, options)](./crashlytics.md#getcrashlytics_a9d22a1) | Returns the default [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
+|  [getCrashlytics(app, options)](./crashlytics.md#getcrashlytics_a9d22a1) | <b><i>(Public Preview)</i></b> Returns the default [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
 |  <b>function()</b> |
-|  [breadcrumbs()](./crashlytics.md#breadcrumbs) | Enables Crashlytics breadcrumb and trace telemetry collection when passed in [CrashlyticsOptions.features](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsfeatures)<!-- -->.<!-- -->When enabled, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions, and visibility lifecycle events), buffering them in memory and exporting them when an error occurs. |
+|  [breadcrumbs()](./crashlytics.md#breadcrumbs) | <b>(EXPERIMENTAL)</b> Enables Crashlytics breadcrumb and trace telemetry collection when passed in [CrashlyticsOptions.features](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsfeatures)<!-- -->.<!-- -->When enabled, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions, and visibility lifecycle events), buffering them in memory and exporting them when an error occurs. |
 |  <b>function(crashlytics, ...)</b> |
-|  [flush(crashlytics)](./crashlytics.md#flush_16fdf66) | Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching. |
-|  [log(crashlytics, message, attributes)](./crashlytics.md#log_a58b551) | Queues a log message to be uploaded to the Firebase Crashlytics API. |
-|  [recordError(crashlytics, error, attributes)](./crashlytics.md#recorderror_6824e74) | Queues an error to be uploaded to the Firebase Crashlytics API. |
+|  [flush(crashlytics)](./crashlytics.md#flush_16fdf66) | <b><i>(Public Preview)</i></b> Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching. |
+|  [log(crashlytics, message, attributes)](./crashlytics.md#log_a58b551) | <b>(EXPERIMENTAL)</b> Queues a log message to be uploaded to the Firebase Crashlytics API. |
+|  [recordError(crashlytics, error, attributes)](./crashlytics.md#recorderror_6824e74) | <b><i>(Public Preview)</i></b> Queues an error to be uploaded to the Firebase Crashlytics API. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
-|  [CrashlyticsFeature](./crashlytics.crashlyticsfeature.md#crashlyticsfeature_interface) | An opaque feature plugin object returned by Crashlytics feature factory functions such as [breadcrumbs()](./crashlytics.md#breadcrumbs)<!-- -->. |
-|  [CrashlyticsOptions](./crashlytics.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) | <b><i>(Public Preview)</i></b> An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [CrashlyticsFeature](./crashlytics.crashlyticsfeature.md#crashlyticsfeature_interface) | <b>(EXPERIMENTAL)</b> An opaque feature plugin object returned by Crashlytics feature factory functions such as [breadcrumbs()](./crashlytics.md#breadcrumbs)<!-- -->. |
+|  [CrashlyticsOptions](./crashlytics.crashlyticsoptions.md#crashlyticsoptions_interface) | <b><i>(Public Preview)</i></b> Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
 
 ## function(app, ...)
 
 ### getCrashlytics(app, options) {:#getcrashlytics_a9d22a1}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Returns the default [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings.
 
@@ -69,7 +73,7 @@ const crashlytics = getCrashlytics(app);
 
 ### breadcrumbs() {:#breadcrumbs}
 
-Enables Crashlytics breadcrumb and trace telemetry collection when passed in [CrashlyticsOptions.features](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsfeatures)<!-- -->.
+<b>(EXPERIMENTAL)</b> Enables Crashlytics breadcrumb and trace telemetry collection when passed in [CrashlyticsOptions.features](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsfeatures)<!-- -->.
 
 When enabled, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions, and visibility lifecycle events), buffering them in memory and exporting them when an error occurs.
 
@@ -98,6 +102,9 @@ const crashlytics = getCrashlytics(app, {
 
 ### flush(crashlytics) {:#flush_16fdf66}
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching.
 
 <b>Signature:</b>
@@ -120,7 +127,7 @@ a promise which is resolved when all flushes are complete
 
 ### log(crashlytics, message, attributes) {:#log_a58b551}
 
-Queues a log message to be uploaded to the Firebase Crashlytics API.
+<b>(EXPERIMENTAL)</b> Queues a log message to be uploaded to the Firebase Crashlytics API.
 
 <b>Signature:</b>
 
@@ -141,6 +148,9 @@ export declare function log(crashlytics: Crashlytics, message: string, attribute
 void
 
 ### recordError(crashlytics, error, attributes) {:#recorderror_6824e74}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Queues an error to be uploaded to the Firebase Crashlytics API.
 

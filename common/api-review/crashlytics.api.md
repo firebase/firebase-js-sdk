@@ -10,7 +10,7 @@ import { FirebaseApp } from '@firebase/app';
 // @public
 export function breadcrumbs(): CrashlyticsFeature;
 
-// @public
+// @beta
 export interface Crashlytics {
     app: FirebaseApp;
 }
@@ -18,26 +18,29 @@ export interface Crashlytics {
 // @public
 export interface CrashlyticsFeature {}
 
-// @public
+// @beta
 export interface CrashlyticsOptions {
     appVersion?: string;
     captureUnhandledErrors?: boolean;
     customAttributes?: AnyValueMap;
     endpointUrl?: string;
+    // @public
     features?: CrashlyticsFeature[];
     region?: string;
     registerGlobalLoggerProvider?: boolean;
 }
 
-// @public
+// @beta
 export function flush(crashlytics: Crashlytics): Promise<void>;
 
-// @public
+// @beta
 export function getCrashlytics(
 app?: FirebaseApp,
 options?: CrashlyticsOptions
 ): Crashlytics;
 
+// Warning: (ae-incompatible-release-tags) The symbol "log" is marked as @public, but its signature references "Crashlytics" which is marked as @beta
+//
 // @public
 export function log(
 crashlytics: Crashlytics,
@@ -45,13 +48,11 @@ message: string,
 attributes?: AnyValueMap
 ): void;
 
-// @public
+// @beta
 export function recordError(
 crashlytics: Crashlytics,
 error: unknown,
 attributes?: AnyValueMap
 ): void;
-
-// (No @packageDocumentation comment for this package)
 
 ```

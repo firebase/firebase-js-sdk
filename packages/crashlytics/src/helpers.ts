@@ -220,7 +220,7 @@ export function registerGlobalErrorListeners(
 /**
  * Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching.
  *
- * @public
+ * @beta
  *
  * @param crashlytics - The {@link Crashlytics} instance.
  * @returns a promise which is resolved when all flushes are complete
