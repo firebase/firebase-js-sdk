@@ -559,11 +559,18 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
     }
 
     // Bind a fresh per-execution tracker synchronously before invoking `#delegate.then(...)`,
-    // which snapshots `this.fetch` synchronously on entry before yielding.
+    // which snapshots `this.fetch` synchronously on entry before yielding, then clear
+    // `#delegate.fetch` so long-lived builders do not retain the execution's tracker closure.
     const tracker: BuilderExecutionTracker = { clientError: null };
-    (this.#delegate as unknown as { fetch: typeof fetch }).fetch =
+    (this.#delegate as unknown as { fetch: typeof fetch | undefined }).fetch =
       this.#createFetch(this.#state, tracker);
-    const pending = this.#delegate.then(res => res);
+    let pending: PromiseLike<Awaited<InternalPostgrestFilterBuilder>>;
+    try {
+      pending = this.#delegate.then(res => res);
+    } finally {
+      (this.#delegate as unknown as { fetch: typeof fetch | undefined }).fetch =
+        undefined;
+    }
     const raw = await pending;
 
     // Re-check state.active and tracker.clientError after awaiting #delegate in case terminate()

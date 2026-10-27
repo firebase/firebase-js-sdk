@@ -32,7 +32,7 @@ import type {
   QueryUpsertOptions
 } from '../QueryBuilder';
 
-import { FilterBuilderImpl } from './FilterBuilderImpl';
+import { FilterBuilderImpl, FilterDelegateHandle } from './FilterBuilderImpl';
 
 interface UntypedClientOptions {
   PostgrestVersion: '13';
@@ -97,17 +97,20 @@ export class QueryBuilderImpl implements QueryBuilder {
     this.#mapError = mapError;
   }
 
-  select(
-    columns?: string | undefined,
-    options?: Readonly<QuerySelectOptions> | undefined
-  ): FilterBuilder<Array<Record<string, unknown>>, 'GET'> {
-    const pgFilterBuilder = this.#delegate.select(columns, options);
-    return new FilterBuilderImpl<Array<Record<string, unknown>>, 'GET'>(
-      pgFilterBuilder,
+  #wrap<T, Method>(delegate: FilterDelegateHandle): FilterBuilder<T, Method> {
+    return new FilterBuilderImpl<T, Method>(
+      delegate,
       this.#state,
       this.#createFetch,
       this.#mapError
     );
+  }
+
+  select(
+    columns?: string | undefined,
+    options?: Readonly<QuerySelectOptions> | undefined
+  ): FilterBuilder<Array<Record<string, unknown>>, 'GET'> {
+    return this.#wrap(this.#delegate.select(columns, options));
   }
 
   insert<
@@ -120,15 +123,11 @@ export class QueryBuilderImpl implements QueryBuilder {
     values: Row | readonly Row[],
     options?: Readonly<QueryInsertOptions> | undefined
   ): FilterBuilder<null, 'POST'> {
-    const pgFilterBuilder = this.#delegate.insert(
-      values as Record<string, unknown> | Array<Record<string, unknown>>,
-      options
-    );
-    return new FilterBuilderImpl<null, 'POST'>(
-      pgFilterBuilder,
-      this.#state,
-      this.#createFetch,
-      this.#mapError
+    return this.#wrap(
+      this.#delegate.insert(
+        values as Record<string, unknown> | Array<Record<string, unknown>>,
+        options
+      )
     );
   }
 
@@ -142,15 +141,11 @@ export class QueryBuilderImpl implements QueryBuilder {
     values: Row | readonly Row[],
     options?: Readonly<QueryUpsertOptions> | undefined
   ): FilterBuilder<null, 'POST'> {
-    const pgFilterBuilder = this.#delegate.upsert(
-      values as Record<string, unknown> | Array<Record<string, unknown>>,
-      options
-    );
-    return new FilterBuilderImpl<null, 'POST'>(
-      pgFilterBuilder,
-      this.#state,
-      this.#createFetch,
-      this.#mapError
+    return this.#wrap(
+      this.#delegate.upsert(
+        values as Record<string, unknown> | Array<Record<string, unknown>>,
+        options
+      )
     );
   }
 
@@ -164,27 +159,14 @@ export class QueryBuilderImpl implements QueryBuilder {
     values: Row,
     options?: Readonly<QueryUpdateOptions> | undefined
   ): FilterBuilder<null, 'PATCH'> {
-    const pgFilterBuilder = this.#delegate.update(
-      values as Record<string, unknown>,
-      options
-    );
-    return new FilterBuilderImpl<null, 'PATCH'>(
-      pgFilterBuilder,
-      this.#state,
-      this.#createFetch,
-      this.#mapError
+    return this.#wrap(
+      this.#delegate.update(values as Record<string, unknown>, options)
     );
   }
 
   delete(
     options?: Readonly<QueryDeleteOptions> | undefined
   ): FilterBuilder<null, 'DELETE'> {
-    const pgFilterBuilder = this.#delegate.delete(options);
-    return new FilterBuilderImpl<null, 'DELETE'>(
-      pgFilterBuilder,
-      this.#state,
-      this.#createFetch,
-      this.#mapError
-    );
+    return this.#wrap(this.#delegate.delete(options));
   }
 }

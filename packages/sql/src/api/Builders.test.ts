@@ -1239,5 +1239,65 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
         expect(errRes2.error).toBe(distinctErr2);
       }
     });
+
+    it('clears delegate.fetch to undefined immediately after initiating delegate.then()', async () => {
+      const h = createHarness();
+      const delegate = new PostgrestFilterBuilder<
+        UntypedClientOptions,
+        UntypedSchema,
+        Record<string, unknown>,
+        Array<Record<string, unknown>>,
+        string,
+        null,
+        'GET',
+        false
+      >({
+        method: 'GET',
+        url: new URL('https://sql.example.test/v1/users'),
+        headers: {}
+      });
+      const delegateRef = delegate as unknown as {
+        fetch: typeof fetch | undefined;
+      };
+
+      let fetchDuringInFlight: typeof fetch | undefined = globalThis.fetch;
+      const createFetch: CreateBuilderFetch =
+        (_state, _tracker) => async () => {
+          await Promise.resolve();
+          fetchDuringInFlight = delegateRef.fetch;
+          return jsonResponse([{ id: 1 }]);
+        };
+
+      const builder = new FilterBuilderImpl<
+        Array<Record<string, unknown>>,
+        'GET'
+      >(delegate, h.state, createFetch, mapPostgrestFailureToFirebaseSqlError);
+
+      let fetchSeenInsideThen: typeof fetch | undefined;
+      const originalThen = delegate.then.bind(delegate);
+      vi.spyOn(delegate, 'then').mockImplementationOnce(
+        (onfulfilled, onrejected) => {
+          fetchSeenInsideThen = delegateRef.fetch;
+          return originalThen(onfulfilled, onrejected);
+        }
+      );
+
+      const pendingResult = builder.then(res => res);
+      // Cleared synchronously right after delegate.then() returns, before resolution
+      expect(fetchSeenInsideThen).toBeTypeOf('function');
+      expect(delegateRef.fetch).toBeUndefined();
+
+      const res = await pendingResult;
+      expect(res.success).toBe(true);
+      expect(fetchDuringInFlight).toBeUndefined();
+      expect(delegateRef.fetch).toBeUndefined();
+
+      // Also cleared when delegate.then() throws synchronously
+      vi.spyOn(delegate, 'then').mockImplementationOnce(() => {
+        throw new Error('Synchronous then failure');
+      });
+      await expect(builder).rejects.toThrow('Synchronous then failure');
+      expect(delegateRef.fetch).toBeUndefined();
+    });
   });
 });
