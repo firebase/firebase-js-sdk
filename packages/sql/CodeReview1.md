@@ -912,3 +912,7 @@ Suggested change:
 +        await response.body?.cancel().catch(() => {});
          return baseFetch(input, {
 ```
+
+#### Resolution
+- **Decision:** Addressed in `createBuilderFetch` in `packages/sql/src/network/postgrestFetch.ts` by calling `await response.body?.cancel().catch(() => {})` before throwing on refresh failure or mid-refresh termination and replacing `await response.text().catch(() => {})` with `await response.body?.cancel().catch(() => {})` before retrying `baseFetch` (with unit tests in `packages/sql/src/network/postgrestFetch.test.ts`).
+- **Commit:** `accefab3a`
