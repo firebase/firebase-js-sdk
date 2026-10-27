@@ -65,3 +65,13 @@
   - `Bundled`: Add `"@supabase/postgrest-js": "2.118.0"` to `devDependencies` and bundle it directly into `packages/sql/dist/*` via Rollup.
 - **Selected Option**: `External`
 - **Relevant Discussion**: Keeps `@supabase/postgrest-js` as a standard external runtime dependency in `packages/sql/package.json` (like `idb`/`re2js`/`web-vitals` in other `@firebase/*` packages and `@supabase/supabase-js`), while keeping wrapper implementations internal/private so zero `@supabase/postgrest-js` types or symbols appear in `.d.ts` or `api-extractor` reports.
+
+## Decision 6: Public Type Re-Exports in `src/api/index.ts`
+
+- **Question**: Which types should `src/api/index.ts` publicly re-export?
+- **Options Presented**:
+  - `CoreTypes` (Recommended): Re-export user-facing builder interfaces, response types, and option/operator types, while keeping internal type-level computation helpers (`MergeDeep`, `Simplify`, `CheckMatchingArrayTypes`, `NarrowResultColumn`, etc.) unexported from `index.ts`.
+  - `AllTypes`: Re-export all `interface` and `type` declarations from `Builder.ts`, `QueryBuilder.ts`, `FilterBuilder.ts`, `TransformBuilder.ts`, and `FirebaseSqlRpcOptions` (eliminating all `ae-forgotten-export` warnings in `sql.api.md`), while keeping concrete wrapper classes unexported.
+  - `Unchanged`: Leave `src/api/index.ts` unchanged.
+- **Selected Option**: `AllTypes`
+- **Relevant Discussion**: Exports every public type/interface across `Builder.ts`, `QueryBuilder.ts`, `FilterBuilder.ts`, `TransformBuilder.ts`, and `FirebaseSqlRpcOptions` so callers have full TypeScript type access and `api-extractor` (`common/api-review/sql.api.md`) has zero `ae-forgotten-export` warnings, while keeping concrete PostgREST wrapper classes completely internal/unexported.
