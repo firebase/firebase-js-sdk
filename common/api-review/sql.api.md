@@ -43,6 +43,15 @@ export class FirebaseSql {
     readonly _instanceIdentifier: string;
     // @internal (undocumented)
     readonly _postgrestUrl: string;
+    // Warning: (ae-forgotten-export) The symbol "FirebaseSqlRpcOptions" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "FilterBuilder" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    rpc<Args extends object & {
+        readonly [K in keyof Args]: unknown;
+    } & {
+        readonly [Symbol.iterator]?: never;
+    } = Record<string, unknown>>(fn: string, params?: Args | undefined, options?: Readonly<FirebaseSqlRpcOptions> | undefined): FilterBuilder<unknown, 'RPC'>;
     readonly settings: SqlServiceSettings;
 }
 
