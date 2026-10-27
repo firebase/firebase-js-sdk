@@ -263,6 +263,10 @@ Suggested change:
    }
 ```
 
+#### Resolution
+- **Decision:** Addressed across Finding 9 (`3836d278c`), which moved per-execution tracker allocation and `.fetch` binding out of `QueryBuilderImpl` and `FirebaseSql.rpc()` into `FilterBuilderImpl.#execute()`, and `af567fa7d`, which clears `#delegate.fetch = undefined` in a `finally` block immediately after `#delegate.then(...)` snapshots `this.fetch` synchronously in `packages/sql/src/api/impl/FilterBuilderImpl.ts` and deduplicates `new FilterBuilderImpl(...)` construction via `QueryBuilderImpl.#wrap()` in `packages/sql/src/api/impl/QueryBuilderImpl.ts` (with unit tests in `packages/sql/src/api/Builders.test.ts`).
+- **Commit:** `af567fa7d`
+
 ## File: packages/sql/src/api/impl/FilterBuilderImpl.ts
 ### Finding 6: (line 110): [MEDIUM] `FilterBuilderImpl` exposes an unsound `ThrowOnError` class type parameter while hardcoding `#shouldThrowOnError = false`.
 
