@@ -25,14 +25,22 @@ import { name, version } from '../package.json';
 import { CrashlyticsService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
 import { AppCheckProvider } from './logging/appcheck-provider';
-import { CRASHLYTICS_TYPE } from './constants';
+import {
+  CRASHLYTICS_TYPE,
+  DEFAULT_TELEMETRY_REGION,
+  LOCAL_STORAGE_CLIENT_CONFIG_KEY_PREFIX
+} from './constants';
 import {
   getBreadcrumbsFeature,
+  getClientConfigUrl,
   registerGlobalErrorListeners,
   registerListeners,
   startNewSession
 } from './helpers';
 import { CrashlyticsOptions } from './public-types';
+import { ClientConfigStore } from './sampling/client-config';
+import { SessionSampler } from './sampling/session-sampler';
+import { isTelemetryDebugEnabled } from './sampling/debug-override';
 
 // We only import types from this package elsewhere in the `telemetry` package, so this
 // explicit import is needed here to prevent this module from being tree-shaken out.
@@ -60,13 +68,31 @@ export function registerCrashlytics(): void {
         const breadcrumbsFeature = getBreadcrumbsFeature(crashlyticsOptions);
         const telemetryStore = breadcrumbsFeature?.createTelemetryStore();
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
+
+        // Client-side session sampling: the configuration (enablement + sampling rate) is loaded
+        // from the local cache now and refreshed in the background; the per-session decision is
+        // made lazily at the first export attempt.
+        const region = crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
+        const clientConfigStore = new ClientConfigStore(
+          getClientConfigUrl(app.options, crashlyticsOptions),
+          `${LOCAL_STORAGE_CLIENT_CONFIG_KEY_PREFIX}:${app.options.appId ?? ''}:${region}`
+        );
+        const sessionSampler = new SessionSampler(
+          clientConfigStore,
+          attributesStore
+        );
+        // Evaluate the debug override early so a `?firebase_telemetry_debug=true` query parameter
+        // is persisted for the rest of the browser session.
+        isTelemetryDebugEnabled();
+
         const { loggerProvider, onErrorLogRecordProcessor } =
           createLoggerProvider(
             app,
             crashlyticsOptions,
             attributesStore,
             telemetryStore,
-            dynamicHeaderProviders
+            dynamicHeaderProviders,
+            sessionSampler
           );
 
         const { tracingProvider, onErrorSpanProcessor } =
@@ -76,7 +102,8 @@ export function registerCrashlytics(): void {
                 crashlyticsOptions,
                 attributesStore,
                 telemetryStore,
-                dynamicHeaderProviders
+                dynamicHeaderProviders,
+                sessionSampler
               )
             : { tracingProvider: null, onErrorSpanProcessor: undefined };
 
@@ -87,12 +114,17 @@ export function registerCrashlytics(): void {
           attributesStore,
           telemetryStore,
           onErrorLogRecordProcessor,
-          onErrorSpanProcessor
+          onErrorSpanProcessor,
+          clientConfigStore,
+          sessionSampler
         );
 
         if (options) {
           crashlyticsService.options = crashlyticsOptions;
         }
+
+        // Start the non-blocking config fetch and periodic refresh.
+        clientConfigStore.start();
 
         // Immediately track this as a new client session (if one doesn't exist yet)
         if (!attributesStore.sessionId) {

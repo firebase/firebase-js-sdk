@@ -33,6 +33,11 @@ import { AppCheckProvider } from '../logging/appcheck-provider';
 import { Provider } from '@firebase/component';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import type { MockInstance } from 'vitest';
+import { ATTR_KEY_SESSION_SAMPLING_RATE } from '../constants';
+import type {
+  SamplingDecision,
+  SessionSampler
+} from '../sampling/session-sampler';
 
 describe('createTracingProvider', () => {
   let mockApp: FirebaseApp;
@@ -202,10 +207,18 @@ describe('createTracingProvider', () => {
       fetchInstrumentationSpy.mock.calls.length - 1
     ][0] as any;
     expect(Array.isArray(fetchConfig.ignoreUrls)).toBe(true);
-    expect(fetchConfig.ignoreUrls).toHaveLength(1);
+    expect(fetchConfig.ignoreUrls).toHaveLength(2);
 
     const fetchPatterns = fetchConfig.ignoreUrls.map((r: RegExp) => r.source);
     expect(fetchPatterns).toContain('my-custom-endpoint\\.url');
+    // The GetClientConfig endpoint is ignored too so the config poll never produces a span.
+    expect(
+      fetchConfig.ignoreUrls.some((r: RegExp) =>
+        r.test(
+          'https://firebasetelemetry.googleapis.com/v1alpha/projects/p/locations/global/apps/a/clientConfig'
+        )
+      )
+    ).toBe(true);
     expect(fetchConfig.semconvStabilityOptIn).toBe('http');
   });
 
@@ -235,10 +248,17 @@ describe('createTracingProvider', () => {
       xhrInstrumentationSpy.mock.calls.length - 1
     ][0] as any;
     expect(Array.isArray(xhrConfig.ignoreUrls)).toBe(true);
-    expect(xhrConfig.ignoreUrls).toHaveLength(1);
+    expect(xhrConfig.ignoreUrls).toHaveLength(2);
 
     const xhrPatterns = xhrConfig.ignoreUrls.map((r: RegExp) => r.source);
     expect(xhrPatterns).toContain('my-custom-endpoint\\.url');
+    expect(
+      xhrConfig.ignoreUrls.some((r: RegExp) =>
+        r.test(
+          'https://firebasetelemetry.googleapis.com/v1alpha/projects/p/locations/global/apps/a/clientConfig'
+        )
+      )
+    ).toBe(true);
     expect(xhrConfig.semconvStabilityOptIn).toBe('http');
   });
 
@@ -475,6 +495,72 @@ describe('createTracingProvider', () => {
       );
       expect(dynamicAttr).toBeTruthy();
       expect(dynamicAttr.value.stringValue).toBe('installation_id_value');
+    });
+
+    function createSampler(decision: Partial<SamplingDecision>): SessionSampler {
+      const fullDecision: SamplingDecision = {
+        sessionId: 'session-1',
+        sampled: true,
+        samplingRate: 1,
+        ...decision
+      };
+      return {
+        getDecision: vi.fn().mockResolvedValue(fullDecision),
+        decide: vi.fn().mockReturnValue(fullDecision),
+        getSamplingAttribute: (d: SamplingDecision) => ({
+          [ATTR_KEY_SESSION_SAMPLING_RATE]: d.samplingRate
+        })
+      } as unknown as SessionSampler;
+    }
+
+    function exportSpans(exporter: OTLPTraceExporter): Promise<void> {
+      return new Promise<void>((resolve, reject) => {
+        exporter
+          .export([mockSpan], res => {
+            if (res.code === 0) {
+              resolve();
+            } else {
+              reject(res.error || new Error('Export failed'));
+            }
+          })
+          .catch(reject);
+      });
+    }
+
+    it('should stamp session.sampling.rate on exported spans of a sampled session', async () => {
+      const sampler = createSampler({ sampled: true, samplingRate: 0.3 });
+      const exporter = new OTLPTraceExporter(
+        { url: 'http://localhost' },
+        [],
+        undefined,
+        sampler
+      );
+      await exportSpans(exporter);
+
+      expect(sampler.getDecision).toHaveBeenCalled();
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+      const body = (fetchStub.mock.calls[0][1] as any).body;
+      const json = JSON.parse(new TextDecoder().decode(body));
+      const spanAttributes = json.resourceSpans[0].scopeSpans[0].spans[0]
+        .attributes as any[];
+      const attr = spanAttributes.find(
+        a => a.key === ATTR_KEY_SESSION_SAMPLING_RATE
+      );
+      expect(attr.value).toEqual({ doubleValue: 0.3 });
+    });
+
+    it('should drop spans of an unsampled session without a network request', async () => {
+      const sampler = createSampler({ sampled: false, samplingRate: 0.3 });
+      const exporter = new OTLPTraceExporter(
+        { url: 'http://localhost' },
+        [],
+        undefined,
+        sampler
+      );
+      await exportSpans(exporter);
+
+      expect(sampler.getDecision).toHaveBeenCalled();
+      expect(fetchStub).not.toHaveBeenCalled();
     });
   });
 });

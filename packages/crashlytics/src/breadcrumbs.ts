@@ -29,6 +29,7 @@ import { CrashlyticsFeatureInternal, DynamicHeaderProvider } from './types';
 import { AttributesStore } from './attributes-store';
 import { TelemetryStore } from './telemetry-store';
 import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
+import type { SessionSampler } from './sampling/session-sampler';
 import {
   createTracingProvider,
   TracingProviderResult,
@@ -113,14 +114,16 @@ class BreadcrumbsFeatureImpl implements CrashlyticsFeatureInternal {
     crashlyticsOptions: CrashlyticsOptions,
     attributesStore: AttributesStore,
     telemetryStore: TelemetryStore,
-    dynamicHeaderProviders: DynamicHeaderProvider[] = []
+    dynamicHeaderProviders: DynamicHeaderProvider[] = [],
+    sessionSampler?: SessionSampler
   ): TracingProviderResult {
     return createTracingProvider(
       app,
       crashlyticsOptions,
       attributesStore,
       telemetryStore,
-      dynamicHeaderProviders
+      dynamicHeaderProviders,
+      sessionSampler
     );
   }
 

@@ -30,6 +30,11 @@ import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
 import { SeverityNumber } from '@opentelemetry/api-logs';
 import { Provider } from '@firebase/component';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
+import { ATTR_KEY_SESSION_SAMPLING_RATE } from '../constants';
+import type {
+  SamplingDecision,
+  SessionSampler
+} from '../sampling/session-sampler';
 
 describe('createLoggerProvider', () => {
   let app: FirebaseApp;
@@ -242,6 +247,151 @@ describe('createLoggerProvider', () => {
     } finally {
       fetchStub.mockRestore();
     }
+  });
+
+  describe('session sampling', () => {
+    function createSampler(decision: Partial<SamplingDecision>): SessionSampler {
+      const fullDecision: SamplingDecision = {
+        sessionId: 'session-1',
+        sampled: true,
+        samplingRate: 1,
+        ...decision
+      };
+      return {
+        getDecision: vi.fn().mockResolvedValue(fullDecision),
+        decide: vi.fn().mockReturnValue(fullDecision),
+        getSamplingAttribute: (d: SamplingDecision) => ({
+          [ATTR_KEY_SESSION_SAMPLING_RATE]: d.samplingRate
+        })
+      } as unknown as SessionSampler;
+    }
+
+    function exportedLogRecords(
+      fetchStub: ReturnType<typeof vi.spyOn>
+    ): Array<{ attributes: Array<{ key: string; value: unknown }> }> {
+      const body = (fetchStub.mock.calls[0][1] as RequestInit).body as Uint8Array;
+      const payload = JSON.parse(new TextDecoder().decode(body));
+      return payload.resourceLogs.flatMap((rl: any) =>
+        rl.scopeLogs.flatMap((sl: any) => sl.logRecords)
+      );
+    }
+
+    it('should stamp session.sampling.rate on every exported log record of a sampled session', async () => {
+      const fetchStub = vi
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValue(new Response('', { status: 200 }));
+      try {
+        const sampler = createSampler({ sampled: true, samplingRate: 0.25 });
+        const { loggerProvider: provider } = createLoggerProvider(
+          app,
+          {},
+          attributesStore,
+          telemetryStore,
+          [],
+          sampler
+        );
+        const logger = provider.getLogger('test');
+        logger.emit({ severityNumber: SeverityNumber.ERROR, body: 'one' });
+        logger.emit({ severityNumber: SeverityNumber.INFO, body: 'two' });
+        await provider.forceFlush();
+
+        expect(sampler.getDecision).toHaveBeenCalled();
+        expect(fetchStub).toHaveBeenCalledTimes(1);
+        const records = exportedLogRecords(fetchStub);
+        expect(records).toHaveLength(2);
+        for (const record of records) {
+          const attr = record.attributes.find(
+            a => a.key === ATTR_KEY_SESSION_SAMPLING_RATE
+          );
+          expect(attr?.value).toEqual({ doubleValue: 0.25 });
+        }
+      } finally {
+        fetchStub.mockRestore();
+      }
+    });
+
+    it('should drop all log records of an unsampled session without a network request', async () => {
+      const fetchStub = vi
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValue(new Response('', { status: 200 }));
+      try {
+        const sampler = createSampler({ sampled: false, samplingRate: 0.25 });
+        const { loggerProvider: provider } = createLoggerProvider(
+          app,
+          {},
+          attributesStore,
+          telemetryStore,
+          [],
+          sampler
+        );
+        provider.getLogger('test').emit({
+          severityNumber: SeverityNumber.ERROR,
+          body: 'dropped'
+        });
+        await provider.forceFlush();
+
+        expect(sampler.getDecision).toHaveBeenCalled();
+        expect(fetchStub).not.toHaveBeenCalled();
+      } finally {
+        fetchStub.mockRestore();
+      }
+    });
+
+    it('should apply sampling to breadcrumb logs released by OnErrorLogRecordProcessor', async () => {
+      const fetchStub = vi
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValue(new Response('', { status: 200 }));
+      try {
+        const sampler = createSampler({ sampled: false, samplingRate: 0.5 });
+        const { loggerProvider: provider, onErrorLogRecordProcessor } =
+          createLoggerProvider(
+            app,
+            { features: [breadcrumbs()] },
+            attributesStore,
+            telemetryStore,
+            [],
+            sampler
+          );
+        provider.getLogger('test').emit({
+          severityNumber: SeverityNumber.INFO,
+          body: 'breadcrumb'
+        });
+        onErrorLogRecordProcessor!.onErrorOccurred();
+        await provider.forceFlush();
+
+        expect(fetchStub).not.toHaveBeenCalled();
+      } finally {
+        fetchStub.mockRestore();
+      }
+    });
+
+    it('should export without a sampling attribute when no sampler is provided', async () => {
+      const fetchStub = vi
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValue(new Response('', { status: 200 }));
+      try {
+        const { loggerProvider: provider } = createLoggerProvider(
+          app,
+          {},
+          attributesStore,
+          telemetryStore,
+          []
+        );
+        provider.getLogger('test').emit({
+          severityNumber: SeverityNumber.ERROR,
+          body: 'plain'
+        });
+        await provider.forceFlush();
+
+        expect(fetchStub).toHaveBeenCalledTimes(1);
+        const [record] = exportedLogRecords(fetchStub);
+        expect(
+          record.attributes.some(a => a.key === ATTR_KEY_SESSION_SAMPLING_RATE)
+        ).toBe(false);
+      } finally {
+        fetchStub.mockRestore();
+      }
+    });
   });
 
   describe('BatchLogRecordProcessor auto-flush on document hide', () => {
