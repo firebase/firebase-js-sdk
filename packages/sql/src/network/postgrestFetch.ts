@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { Code, FirebaseSqlError, FirebaseSqlErrorCategory } from '../core/error';
+import {
+  Code,
+  FirebaseSqlError,
+  FirebaseSqlErrorCategory
+} from '../core/error';
 import type {
   BuilderExecutionTracker,
   CreateBuilderFetch,

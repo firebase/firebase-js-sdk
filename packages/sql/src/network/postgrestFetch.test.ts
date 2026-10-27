@@ -19,7 +19,11 @@ import type { AppCheckTokenResult } from '@firebase/app-check-interop-types';
 import type { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Code, FirebaseSqlError, FirebaseSqlErrorCategory } from '../core/error';
+import {
+  Code,
+  FirebaseSqlError,
+  FirebaseSqlErrorCategory
+} from '../core/error';
 import type {
   BuilderExecutionTracker,
   MutableSqlClientState
@@ -36,12 +40,16 @@ import { createBuilderFetch as reExportedCreateBuilderFetch } from './index';
 interface MockProviders {
   authGetToken: ReturnType<
     typeof vi.fn<
-      (options?: { forceRefresh?: boolean }) => Promise<FirebaseAuthTokenData | null>
+      (options?: {
+        forceRefresh?: boolean;
+      }) => Promise<FirebaseAuthTokenData | null>
     >
   >;
   appCheckGetToken: ReturnType<
     typeof vi.fn<
-      (options?: { forceRefresh?: boolean }) => Promise<AppCheckTokenResult | null>
+      (options?: {
+        forceRefresh?: boolean;
+      }) => Promise<AppCheckTokenResult | null>
     >
   >;
   authProvider: FirebaseAuthTokenProvider;
@@ -53,14 +61,16 @@ function createMockProviders(
   initialAppCheck: string | null = 'appcheck-token-1'
 ): MockProviders {
   const authGetToken = vi.fn<
-    (options?: { forceRefresh?: boolean }) => Promise<FirebaseAuthTokenData | null>
+    (options?: {
+      forceRefresh?: boolean;
+    }) => Promise<FirebaseAuthTokenData | null>
   >(async () => (initialAuth !== null ? { accessToken: initialAuth } : null));
 
   const appCheckGetToken = vi.fn<
-    (options?: { forceRefresh?: boolean }) => Promise<AppCheckTokenResult | null>
-  >(async () =>
-    initialAppCheck !== null ? { token: initialAppCheck } : null
-  );
+    (options?: {
+      forceRefresh?: boolean;
+    }) => Promise<AppCheckTokenResult | null>
+  >(async () => (initialAppCheck !== null ? { token: initialAppCheck } : null));
 
   const authProvider: FirebaseAuthTokenProvider = {
     getToken: authGetToken,
@@ -113,8 +123,8 @@ describe('createBuilderFetch', () => {
     };
     const tracker: BuilderExecutionTracker = { clientError: null };
 
-    const mockFetch = vi.fn<typeof fetch>(async () =>
-      new Response(JSON.stringify([{ id: 1 }]), { status: 200 })
+    const mockFetch = vi.fn<typeof fetch>(
+      async () => new Response(JSON.stringify([{ id: 1 }]), { status: 200 })
     );
     initializeFetch(mockFetch);
 
@@ -129,7 +139,9 @@ describe('createBuilderFetch', () => {
 
     expect(response.status).toBe(200);
     expect(tracker.clientError).toBeNull();
-    expect(providers.authGetToken).toHaveBeenCalledWith({ forceRefresh: false });
+    expect(providers.authGetToken).toHaveBeenCalledWith({
+      forceRefresh: false
+    });
     expect(providers.appCheckGetToken).toHaveBeenCalledWith({
       forceRefresh: false
     });
@@ -166,8 +178,8 @@ describe('createBuilderFetch', () => {
     };
     const tracker: BuilderExecutionTracker = { clientError: null };
 
-    const mockFetch = vi.fn<typeof fetch>(async () =>
-      new Response('[]', { status: 200 })
+    const mockFetch = vi.fn<typeof fetch>(
+      async () => new Response('[]', { status: 200 })
     );
     initializeFetch(mockFetch);
 
@@ -331,7 +343,11 @@ describe('createBuilderFetch', () => {
         .mockResolvedValueOnce(
           new Response(
             JSON.stringify({
-              error: { code: 401, status: 'UNAUTHENTICATED', message: 'Expired' }
+              error: {
+                code: 401,
+                status: 'UNAUTHENTICATED',
+                message: 'Expired'
+              }
             }),
             { status: 401 }
           )
@@ -386,7 +402,9 @@ describe('createBuilderFetch', () => {
 
       const mockFetch = vi
         .fn<typeof fetch>()
-        .mockResolvedValueOnce(new Response('{"code":"42501"}', { status: 401 }))
+        .mockResolvedValueOnce(
+          new Response('{"code":"42501"}', { status: 401 })
+        )
         .mockResolvedValueOnce(
           new Response('{"code":"42501"}', { status: 401 })
         );
@@ -423,7 +441,10 @@ describe('createBuilderFetch', () => {
       expect(mockFetch).toHaveBeenCalledTimes(1);
 
       // Authenticated request where forceRefresh returns the identical token
-      const sameProviders = createMockProviders('unchanged-jwt', 'bad-appcheck');
+      const sameProviders = createMockProviders(
+        'unchanged-jwt',
+        'bad-appcheck'
+      );
       state.active = {
         appId: 'app-id',
         authTokenProvider: sameProviders.authProvider,

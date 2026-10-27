@@ -187,7 +187,8 @@ describe('mapPostgrestFailureToFirebaseSqlError', () => {
           code: 'PGRST205',
           details: null,
           hint: null,
-          message: "Could not find the table 'public.missing' in the schema cache"
+          message:
+            "Could not find the table 'public.missing' in the schema cache"
         },
         404,
         'Not Found'
@@ -228,7 +229,8 @@ describe('mapPostgrestFailureToFirebaseSqlError', () => {
           code: 'PGRST201',
           details: relDetails,
           hint: "Try changing 'posts' to one of the following...",
-          message: 'Could not embed because more than one relationship was found'
+          message:
+            'Could not embed because more than one relationship was found'
         },
         300,
         'Multiple Choices'
