@@ -280,6 +280,10 @@ Suggested change:
    readonly #delegate: InternalPostgrestFilterBuilder;
 ```
 
+#### Resolution
+- **Decision:** Addressed by removing the `ThrowOnError` class type parameter from `FilterBuilderImpl` in `packages/sql/src/api/impl/FilterBuilderImpl.ts` (`implements FilterBuilder<T, Method, false>`), simplifying `then()`, `#fail()`, and `#execute()` to use `OperationResult<T>` directly, and dropping the third type argument in `FirebaseSql.rpc()` in `packages/sql/src/api/FirebaseSql.ts`.
+- **Commit:** `70d7d3800`
+
 ### Finding 7: (line 148): [MEDIUM] `setHeader()` coerces `name` twice, skips whitespace trimming during disallowed-header checks, and allocates temporary sets/objects per call.
 
 `validateHeaders({ [name]: value })` coerces `name` to a property key once (while rebuilding a fresh lowercase `Set` and `Object.entries` array) and `this.#delegate.setHeader(name, value)` coerces `name` a second time, allowing a non-primitive object with a stateful `toString()` / `[Symbol.toPrimitive]` to pass validation and write a reserved or forbidden header on `#delegate`. In addition, surrounding whitespace (such as `' authorization'` or `'x-firebase-auth-token '`) misses `DISALLOWED_HEADER_KEYS` in `validateHeaders`, surfacing an unmapped `TypeError` from `Headers.set` instead of `FirebaseSqlError(Code.INVALID_ARGUMENT)` or bypassing validation in environments with lenient `Headers` polyfills.
