@@ -147,6 +147,10 @@ Suggested change:
    readonly #postgrestClient: PostgrestClient<
 ```
 
+#### Resolution
+- **Decision:** Addressed via `/** @internal */` on `private readonly _state` in `packages/sql/src/api/FirebaseSql.ts` so API Extractor strips `_state` from `sql-public.d.ts` (matching the other `@internal` fields on `FirebaseSql`).
+- **Commit:** `33f95557e`
+
 ### Finding 4: (line 182): [HIGH] Unencoded `table` and `fn` names allow URL path traversal and query injection on the shared PostgREST origin.
 
 `FirebaseSql.from(table)` (line L182) and `FirebaseSql.rpc(fn, ...)` (line L214) pass `table` and `fn` directly into `PostgrestClient`, which interpolates ``new URL(`${this.url}/${relation}`)`` and ``new URL(`${this.url}/rpc/${fn}`)``. Because all projects, locations, services, and v1 REST endpoints share the `firebasedataconnect.googleapis.com` origin while `createBuilderFetch` attaches live `x-firebase-auth-token` and `x-firebase-appcheck` credentials, dynamic inputs containing `/`, `..`, `?`, or `#` can escape `/v1/projects/{project}/locations/{location}/services/{service}/postgrest`, rewrite an RPC call like `sql.rpc('../users', payload)` into a direct table `POST` mutation, or inject unintended PostgREST query parameters. Note that `encodeURIComponent` leaves `.` and `..` unencoded, so dot-segments must be rejected explicitly while leaving blank strings untouched so `from('')` preserves its raw synchronous `Error`.
