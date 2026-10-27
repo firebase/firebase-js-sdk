@@ -26,6 +26,7 @@ import {
   FirebaseSqlError,
   FirebaseSqlErrorCategory
 } from '../core/error';
+import { mapPostgrestFailureToFirebaseSqlError } from '../core/errorMapper';
 import { DISALLOWED_HEADER_KEYS } from '../core/settings';
 import type {
   BuilderExecutionTracker,
@@ -34,6 +35,7 @@ import type {
   MutableSqlClientState
 } from '../core/state';
 import { getFetch, initializeFetch } from '../network/fetch';
+import { createBuilderFetch } from '../network/postgrestFetch';
 
 import { FilterBuilderImpl } from './impl/FilterBuilderImpl';
 import { QueryBuilderImpl } from './impl/QueryBuilderImpl';
@@ -1016,7 +1018,29 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
       expect(chainedThrowingSingle.data).toEqual({ id: 7, name: 'Ada' });
 
       initializeFetch(null);
-      const noFetchDefault = await qb.select();
+
+      // Injected CreateBuilderFetch stubs must remain decoupled from global initializeFetch state
+      h.setResponder(() => jsonResponse([{ id: 8 }]));
+      const injectedWithNullGlobalFetch = await qb.select();
+      expect(injectedWithNullGlobalFetch.success).toBe(true);
+      if (injectedWithNullGlobalFetch.success) {
+        expect(injectedWithNullGlobalFetch.data).toEqual([{ id: 8 }]);
+      }
+
+      // Real createBuilderFetch transport still surfaces Code.NOT_SUPPORTED when fetch is uninitialized
+      const realTransportQb = new QueryBuilderImpl(
+        new PostgrestQueryBuilder<
+          UntypedClientOptions,
+          UntypedSchema,
+          UntypedTable,
+          string
+        >(new URL('https://sql.example.test/v1/users'), { headers: {} }),
+        h.state,
+        createBuilderFetch,
+        mapPostgrestFailureToFirebaseSqlError
+      );
+
+      const noFetchDefault = await realTransportQb.select();
       expect(noFetchDefault.success).toBe(false);
       if (!noFetchDefault.success) {
         expect(noFetchDefault.error.code).toBe(Code.NOT_SUPPORTED);
@@ -1028,7 +1052,9 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
       }
 
       const spy = vi.fn();
-      await expect(qb.select().throwOnError().then(spy)).rejects.toMatchObject({
+      await expect(
+        realTransportQb.select().throwOnError().then(spy)
+      ).rejects.toMatchObject({
         code: Code.NOT_SUPPORTED,
         category: FirebaseSqlErrorCategory.SQL_CLIENT
       });

@@ -28,7 +28,6 @@ import type {
   MapPostgrestError,
   ReadonlySqlClientState
 } from '../../core/state';
-import { getFetch } from '../../network/fetch';
 import type {
   Builder,
   CheckMatchingArrayTypes,
@@ -559,20 +558,6 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
         0,
         ''
       );
-    }
-
-    try {
-      getFetch();
-    } catch (err) {
-      const sqlError =
-        err instanceof FirebaseSqlError
-          ? err
-          : new FirebaseSqlError(
-              Code.NOT_SUPPORTED,
-              err instanceof Error ? err.message : String(err),
-              FirebaseSqlErrorCategory.SQL_CLIENT
-            );
-      return this.#fail(sqlError, 0, '');
     }
 
     const raw = await this.#delegate;
