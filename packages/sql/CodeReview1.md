@@ -48,6 +48,10 @@ Suggested change:
    : NewResult;
 ```
 
+#### Resolution
+- **Decision:** Skipped to preserve exact `MergePartialResult` type-level parity with `@supabase/postgrest-js` (`2.118.0`), keeping only the `unknown extends Result$1` guard required for `any`-free `rpc()`.
+- **Commit:** N/A
+
 ## File: packages/sql/src/api/FirebaseSql.ts
 ### Finding 2: (line 62): [HIGH] Duplicated untyped schema definitions and partial structural delegate handles rely on unchecked constructor downcasts.
 
