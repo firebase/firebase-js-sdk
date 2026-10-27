@@ -658,6 +658,89 @@ describe('FirebaseSql end-to-end operations', () => {
       expect(headRes.count).toBe(12);
       expect(mockFetch.mock.calls[2][1]?.method).toBe('HEAD');
     });
+
+    it('rejects dot-segments, percent-encodes /, ../, ?, and # in from() and rpc(), and preserves raw Error on blank from()', async () => {
+      const app = initializeApp({ projectId: 'proj-1' });
+      const sql = FirebaseSql.getSql(app, defaultSettings);
+
+      for (const dotSegment of ['.', '..']) {
+        let fromDotErr: unknown;
+        try {
+          sql.from(dotSegment);
+        } catch (err) {
+          fromDotErr = err;
+        }
+        expect(fromDotErr).toBeInstanceOf(FirebaseSqlError);
+        expect((fromDotErr as FirebaseSqlError).code).toBe(
+          Code.INVALID_ARGUMENT
+        );
+        expect((fromDotErr as FirebaseSqlError).category).toBe(
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        );
+
+        let rpcDotErr: unknown;
+        try {
+          void sql.rpc(dotSegment);
+        } catch (err) {
+          rpcDotErr = err;
+        }
+        expect(rpcDotErr).toBeInstanceOf(FirebaseSqlError);
+        expect((rpcDotErr as FirebaseSqlError).code).toBe(
+          Code.INVALID_ARGUMENT
+        );
+        expect((rpcDotErr as FirebaseSqlError).category).toBe(
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        );
+      }
+
+      for (const blankTable of ['', '   ']) {
+        let blankErr: unknown;
+        try {
+          sql.from(blankTable);
+        } catch (err) {
+          blankErr = err;
+        }
+        expect(blankErr).toBeInstanceOf(Error);
+        expect(blankErr).not.toBeInstanceOf(FirebaseSqlError);
+      }
+
+      const mockFetch = vi
+        .fn<typeof fetch>()
+        .mockImplementation(async () => new Response('[]', { status: 200 }));
+      initializeFetch(mockFetch);
+
+      await sql.from('a/b').select();
+      await sql.from('../other').select();
+      await sql.from('users?select=secret#frag').select();
+      await sql.rpc('../users', { id: 1 });
+      await sql.rpc('ns/fn?admin=true#frag', { id: 1 });
+
+      const basePrefix =
+        '/v1/projects/proj-1/locations/us-central1/services/my-service/postgrest';
+
+      const url0 = new URL(String(mockFetch.mock.calls[0][0]));
+      expect(url0.pathname).toBe(`${basePrefix}/a%2Fb`);
+
+      const url1 = new URL(String(mockFetch.mock.calls[1][0]));
+      expect(url1.pathname).toBe(`${basePrefix}/..%2Fother`);
+
+      const url2 = new URL(String(mockFetch.mock.calls[2][0]));
+      expect(url2.pathname).toBe(
+        `${basePrefix}/users%3Fselect%3Dsecret%23frag`
+      );
+      expect(url2.searchParams.get('select')).not.toBe('secret');
+      expect(url2.hash).toBe('');
+
+      const url3 = new URL(String(mockFetch.mock.calls[3][0]));
+      expect(url3.pathname).toBe(`${basePrefix}/rpc/..%2Fusers`);
+
+      const url4 = new URL(String(mockFetch.mock.calls[4][0]));
+      expect(url4.pathname).toBe(
+        `${basePrefix}/rpc/ns%2Ffn%3Fadmin%3Dtrue%23frag`
+      );
+      expect(url4.searchParams.has('admin')).toBe(false);
+      expect(url4.hash).toBe('');
+    });
   });
 
   describe('headers, apiKey omission, disallowed headers, and 1x 401 retry', () => {

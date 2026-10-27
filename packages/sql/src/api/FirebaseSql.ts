@@ -172,6 +172,28 @@ export class FirebaseSql {
     return Promise.resolve();
   }
 
+  // Encode table and RPC names so `/`, `?`, `#`, and dot-segments cannot traverse out of
+  // `/postgrest` or inject query parameters on the shared `firebasedataconnect.googleapis.com`
+  // origin (deviating from `PostgrestClient`'s raw URL interpolation while leaving blank
+  // `from('')` inputs untouched so `@supabase/postgrest-js`'s raw `Error` still propagates).
+  #encodeResourceSegment(segment: string, preserveBlank: boolean): string {
+    if (segment === '.' || segment === '..') {
+      throw new FirebaseSqlError(
+        Code.INVALID_ARGUMENT,
+        `Invalid resource name "${segment}".`,
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+    }
+    if (
+      typeof segment !== 'string' ||
+      segment.length === 0 ||
+      (preserveBlank && segment.trim() === '')
+    ) {
+      return segment;
+    }
+    return encodeURIComponent(segment);
+  }
+
   from(table: string): QueryBuilder {
     if (this._state.active === null) {
       throw new FirebaseSqlError(
@@ -180,7 +202,9 @@ export class FirebaseSql {
         FirebaseSqlErrorCategory.SQL_CLIENT
       );
     }
-    const delegate = this.#postgrestClient.from(table);
+    const delegate = this.#postgrestClient.from(
+      this.#encodeResourceSegment(table, true)
+    );
     return new QueryBuilderImpl(
       delegate,
       this._state,
@@ -212,7 +236,7 @@ export class FirebaseSql {
     const tracker: BuilderExecutionTracker = { clientError: null };
     this.#postgrestClient.fetch = createBuilderFetch(this._state, tracker);
     const delegate = this.#postgrestClient.rpc(
-      fn,
+      this.#encodeResourceSegment(fn, false),
       params as Record<string, unknown> | undefined,
       options
     );
