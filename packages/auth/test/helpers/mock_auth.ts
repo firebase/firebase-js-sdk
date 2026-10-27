@@ -24,7 +24,7 @@ import { debugErrorMap } from '../../src';
 import { AuthImpl } from '../../src/core/auth/auth_impl';
 import { PersistedBlob } from '../../src/core/persistence';
 import { InMemoryPersistence } from '../../src/core/persistence/in_memory';
-import { StsTokenManager } from '../../src/core/user/token_manager';
+import { StsTokenManager, Buffer } from '../../src/core/user/token_manager';
 import { UserImpl } from '../../src/core/user/user_impl';
 import { AuthInternal } from '../../src/model/auth';
 import { UserInternal } from '../../src/model/user';
@@ -126,7 +126,7 @@ export function testUser(
   const stsTokenManager = new StsTokenManager();
   if (fakeTokens) {
     Object.assign<StsTokenManager, Partial<StsTokenManager>>(stsTokenManager, {
-      expirationTime: Date.now() + 100_000,
+      expirationTime: Date.now() + Buffer.TOKEN_REFRESH + 100_000,
       accessToken: 'access-token',
       refreshToken: 'refresh-token'
     });
