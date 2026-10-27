@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import * as mockFetch from './mock_fetch';
 import { FetchProvider } from '../../src/core/util/fetch_provider';
 
@@ -47,13 +46,13 @@ describe('mock fetch utility', () => {
       mockFetch.mock('/a', { a: 1 });
       mockFetch.mock('/b', { b: 2 });
 
-      expect(await fetchJson('/a')).to.eql({ a: 1 });
-      expect(await fetchJson('/b')).to.eql({ b: 2 });
+      expect(await fetchJson('/a')).toEqual({ a: 1 });
+      expect(await fetchJson('/b')).toEqual({ b: 2 });
     });
 
     it('passes through the status of the mock', async () => {
       mockFetch.mock('/not-ok', {}, 500);
-      expect((await FetchProvider.fetch()('/not-ok')).status).to.equal(500);
+      expect((await FetchProvider.fetch()('/not-ok')).status).toBe(500);
     });
 
     it('records calls to the mock', async () => {
@@ -67,33 +66,33 @@ describe('mock fetch utility', () => {
       await fetchJson('/word', { a: 'b' });
       await FetchProvider.fetch()('/word');
 
-      expect(mock.calls.length).to.equal(3);
-      expect(mock.calls[0].request).to.eql(someRequest);
-      expect(mock.calls[1].request).to.eql({ a: 'b' });
-      expect(mock.calls[2].request).to.equal(undefined);
+      expect(mock.calls.length).toBe(3);
+      expect(mock.calls[0].request).toEqual(someRequest);
+      expect(mock.calls[1].request).toEqual({ a: 'b' });
+      expect(mock.calls[2].request).toBe(undefined);
     });
   });
 
   describe('route rejection', () => {
     it('if the route is not in the map', () => {
       mockFetch.mock('/test', {});
-      expect(() => FetchProvider.fetch()('/not-test')).to.throw(
+      expect(() => FetchProvider.fetch()('/not-test')).toThrow(
         'Unknown route being requested: /not-test'
       );
     });
 
     it('if call is not a string', () => {
       mockFetch.mock('/blah', {});
-      expect(() => FetchProvider.fetch()(new Request({} as any))).to.throw(
-        'URL passed to fetch was not a string'
-      );
+      expect(() =>
+        FetchProvider.fetch()(new Request('http://localhost'))
+      ).toThrow('URL passed to fetch was not a string');
     });
   });
 });
 
 describe('mock fetch utility (no setUp/tearDown)', () => {
   it('errors if mock attempted without setup', () => {
-    expect(() => mockFetch.mock('/test', {})).to.throw(
+    expect(() => mockFetch.mock('/test', {})).toThrow(
       'Mock fetch is not set up'
     );
   });
@@ -101,10 +100,10 @@ describe('mock fetch utility (no setUp/tearDown)', () => {
   it('routes do not carry to next run', async () => {
     mockFetch.setUp();
     mockFetch.mock('/test', { first: 'first' });
-    expect(await fetchJson('/test')).to.eql({ first: 'first' });
+    expect(await fetchJson('/test')).toEqual({ first: 'first' });
     mockFetch.tearDown();
     mockFetch.setUp();
-    expect(() => FetchProvider.fetch()('/test')).to.throw(
+    expect(() => FetchProvider.fetch()('/test')).toThrow(
       'Unknown route being requested: /test'
     );
     mockFetch.tearDown();

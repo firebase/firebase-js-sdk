@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC.
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 
 import { PopupRedirectResolver } from '../../model/public_types';
 import { OperationType, ProviderId } from '../../model/enums';
@@ -46,12 +41,11 @@ import {
   reauthenticateWithPopup,
   signInWithPopup
 } from './popup';
-import { _getInstance } from '../../../internal';
+import { _getInstance } from '../../core/util/instantiator';
 import { _createError } from '../../core/util/assert';
 
-use(sinonChai);
-use(chaiAsPromised);
-
+vi.mock('../../core/util/event_id', { spy: true });
+vi.mock('../../core/strategies/idp', { spy: true });
 const MATCHING_EVENT_ID = 'matching-event-id';
 const OTHER_EVENT_ID = 'wrong-id';
 
@@ -62,24 +56,25 @@ describe('platform_browser/strategies/popup', () => {
   let authPopup: AuthPopup;
   let underlyingWindow: { closed: boolean };
   let auth: TestAuth;
-  let idpStubs: sinon.SinonStubbedInstance<typeof idpTasks>;
+  let idpStubs: any;
   let pendingTimeouts: TimerMap;
 
   beforeEach(async () => {
+    vi.clearAllMocks();
     auth = await testAuth();
     eventManager = new AuthEventManager(auth);
     underlyingWindow = { closed: false };
     authPopup = new AuthPopup(underlyingWindow as Window);
     provider = new OAuthProvider(ProviderId.GOOGLE);
     resolver = makeMockPopupRedirectResolver(eventManager, authPopup);
-    idpStubs = sinon.stub(idpTasks);
-    sinon.stub(eid, '_generateEventId').returns(MATCHING_EVENT_ID);
+    idpStubs = idpTasks;
+    vi.spyOn(eid, '_generateEventId').mockReturnValue(MATCHING_EVENT_ID);
     pendingTimeouts = stubTimeouts();
-    sinon.stub(window, 'clearTimeout');
+    vi.spyOn(window, 'clearTimeout');
   });
 
   afterEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
   });
 
   function iframeEvent(event: Partial<AuthEvent>): void {
@@ -93,19 +88,19 @@ describe('platform_browser/strategies/popup', () => {
     });
   }
 
-  context('signInWithPopup', () => {
+  describe('signInWithPopup', () => {
     it('completes the full flow', async () => {
       const cred = new UserCredentialImpl({
         user: testUser(auth, 'uid'),
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.SIGN_IN
       });
-      idpStubs._signIn.returns(Promise.resolve(cred));
+      idpStubs._signIn.mockReturnValue(Promise.resolve(cred));
       const promise = signInWithPopup(auth, provider, resolver);
       iframeEvent({
         type: AuthEventType.SIGN_IN_VIA_POPUP
       });
-      expect(await promise).to.eq(cred);
+      expect(await promise).toBe(cred);
     });
 
     it('completes the full flow with default resolver', async () => {
@@ -115,12 +110,12 @@ describe('platform_browser/strategies/popup', () => {
         operationType: OperationType.SIGN_IN
       });
       auth._popupRedirectResolver = _getInstance(resolver);
-      idpStubs._signIn.returns(Promise.resolve(cred));
+      idpStubs._signIn.mockReturnValue(Promise.resolve(cred));
       const promise = signInWithPopup(auth, provider);
       iframeEvent({
         type: AuthEventType.SIGN_IN_VIA_POPUP
       });
-      expect(await promise).to.eq(cred);
+      expect(await promise).toBe(cred);
     });
 
     it('errors if resolver not provided and not on auth', async () => {
@@ -129,11 +124,10 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.SIGN_IN
       });
-      idpStubs._signIn.returns(Promise.resolve(cred));
-      await expect(signInWithPopup(auth, provider)).to.be.rejectedWith(
-        FirebaseError,
-        'auth/argument-error'
-      );
+      idpStubs._signIn.mockReturnValue(Promise.resolve(cred));
+      const promise2 = signInWithPopup(auth, provider);
+      await expect(promise2).rejects.toThrow('auth/argument-error');
+      await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('ignores events for another event id', async () => {
@@ -142,7 +136,7 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.SIGN_IN
       });
-      idpStubs._signIn.returns(Promise.resolve(cred));
+      idpStubs._signIn.mockReturnValue(Promise.resolve(cred));
       const promise = signInWithPopup(auth, provider, resolver);
       iframeEvent({
         type: AuthEventType.SIGN_IN_VIA_POPUP,
@@ -158,7 +152,7 @@ describe('platform_browser/strategies/popup', () => {
         type: AuthEventType.SIGN_IN_VIA_POPUP,
         eventId: MATCHING_EVENT_ID
       });
-      expect(await promise).to.eq(cred);
+      expect(await promise).toBe(cred);
     });
 
     it('does not call idp tasks if event is error', async () => {
@@ -167,7 +161,7 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.SIGN_IN
       });
-      idpStubs._signIn.returns(Promise.resolve(cred));
+      idpStubs._signIn.mockReturnValue(Promise.resolve(cred));
       const promise = signInWithPopup(auth, provider, resolver);
       iframeEvent({
         type: AuthEventType.SIGN_IN_VIA_POPUP,
@@ -178,11 +172,9 @@ describe('platform_browser/strategies/popup', () => {
           name: ''
         }
       });
-      await expect(promise).to.be.rejectedWith(
-        FirebaseError,
-        'auth/invalid-app-credential'
-      );
-      expect(idpStubs._signIn).not.to.have.been.called;
+      await expect(promise).rejects.toThrow('auth/invalid-app-credential');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
+      expect(idpStubs._signIn).not.toHaveBeenCalled();
     });
 
     it('does not error if the poll timeout trips', async () => {
@@ -191,7 +183,7 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.SIGN_IN
       });
-      idpStubs._signIn.returns(Promise.resolve(cred));
+      idpStubs._signIn.mockReturnValue(Promise.resolve(cred));
       const promise = signInWithPopup(auth, provider, resolver);
       delay(() => {
         underlyingWindow.closed = true;
@@ -200,7 +192,7 @@ describe('platform_browser/strategies/popup', () => {
       iframeEvent({
         type: AuthEventType.SIGN_IN_VIA_POPUP
       });
-      expect(await promise).to.eq(cred);
+      expect(await promise).toBe(cred);
     });
 
     it('does error if the poll timeout and event timeout trip', async () => {
@@ -209,7 +201,7 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.SIGN_IN
       });
-      idpStubs._signIn.returns(Promise.resolve(cred));
+      idpStubs._signIn.mockReturnValue(Promise.resolve(cred));
       const promise = signInWithPopup(auth, provider, resolver);
       delay(() => {
         underlyingWindow.closed = true;
@@ -219,22 +211,20 @@ describe('platform_browser/strategies/popup', () => {
       iframeEvent({
         type: AuthEventType.SIGN_IN_VIA_POPUP
       });
-      await expect(promise).to.be.rejectedWith(
-        FirebaseError,
-        'auth/popup-closed-by-user'
-      );
+      await expect(promise).rejects.toThrow('auth/popup-closed-by-user');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('errors if webstorage support comes back negative', async () => {
       resolver = makeMockPopupRedirectResolver(eventManager, authPopup, false);
-      await expect(
-        signInWithPopup(auth, provider, resolver)
-      ).to.be.rejectedWith(FirebaseError, 'auth/web-storage-unsupported');
+      const promise2 = signInWithPopup(auth, provider, resolver);
+      await expect(promise2).rejects.toThrow('auth/web-storage-unsupported');
+      await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('passes any errors from idp task', async () => {
-      idpStubs._signIn.returns(
-        Promise.reject(_createError(auth, AuthErrorCode.INVALID_APP_ID))
+      idpStubs._signIn.mockRejectedValue(
+        _createError(auth, AuthErrorCode.INVALID_APP_ID)
       );
       const promise = signInWithPopup(auth, provider, resolver);
       iframeEvent({
@@ -242,10 +232,8 @@ describe('platform_browser/strategies/popup', () => {
         type: AuthEventType.SIGN_IN_VIA_POPUP
       });
 
-      await expect(promise).to.be.rejectedWith(
-        FirebaseError,
-        'auth/invalid-app-id'
-      );
+      await expect(promise).rejects.toThrow('auth/invalid-app-id');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('cancels the task if called consecutively', async () => {
@@ -254,21 +242,21 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.SIGN_IN
       });
-      idpStubs._signIn.returns(Promise.resolve(cred));
+      idpStubs._signIn.mockReturnValue(Promise.resolve(cred));
       const firstPromise = signInWithPopup(auth, provider, resolver);
       const secondPromise = signInWithPopup(auth, provider, resolver);
       iframeEvent({
         type: AuthEventType.SIGN_IN_VIA_POPUP
       });
-      await expect(firstPromise).to.be.rejectedWith(
-        FirebaseError,
+      await expect(firstPromise).rejects.toThrow(
         'auth/cancelled-popup-request'
       );
-      expect(await secondPromise).to.eq(cred);
+      await expect(firstPromise).rejects.toBeInstanceOf(FirebaseError);
+      expect(await secondPromise).toBe(cred);
     });
   });
 
-  context('linkWithPopup', () => {
+  describe('linkWithPopup', () => {
     let user: UserInternal;
     beforeEach(() => {
       user = testUser(auth, 'uid');
@@ -280,12 +268,12 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.LINK
       });
-      idpStubs._link.returns(Promise.resolve(cred));
+      idpStubs._link.mockReturnValue(Promise.resolve(cred));
       const promise = linkWithPopup(user, provider, resolver);
       iframeEvent({
         type: AuthEventType.LINK_VIA_POPUP
       });
-      expect(await promise).to.eq(cred);
+      expect(await promise).toBe(cred);
     });
 
     it('completes the full flow with default resolver', async () => {
@@ -295,12 +283,12 @@ describe('platform_browser/strategies/popup', () => {
         operationType: OperationType.LINK
       });
       user.auth._popupRedirectResolver = _getInstance(resolver);
-      idpStubs._link.returns(Promise.resolve(cred));
+      idpStubs._link.mockReturnValue(Promise.resolve(cred));
       const promise = linkWithPopup(user, provider);
       iframeEvent({
         type: AuthEventType.LINK_VIA_POPUP
       });
-      expect(await promise).to.eq(cred);
+      expect(await promise).toBe(cred);
     });
 
     it('errors if resolver not provided and not on auth', async () => {
@@ -309,11 +297,10 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.LINK
       });
-      idpStubs._link.returns(Promise.resolve(cred));
-      await expect(linkWithPopup(user, provider)).to.be.rejectedWith(
-        FirebaseError,
-        'auth/argument-error'
-      );
+      idpStubs._link.mockReturnValue(Promise.resolve(cred));
+      const promise2 = linkWithPopup(user, provider);
+      await expect(promise2).rejects.toThrow('auth/argument-error');
+      await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('ignores events for another event id', async () => {
@@ -322,7 +309,7 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.LINK
       });
-      idpStubs._link.returns(Promise.resolve(cred));
+      idpStubs._link.mockReturnValue(Promise.resolve(cred));
       const promise = linkWithPopup(user, provider, resolver);
       iframeEvent({
         type: AuthEventType.LINK_VIA_POPUP,
@@ -338,7 +325,7 @@ describe('platform_browser/strategies/popup', () => {
         type: AuthEventType.LINK_VIA_POPUP,
         eventId: MATCHING_EVENT_ID
       });
-      expect(await promise).to.eq(cred);
+      expect(await promise).toBe(cred);
     });
 
     it('does not call idp tasks if event is error', async () => {
@@ -347,7 +334,7 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.LINK
       });
-      idpStubs._link.returns(Promise.resolve(cred));
+      idpStubs._link.mockReturnValue(Promise.resolve(cred));
       const promise = linkWithPopup(user, provider, resolver);
       iframeEvent({
         type: AuthEventType.LINK_VIA_POPUP,
@@ -358,11 +345,9 @@ describe('platform_browser/strategies/popup', () => {
           name: ''
         }
       });
-      await expect(promise).to.be.rejectedWith(
-        FirebaseError,
-        'auth/invalid-app-credential'
-      );
-      expect(idpStubs._link).not.to.have.been.called;
+      await expect(promise).rejects.toThrow('auth/invalid-app-credential');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
+      expect(idpStubs._link).not.toHaveBeenCalled();
     });
 
     it('does not error if the poll timeout trips', async () => {
@@ -371,7 +356,7 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.LINK
       });
-      idpStubs._link.returns(Promise.resolve(cred));
+      idpStubs._link.mockReturnValue(Promise.resolve(cred));
       const promise = linkWithPopup(user, provider, resolver);
       delay(() => {
         underlyingWindow.closed = true;
@@ -380,7 +365,7 @@ describe('platform_browser/strategies/popup', () => {
       iframeEvent({
         type: AuthEventType.LINK_VIA_POPUP
       });
-      expect(await promise).to.eq(cred);
+      expect(await promise).toBe(cred);
     });
 
     it('does error if the poll timeout and event timeout trip', async () => {
@@ -389,7 +374,7 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.LINK
       });
-      idpStubs._link.returns(Promise.resolve(cred));
+      idpStubs._link.mockReturnValue(Promise.resolve(cred));
       const promise = linkWithPopup(user, provider, resolver);
       delay(() => {
         underlyingWindow.closed = true;
@@ -399,23 +384,20 @@ describe('platform_browser/strategies/popup', () => {
       iframeEvent({
         type: AuthEventType.LINK_VIA_POPUP
       });
-      await expect(promise).to.be.rejectedWith(
-        FirebaseError,
-        'auth/popup-closed-by-user'
-      );
+      await expect(promise).rejects.toThrow('auth/popup-closed-by-user');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('errors if webstorage support comes back negative', async () => {
       resolver = makeMockPopupRedirectResolver(eventManager, authPopup, false);
-      await expect(linkWithPopup(user, provider, resolver)).to.be.rejectedWith(
-        FirebaseError,
-        'auth/web-storage-unsupported'
-      );
+      const promise2 = linkWithPopup(user, provider, resolver);
+      await expect(promise2).rejects.toThrow('auth/web-storage-unsupported');
+      await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('passes any errors from idp task', async () => {
-      idpStubs._link.returns(
-        Promise.reject(_createError(auth, AuthErrorCode.INVALID_APP_ID))
+      idpStubs._link.mockRejectedValue(
+        _createError(auth, AuthErrorCode.INVALID_APP_ID)
       );
       const promise = linkWithPopup(user, provider, resolver);
       iframeEvent({
@@ -423,10 +405,8 @@ describe('platform_browser/strategies/popup', () => {
         type: AuthEventType.LINK_VIA_POPUP
       });
 
-      await expect(promise).to.be.rejectedWith(
-        FirebaseError,
-        'auth/invalid-app-id'
-      );
+      await expect(promise).rejects.toThrow('auth/invalid-app-id');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('cancels the task if called consecutively', async () => {
@@ -435,21 +415,21 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.LINK
       });
-      idpStubs._link.returns(Promise.resolve(cred));
+      idpStubs._link.mockReturnValue(Promise.resolve(cred));
       const firstPromise = linkWithPopup(user, provider, resolver);
       const secondPromise = linkWithPopup(user, provider, resolver);
       iframeEvent({
         type: AuthEventType.LINK_VIA_POPUP
       });
-      await expect(firstPromise).to.be.rejectedWith(
-        FirebaseError,
+      await expect(firstPromise).rejects.toThrow(
         'auth/cancelled-popup-request'
       );
-      expect(await secondPromise).to.eq(cred);
+      await expect(firstPromise).rejects.toBeInstanceOf(FirebaseError);
+      expect(await secondPromise).toBe(cred);
     });
   });
 
-  context('reauthenticateWithPopup', () => {
+  describe('reauthenticateWithPopup', () => {
     let user: UserInternal;
     beforeEach(() => {
       user = testUser(auth, 'uid');
@@ -461,12 +441,12 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.REAUTHENTICATE
       });
-      idpStubs._reauth.returns(Promise.resolve(cred));
+      idpStubs._reauth.mockReturnValue(Promise.resolve(cred));
       const promise = reauthenticateWithPopup(user, provider, resolver);
       iframeEvent({
         type: AuthEventType.REAUTH_VIA_POPUP
       });
-      expect(await promise).to.eq(cred);
+      expect(await promise).toBe(cred);
     });
 
     it('completes the full flow with default resolver', async () => {
@@ -476,12 +456,12 @@ describe('platform_browser/strategies/popup', () => {
         operationType: OperationType.REAUTHENTICATE
       });
       user.auth._popupRedirectResolver = _getInstance(resolver);
-      idpStubs._reauth.returns(Promise.resolve(cred));
+      idpStubs._reauth.mockReturnValue(Promise.resolve(cred));
       const promise = reauthenticateWithPopup(user, provider);
       iframeEvent({
         type: AuthEventType.REAUTH_VIA_POPUP
       });
-      expect(await promise).to.eq(cred);
+      expect(await promise).toBe(cred);
     });
 
     it('errors if resolver not provided and not on auth', async () => {
@@ -490,11 +470,10 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.REAUTHENTICATE
       });
-      idpStubs._reauth.returns(Promise.resolve(cred));
-      await expect(reauthenticateWithPopup(user, provider)).to.be.rejectedWith(
-        FirebaseError,
-        'auth/argument-error'
-      );
+      idpStubs._reauth.mockReturnValue(Promise.resolve(cred));
+      const promise2 = reauthenticateWithPopup(user, provider);
+      await expect(promise2).rejects.toThrow('auth/argument-error');
+      await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('ignores events for another event id', async () => {
@@ -503,7 +482,7 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.REAUTHENTICATE
       });
-      idpStubs._reauth.returns(Promise.resolve(cred));
+      idpStubs._reauth.mockReturnValue(Promise.resolve(cred));
       const promise = reauthenticateWithPopup(user, provider, resolver);
       iframeEvent({
         type: AuthEventType.REAUTH_VIA_POPUP,
@@ -519,7 +498,7 @@ describe('platform_browser/strategies/popup', () => {
         type: AuthEventType.REAUTH_VIA_POPUP,
         eventId: MATCHING_EVENT_ID
       });
-      expect(await promise).to.eq(cred);
+      expect(await promise).toBe(cred);
     });
 
     it('does not call idp tasks if event is error', async () => {
@@ -528,7 +507,7 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.REAUTHENTICATE
       });
-      idpStubs._reauth.returns(Promise.resolve(cred));
+      idpStubs._reauth.mockReturnValue(Promise.resolve(cred));
       const promise = reauthenticateWithPopup(user, provider, resolver);
       iframeEvent({
         type: AuthEventType.REAUTH_VIA_POPUP,
@@ -539,11 +518,9 @@ describe('platform_browser/strategies/popup', () => {
           name: ''
         }
       });
-      await expect(promise).to.be.rejectedWith(
-        FirebaseError,
-        'auth/invalid-app-credential'
-      );
-      expect(idpStubs._reauth).not.to.have.been.called;
+      await expect(promise).rejects.toThrow('auth/invalid-app-credential');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
+      expect(idpStubs._reauth).not.toHaveBeenCalled();
     });
 
     it('does not error if the poll timeout trips', async () => {
@@ -552,7 +529,7 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.REAUTHENTICATE
       });
-      idpStubs._reauth.returns(Promise.resolve(cred));
+      idpStubs._reauth.mockReturnValue(Promise.resolve(cred));
       const promise = reauthenticateWithPopup(user, provider, resolver);
       delay(() => {
         underlyingWindow.closed = true;
@@ -561,14 +538,14 @@ describe('platform_browser/strategies/popup', () => {
       iframeEvent({
         type: AuthEventType.REAUTH_VIA_POPUP
       });
-      expect(await promise).to.eq(cred);
+      expect(await promise).toBe(cred);
     });
 
     it('errors if webstorage support comes back negative', async () => {
       resolver = makeMockPopupRedirectResolver(eventManager, authPopup, false);
-      await expect(
-        reauthenticateWithPopup(user, provider, resolver)
-      ).to.be.rejectedWith(FirebaseError, 'auth/web-storage-unsupported');
+      const promise2 = reauthenticateWithPopup(user, provider, resolver);
+      await expect(promise2).rejects.toThrow('auth/web-storage-unsupported');
+      await expect(promise2).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('does error if the poll timeout and event timeout trip', async () => {
@@ -577,7 +554,7 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.REAUTHENTICATE
       });
-      idpStubs._reauth.returns(Promise.resolve(cred));
+      idpStubs._reauth.mockReturnValue(Promise.resolve(cred));
       const promise = reauthenticateWithPopup(user, provider, resolver);
       delay(() => {
         underlyingWindow.closed = true;
@@ -587,15 +564,13 @@ describe('platform_browser/strategies/popup', () => {
       iframeEvent({
         type: AuthEventType.REAUTH_VIA_POPUP
       });
-      await expect(promise).to.be.rejectedWith(
-        FirebaseError,
-        'auth/popup-closed-by-user'
-      );
+      await expect(promise).rejects.toThrow('auth/popup-closed-by-user');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('passes any errors from idp task', async () => {
-      idpStubs._reauth.returns(
-        Promise.reject(_createError(auth, AuthErrorCode.INVALID_APP_ID))
+      idpStubs._reauth.mockRejectedValue(
+        _createError(auth, AuthErrorCode.INVALID_APP_ID)
       );
       const promise = reauthenticateWithPopup(user, provider, resolver);
       iframeEvent({
@@ -603,10 +578,8 @@ describe('platform_browser/strategies/popup', () => {
         type: AuthEventType.REAUTH_VIA_POPUP
       });
 
-      await expect(promise).to.be.rejectedWith(
-        FirebaseError,
-        'auth/invalid-app-id'
-      );
+      await expect(promise).rejects.toThrow('auth/invalid-app-id');
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('cancels the task if called consecutively', async () => {
@@ -615,17 +588,17 @@ describe('platform_browser/strategies/popup', () => {
         providerId: ProviderId.GOOGLE,
         operationType: OperationType.REAUTHENTICATE
       });
-      idpStubs._reauth.returns(Promise.resolve(cred));
+      idpStubs._reauth.mockReturnValue(Promise.resolve(cred));
       const firstPromise = reauthenticateWithPopup(user, provider, resolver);
       const secondPromise = reauthenticateWithPopup(user, provider, resolver);
       iframeEvent({
         type: AuthEventType.REAUTH_VIA_POPUP
       });
-      await expect(firstPromise).to.be.rejectedWith(
-        FirebaseError,
+      await expect(firstPromise).rejects.toThrow(
         'auth/cancelled-popup-request'
       );
-      expect(await secondPromise).to.eq(cred);
+      await expect(firstPromise).rejects.toBeInstanceOf(FirebaseError);
+      expect(await secondPromise).toBe(cred);
     });
   });
 });
