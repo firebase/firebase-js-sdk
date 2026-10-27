@@ -523,7 +523,10 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
     onrejected?:
       ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null | undefined
   ): PromiseLike<TResult1 | TResult2> {
-    return this.#execute().then(onfulfilled, onrejected);
+    const result = this.#execute();
+    return onfulfilled || onrejected
+      ? result.then(onfulfilled, onrejected)
+      : (result as PromiseLike<TResult1 | TResult2>);
   }
 
   #fail(
@@ -545,76 +548,75 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
     return failure;
   }
 
-  async #execute(): Promise<OperationResult<T>> {
+  #execute(): PromiseLike<OperationResult<T>> {
     if (this.#state.active === null) {
-      return this.#fail(
-        new FirebaseSqlError(
-          Code.NOT_INITIALIZED,
-          'FirebaseSql instance has been terminated.',
-          FirebaseSqlErrorCategory.SQL_CLIENT
-        ),
-        0,
-        ''
+      const terminatedError = new FirebaseSqlError(
+        Code.NOT_INITIALIZED,
+        'FirebaseSql instance has been terminated.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
       );
+      if (this.#shouldThrowOnError) {
+        return Promise.reject(terminatedError);
+      }
+      return Promise.resolve(this.#fail(terminatedError, 0, ''));
     }
 
     // Bind a fresh per-execution tracker synchronously before invoking `#delegate.then(...)`,
     // which snapshots `this.fetch` synchronously on entry before yielding, then clear
     // `#delegate.fetch` so long-lived builders do not retain the execution's tracker closure.
     const tracker: BuilderExecutionTracker = { clientError: null };
-    (this.#delegate as unknown as { fetch: typeof fetch | undefined }).fetch =
-      this.#createFetch(this.#state, tracker);
-    let pending: PromiseLike<Awaited<InternalPostgrestFilterBuilder>>;
-    try {
-      pending = this.#delegate.then(res => res);
-    } finally {
-      (this.#delegate as unknown as { fetch: typeof fetch | undefined }).fetch =
-        undefined;
-    }
-    const raw = await pending;
-
-    // Re-check state.active and tracker.clientError after awaiting #delegate in case terminate()
-    // was called in-flight or the transport recorded a pre-flight/token error and aborted fetchWithRetry.
-    if (this.#state.active === null) {
-      return this.#fail(
-        new FirebaseSqlError(
-          Code.NOT_INITIALIZED,
-          'FirebaseSql instance has been terminated.',
-          FirebaseSqlErrorCategory.SQL_CLIENT
-        ),
-        0,
-        ''
-      );
-    }
-
-    if (tracker.clientError !== null) {
-      return this.#fail(tracker.clientError, 0, '');
-    }
-
-    // @supabase/postgrest-js sets `success: error === null` after `JSON.parse(body)`,
-    // so non-2xx responses with a `"null"` JSON body arrive with `raw.success === true`
-    // and `raw.error === null` (whereas empty `404` rewrites normalize status to `200`/`204`).
-    if (
-      !raw.success ||
-      raw.error !== null ||
-      raw.status < 200 ||
-      raw.status >= 300
-    ) {
-      return this.#fail(
-        this.#mapError(raw.error, raw.status, raw.statusText),
-        raw.status,
-        raw.statusText
-      );
-    }
-
-    const success: OperationSuccess<T> = {
-      success: true,
-      error: null,
-      data: raw.data as T,
-      count: raw.count,
-      status: raw.status,
-      statusText: raw.statusText
+    const delegateWithFetch = this.#delegate as unknown as {
+      fetch: typeof fetch | undefined;
     };
-    return success;
+    delegateWithFetch.fetch = this.#createFetch(this.#state, tracker);
+    try {
+      return this.#delegate.then(raw => {
+        // Re-check state.active and tracker.clientError after #delegate settles in case terminate()
+        // was called in-flight or the transport recorded a pre-flight/token error and aborted fetchWithRetry.
+        if (this.#state.active === null) {
+          return this.#fail(
+            new FirebaseSqlError(
+              Code.NOT_INITIALIZED,
+              'FirebaseSql instance has been terminated.',
+              FirebaseSqlErrorCategory.SQL_CLIENT
+            ),
+            0,
+            ''
+          );
+        }
+
+        if (tracker.clientError !== null) {
+          return this.#fail(tracker.clientError, 0, '');
+        }
+
+        // @supabase/postgrest-js sets `success: error === null` after `JSON.parse(body)`,
+        // so non-2xx responses with a `"null"` JSON body arrive with `raw.success === true`
+        // and `raw.error === null` (whereas empty `404` rewrites normalize status to `200`/`204`).
+        if (
+          !raw.success ||
+          raw.error !== null ||
+          raw.status < 200 ||
+          raw.status >= 300
+        ) {
+          return this.#fail(
+            this.#mapError(raw.error, raw.status, raw.statusText),
+            raw.status,
+            raw.statusText
+          );
+        }
+
+        const success: OperationSuccess<T> = {
+          success: true,
+          error: null,
+          data: raw.data as T,
+          count: raw.count,
+          status: raw.status,
+          statusText: raw.statusText
+        };
+        return success;
+      });
+    } finally {
+      delegateWithFetch.fetch = undefined;
+    }
   }
 }

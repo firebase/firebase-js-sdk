@@ -1296,8 +1296,92 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
       vi.spyOn(delegate, 'then').mockImplementationOnce(() => {
         throw new Error('Synchronous then failure');
       });
-      await expect(builder).rejects.toThrow('Synchronous then failure');
+      expect(() => builder.then()).toThrow('Synchronous then failure');
       expect(delegateRef.fetch).toBeUndefined();
+    });
+
+    it('starts PostgrestBuilder.then() synchronously, routes pre-flight throwOnError() rejections to onRejected, and supports zero-arg then()', async () => {
+      const h = createHarness();
+      h.setResponder(() => jsonResponse([{ id: 7 }]));
+
+      // 1. Synchronous initiation of PostgrestBuilder.then() and createFetch without a pre-flight microtask hop
+      const delegate = new PostgrestFilterBuilder<
+        UntypedClientOptions,
+        UntypedSchema,
+        Record<string, unknown>,
+        Array<Record<string, unknown>>,
+        string,
+        null,
+        'GET',
+        false
+      >({
+        method: 'GET',
+        url: new URL('https://sql.example.test/v1/users'),
+        headers: {}
+      });
+
+      const events: string[] = [];
+      const originalThen = delegate.then.bind(delegate);
+      vi.spyOn(delegate, 'then').mockImplementationOnce(
+        (onfulfilled, onrejected) => {
+          events.push('delegate.then');
+          return originalThen(onfulfilled, onrejected);
+        }
+      );
+
+      const syncCreateFetch: CreateBuilderFetch = (_state, _tracker) => {
+        events.push('createFetch');
+        return async () => {
+          events.push('fetch');
+          return jsonResponse([{ id: 1 }]);
+        };
+      };
+
+      const syncBuilder = new FilterBuilderImpl<
+        Array<Record<string, unknown>>,
+        'GET'
+      >(
+        delegate,
+        h.state,
+        syncCreateFetch,
+        mapPostgrestFailureToFirebaseSqlError
+      );
+
+      void Promise.resolve().then(() => {
+        events.push('microtask');
+      });
+      const syncPending = syncBuilder.then(res => res);
+      expect(events).toEqual(['createFetch', 'delegate.then', 'fetch']);
+      const syncRes = await syncPending;
+      expect(syncRes.success).toBe(true);
+      expect(events[3]).toBe('microtask');
+
+      // 2. Calling builder.then() with no arguments resolves cleanly
+      const noArgRes = await h.queryBuilder('users').select().then();
+      expect(noArgRes.success).toBe(true);
+      if (noArgRes.success) {
+        expect(noArgRes.data).toEqual([{ id: 7 }]);
+      }
+
+      // 3. Pre-flight terminated builder with throwOnError().then(undefined, onRejected) routes to onRejected asynchronously
+      const terminatedBuilder = h.queryBuilder('users').select();
+      h.state.active = null;
+
+      const onRejected = vi.fn((reason: unknown) => reason);
+      const handledPromise = terminatedBuilder
+        .throwOnError()
+        .then(undefined, onRejected);
+      expect(onRejected).not.toHaveBeenCalled();
+
+      const caughtReason = await handledPromise;
+      expect(onRejected).toHaveBeenCalledTimes(1);
+      expect(caughtReason).toBeInstanceOf(FirebaseSqlError);
+      expect((caughtReason as FirebaseSqlError).code).toBe(
+        Code.NOT_INITIALIZED
+      );
+      expect((caughtReason as FirebaseSqlError).category).toBe(
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
     });
   });
 });
