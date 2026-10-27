@@ -917,6 +917,82 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
       expect((thrownErr as FirebaseSqlError).status).toBe(404);
     });
 
+    it('treats non-2xx responses with a JSON "null" body as OperationFailure and rejects under throwOnError()', async () => {
+      const h = createHarness();
+      const qb = h.queryBuilder('users');
+
+      h.setResponder(
+        () =>
+          new Response('null', {
+            status: 500,
+            statusText: 'Internal Server Error',
+            headers: { 'Content-Type': 'application/json' }
+          })
+      );
+
+      const defaultFailure = await qb.select();
+      expect(defaultFailure.success).toBe(false);
+      if (!defaultFailure.success) {
+        expect(defaultFailure.data).toBeNull();
+        expect(defaultFailure.status).toBe(500);
+        expect(defaultFailure.statusText).toBe('Internal Server Error');
+        expect(defaultFailure.error).toBeInstanceOf(FirebaseSqlError);
+        expect(defaultFailure.error.category).toBe(
+          FirebaseSqlErrorCategory.SQL_PLATFORM
+        );
+        expect(defaultFailure.error.status).toBe(500);
+      }
+      expect(h.mapErrorCalls).toEqual([
+        {
+          rawError: null,
+          status: 500,
+          statusText: 'Internal Server Error'
+        }
+      ]);
+
+      let thrown500: unknown;
+      try {
+        await qb.select().throwOnError();
+      } catch (err) {
+        thrown500 = err;
+      }
+      expect(thrown500).toBeInstanceOf(FirebaseSqlError);
+      expect((thrown500 as FirebaseSqlError).category).toBe(
+        FirebaseSqlErrorCategory.SQL_PLATFORM
+      );
+      expect((thrown500 as FirebaseSqlError).status).toBe(500);
+
+      h.setResponder(
+        () =>
+          new Response('null', {
+            status: 400,
+            statusText: 'Bad Request',
+            headers: { 'Content-Type': 'application/json' }
+          })
+      );
+
+      const default400 = await qb.select();
+      expect(default400.success).toBe(false);
+      if (!default400.success) {
+        expect(default400.status).toBe(400);
+        expect(default400.error.category).toBe(
+          FirebaseSqlErrorCategory.SQL_PLATFORM
+        );
+      }
+
+      let thrown400: unknown;
+      try {
+        await qb.select().throwOnError();
+      } catch (err) {
+        thrown400 = err;
+      }
+      expect(thrown400).toBeInstanceOf(FirebaseSqlError);
+      expect((thrown400 as FirebaseSqlError).category).toBe(
+        FirebaseSqlErrorCategory.SQL_PLATFORM
+      );
+      expect((thrown400 as FirebaseSqlError).status).toBe(400);
+    });
+
     it('supports throwOnError() success and failure modes and missing fetch (Code.NOT_SUPPORTED)', async () => {
       const h = createHarness();
       const qb = h.queryBuilder('users');

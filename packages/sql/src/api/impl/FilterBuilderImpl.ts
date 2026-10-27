@@ -613,7 +613,15 @@ export class FilterBuilderImpl<
       return this.#fail(this.#tracker.clientError, 0, '');
     }
 
-    if (!raw.success || raw.error !== null) {
+    // @supabase/postgrest-js sets `success: error === null` after `JSON.parse(body)`,
+    // so non-2xx responses with a `"null"` JSON body arrive with `raw.success === true`
+    // and `raw.error === null` (whereas empty `404` rewrites normalize status to `200`/`204`).
+    if (
+      !raw.success ||
+      raw.error !== null ||
+      raw.status < 200 ||
+      raw.status >= 300
+    ) {
       return this.#fail(
         this.#mapError(raw.error, raw.status, raw.statusText),
         raw.status,
