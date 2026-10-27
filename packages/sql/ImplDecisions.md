@@ -45,3 +45,14 @@
   - `SettingsOnly`: Disallow the 6 Reserved + 4 Forbidden headers in `DISALLOWED_HEADER_KEYS` for `getSql(settings)`, without validating `Builder.setHeader()`.
 - **Selected Option**: `Both`
 - **Relevant Discussion**: Prevents callers from supplying either Reserved headers (`x-goog-api-client`, `x-client-version`, `x-firebase-gmpid`, `x-firebase-auth-token`, `x-firebase-appcheck`, `authorization`) or Forbidden headers (`x-firebase-sqlconnect-affinity`, `x-goog-request-params`, `x-firebase-client`, `x-firebase-client-log-type`) via either client-level `SqlServiceSettings.headers` or per-request `Builder.setHeader()`.
+
+## Decision 4: Error Mapping into `FirebaseSqlError` and `OperationResult`
+
+- **Question**: How should builder execution map errors into `FirebaseSqlError` and `OperationResult` (categories, `.throwOnError()`, and HTTP `404` handling)?
+- **Options Presented**:
+  - `Preserve404` (Recommended): Preserve `@supabase/postgrest-js`'s exact execution and `404` behavior (`[]` -> `200`, `''` -> `204`, JSON error -> `OperationFailure`) and no-throw default semantics, while converting all errors into `FirebaseSqlError` (`sql-postgrest` for PostgREST/SQLSTATE `{ code, message, details, hint }` and `PGRST116`; `sql-platform` with mapped `Code` for OnePlatform `{ error: ... }` and non-PostgREST HTTP errors; `sql-client` with `status: 0` for network/`AbortSignal`/token failures), rejecting with `FirebaseSqlError` when `.throwOnError()` is enabled.
+  - `SupabaseExact`: Same as `Preserve404`, except under `.throwOnError()` let raw `fetch` rejections (`AbortError`, `TypeError`) reject unwrapped.
+  - `Classified`: Same as `Preserve404`, except override `postgrest-js`'s `404` -> `200`/`204` rewrite into `sql-platform` `OperationFailure`.
+  - `RejectClient`: Same as `Classified`, except client/network/abort/token failures always reject even without `.throwOnError()`.
+- **Selected Option**: `Preserve404`
+- **Relevant Discussion**: User emphasized that matching `supabase-js` SDK semantics is a very high priority. Compared `PostgrestBuilder.ts`, `PostgrestError.ts`, and `lib/fetch.ts` in `supabase-js`: `Preserve404` keeps `supabase-js`'s no-throw default `OperationResult` contract and `404` behavior intact, unwraps nested Google OnePlatform `{ error: ... }` envelopes so `message`/`code` are not lost, and normalizes all `OperationFailure` and `.throwOnError()` errors to `FirebaseSqlError`.
