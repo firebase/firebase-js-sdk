@@ -848,6 +848,10 @@ Suggested change:
 +      ) {
 ```
 
+#### Resolution
+- **Decision:** Addressed in `createBuilderFetch` in `packages/sql/src/network/postgrestFetch.ts` by capturing `initialUid` during initial token retrieval, gating the HTTP `401` refresh block on `authToken !== null`, and verifying `refreshedUid === initialUid` before replaying with `refreshedAuthToken` (with principal-isolation unit tests in `packages/sql/src/network/postgrestFetch.test.ts`).
+- **Commit:** `0e296ed2e`
+
 ### Finding 19: (line 151): [MEDIUM] Staggered concurrent HTTP `401` responses trigger redundant `forceRefresh: true` Auth token refreshes.
 
 `AbstractTokenProvider.getToken({ forceRefresh: true })` only deduplicates `forceRefresh` calls that are simultaneously in flight. When `N` parallel queries start with the same expired cached `authToken` and their HTTP `401` responses arrive on separate network ticks after an earlier sibling's refresh has already settled, every subsequent `401` unconditionally invokes `getToken({ forceRefresh: true })` again at line L151, issuing up to `N` sequential STS token refreshes instead of checking whether `getToken({ forceRefresh: false })` already holds a newer token.
