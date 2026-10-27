@@ -899,8 +899,7 @@ describe('platform_browser/strategies/phone', () => {
 
     it('should update the access token', async () => {
       await updatePhoneNumber(user, credential);
-      const idToken = await user.getIdToken();
-      expect(idToken).to.eq(idToken);
+      expect(await user.getIdToken()).to.eq(idToken);
     });
 
     it('should reload the user', async () => {
