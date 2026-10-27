@@ -15,16 +15,8 @@
  * limitations under the License.
  */
 
-import { use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import sinon from 'sinon';
-import sinonChai from 'sinon-chai';
-
-use(chaiAsPromised);
-use(sinonChai);
-
-export const mochaHooks = {
-  afterEach() {
-    sinon.restore();
-  }
-};
+afterEach(() => {
+  vi.useRealTimers();
+  vi.resetAllMocks();
+  vi.restoreAllMocks();
+});

@@ -865,7 +865,7 @@ describe('platform_browser/strategies/phone', () => {
     let idToken: string;
 
     beforeEach(() => {
-      idToken = makeJWT({ exp: '200', iat: '100' });
+      idToken = makeJWT({ exp: '3600', iat: '1200' });
       reloadMock = mockEndpoint(Endpoint.GET_ACCOUNT_INFO, {
         users: [{ uid: 'uid' }]
       });
@@ -892,8 +892,7 @@ describe('platform_browser/strategies/phone', () => {
 
     it('should update the access token', async () => {
       await updatePhoneNumber(user, credential);
-      const idToken = await user.getIdToken();
-      expect(idToken).toBe(idToken);
+      expect(await user.getIdToken()).toBe(idToken);
     });
 
     it('should reload the user', async () => {

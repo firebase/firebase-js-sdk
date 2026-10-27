@@ -11,12 +11,12 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all"
   },
   "dependencies": {
-    "@firebase/app": "0.16.3",
-    "@firebase/app-compat": "0.5.19",
+    "@firebase/app": "0.16.4",
+    "@firebase/app-compat": "0.5.20",
     "@firebase/analytics": "0.10.25",
     "@firebase/analytics-compat": "0.2.31",
-    "@firebase/auth": "1.13.7",
-    "@firebase/auth-compat": "0.6.12",
+    "@firebase/auth": "1.13.8",
+    "@firebase/auth-compat": "0.6.13",
     "@firebase/functions": "0.14.0",
     "@firebase/functions-compat": "0.5.0",
     "@firebase/messaging": "0.13.3",

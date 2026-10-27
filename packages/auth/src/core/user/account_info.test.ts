@@ -156,7 +156,7 @@ describe('core/user/profile', () => {
         mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
           idToken: 'new-id-token',
           refreshToken: 'new-refresh-token',
-          expiresIn: 300
+          expiresIn: 3600
         });
 
         await updateProfile(user, { displayName: 'd' });
@@ -168,7 +168,7 @@ describe('core/user/profile', () => {
         mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
           idToken: 'access-token',
           refreshToken: 'refresh-token',
-          expiresIn: 300
+          expiresIn: 3600
         });
 
         await updateProfile(user, { displayName: 'd' });
@@ -188,7 +188,7 @@ describe('core/user/profile', () => {
         mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
           idToken: 'new-id-token',
           refreshToken: 'new-refresh-token',
-          expiresIn: 300
+          expiresIn: 3600
         });
 
         await updatePassword(user, 'email@test.com');
@@ -200,7 +200,7 @@ describe('core/user/profile', () => {
         mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
           idToken: 'access-token',
           refreshToken: 'refresh-token',
-          expiresIn: 300
+          expiresIn: 3600
         });
 
         await updateEmail(user, 'email@test.com');
@@ -220,7 +220,7 @@ describe('core/user/profile', () => {
         mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
           idToken: 'new-id-token',
           refreshToken: 'new-refresh-token',
-          expiresIn: 300
+          expiresIn: 3600
         });
 
         await updatePassword(user, 'pass');
@@ -232,7 +232,7 @@ describe('core/user/profile', () => {
         mockEndpoint(Endpoint.SET_ACCOUNT_INFO, {
           idToken: 'access-token',
           refreshToken: 'refresh-token',
-          expiresIn: 300
+          expiresIn: 3600
         });
 
         await updatePassword(user, 'pass');

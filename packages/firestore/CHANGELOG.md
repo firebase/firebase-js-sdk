@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 4.19.0
+
+### Minor Changes
+
+- [`d7bb0e1`](https://github.com/firebase/firebase-js-sdk/commit/d7bb0e16f2b13ba15f74b690596eb70ef145d4f6) [#10200](https://github.com/firebase/firebase-js-sdk/pull/10200) - Added DML stages (`delete`, `update`, `insert`, `upsert`) and the `literals` source stage to Pipelines, and added the `atomic` option to `PipelineExecuteOptions` for executing a pipeline in a single transaction.
+
 ## 4.18.0
 
 ### Minor Changes
