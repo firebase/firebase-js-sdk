@@ -429,6 +429,10 @@ Suggested change:
      }
 ```
 
+#### Resolution
+- **Decision:** Addressed in `FilterBuilderImpl.#execute()` in `packages/sql/src/api/impl/FilterBuilderImpl.ts` by treating non-2xx `raw.status` (`< 200 || >= 300`) as failures even when `raw.error` is `null` (with unit tests in `packages/sql/src/api/Builders.test.ts`).
+- **Commit:** `79bd902b6`
+
 ## File: packages/sql/src/core/errorMapper.ts
 ### Finding 13: (line 37): [MEDIUM] Unguarded `JSON.stringify(details)` in `normalizeDetails` throws `TypeError` on `BigInt` or circular values.
 
