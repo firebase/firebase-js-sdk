@@ -1003,6 +1003,18 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
         .throwOnError();
       expect(ok.data).toEqual([{ id: 7 }]);
 
+      h.setResponder(() => jsonResponse({ id: 7, name: 'Ada' }));
+      const chainedThrowingSingle: OperationSuccess<{
+        id: number;
+        name: string;
+      }> = await qb
+        .select()
+        .throwOnError()
+        .not('name', 'is', null)
+        .returns<Array<{ id: number; name: string }>>()
+        .single();
+      expect(chainedThrowingSingle.data).toEqual({ id: 7, name: 'Ada' });
+
       initializeFetch(null);
       const noFetchDefault = await qb.select();
       expect(noFetchDefault.success).toBe(false);

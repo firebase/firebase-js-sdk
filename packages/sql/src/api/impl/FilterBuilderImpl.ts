@@ -104,11 +104,11 @@ export interface FilterDelegateHandle {
   rollback(): unknown;
 }
 
-export class FilterBuilderImpl<
+export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
   T,
-  Method = unknown,
-  ThrowOnError extends boolean = false
-> implements FilterBuilder<T, Method, ThrowOnError> {
+  Method,
+  false
+> {
   readonly #delegate: InternalPostgrestFilterBuilder;
   readonly #state: ReadonlySqlClientState;
   readonly #tracker: BuilderExecutionTracker;
@@ -158,13 +158,13 @@ export class FilterBuilderImpl<
   returns<NewResult>(): TransformBuilder<
     CheckMatchingArrayTypes<T, NewResult>,
     Method,
-    ThrowOnError
+    false
   > {
     void this.#delegate.returns<NewResult>();
     return this as unknown as TransformBuilder<
       CheckMatchingArrayTypes<T, NewResult>,
       Method,
-      ThrowOnError
+      false
     >;
   }
 
@@ -181,7 +181,7 @@ export class FilterBuilderImpl<
         ? MergePartialResult<NewResult, NonNullable<T>, Options> | null
         : MergePartialResult<NewResult, T, Options>
       : CheckMatchingArrayTypes<T, NewResult>,
-    ThrowOnError
+    false
   > {
     void this.#delegate.overrideTypes<NewResult, Options>();
     return this as unknown as Builder<
@@ -190,7 +190,7 @@ export class FilterBuilderImpl<
           ? MergePartialResult<NewResult, NonNullable<T>, Options> | null
           : MergePartialResult<NewResult, T, Options>
         : CheckMatchingArrayTypes<T, NewResult>,
-      ThrowOnError
+      false
     >;
   }
 
@@ -205,7 +205,7 @@ export class FilterBuilderImpl<
           : Record<string, unknown>
       : Array<Record<string, unknown>>,
     Method,
-    ThrowOnError
+    false
   > {
     void this.#delegate.select(columns);
     return this as unknown as FilterBuilder<
@@ -217,7 +217,7 @@ export class FilterBuilderImpl<
             : Record<string, unknown>
         : Array<Record<string, unknown>>,
       Method,
-      ThrowOnError
+      false
     >;
   }
 
@@ -257,9 +257,9 @@ export class FilterBuilderImpl<
       : T extends ReadonlyArray<infer R>
         ? R
         : never
-  >(): Builder<ResultOne, ThrowOnError> {
+  >(): Builder<ResultOne, false> {
     void this.#delegate.single();
-    return this as unknown as Builder<ResultOne, ThrowOnError>;
+    return this as unknown as Builder<ResultOne, false>;
   }
 
   maybeSingle<
@@ -268,30 +268,27 @@ export class FilterBuilderImpl<
       : T extends ReadonlyArray<infer R>
         ? R
         : never
-  >(): Builder<ResultOne | null, ThrowOnError> {
+  >(): Builder<ResultOne | null, false> {
     void this.#delegate.maybeSingle();
-    return this as unknown as Builder<ResultOne | null, ThrowOnError>;
+    return this as unknown as Builder<ResultOne | null, false>;
   }
 
-  csv(): Builder<string, ThrowOnError> {
+  csv(): Builder<string, false> {
     void this.#delegate.csv();
-    return this as unknown as Builder<string, ThrowOnError>;
+    return this as unknown as Builder<string, false>;
   }
 
-  geojson(): Builder<Record<string, unknown>, ThrowOnError> {
+  geojson(): Builder<Record<string, unknown>, false> {
     void this.#delegate.geojson();
-    return this as unknown as Builder<Record<string, unknown>, ThrowOnError>;
+    return this as unknown as Builder<Record<string, unknown>, false>;
   }
 
   explain(
     options?: Readonly<TransformExplainOptions> | undefined
-  ):
-    | Builder<Array<Record<string, unknown>>, ThrowOnError>
-    | Builder<string, ThrowOnError> {
+  ): Builder<Array<Record<string, unknown>>, false> | Builder<string, false> {
     void this.#delegate.explain(options);
     return this as unknown as
-      | Builder<Array<Record<string, unknown>>, ThrowOnError>
-      | Builder<string, ThrowOnError>;
+      Builder<Array<Record<string, unknown>>, false> | Builder<string, false>;
   }
 
   rollback(): this {
@@ -482,8 +479,7 @@ export class FilterBuilderImpl<
     column: ColumnName,
     operator: 'is',
     value: null
-  ): FilterBuilder<NarrowResultColumn<T, ColumnName>, Method, ThrowOnError> &
-    this;
+  ): FilterBuilder<NarrowResultColumn<T, ColumnName>, Method, false> & this;
   not(
     column: string,
     operator: FilterOperator | (string & {}),
@@ -494,14 +490,13 @@ export class FilterBuilderImpl<
     operator: FilterOperator | (string & {}),
     value: unknown
   ):
-    | (FilterBuilder<NarrowResultColumn<T, ColumnName>, Method, ThrowOnError> &
-        this)
+    | (FilterBuilder<NarrowResultColumn<T, ColumnName>, Method, false> & this)
     | this {
     void this.#delegate.not(column, operator, value);
     return this as unknown as FilterBuilder<
       NarrowResultColumn<T, ColumnName>,
       Method,
-      ThrowOnError
+      false
     > &
       this;
   }
@@ -520,18 +515,9 @@ export class FilterBuilderImpl<
     return this;
   }
 
-  then<
-    TResult1 = ThrowOnError extends true
-      ? OperationSuccess<T>
-      : OperationResult<T>,
-    TResult2 = never
-  >(
+  then<TResult1 = OperationResult<T>, TResult2 = never>(
     onfulfilled?:
-      | ((
-          value: ThrowOnError extends true
-            ? OperationSuccess<T>
-            : OperationResult<T>
-        ) => TResult1 | PromiseLike<TResult1>)
+      | ((value: OperationResult<T>) => TResult1 | PromiseLike<TResult1>)
       | null
       | undefined,
     onrejected?:
@@ -544,7 +530,7 @@ export class FilterBuilderImpl<
     error: FirebaseSqlError,
     status: number,
     statusText: string
-  ): ThrowOnError extends true ? OperationSuccess<T> : OperationResult<T> {
+  ): OperationResult<T> {
     if (this.#shouldThrowOnError) {
       throw error;
     }
@@ -556,14 +542,10 @@ export class FilterBuilderImpl<
       status,
       statusText
     };
-    return failure as ThrowOnError extends true
-      ? OperationSuccess<T>
-      : OperationResult<T>;
+    return failure;
   }
 
-  async #execute(): Promise<
-    ThrowOnError extends true ? OperationSuccess<T> : OperationResult<T>
-  > {
+  async #execute(): Promise<OperationResult<T>> {
     // Reset per-execution clientError so re-awaiting a builder does not reuse stale errors.
     this.#tracker.clientError = null;
 
@@ -637,8 +619,6 @@ export class FilterBuilderImpl<
       status: raw.status,
       statusText: raw.statusText
     };
-    return success as ThrowOnError extends true
-      ? OperationSuccess<T>
-      : OperationResult<T>;
+    return success;
   }
 }

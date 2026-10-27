@@ -240,7 +240,7 @@ export class FirebaseSql {
       params as Record<string, unknown> | undefined,
       options
     );
-    return new FilterBuilderImpl<unknown, 'RPC', false>(
+    return new FilterBuilderImpl<unknown, 'RPC'>(
       delegate,
       this._state,
       tracker,
