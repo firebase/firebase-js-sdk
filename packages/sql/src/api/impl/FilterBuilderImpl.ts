@@ -1,0 +1,647 @@
+/**
+ * @license
+ * Copyright 2026 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
+
+import {
+  Code,
+  FirebaseSqlError,
+  FirebaseSqlErrorCategory
+} from '../../core/error';
+import { validateHeaders } from '../../core/settings';
+import type {
+  BuilderExecutionTracker,
+  MapPostgrestError,
+  ReadonlySqlClientState
+} from '../../core/state';
+import { getFetch } from '../../network/fetch';
+import type {
+  Builder,
+  CheckMatchingArrayTypes,
+  ContainsNull,
+  IsValidResultOverride,
+  MergePartialResult,
+  OperationFailure,
+  OperationResult,
+  OperationSuccess
+} from '../Builder';
+import type {
+  FilterBuilder,
+  FilterOperator,
+  FilterOrOptions,
+  FilterTextSearchOptions,
+  NarrowResultColumn
+} from '../FilterBuilder';
+import type {
+  InvalidMethodError,
+  TransformBuilder,
+  TransformExplainOptions,
+  TransformLimitOptions,
+  TransformOrderOptions,
+  TransformRangeOptions
+} from '../TransformBuilder';
+
+export interface UntypedPostgrestClientOptions {
+  PostgrestVersion: '13';
+}
+
+export interface UntypedPostgrestRelationship {
+  foreignKeyName: string;
+  columns: string[];
+  isOneToOne?: boolean;
+  referencedRelation: string;
+  referencedColumns: string[];
+}
+
+export interface UntypedPostgrestTable {
+  Row: Record<string, unknown>;
+  Insert: Record<string, unknown>;
+  Update: Record<string, unknown>;
+  Relationships: UntypedPostgrestRelationship[];
+}
+
+export interface UntypedPostgrestFunction {
+  Args: Record<string, unknown>;
+  Returns: unknown;
+}
+
+export interface UntypedPostgrestSchema {
+  Tables: Record<string, UntypedPostgrestTable>;
+  Views: Record<string, UntypedPostgrestTable>;
+  Functions: Record<string, UntypedPostgrestFunction>;
+}
+
+type InternalPostgrestFilterBuilder = PostgrestFilterBuilder<
+  UntypedPostgrestClientOptions,
+  UntypedPostgrestSchema,
+  Record<string, unknown>,
+  unknown,
+  unknown,
+  unknown,
+  'PATCH',
+  false
+>;
+
+type NonGenericDelegateMethod =
+  | 'stripNulls'
+  | 'setHeader'
+  | 'retry'
+  | 'abortSignal'
+  | 'rollback'
+  | 'or';
+
+export type AnyPostgrestFilterBuilder = {
+  readonly [K in NonGenericDelegateMethod]: (
+    ...args: Parameters<InternalPostgrestFilterBuilder[K]>
+  ) => unknown;
+};
+
+export class FilterBuilderImpl<
+  T,
+  Method = unknown,
+  ThrowOnError extends boolean = false
+> implements FilterBuilder<T, Method, ThrowOnError> {
+  readonly #delegate: InternalPostgrestFilterBuilder;
+  readonly #state: ReadonlySqlClientState;
+  readonly #tracker: BuilderExecutionTracker;
+  readonly #mapError: MapPostgrestError;
+  #shouldThrowOnError = false;
+
+  constructor(
+    delegate: AnyPostgrestFilterBuilder,
+    state: ReadonlySqlClientState,
+    tracker: BuilderExecutionTracker,
+    mapError: MapPostgrestError
+  ) {
+    this.#delegate = delegate as InternalPostgrestFilterBuilder;
+    this.#state = state;
+    this.#tracker = tracker;
+    this.#mapError = mapError;
+  }
+
+  throwOnError(): FilterBuilder<T, Method, true> {
+    // Keep #delegate in its default shouldThrowOnError = false mode so `await this.#delegate`
+    // always resolves with HTTP status/statusText intact instead of throwing a PostgrestError
+    // that discards them, allowing #execute() to map all errors to FirebaseSqlError first.
+    this.#shouldThrowOnError = true;
+    return this as unknown as FilterBuilder<T, Method, true>;
+  }
+
+  stripNulls(): this {
+    // Delegate without catching so synchronous validation errors (e.g. `.csv().stripNulls()`)
+    // propagate unwrapped as raw Error instances matching @supabase/postgrest-js.
+    // `void` is used across synchronous builder mutations because PostgrestFilterBuilder is a lazy
+    // PromiseLike that only executes when `.then()` is invoked, satisfying no-floating-promises.
+    void this.#delegate.stripNulls();
+    return this;
+  }
+
+  setHeader(name: string, value: string): this {
+    // Enforce disallowed reserved/forbidden headers synchronously on per-request builders
+    // to match getSql() settings validation.
+    validateHeaders({ [name]: value });
+    void this.#delegate.setHeader(name, value);
+    return this;
+  }
+
+  retry(enabled: boolean): this {
+    void this.#delegate.retry(enabled);
+    return this;
+  }
+
+  returns<NewResult>(): TransformBuilder<
+    CheckMatchingArrayTypes<T, NewResult>,
+    Method,
+    ThrowOnError
+  > {
+    void this.#delegate.returns<NewResult>();
+    return this as unknown as TransformBuilder<
+      CheckMatchingArrayTypes<T, NewResult>,
+      Method,
+      ThrowOnError
+    >;
+  }
+
+  overrideTypes<
+    NewResult,
+    Options extends {
+      merge?: boolean | undefined;
+    } = {
+      merge: true;
+    }
+  >(): Builder<
+    IsValidResultOverride<T, NewResult, false, false> extends true
+      ? ContainsNull<T> extends true
+        ? MergePartialResult<NewResult, NonNullable<T>, Options> | null
+        : MergePartialResult<NewResult, T, Options>
+      : CheckMatchingArrayTypes<T, NewResult>,
+    ThrowOnError
+  > {
+    void this.#delegate.overrideTypes<NewResult, Options>();
+    return this as unknown as Builder<
+      IsValidResultOverride<T, NewResult, false, false> extends true
+        ? ContainsNull<T> extends true
+          ? MergePartialResult<NewResult, NonNullable<T>, Options> | null
+          : MergePartialResult<NewResult, T, Options>
+        : CheckMatchingArrayTypes<T, NewResult>,
+      ThrowOnError
+    >;
+  }
+
+  select(
+    columns?: string | undefined
+  ): FilterBuilder<
+    Method extends 'RPC'
+      ? unknown extends T
+        ? T
+        : T extends readonly unknown[]
+          ? Array<Record<string, unknown>>
+          : Record<string, unknown>
+      : Array<Record<string, unknown>>,
+    Method,
+    ThrowOnError
+  > {
+    void this.#delegate.select(columns);
+    return this as unknown as FilterBuilder<
+      Method extends 'RPC'
+        ? unknown extends T
+          ? T
+          : T extends readonly unknown[]
+            ? Array<Record<string, unknown>>
+            : Record<string, unknown>
+        : Array<Record<string, unknown>>,
+      Method,
+      ThrowOnError
+    >;
+  }
+
+  order(
+    column: string,
+    options?: Readonly<TransformOrderOptions> | undefined
+  ): this {
+    void this.#delegate.order(column, options);
+    return this;
+  }
+
+  limit(
+    rows: number,
+    options?: Readonly<TransformLimitOptions> | undefined
+  ): this {
+    void this.#delegate.limit(rows, options);
+    return this;
+  }
+
+  range(
+    from: number,
+    to: number,
+    options?: Readonly<TransformRangeOptions> | undefined
+  ): this {
+    void this.#delegate.range(from, to, options);
+    return this;
+  }
+
+  abortSignal(signal: AbortSignal): this {
+    void this.#delegate.abortSignal(signal);
+    return this;
+  }
+
+  single<
+    ResultOne = unknown extends T
+      ? Record<string, unknown>
+      : T extends ReadonlyArray<infer R>
+        ? R
+        : never
+  >(): Builder<ResultOne, ThrowOnError> {
+    void this.#delegate.single();
+    return this as unknown as Builder<ResultOne, ThrowOnError>;
+  }
+
+  maybeSingle<
+    ResultOne = unknown extends T
+      ? Record<string, unknown>
+      : T extends ReadonlyArray<infer R>
+        ? R
+        : never
+  >(): Builder<ResultOne | null, ThrowOnError> {
+    void this.#delegate.maybeSingle();
+    return this as unknown as Builder<ResultOne | null, ThrowOnError>;
+  }
+
+  csv(): Builder<string, ThrowOnError> {
+    void this.#delegate.csv();
+    return this as unknown as Builder<string, ThrowOnError>;
+  }
+
+  geojson(): Builder<Record<string, unknown>, ThrowOnError> {
+    void this.#delegate.geojson();
+    return this as unknown as Builder<Record<string, unknown>, ThrowOnError>;
+  }
+
+  explain(
+    options?: Readonly<TransformExplainOptions> | undefined
+  ):
+    | Builder<Array<Record<string, unknown>>, ThrowOnError>
+    | Builder<string, ThrowOnError> {
+    void this.#delegate.explain(options);
+    return this as unknown as
+      | Builder<Array<Record<string, unknown>>, ThrowOnError>
+      | Builder<string, ThrowOnError>;
+  }
+
+  rollback(): this {
+    void this.#delegate.rollback();
+    return this;
+  }
+
+  maxAffected(
+    rows: number
+  ): Method extends 'PATCH' | 'DELETE' | 'RPC'
+    ? this
+    : InvalidMethodError<'maxAffected method only available on update or delete'> {
+    void this.#delegate.maxAffected(rows);
+    return this as unknown as Method extends 'PATCH' | 'DELETE' | 'RPC'
+      ? this
+      : InvalidMethodError<'maxAffected method only available on update or delete'>;
+  }
+
+  eq(column: string, value: NonNullable<unknown>): this {
+    void this.#delegate.eq(column, value);
+    return this;
+  }
+
+  neq(column: string, value: unknown): this {
+    void this.#delegate.neq(column, value);
+    return this;
+  }
+
+  gt(column: string, value: unknown): this {
+    void this.#delegate.gt(column, value);
+    return this;
+  }
+
+  gte(column: string, value: unknown): this {
+    void this.#delegate.gte(column, value);
+    return this;
+  }
+
+  lt(column: string, value: unknown): this {
+    void this.#delegate.lt(column, value);
+    return this;
+  }
+
+  lte(column: string, value: unknown): this {
+    void this.#delegate.lte(column, value);
+    return this;
+  }
+
+  like(column: string, pattern: string): this {
+    void this.#delegate.like(column, pattern);
+    return this;
+  }
+
+  likeAllOf(column: string, patterns: readonly string[]): this {
+    void this.#delegate.likeAllOf(column, patterns);
+    return this;
+  }
+
+  likeAnyOf(column: string, patterns: readonly string[]): this {
+    void this.#delegate.likeAnyOf(column, patterns);
+    return this;
+  }
+
+  ilike(column: string, pattern: string): this {
+    void this.#delegate.ilike(column, pattern);
+    return this;
+  }
+
+  ilikeAllOf(column: string, patterns: readonly string[]): this {
+    void this.#delegate.ilikeAllOf(column, patterns);
+    return this;
+  }
+
+  ilikeAnyOf(column: string, patterns: readonly string[]): this {
+    void this.#delegate.ilikeAnyOf(column, patterns);
+    return this;
+  }
+
+  regexMatch(column: string, pattern: string): this {
+    void this.#delegate.regexMatch(column, pattern);
+    return this;
+  }
+
+  regexIMatch(column: string, pattern: string): this {
+    void this.#delegate.regexIMatch(column, pattern);
+    return this;
+  }
+
+  is(column: string, value: boolean | null): this {
+    void this.#delegate.is(column, value);
+    return this;
+  }
+
+  isDistinct(column: string, value: unknown): this {
+    void this.#delegate.isDistinct(column, value);
+    return this;
+  }
+
+  in(column: string, values: readonly unknown[]): this {
+    void this.#delegate.in(column, values);
+    return this;
+  }
+
+  notIn(column: string, values: readonly unknown[]): this {
+    void this.#delegate.notIn(column, values);
+    return this;
+  }
+
+  contains<
+    Value extends object & {
+      readonly [K in keyof Value]: unknown;
+    } & {
+      readonly [Symbol.iterator]?: never;
+    } = Record<string, unknown>
+  >(column: string, value: string | readonly unknown[] | Value): this {
+    void this.#delegate.contains(
+      column,
+      value as string | readonly unknown[] | Record<string, unknown>
+    );
+    return this;
+  }
+
+  containedBy<
+    Value extends object & {
+      readonly [K in keyof Value]: unknown;
+    } & {
+      readonly [Symbol.iterator]?: never;
+    } = Record<string, unknown>
+  >(column: string, value: string | readonly unknown[] | Value): this {
+    void this.#delegate.containedBy(
+      column,
+      value as string | readonly unknown[] | Record<string, unknown>
+    );
+    return this;
+  }
+
+  rangeGt(column: string, range: string): this {
+    void this.#delegate.rangeGt(column, range);
+    return this;
+  }
+
+  rangeGte(column: string, range: string): this {
+    void this.#delegate.rangeGte(column, range);
+    return this;
+  }
+
+  rangeLt(column: string, range: string): this {
+    void this.#delegate.rangeLt(column, range);
+    return this;
+  }
+
+  rangeLte(column: string, range: string): this {
+    void this.#delegate.rangeLte(column, range);
+    return this;
+  }
+
+  rangeAdjacent(column: string, range: string): this {
+    void this.#delegate.rangeAdjacent(column, range);
+    return this;
+  }
+
+  overlaps(column: string, value: string | readonly unknown[]): this {
+    void this.#delegate.overlaps(column, value);
+    return this;
+  }
+
+  textSearch(
+    column: string,
+    query: string,
+    options?: Readonly<FilterTextSearchOptions> | undefined
+  ): this {
+    void this.#delegate.textSearch(column, query, options);
+    return this;
+  }
+
+  match<
+    Query extends object & {
+      readonly [K in keyof Query]: unknown;
+    } & {
+      readonly [Symbol.iterator]?: never;
+    } = Record<string, unknown>
+  >(query: Query): this {
+    void this.#delegate.match(query as Record<string, unknown>);
+    return this;
+  }
+
+  not<ColumnName extends string>(
+    column: ColumnName,
+    operator: 'is',
+    value: null
+  ): FilterBuilder<NarrowResultColumn<T, ColumnName>, Method, ThrowOnError> &
+    this;
+  not(
+    column: string,
+    operator: FilterOperator | (string & {}),
+    value: unknown
+  ): this;
+  not<ColumnName extends string>(
+    column: ColumnName,
+    operator: FilterOperator | (string & {}),
+    value: unknown
+  ):
+    | (FilterBuilder<NarrowResultColumn<T, ColumnName>, Method, ThrowOnError> &
+        this)
+    | this {
+    void this.#delegate.not(column, operator, value);
+    return this as unknown as FilterBuilder<
+      NarrowResultColumn<T, ColumnName>,
+      Method,
+      ThrowOnError
+    > &
+      this;
+  }
+
+  or(filters: string, options?: Readonly<FilterOrOptions> | undefined): this {
+    void this.#delegate.or(filters, options);
+    return this;
+  }
+
+  filter(
+    column: string,
+    operator: `${'' | 'not.'}${FilterOperator}` | (string & {}),
+    value: unknown
+  ): this {
+    void this.#delegate.filter(column, operator, value);
+    return this;
+  }
+
+  then<
+    TResult1 = ThrowOnError extends true
+      ? OperationSuccess<T>
+      : OperationResult<T>,
+    TResult2 = never
+  >(
+    onfulfilled?:
+      | ((
+          value: ThrowOnError extends true
+            ? OperationSuccess<T>
+            : OperationResult<T>
+        ) => TResult1 | PromiseLike<TResult1>)
+      | null
+      | undefined,
+    onrejected?:
+      | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
+      | null
+      | undefined
+  ): PromiseLike<TResult1 | TResult2> {
+    return this.#execute().then(onfulfilled, onrejected);
+  }
+
+  #fail(
+    error: FirebaseSqlError,
+    status: number,
+    statusText: string
+  ): ThrowOnError extends true ? OperationSuccess<T> : OperationResult<T> {
+    if (this.#shouldThrowOnError) {
+      throw error;
+    }
+    const failure: OperationFailure = {
+      success: false,
+      error,
+      data: null,
+      count: null,
+      status,
+      statusText
+    };
+    return failure as ThrowOnError extends true
+      ? OperationSuccess<T>
+      : OperationResult<T>;
+  }
+
+  async #execute(): Promise<
+    ThrowOnError extends true ? OperationSuccess<T> : OperationResult<T>
+  > {
+    // Reset per-execution clientError so re-awaiting a builder does not reuse stale errors.
+    this.#tracker.clientError = null;
+
+    // Check termination and fetch availability upfront before #delegate mutates headers or enters retry logic.
+    if (this.#state.active === null) {
+      return this.#fail(
+        new FirebaseSqlError(
+          Code.NOT_INITIALIZED,
+          'FirebaseSql instance has been terminated.',
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        ),
+        0,
+        ''
+      );
+    }
+
+    try {
+      getFetch();
+    } catch (err) {
+      const sqlError =
+        err instanceof FirebaseSqlError
+          ? err
+          : new FirebaseSqlError(
+              Code.NOT_SUPPORTED,
+              err instanceof Error ? err.message : String(err),
+              FirebaseSqlErrorCategory.SQL_CLIENT
+            );
+      return this.#fail(sqlError, 0, '');
+    }
+
+    const raw = await this.#delegate;
+
+    // Re-check state.active and tracker.clientError after awaiting #delegate in case terminate()
+    // was called in-flight or the transport recorded a pre-flight/token error and aborted fetchWithRetry.
+    if (this.#state.active === null) {
+      return this.#fail(
+        new FirebaseSqlError(
+          Code.NOT_INITIALIZED,
+          'FirebaseSql instance has been terminated.',
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        ),
+        0,
+        ''
+      );
+    }
+
+    if (this.#tracker.clientError !== null) {
+      return this.#fail(this.#tracker.clientError, 0, '');
+    }
+
+    if (!raw.success || raw.error !== null) {
+      return this.#fail(
+        this.#mapError(raw.error, raw.status, raw.statusText),
+        raw.status,
+        raw.statusText
+      );
+    }
+
+    const success: OperationSuccess<T> = {
+      success: true,
+      error: null,
+      data: raw.data as T,
+      count: raw.count,
+      status: raw.status,
+      statusText: raw.statusText
+    };
+    return success as ThrowOnError extends true
+      ? OperationSuccess<T>
+      : OperationResult<T>;
+  }
+}
