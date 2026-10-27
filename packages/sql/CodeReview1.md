@@ -585,6 +585,10 @@ Suggested change:
    );
 ```
 
+#### Resolution
+- **Decision:** Addressed in `mapPostgrestFailureToFirebaseSqlError` in `packages/sql/src/core/errorMapper.ts` by unwrapping single-element array envelopes (`[{ error: { ... } }]`), classifying `{ error: "<string>" }` payloads and unnested `{ code, status }` RPC error objects as `SQL_PLATFORM` with `mapPlatformStatusToCode(status, rawError.status)`, and preserving JSON string messages and array details in the `status > 0` `SQL_PLATFORM` fallback (with unit tests in `packages/sql/src/core/errorMapper.test.ts`).
+- **Commit:** `11ce82bd1`
+
 ## File: packages/sql/src/network/postgrestFetch.ts
 ### Finding 15: (line 72): [HIGH] `copyHeadersInit` preserves case-sensitive keys on `{}` without stripping `DISALLOWED_HEADER_KEYS`, merging duplicate tuples, or preserving `Request` headers.
 
