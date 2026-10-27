@@ -15,9 +15,17 @@
  * limitations under the License.
  */
 
-import { expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import { copySqlServiceSettings, SqlServiceSettings } from './settings';
+import { Code, FirebaseSqlError, FirebaseSqlErrorCategory } from './error';
+import {
+  copySqlServiceSettings,
+  DISALLOWED_HEADER_KEYS,
+  normalizeHeaders,
+  SqlServiceSettings,
+  validateHeaders,
+  validateSqlServiceSettings
+} from './settings';
 
 describe('SqlServiceSettings', () => {
   const baseSettings: SqlServiceSettings = {
@@ -61,6 +69,96 @@ describe('SqlServiceSettings', () => {
       expect(withNullProto.headers).not.toBe(nullProtoHeaders);
       nullProtoHeaders['X-Custom'] = '2';
       expect(withNullProto.headers!['X-Custom']).toBe('1');
+    });
+  });
+
+  describe('DISALLOWED_HEADER_KEYS and validateHeaders', () => {
+    const expectedDisallowedHeaders = [
+      'x-goog-api-client',
+      'x-client-version',
+      'x-firebase-gmpid',
+      'x-firebase-auth-token',
+      'x-firebase-appcheck',
+      'authorization',
+      'x-firebase-sqlconnect-affinity',
+      'x-goog-request-params',
+      'x-firebase-client',
+      'x-firebase-client-log-type'
+    ];
+
+    it('contains all 10 reserved and forbidden header keys', () => {
+      expect(Array.from(DISALLOWED_HEADER_KEYS).sort()).toEqual(
+        [...expectedDisallowedHeaders].sort()
+      );
+    });
+
+    it.each(expectedDisallowedHeaders)(
+      'rejects disallowed header %s across case variants in validateHeaders and validateSqlServiceSettings',
+      headerKey => {
+        const mixedCaseKey = headerKey
+          .split('-')
+          .map((part, idx) =>
+            idx % 2 === 0 ? part.toUpperCase() : part.toLowerCase()
+          )
+          .join('-');
+
+        for (const variant of [
+          headerKey,
+          headerKey.toUpperCase(),
+          mixedCaseKey
+        ]) {
+          let validateHeadersErr: unknown;
+          try {
+            validateHeaders({ [variant]: 'value' });
+          } catch (err) {
+            validateHeadersErr = err;
+          }
+          expect(validateHeadersErr).toBeInstanceOf(FirebaseSqlError);
+          expect((validateHeadersErr as FirebaseSqlError).code).toBe(
+            Code.INVALID_ARGUMENT
+          );
+          expect((validateHeadersErr as FirebaseSqlError).category).toBe(
+            FirebaseSqlErrorCategory.SQL_CLIENT
+          );
+
+          let validateSettingsErr: unknown;
+          try {
+            validateSqlServiceSettings({
+              ...baseSettings,
+              headers: { 'X-Custom-Allowed': 'ok', [variant]: 'value' }
+            });
+          } catch (err) {
+            validateSettingsErr = err;
+          }
+          expect(validateSettingsErr).toBeInstanceOf(FirebaseSqlError);
+          expect((validateSettingsErr as FirebaseSqlError).code).toBe(
+            Code.INVALID_ARGUMENT
+          );
+          expect((validateSettingsErr as FirebaseSqlError).category).toBe(
+            FirebaseSqlErrorCategory.SQL_CLIENT
+          );
+        }
+      }
+    );
+
+    it('allows undefined and non-disallowed custom headers and freezes validated settings', () => {
+      expect(() => validateHeaders(undefined)).not.toThrow();
+      expect(() =>
+        validateHeaders({
+          'X-Custom-Header': 'custom-val',
+          Prefer: 'count=exact'
+        })
+      ).not.toThrow();
+
+      const validated = validateSqlServiceSettings({
+        ...baseSettings,
+        headers: { 'X-Custom-Header': 'custom-val' }
+      });
+      expect(Object.isFrozen(validated)).toBe(true);
+      expect(Object.isFrozen(validated.headers)).toBe(true);
+      expect(normalizeHeaders({ 'X-Custom-Header': 'custom-val' })).toEqual({
+        'x-custom-header': 'custom-val'
+      });
     });
   });
 });
