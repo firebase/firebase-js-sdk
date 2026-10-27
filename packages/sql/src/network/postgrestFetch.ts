@@ -154,12 +154,23 @@ export const createBuilderFetch: CreateBuilderFetch =
     ) {
       let refreshedAuthToken: string | null = null;
       try {
-        const refreshedTokenData = await active.authTokenProvider.getToken({
-          forceRefresh: true
+        const cachedTokenData = await active.authTokenProvider.getToken({
+          forceRefresh: false
         });
-        refreshedAuthToken = refreshedTokenData?.accessToken
-          ? refreshedTokenData.accessToken
+        refreshedAuthToken = cachedTokenData?.accessToken
+          ? cachedTokenData.accessToken
           : null;
+        if (
+          state.active !== null &&
+          (refreshedAuthToken === null || refreshedAuthToken === authToken)
+        ) {
+          const refreshedTokenData = await active.authTokenProvider.getToken({
+            forceRefresh: true
+          });
+          refreshedAuthToken = refreshedTokenData?.accessToken
+            ? refreshedTokenData.accessToken
+            : null;
+        }
       } catch (err) {
         throwTrackedClientError(tracker, resolveClientError(state, err));
       }
@@ -168,7 +179,7 @@ export const createBuilderFetch: CreateBuilderFetch =
         throwTrackedClientError(tracker, createTerminatedError());
       }
 
-      // Only retry when force-refresh yields a non-null token distinct from the
+      // Only retry when refresh yields a non-null token distinct from the
       // initial attempt for the same Auth principal; avoids redundant round-trips
       // on non-Auth 401 rejections (such as invalid App Check tokens) and prevents
       // replaying in-flight requests across mid-flight account switches.

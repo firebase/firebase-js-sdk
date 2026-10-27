@@ -868,8 +868,10 @@ describe('FirebaseSql end-to-end operations', () => {
       expect(res.success).toBe(true);
       expect(res.data).toEqual([{ id: 9 }]);
       expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(getTokenMock).toHaveBeenCalledTimes(3);
       expect(getTokenMock).toHaveBeenNthCalledWith(1, false);
-      expect(getTokenMock).toHaveBeenNthCalledWith(2, true);
+      expect(getTokenMock).toHaveBeenNthCalledWith(2, false);
+      expect(getTokenMock).toHaveBeenNthCalledWith(3, true);
       expect(
         (mockFetch.mock.calls[1][1]?.headers as Record<string, string>)[
           'x-firebase-auth-token'

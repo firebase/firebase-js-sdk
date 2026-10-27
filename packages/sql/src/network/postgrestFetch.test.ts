@@ -347,6 +347,7 @@ describe('createBuilderFetch', () => {
       const providers = createMockProviders('stale-jwt', 'appcheck-1');
       providers.authGetToken
         .mockResolvedValueOnce({ accessToken: 'stale-jwt' })
+        .mockResolvedValueOnce({ accessToken: 'stale-jwt' })
         .mockResolvedValueOnce({ accessToken: 'fresh-jwt' });
 
       const state: MutableSqlClientState = {
@@ -386,10 +387,14 @@ describe('createBuilderFetch', () => {
       expect(res.status).toBe(200);
       expect(await res.json()).toEqual([{ id: 42 }]);
       expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(providers.authGetToken).toHaveBeenCalledTimes(3);
       expect(providers.authGetToken).toHaveBeenNthCalledWith(1, {
         forceRefresh: false
       });
       expect(providers.authGetToken).toHaveBeenNthCalledWith(2, {
+        forceRefresh: false
+      });
+      expect(providers.authGetToken).toHaveBeenNthCalledWith(3, {
         forceRefresh: true
       });
 
@@ -408,6 +413,7 @@ describe('createBuilderFetch', () => {
     it('does not retry a second time if the retried request also returns 401', async () => {
       const providers = createMockProviders('jwt-1', null);
       providers.authGetToken
+        .mockResolvedValueOnce({ accessToken: 'jwt-1' })
         .mockResolvedValueOnce({ accessToken: 'jwt-1' })
         .mockResolvedValueOnce({ accessToken: 'jwt-2' });
 
@@ -435,7 +441,7 @@ describe('createBuilderFetch', () => {
 
       expect(res.status).toBe(401);
       expect(mockFetch).toHaveBeenCalledTimes(2);
-      expect(providers.authGetToken).toHaveBeenCalledTimes(2);
+      expect(providers.authGetToken).toHaveBeenCalledTimes(3);
     });
 
     it('does not retry when forceRefresh returns null or the same auth token', async () => {
@@ -475,6 +481,7 @@ describe('createBuilderFetch', () => {
       const sameRes = await builderFetch('https://example.com/postgrest/users');
       expect(sameRes.status).toBe(401);
       expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(sameProviders.authGetToken).toHaveBeenCalledTimes(3);
     });
 
     it('records clientError and throws AbortError if forceRefresh fails or instance terminates during 401 refresh', async () => {
@@ -485,6 +492,7 @@ describe('createBuilderFetch', () => {
         FirebaseSqlErrorCategory.SQL_CLIENT
       );
       providers.authGetToken
+        .mockResolvedValueOnce({ accessToken: 'jwt-1' })
         .mockResolvedValueOnce({ accessToken: 'jwt-1' })
         .mockRejectedValueOnce(customSqlErr);
 
@@ -507,6 +515,31 @@ describe('createBuilderFetch', () => {
       ).rejects.toMatchObject({ name: 'AbortError' });
       expect(tracker.clientError).toBe(customSqlErr);
       expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      // Termination during the initial { forceRefresh: false } check skips { forceRefresh: true }
+      const termProviders = createMockProviders('jwt-1', null);
+      let callCount = 0;
+      termProviders.authGetToken.mockImplementation(async () => {
+        callCount++;
+        if (callCount === 2) {
+          state.active = null;
+        }
+        return { accessToken: 'jwt-1' };
+      });
+      state.active = {
+        appId: 'app-id',
+        authTokenProvider: termProviders.authProvider,
+        appCheckTokenProvider: termProviders.appCheckProvider
+      };
+      const termTracker: BuilderExecutionTracker = { clientError: null };
+      const termFetch = createBuilderFetch(state, termTracker);
+      await expect(
+        termFetch('https://example.com/postgrest/users')
+      ).rejects.toMatchObject({ name: 'AbortError' });
+      expect(termTracker.clientError).toMatchObject({
+        code: Code.NOT_INITIALIZED
+      });
+      expect(termProviders.authGetToken).toHaveBeenCalledTimes(2);
     });
 
     it('does not forceRefresh or replay an anonymous 401 request when a user signs in mid-flight', async () => {
@@ -593,7 +626,7 @@ describe('createBuilderFetch', () => {
         forceRefresh: false
       });
       expect(providers.authGetToken).toHaveBeenNthCalledWith(2, {
-        forceRefresh: true
+        forceRefresh: false
       });
       expect(mockFetch).toHaveBeenCalledTimes(1);
     });
@@ -605,6 +638,7 @@ describe('createBuilderFetch', () => {
         'uid-a'
       );
       providers.authGetToken
+        .mockResolvedValueOnce({ accessToken: 'user-a-stale-jwt' })
         .mockResolvedValueOnce({ accessToken: 'user-a-stale-jwt' })
         .mockResolvedValueOnce({ accessToken: 'user-a-fresh-jwt' });
 
@@ -652,6 +686,84 @@ describe('createBuilderFetch', () => {
       >;
       expect(firstHeaders['x-firebase-auth-token']).toBe('user-a-stale-jwt');
       expect(secondHeaders['x-firebase-auth-token']).toBe('user-a-fresh-jwt');
+    });
+
+    it('reuses rotated cached token on staggered 401 responses without redundant forceRefresh calls', async () => {
+      const providers = createMockProviders(
+        'expired-jwt',
+        'appcheck-1',
+        'uid-a'
+      );
+      let cachedToken = 'expired-jwt';
+      providers.authGetToken.mockImplementation(async options => {
+        if (options?.forceRefresh) {
+          cachedToken = 'rotated-jwt';
+        }
+        return { accessToken: cachedToken };
+      });
+
+      const state: MutableSqlClientState = {
+        active: {
+          appId: 'app-id',
+          authTokenProvider: providers.authProvider,
+          appCheckTokenProvider: providers.appCheckProvider
+        }
+      };
+
+      let releaseSecond401!: () => void;
+      const second401Gate = new Promise<void>(resolve => {
+        releaseSecond401 = resolve;
+      });
+
+      const mockFetch = vi.fn<typeof fetch>(async (input, init) => {
+        const url = String(input);
+        const sentToken = (init?.headers as Record<string, string>)[
+          'x-firebase-auth-token'
+        ];
+        if (url.endsWith('/req1')) {
+          if (sentToken === 'expired-jwt') {
+            return new Response('{"message":"Expired"}', { status: 401 });
+          }
+          releaseSecond401();
+          return new Response(JSON.stringify([{ req: 1 }]), { status: 200 });
+        }
+        if (sentToken === 'expired-jwt') {
+          await second401Gate;
+          return new Response('{"message":"Expired"}', { status: 401 });
+        }
+        return new Response(JSON.stringify([{ req: 2 }]), { status: 200 });
+      });
+      initializeFetch(mockFetch);
+
+      const tracker1: BuilderExecutionTracker = { clientError: null };
+      const tracker2: BuilderExecutionTracker = { clientError: null };
+      const fetch1 = createBuilderFetch(state, tracker1);
+      const fetch2 = createBuilderFetch(state, tracker2);
+
+      const [res1, res2] = await Promise.all([
+        fetch1('https://example.com/postgrest/req1'),
+        fetch2('https://example.com/postgrest/req2')
+      ]);
+
+      expect(res1.status).toBe(200);
+      expect(res2.status).toBe(200);
+      expect(await res1.json()).toEqual([{ req: 1 }]);
+      expect(await res2.json()).toEqual([{ req: 2 }]);
+      expect(mockFetch).toHaveBeenCalledTimes(4);
+
+      const req2RetryCall = mockFetch.mock.calls.find(
+        ([callInput, callInit]) =>
+          String(callInput).endsWith('/req2') &&
+          (callInit?.headers as Record<string, string>)[
+            'x-firebase-auth-token'
+          ] === 'rotated-jwt'
+      );
+      expect(req2RetryCall).toBeDefined();
+
+      const forceRefreshCalls = providers.authGetToken.mock.calls.filter(
+        ([opts]) => opts?.forceRefresh === true
+      );
+      expect(forceRefreshCalls).toHaveLength(1);
     });
   });
 });
