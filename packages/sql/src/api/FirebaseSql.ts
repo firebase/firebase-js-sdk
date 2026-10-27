@@ -49,11 +49,7 @@ import { deepSortKeysForObj } from '../util/encoder';
 import { resolvePostgrestUrl } from '../util/url';
 
 import type { FilterBuilder } from './FilterBuilder';
-import {
-  FilterBuilderImpl,
-  type UntypedPostgrestClientOptions,
-  type UntypedPostgrestSchema
-} from './impl/FilterBuilderImpl';
+import { FilterBuilderImpl } from './impl/FilterBuilderImpl';
 import { QueryBuilderImpl } from './impl/QueryBuilderImpl';
 import type { QueryBuilder, QueryCountStrategy } from './QueryBuilder';
 
@@ -63,8 +59,38 @@ declare module '@firebase/component' {
   }
 }
 
-interface UntypedPostgrestDatabase {
-  [schema: string]: UntypedPostgrestSchema;
+interface UntypedClientOptions {
+  PostgrestVersion: '13';
+}
+
+interface UntypedRelationship {
+  foreignKeyName: string;
+  columns: string[];
+  isOneToOne?: boolean;
+  referencedRelation: string;
+  referencedColumns: string[];
+}
+
+interface UntypedTable {
+  Row: Record<string, unknown>;
+  Insert: Record<string, unknown>;
+  Update: Record<string, unknown>;
+  Relationships: UntypedRelationship[];
+}
+
+interface UntypedFunction {
+  Args: Record<string, unknown>;
+  Returns: unknown;
+}
+
+interface UntypedSchema {
+  Tables: Record<string, UntypedTable>;
+  Views: Record<string, UntypedTable>;
+  Functions: Record<string, UntypedFunction>;
+}
+
+interface UntypedDatabase {
+  [schema: string]: UntypedSchema;
 }
 
 export interface FirebaseSqlRpcOptions {
@@ -83,10 +109,10 @@ export class FirebaseSql {
   private readonly _state: MutableSqlClientState;
 
   readonly #postgrestClient: PostgrestClient<
-    UntypedPostgrestDatabase,
-    UntypedPostgrestClientOptions,
+    UntypedDatabase,
+    UntypedClientOptions,
     string,
-    UntypedPostgrestSchema
+    UntypedSchema
   >;
 
   /** @internal */

@@ -55,11 +55,11 @@ import type {
   TransformRangeOptions
 } from '../TransformBuilder';
 
-export interface UntypedPostgrestClientOptions {
+interface UntypedClientOptions {
   PostgrestVersion: '13';
 }
 
-export interface UntypedPostgrestRelationship {
+interface UntypedRelationship {
   foreignKeyName: string;
   columns: string[];
   isOneToOne?: boolean;
@@ -67,27 +67,27 @@ export interface UntypedPostgrestRelationship {
   referencedColumns: string[];
 }
 
-export interface UntypedPostgrestTable {
+interface UntypedTable {
   Row: Record<string, unknown>;
   Insert: Record<string, unknown>;
   Update: Record<string, unknown>;
-  Relationships: UntypedPostgrestRelationship[];
+  Relationships: UntypedRelationship[];
 }
 
-export interface UntypedPostgrestFunction {
+interface UntypedFunction {
   Args: Record<string, unknown>;
   Returns: unknown;
 }
 
-export interface UntypedPostgrestSchema {
-  Tables: Record<string, UntypedPostgrestTable>;
-  Views: Record<string, UntypedPostgrestTable>;
-  Functions: Record<string, UntypedPostgrestFunction>;
+interface UntypedSchema {
+  Tables: Record<string, UntypedTable>;
+  Views: Record<string, UntypedTable>;
+  Functions: Record<string, UntypedFunction>;
 }
 
 type InternalPostgrestFilterBuilder = PostgrestFilterBuilder<
-  UntypedPostgrestClientOptions,
-  UntypedPostgrestSchema,
+  UntypedClientOptions,
+  UntypedSchema,
   Record<string, unknown>,
   unknown,
   unknown,
@@ -96,14 +96,13 @@ type InternalPostgrestFilterBuilder = PostgrestFilterBuilder<
   false
 >;
 
-type NonGenericDelegateMethod =
-  'stripNulls' | 'setHeader' | 'retry' | 'abortSignal' | 'rollback' | 'or';
-
-export type AnyPostgrestFilterBuilder = {
-  readonly [K in NonGenericDelegateMethod]: (
-    ...args: Parameters<InternalPostgrestFilterBuilder[K]>
-  ) => unknown;
-};
+export interface FilterDelegateHandle {
+  stripNulls(): unknown;
+  setHeader(name: string, value: string): unknown;
+  retry(enabled: boolean): unknown;
+  abortSignal(signal: AbortSignal): unknown;
+  rollback(): unknown;
+}
 
 export class FilterBuilderImpl<
   T,
@@ -117,7 +116,7 @@ export class FilterBuilderImpl<
   #shouldThrowOnError = false;
 
   constructor(
-    delegate: AnyPostgrestFilterBuilder,
+    delegate: FilterDelegateHandle,
     state: ReadonlySqlClientState,
     tracker: BuilderExecutionTracker,
     mapError: MapPostgrestError
@@ -146,8 +145,6 @@ export class FilterBuilderImpl<
   }
 
   setHeader(name: string, value: string): this {
-    // Enforce disallowed reserved/forbidden headers synchronously on per-request builders
-    // to match getSql() settings validation.
     validateHeaders({ [name]: value });
     void this.#delegate.setHeader(name, value);
     return this;
@@ -570,7 +567,6 @@ export class FilterBuilderImpl<
     // Reset per-execution clientError so re-awaiting a builder does not reuse stale errors.
     this.#tracker.clientError = null;
 
-    // Check termination and fetch availability upfront before #delegate mutates headers or enters retry logic.
     if (this.#state.active === null) {
       return this.#fail(
         new FirebaseSqlError(

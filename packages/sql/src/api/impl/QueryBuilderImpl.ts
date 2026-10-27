@@ -33,28 +33,52 @@ import type {
   QueryUpsertOptions
 } from '../QueryBuilder';
 
-import {
-  FilterBuilderImpl,
-  type UntypedPostgrestClientOptions,
-  type UntypedPostgrestSchema,
-  type UntypedPostgrestTable
-} from './FilterBuilderImpl';
+import { FilterBuilderImpl } from './FilterBuilderImpl';
+
+interface UntypedClientOptions {
+  PostgrestVersion: '13';
+}
+
+interface UntypedRelationship {
+  foreignKeyName: string;
+  columns: string[];
+  isOneToOne?: boolean;
+  referencedRelation: string;
+  referencedColumns: string[];
+}
+
+interface UntypedTable {
+  Row: Record<string, unknown>;
+  Insert: Record<string, unknown>;
+  Update: Record<string, unknown>;
+  Relationships: UntypedRelationship[];
+}
+
+interface UntypedFunction {
+  Args: Record<string, unknown>;
+  Returns: unknown;
+}
+
+interface UntypedSchema {
+  Tables: Record<string, UntypedTable>;
+  Views: Record<string, UntypedTable>;
+  Functions: Record<string, UntypedFunction>;
+}
 
 type InternalPostgrestQueryBuilder = PostgrestQueryBuilder<
-  UntypedPostgrestClientOptions,
-  UntypedPostgrestSchema,
-  UntypedPostgrestTable,
+  UntypedClientOptions,
+  UntypedSchema,
+  UntypedTable,
   unknown
 >;
 
-export type UntypedPostgrestQueryBuilder =
-  | PostgrestQueryBuilder<
-      UntypedPostgrestClientOptions,
-      UntypedPostgrestSchema,
-      UntypedPostgrestTable,
-      string
-    >
-  | InternalPostgrestQueryBuilder;
+export interface QueryDelegateHandle {
+  url: URL;
+  headers: Headers;
+  schema?: string | undefined;
+  fetch?: typeof fetch | undefined;
+  urlLengthLimit: number;
+}
 
 export class QueryBuilderImpl implements QueryBuilder {
   readonly #delegate: InternalPostgrestQueryBuilder;
@@ -63,7 +87,7 @@ export class QueryBuilderImpl implements QueryBuilder {
   readonly #mapError: MapPostgrestError;
 
   constructor(
-    delegate: UntypedPostgrestQueryBuilder,
+    delegate: QueryDelegateHandle,
     state: ReadonlySqlClientState,
     createFetch: CreateBuilderFetch,
     mapError: MapPostgrestError

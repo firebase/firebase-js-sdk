@@ -35,12 +35,7 @@ import type {
 } from '../core/state';
 import { getFetch, initializeFetch } from '../network/fetch';
 
-import {
-  FilterBuilderImpl,
-  type UntypedPostgrestClientOptions,
-  type UntypedPostgrestSchema,
-  type UntypedPostgrestTable
-} from './impl/FilterBuilderImpl';
+import { FilterBuilderImpl } from './impl/FilterBuilderImpl';
 import { QueryBuilderImpl } from './impl/QueryBuilderImpl';
 
 import type {
@@ -49,6 +44,36 @@ import type {
   InvalidMethodError,
   OperationSuccess
 } from './index';
+
+interface UntypedClientOptions {
+  PostgrestVersion: '13';
+}
+
+interface UntypedRelationship {
+  foreignKeyName: string;
+  columns: string[];
+  isOneToOne?: boolean;
+  referencedRelation: string;
+  referencedColumns: string[];
+}
+
+interface UntypedTable {
+  Row: Record<string, unknown>;
+  Insert: Record<string, unknown>;
+  Update: Record<string, unknown>;
+  Relationships: UntypedRelationship[];
+}
+
+interface UntypedFunction {
+  Args: Record<string, unknown>;
+  Returns: unknown;
+}
+
+interface UntypedSchema {
+  Tables: Record<string, UntypedTable>;
+  Views: Record<string, UntypedTable>;
+  Functions: Record<string, UntypedFunction>;
+}
 
 interface CapturedRequest {
   url: URL;
@@ -184,9 +209,9 @@ function createHarness(): TestHarness {
     },
     queryBuilder: (table = 'users', options = {}) => {
       const delegate = new PostgrestQueryBuilder<
-        UntypedPostgrestClientOptions,
-        UntypedPostgrestSchema,
-        UntypedPostgrestTable,
+        UntypedClientOptions,
+        UntypedSchema,
+        UntypedTable,
         string
       >(new URL(`https://sql.example.test/v1/${table}`), {
         headers: options.headers ?? {},
@@ -197,8 +222,8 @@ function createHarness(): TestHarness {
     rpcBuilder: (fnName = 'compute_stats') => {
       const tracker: BuilderExecutionTracker = { clientError: null };
       const delegate = new PostgrestFilterBuilder<
-        UntypedPostgrestClientOptions,
-        UntypedPostgrestSchema,
+        UntypedClientOptions,
+        UntypedSchema,
         Record<string, unknown>,
         unknown,
         string,
