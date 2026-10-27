@@ -20,6 +20,7 @@ import {
   FirebaseSqlError,
   FirebaseSqlErrorCategory
 } from '../core/error';
+import { DISALLOWED_HEADER_KEYS } from '../core/settings';
 import type {
   BuilderExecutionTracker,
   CreateBuilderFetch,
@@ -69,28 +70,64 @@ function resolveClientError(
   );
 }
 
-function copyHeadersInit(
-  headersInit: HeadersInit | undefined
+function buildRequestHeaders(
+  input: RequestInfo | URL,
+  headersInit: HeadersInit | undefined,
+  appId: string | undefined,
+  authToken: string | null,
+  appCheckToken: string | null
 ): Record<string, string> {
-  const merged: Record<string, string> = {};
-  if (!headersInit) {
-    return merged;
-  }
-  if (headersInit instanceof Headers) {
-    headersInit.forEach((value, key) => {
-      merged[key] = value;
+  const headers = new Headers();
+  const source =
+    headersInit !== undefined
+      ? headersInit
+      : typeof Request !== 'undefined' && input instanceof Request
+        ? input.headers
+        : undefined;
+  if (source instanceof Headers) {
+    source.forEach((value, key) => {
+      if (!DISALLOWED_HEADER_KEYS.has(key.trim().toLowerCase())) {
+        headers.append(key, value);
+      }
     });
-  } else if (Array.isArray(headersInit)) {
-    for (const [key, value] of headersInit) {
-      merged[key] = value;
+  } else if (Array.isArray(source)) {
+    for (const [key, value] of source) {
+      if (!DISALLOWED_HEADER_KEYS.has(key.trim().toLowerCase())) {
+        headers.append(key, value);
+      }
     }
-  } else {
-    for (const [key, value] of Object.entries(headersInit)) {
-      if (value !== undefined) {
-        merged[key] = value;
+  } else if (source) {
+    for (const [key, value] of Object.entries(source)) {
+      if (
+        value !== undefined &&
+        !DISALLOWED_HEADER_KEYS.has(key.trim().toLowerCase())
+      ) {
+        headers.append(key, value);
       }
     }
   }
+
+  headers.set('x-goog-api-client', 'gl-js/ fire/' + SDK_VERSION);
+  headers.set('x-client-version', 'web/' + SDK_VERSION);
+  if (appId) {
+    headers.set('x-firebase-gmpid', appId);
+  }
+  if (authToken) {
+    headers.set('x-firebase-auth-token', authToken);
+  }
+  if (appCheckToken) {
+    headers.set('x-firebase-appcheck', appCheckToken);
+  }
+
+  const merged: Record<string, string> = {};
+  headers.forEach((value, key) => {
+    Object.defineProperty(merged, key, {
+      value,
+      enumerable: true,
+      writable: true,
+      configurable: true
+    });
+  });
   return merged;
 }
 
@@ -129,18 +166,13 @@ export const createBuilderFetch: CreateBuilderFetch =
       throwTrackedClientError(tracker, createTerminatedError());
     }
 
-    const mergedHeaders = copyHeadersInit(init?.headers);
-    mergedHeaders['x-goog-api-client'] = 'gl-js/ fire/' + SDK_VERSION;
-    mergedHeaders['x-client-version'] = 'web/' + SDK_VERSION;
-    if (active.appId) {
-      mergedHeaders['x-firebase-gmpid'] = active.appId;
-    }
-    if (authToken) {
-      mergedHeaders['x-firebase-auth-token'] = authToken;
-    }
-    if (appCheckToken) {
-      mergedHeaders['x-firebase-appcheck'] = appCheckToken;
-    }
+    const mergedHeaders = buildRequestHeaders(
+      input,
+      init?.headers,
+      active.appId,
+      authToken,
+      appCheckToken
+    );
 
     const response = await baseFetch(input, {
       ...init,
@@ -192,12 +224,14 @@ export const createBuilderFetch: CreateBuilderFetch =
         refreshedUid === initialUid
       ) {
         await response.body?.cancel().catch(() => {});
+        const retryHeaders: Record<string, string> = Object.defineProperties(
+          {},
+          Object.getOwnPropertyDescriptors(mergedHeaders)
+        );
+        retryHeaders['x-firebase-auth-token'] = refreshedAuthToken;
         return baseFetch(input, {
           ...init,
-          headers: {
-            ...mergedHeaders,
-            'x-firebase-auth-token': refreshedAuthToken
-          }
+          headers: retryHeaders
         });
       }
     }

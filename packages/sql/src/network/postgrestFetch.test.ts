@@ -230,6 +230,213 @@ describe('createBuilderFetch', () => {
     });
   });
 
+  it('strips mixed-case and whitespace-padded disallowed headers across object, tuple, and Headers inputs', async () => {
+    const mockFetch = vi.fn<typeof fetch>(
+      async () => new Response('[]', { status: 200 })
+    );
+    initializeFetch(mockFetch);
+
+    // Authenticated client state
+    const authProviders = createMockProviders('real-jwt', 'real-appcheck');
+    const state: MutableSqlClientState = {
+      active: {
+        appId: 'app-1',
+        authTokenProvider: authProviders.authProvider,
+        appCheckTokenProvider: authProviders.appCheckProvider
+      }
+    };
+    const tracker: BuilderExecutionTracker = { clientError: null };
+    const builderFetch = createBuilderFetch(state, tracker);
+
+    await builderFetch('https://example.com/postgrest/users', {
+      headers: {
+        Authorization: 'Bearer spoof',
+        'X-Firebase-Auth-Token': 'spoof-jwt',
+        ' x-firebase-appcheck ': 'spoof-appcheck',
+        'X-Goog-Request-Params': 'spoof-params',
+        'X-Keep': 'kept-obj'
+      }
+    });
+    await builderFetch('https://example.com/postgrest/users', {
+      headers: [
+        ['Authorization', 'Bearer spoof'],
+        ['X-Firebase-Auth-Token', 'spoof-jwt'],
+        [' x-firebase-appcheck ', 'spoof-appcheck'],
+        ['X-Keep', 'kept-tuple']
+      ]
+    });
+    await builderFetch('https://example.com/postgrest/users', {
+      headers: new Headers({
+        Authorization: 'Bearer spoof',
+        'X-Firebase-Auth-Token': 'spoof-jwt',
+        'X-Firebase-AppCheck': 'spoof-appcheck',
+        'X-Keep': 'kept-headers'
+      })
+    });
+
+    for (const [idx, expectedKeep] of [
+      [0, 'kept-obj'],
+      [1, 'kept-tuple'],
+      [2, 'kept-headers']
+    ] as const) {
+      const sent = mockFetch.mock.calls[idx][1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(sent).toEqual({
+        'x-keep': expectedKeep,
+        'x-goog-api-client': 'gl-js/ fire/1.2.3',
+        'x-client-version': 'web/1.2.3',
+        'x-firebase-gmpid': 'app-1',
+        'x-firebase-auth-token': 'real-jwt',
+        'x-firebase-appcheck': 'real-appcheck'
+      });
+    }
+
+    // Unauthenticated client state
+    const anonProviders = createMockProviders(null, null);
+    state.active = {
+      appId: undefined,
+      authTokenProvider: anonProviders.authProvider,
+      appCheckTokenProvider: anonProviders.appCheckProvider
+    };
+    mockFetch.mockClear();
+
+    await builderFetch('https://example.com/postgrest/users', {
+      headers: {
+        Authorization: 'Bearer spoof',
+        'X-Firebase-Auth-Token': 'spoof-jwt',
+        ' x-firebase-appcheck ': 'spoof-appcheck',
+        'X-Anon': 'obj'
+      }
+    });
+    await builderFetch('https://example.com/postgrest/users', {
+      headers: [
+        ['Authorization', 'Bearer spoof'],
+        ['X-Firebase-Auth-Token', 'spoof-jwt'],
+        [' x-firebase-appcheck ', 'spoof-appcheck'],
+        ['X-Anon', 'tuple']
+      ]
+    });
+    await builderFetch('https://example.com/postgrest/users', {
+      headers: new Headers({
+        Authorization: 'Bearer spoof',
+        'X-Firebase-Auth-Token': 'spoof-jwt',
+        'X-Firebase-AppCheck': 'spoof-appcheck',
+        'X-Anon': 'headers'
+      })
+    });
+
+    for (const [idx, expectedAnon] of [
+      [0, 'obj'],
+      [1, 'tuple'],
+      [2, 'headers']
+    ] as const) {
+      const sent = mockFetch.mock.calls[idx][1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(sent).toEqual({
+        'x-anon': expectedAnon,
+        'x-goog-api-client': 'gl-js/ fire/1.2.3',
+        'x-client-version': 'web/1.2.3'
+      });
+    }
+  });
+
+  it('appends duplicate tuple headers, preserves Request input headers when init.headers is undefined, and defines __proto__ safely', async () => {
+    const providers = createMockProviders('stale-jwt', null, 'uid-1');
+    providers.authGetToken
+      .mockResolvedValueOnce({ accessToken: 'stale-jwt' })
+      .mockResolvedValueOnce({ accessToken: 'stale-jwt' })
+      .mockResolvedValueOnce({ accessToken: 'stale-jwt' })
+      .mockResolvedValueOnce({ accessToken: 'stale-jwt' })
+      .mockResolvedValueOnce({ accessToken: 'fresh-jwt' });
+
+    const state: MutableSqlClientState = {
+      active: {
+        appId: 'app-1',
+        authTokenProvider: providers.authProvider,
+        appCheckTokenProvider: providers.appCheckProvider
+      }
+    };
+    const tracker: BuilderExecutionTracker = { clientError: null };
+
+    const mockFetch = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response('[]', { status: 200 }))
+      .mockResolvedValueOnce(new Response('[]', { status: 200 }))
+      .mockResolvedValueOnce(
+        new Response('{"error":"expired"}', { status: 401 })
+      )
+      .mockResolvedValueOnce(new Response('[{"ok":true}]', { status: 200 }));
+    initializeFetch(mockFetch);
+
+    const builderFetch = createBuilderFetch(state, tracker);
+
+    // 1. Duplicate tuple headers appended per Fetch Headers spec
+    await builderFetch('https://example.com/postgrest/users', {
+      headers: [
+        ['X-Multi', 'first'],
+        ['x-multi', 'second']
+      ]
+    });
+    const tupleSent = mockFetch.mock.calls[0][1]?.headers as Record<
+      string,
+      string
+    >;
+    expect(tupleSent['x-multi']).toBe('first, second');
+
+    // 2. Request input headers preserved when init?.headers is undefined (with disallowed stripped)
+    const reqInput = new Request('https://example.com/postgrest/users', {
+      headers: {
+        'X-Request-Custom': 'from-request',
+        Authorization: 'Bearer stripped',
+        'X-Firebase-Auth-Token': 'spoofed-jwt'
+      }
+    });
+    await builderFetch(reqInput);
+    const reqSent = mockFetch.mock.calls[1][1]?.headers as Record<
+      string,
+      string
+    >;
+    expect(reqSent['x-request-custom']).toBe('from-request');
+    expect('authorization' in reqSent).toBe(false);
+    expect(reqSent['x-firebase-auth-token']).toBe('stale-jwt');
+
+    // 3. '__proto__' header handled as safe own data property without prototype mutation (including 401 retry)
+    const protoInitHeaders: Record<string, string> = {};
+    Object.defineProperty(protoInitHeaders, '__proto__', {
+      value: 'safe-proto-header',
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+    const retryRes = await builderFetch('https://example.com/postgrest/users', {
+      headers: protoInitHeaders
+    });
+    expect(retryRes.status).toBe(200);
+
+    for (const callIdx of [2, 3] as const) {
+      const sent = mockFetch.mock.calls[callIdx][1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(Object.getPrototypeOf(sent)).toBe(Object.prototype);
+      expect(Object.prototype.hasOwnProperty.call(sent, '__proto__')).toBe(
+        true
+      );
+      expect(Object.getOwnPropertyDescriptor(sent, '__proto__')?.value).toBe(
+        'safe-proto-header'
+      );
+    }
+    const retriedSent = mockFetch.mock.calls[3][1]?.headers as Record<
+      string,
+      string
+    >;
+    expect(retriedSent['x-firebase-auth-token']).toBe('fresh-jwt');
+  });
+
   it('records NOT_INITIALIZED and throws AbortError when state is already terminated', async () => {
     const state: MutableSqlClientState = { active: null };
     const tracker: BuilderExecutionTracker = { clientError: null };
