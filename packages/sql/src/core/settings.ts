@@ -99,9 +99,19 @@ export function validateSqlServiceSettings(
   return freezeSqlServiceSettings(settings);
 }
 
-// TODO(stephenarosaj): guard protected headers when implementing transport
 /** @internal */
-export const DISALLOWED_HEADER_KEYS = new Set<string>();
+export const DISALLOWED_HEADER_KEYS = new Set<string>([
+  'x-goog-api-client',
+  'x-client-version',
+  'x-firebase-gmpid',
+  'x-firebase-auth-token',
+  'x-firebase-appcheck',
+  'authorization',
+  'x-firebase-sqlconnect-affinity',
+  'x-goog-request-params',
+  'x-firebase-client',
+  'x-firebase-client-log-type'
+]);
 
 /**
  * Validates that the given headers do not contain any protected header keys (case-insensitive).
