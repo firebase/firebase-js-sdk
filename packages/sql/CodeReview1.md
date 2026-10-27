@@ -387,6 +387,10 @@ Suggested change:
      const raw = await this.#delegate;
 ```
 
+#### Resolution
+- **Decision:** Addressed by removing the direct `getFetch()` import and pre-check from `FilterBuilderImpl.#execute()` in `packages/sql/src/api/impl/FilterBuilderImpl.ts` so `createBuilderFetch` in `packages/sql/src/network/postgrestFetch.ts` handles `getFetch()` lookup and error mapping in one place without coupling injected `CreateBuilderFetch` stubs to global `initializeFetch` state (verified in `packages/sql/src/api/Builders.test.ts`).
+- **Commit:** `980a41d97`
+
 ### Finding 11: (line 596): [HIGH] Unguarded `await this.#delegate` rejects with raw `TypeError`s in default no-throw mode when `PostgrestBuilder.then()` throws synchronously.
 
 `PostgrestBuilder.then()` executes synchronous `this.headers.set('Accept-Profile', this.schema)` / `this.headers.set('Content-Profile', this.schema)` calls before entering `executeWithRetry()` and its `.catch(...)` handler. Because `SqlServiceSettings.schemaName` is not validated as an HTTP header value in `getSql()`, any `schemaName` containing non-ISO-8859-1 characters or disallowed HTTP header bytes (`\r`, `\n`, `\0`) causes `Headers.prototype.set` to throw a raw `TypeError` synchronously during `await this.#delegate`. That unhandled rejection leaks `@supabase/postgrest-js` stack frames, rejects even when `.throwOnError()` was not enabled (violating the non-throwing `OperationResult<T>` contract), and bypasses wrapping into `FirebaseSqlError` when `.throwOnError()` is enabled.
