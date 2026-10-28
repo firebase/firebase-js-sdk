@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { validateHeaders } from '../network/headers';
+
 import { FirebaseSqlErrorCategory, Code, FirebaseSqlError } from './error';
 
 /**
@@ -97,65 +99,4 @@ export function validateSqlServiceSettings(
   }
   validateHeaders(settings.headers);
   return freezeSqlServiceSettings(settings);
-}
-
-/** @internal */
-export const DISALLOWED_HEADER_KEYS = new Set<string>([
-  'x-goog-api-client',
-  'x-client-version',
-  'x-firebase-gmpid',
-  'x-firebase-auth-token',
-  'x-firebase-appcheck',
-  'authorization',
-  'x-firebase-sqlconnect-affinity',
-  'x-goog-request-params',
-  'x-firebase-client',
-  'x-firebase-client-log-type'
-]);
-
-export function validateHeaderName(name: string): string {
-  const headerName = String(name);
-  if (DISALLOWED_HEADER_KEYS.has(headerName.trim().toLowerCase())) {
-    throw new FirebaseSqlError(
-      Code.INVALID_ARGUMENT,
-      `Cannot set protected header ${headerName}.`,
-      FirebaseSqlErrorCategory.SQL_CLIENT
-    );
-  }
-  return headerName;
-}
-
-/**
- * Validates that the given headers do not contain any protected header keys (case-insensitive).
- * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if the headers contain any protected header keys.
- * @internal
- */
-export function validateHeaders(
-  headers: Record<string, string> | undefined
-): void {
-  if (!headers) {
-    return;
-  }
-  for (const key of Object.keys(headers)) {
-    validateHeaderName(key);
-  }
-}
-
-/**
- * Normalizes the given headers by lowercasing the keys and sorting the values.
- * @returns normalized headers with lowercased keys and values sorted
- * @internal
- */
-export function normalizeHeaders(
-  headers?: Record<string, string> | undefined
-): Record<string, string> {
-  if (!headers) {
-    return {};
-  }
-  const normalizedHeaders: Record<string, string> = {};
-  // initial sort so that repeated keys in the case of a duplicate key after lowercasing have deterministic values in the normalized list
-  for (const [key, value] of Object.entries(headers).sort()) {
-    normalizedHeaders[key.toLowerCase()] = value;
-  }
-  return normalizedHeaders;
 }

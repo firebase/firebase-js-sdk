@@ -27,13 +27,6 @@ export declare class FirebaseSql
 |  [app](./sql.firebasesql.md#firebasesqlapp) |  | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The bound FirebaseApp instance. |
 |  [settings](./sql.firebasesql.md#firebasesqlsettings) |  | [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Resolved configuration settings. |
 
-## Methods
-
-|  Method | Modifiers | Description |
-|  --- | --- | --- |
-|  [from(table)](./sql.firebasesql.md#firebasesqlfrom) |  |  |
-|  [rpc(fn, params, options)](./sql.firebasesql.md#firebasesqlrpc) |  |  |
-
 ## FirebaseSql.app
 
 The bound FirebaseApp instance.
@@ -53,46 +46,3 @@ Resolved configuration settings.
 ```typescript
 readonly settings: SqlServiceSettings;
 ```
-
-## FirebaseSql.from()
-
-<b>Signature:</b>
-
-```typescript
-from(table: string): QueryBuilder;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  table | string |  |
-
-<b>Returns:</b>
-
-[QueryBuilder](./sql.querybuilder.md#querybuilder_interface)
-
-## FirebaseSql.rpc()
-
-<b>Signature:</b>
-
-```typescript
-rpc<Args extends object & {
-        readonly [K in keyof Args]: unknown;
-    } & {
-        readonly [Symbol.iterator]?: never;
-    } = Record<string, unknown>>(fn: string, params?: Args | undefined, options?: Readonly<FirebaseSqlRpcOptions> | undefined): FilterBuilder<unknown, 'RPC'>;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  fn | string |  |
-|  params | Args \| undefined |  |
-|  options | Readonly&lt;[FirebaseSqlRpcOptions](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptions_interface)<!-- -->&gt; \| undefined |  |
-
-<b>Returns:</b>
-
-[FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;unknown, 'RPC'&gt;
-

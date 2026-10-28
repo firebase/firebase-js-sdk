@@ -46,8 +46,6 @@ import { SDK_VERSION, setSDKVersion } from '../core/version';
 import { getFetch, initializeFetch } from './fetch';
 import { createBuilderFetch } from './postgrestFetch';
 
-import { createBuilderFetch as reExportedCreateBuilderFetch } from './index';
-
 interface MockProviders {
   authGetToken: ReturnType<
     typeof vi.fn<
@@ -130,10 +128,6 @@ describe('createBuilderFetch', () => {
   afterEach(() => {
     initializeFetch(originalFetch);
     setSDKVersion(originalSdkVersion);
-  });
-
-  it('is re-exported from network/index', () => {
-    expect(reExportedCreateBuilderFetch).toBe(createBuilderFetch);
   });
 
   it('injects all required Firebase SQL headers and omits apiKey and forbidden headers', async () => {

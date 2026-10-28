@@ -22,30 +22,19 @@ import {
   getRunEnterpriseTests
 } from '../integration/util/settings';
 
-// Helper to make a type itselt (T) and optionally union that with (T['skip'])
-type tOrSkipT<T> = T | (T extends { skip: unknown } ? T['skip'] : T);
+type SkipChain<S> = S & {
+  skipEmulator: SkipChain<S>;
+  skipEnterprise: SkipChain<S>;
+  skipClassic: SkipChain<S>;
+  skip: SkipChain<S>;
+};
 
-interface ExtendMochaTypeWithHelpers<T> {
-  // Declare helpers
-  skipEmulator: tOrSkipT<T>;
-  skipEnterprise: tOrSkipT<T>;
-  skipClassic: tOrSkipT<T>;
-}
-
-declare module 'mocha' {
-  // TODO add mocha types that must be extended
-  interface TestFunction extends ExtendMochaTypeWithHelpers<TestFunction> {
-    (title: string, fn?: Func | AsyncFunc, timeout?: number): Test;
-    skipIf(condition: boolean): TestFunction;
-  }
-  interface PendingTestFunction extends ExtendMochaTypeWithHelpers<PendingTestFunction> {
-    (title: string, fn?: Func | AsyncFunc, timeout?: number): Test;
-  }
-  interface SuiteFunction extends ExtendMochaTypeWithHelpers<SuiteFunction> {
-    skipIf(condition: boolean): SuiteFunction;
-  }
-  interface PendingSuiteFunction extends ExtendMochaTypeWithHelpers<PendingSuiteFunction> {}
-}
+type ExtendedWithSkipHelpers<T, S> = T & {
+  skipEmulator: SkipChain<S>;
+  skipEnterprise: SkipChain<S>;
+  skipClassic: SkipChain<S>;
+  skip: SkipChain<S>;
+};
 
 function getSkip(target: { skip?: unknown }): unknown {
   const skipFn = target.skip as Record<string, unknown> | undefined;
@@ -111,15 +100,12 @@ export function mixinSkipImplementations(obj: unknown): void {
   });
 }
 
-// TODO add mocha functions that must be extended
-[
-  globalThis.it,
-  globalThis.it.skip,
-  globalThis.describe,
-  globalThis.describe.skip
-].forEach(mixinSkipImplementations);
+[it, it.skip, describe, describe.skip].forEach(mixinSkipImplementations);
 
 // Export modified it and describe.
-const it = globalThis.it;
-const describe = globalThis.describe;
-export { it, describe };
+const extendedIt = it as ExtendedWithSkipHelpers<typeof it, typeof it.skip>;
+const extendedDescribe = describe as ExtendedWithSkipHelpers<
+  typeof describe,
+  typeof describe.skip
+>;
+export { extendedIt as it, extendedDescribe as describe };

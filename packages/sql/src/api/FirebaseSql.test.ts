@@ -37,10 +37,11 @@ import {
   FirebaseSqlError,
   FirebaseSqlErrorCategory
 } from '../core/error';
-import { DISALLOWED_HEADER_KEYS, SqlServiceSettings } from '../core/settings';
+import { SqlServiceSettings } from '../core/settings';
 import type { MutableSqlClientState } from '../core/state';
 import { SDK_VERSION, setSDKVersion } from '../core/version';
 import { getFetch, initializeFetch } from '../network';
+import { LOWERCASE_DISALLOWED_HEADER_KEYS } from '../network/headers';
 import { registerSql } from '../register';
 
 import * as FirebaseSql from './FirebaseSql';
@@ -803,7 +804,7 @@ describe('FirebaseSql end-to-end operations', () => {
       const app = initializeApp({ projectId: 'proj-1' });
       const sql = FirebaseSql.getSql(app, defaultSettings);
 
-      for (const key of DISALLOWED_HEADER_KEYS) {
+      for (const key of LOWERCASE_DISALLOWED_HEADER_KEYS) {
         const upperKey = key.toUpperCase();
         let getSqlErr: unknown;
         try {
@@ -1068,6 +1069,60 @@ describe('FirebaseSql end-to-end operations', () => {
       );
 
       expect(mockFetch).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe('normalizeInstanceIdentifierHeaders()', () => {
+  it('returns an empty object when headers is undefined or empty', () => {
+    expect(FirebaseSql.normalizeInstanceIdentifierHeaders(undefined)).toEqual(
+      {}
+    );
+    expect(FirebaseSql.normalizeInstanceIdentifierHeaders({})).toEqual({});
+  });
+
+  it('lowercases all header keys', () => {
+    const input = {
+      'Content-Type': 'application/json',
+      'X-CUSTOM-HEADER': 'value'
+    };
+    expect(FirebaseSql.normalizeInstanceIdentifierHeaders(input)).toEqual({
+      'content-type': 'application/json',
+      'x-custom-header': 'value'
+    });
+  });
+
+  it('deterministically sorts entries by key code units regardless of values', () => {
+    const input = {
+      z: '1',
+      a: '9',
+      M: '5',
+      b: '2'
+    };
+    const result = FirebaseSql.normalizeInstanceIdentifierHeaders(input);
+    // Key order by code unit: 'M' (77), 'a' (97), 'b' (98), 'z' (122)
+    expect(Object.keys(result)).toEqual(['m', 'a', 'b', 'z']);
+  });
+
+  it('de-duplicates case-differing keys deterministically based on key sorting order', () => {
+    // In code-unit comparison, 'B' (66) < 'b' (98).
+    // 'b' is processed after 'B', overwriting 'B' regardless of values.
+    const input = {
+      b: 'lowercase-val',
+      B: 'uppercase-val'
+    };
+    expect(FirebaseSql.normalizeInstanceIdentifierHeaders(input)).toEqual({
+      b: 'lowercase-val'
+    });
+
+    const reversedValues = {
+      B: 'zzz',
+      b: 'aaa'
+    };
+    expect(
+      FirebaseSql.normalizeInstanceIdentifierHeaders(reversedValues)
+    ).toEqual({
+      b: 'aaa'
     });
   });
 });

@@ -20,13 +20,13 @@ import {
   FirebaseSqlError,
   FirebaseSqlErrorCategory
 } from '../../core/error';
-import { validateHeaderName } from '../../core/settings';
 import type {
   BuilderExecutionTracker,
   CreateBuilderFetch,
   MapPostgrestError,
   ReadonlySqlClientState
 } from '../../core/state';
+import { validateHeaderName } from '../../network/headers';
 import type {
   Builder,
   CheckMatchingArrayTypes,

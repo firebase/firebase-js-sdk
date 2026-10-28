@@ -20,7 +20,6 @@ import {
   FirebaseSqlError,
   FirebaseSqlErrorCategory
 } from '../core/error';
-import { DISALLOWED_HEADER_KEYS } from '../core/settings';
 import type {
   BuilderExecutionTracker,
   CreateBuilderFetch,
@@ -29,6 +28,7 @@ import type {
 import { SDK_VERSION } from '../core/version';
 
 import { getFetch } from './fetch';
+import { LOWERCASE_DISALLOWED_HEADER_KEYS } from './headers';
 
 const TERMINATED_MESSAGE = 'FirebaseSql instance has been terminated.';
 
@@ -118,13 +118,13 @@ function buildRequestHeaders(
         : undefined;
   if (source instanceof Headers) {
     source.forEach((value, key) => {
-      if (!DISALLOWED_HEADER_KEYS.has(key.trim().toLowerCase())) {
+      if (!LOWERCASE_DISALLOWED_HEADER_KEYS.has(key.trim().toLowerCase())) {
         headers.append(key, value);
       }
     });
   } else if (Array.isArray(source)) {
     for (const [key, value] of source) {
-      if (!DISALLOWED_HEADER_KEYS.has(key.trim().toLowerCase())) {
+      if (!LOWERCASE_DISALLOWED_HEADER_KEYS.has(key.trim().toLowerCase())) {
         headers.append(key, value);
       }
     }
@@ -132,7 +132,7 @@ function buildRequestHeaders(
     for (const [key, value] of Object.entries(source)) {
       if (
         value !== undefined &&
-        !DISALLOWED_HEADER_KEYS.has(key.trim().toLowerCase())
+        !LOWERCASE_DISALLOWED_HEADER_KEYS.has(key.trim().toLowerCase())
       ) {
         headers.append(key, value);
       }

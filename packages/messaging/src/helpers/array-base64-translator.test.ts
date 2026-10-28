@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import '../testing/setup';
-
 import { arrayToBase64, base64ToArray } from './array-base64-translator';
-
-import { expect } from 'chai';
 
 // prettier-ignore
 const TEST_P256_ARRAY = new Uint8Array([
@@ -49,23 +45,23 @@ const TEST_VAPID_BASE64 =
 
 describe('arrayToBase64', () => {
   it('array to base64 translation succeed', () => {
-    expect(arrayToBase64(TEST_P256_ARRAY)).to.equal(TEST_P256_BASE64);
-    expect(arrayToBase64(TEST_AUTH_ARRAY)).to.equal(TEST_AUTH_BASE64);
-    expect(arrayToBase64(TEST_VAPID_ARRAY)).to.equal(TEST_VAPID_BASE64);
+    expect(arrayToBase64(TEST_P256_ARRAY)).toBe(TEST_P256_BASE64);
+    expect(arrayToBase64(TEST_AUTH_ARRAY)).toBe(TEST_AUTH_BASE64);
+    expect(arrayToBase64(TEST_VAPID_ARRAY)).toBe(TEST_VAPID_BASE64);
   });
 });
 
 describe('base64ToArray', () => {
   it('base64 to array translation succeed', () => {
-    expect(isEqual(base64ToArray(TEST_P256_BASE64), TEST_P256_ARRAY)).to.equal(
+    expect(isEqual(base64ToArray(TEST_P256_BASE64), TEST_P256_ARRAY)).toBe(
       true
     );
-    expect(isEqual(base64ToArray(TEST_AUTH_BASE64), TEST_AUTH_ARRAY)).to.equal(
+    expect(isEqual(base64ToArray(TEST_AUTH_BASE64), TEST_AUTH_ARRAY)).toBe(
       true
     );
-    expect(
-      isEqual(base64ToArray(TEST_VAPID_BASE64), TEST_VAPID_ARRAY)
-    ).to.equal(true);
+    expect(isEqual(base64ToArray(TEST_VAPID_BASE64), TEST_VAPID_ARRAY)).toBe(
+      true
+    );
   });
 });
 

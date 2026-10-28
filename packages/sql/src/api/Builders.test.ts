@@ -28,7 +28,6 @@ import {
   FirebaseSqlErrorCategory
 } from '../core/error';
 import { mapPostgrestFailureToFirebaseSqlError } from '../core/errorMapper';
-import { DISALLOWED_HEADER_KEYS } from '../core/settings';
 import type {
   BuilderExecutionTracker,
   CreateBuilderFetch,
@@ -703,29 +702,19 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
       await qb.select().setHeader('X-Custom-Trace', 'trace-123');
       expect(h.requests[2].headers.get('x-custom-trace')).toBe('trace-123');
 
-      const hadAuthDisallowed = DISALLOWED_HEADER_KEYS.has('authorization');
-      if (!hadAuthDisallowed) {
-        DISALLOWED_HEADER_KEYS.add('authorization');
-      }
+      let disallowedErr: unknown;
       try {
-        let disallowedErr: unknown;
-        try {
-          void qb.select().setHeader('Authorization', 'Bearer secret');
-        } catch (err) {
-          disallowedErr = err;
-        }
-        expect(disallowedErr).toBeInstanceOf(FirebaseSqlError);
-        expect((disallowedErr as FirebaseSqlError).code).toBe(
-          Code.INVALID_ARGUMENT
-        );
-        expect((disallowedErr as FirebaseSqlError).category).toBe(
-          FirebaseSqlErrorCategory.SQL_CLIENT
-        );
-      } finally {
-        if (!hadAuthDisallowed) {
-          DISALLOWED_HEADER_KEYS.delete('authorization');
-        }
+        void qb.select().setHeader('Authorization', 'Bearer secret');
+      } catch (err) {
+        disallowedErr = err;
       }
+      expect(disallowedErr).toBeInstanceOf(FirebaseSqlError);
+      expect((disallowedErr as FirebaseSqlError).code).toBe(
+        Code.INVALID_ARGUMENT
+      );
+      expect((disallowedErr as FirebaseSqlError).category).toBe(
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
 
       for (const paddedHeader of [
         ' authorization',

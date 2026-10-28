@@ -93,3 +93,113 @@
   - `StrictSync`: Same as `WrapSync`, plus also throw synchronously on `rpc('')` and `.stripNulls().csv()`.
 - **Selected Option**: `RawSync`
 - **Relevant Discussion**: Explained that `stripNulls()` came up only because `.csv()` sets `Accept: text/csv` while PostgREST null-stripping is a JSON `Accept` parameter (`;nulls=stripped`), causing `PostgrestBuilder.stripNulls()` to throw a synchronous `Error` if `Accept === 'text/csv'`. User selected `RawSync` for verbatim `@supabase/postgrest-js` synchronous throw behavior.
+
+## Decision 9: Merge Conflict Resolution for `fetch.ts`
+
+- **Question**: How should the merge conflict in `packages/sql/src/network/fetch.ts` be resolved?
+- **Options Presented**:
+  - `TypedFetch` (Recommended): Adopt `export type Fetch = typeof fetch;` from `origin/tree/main` and use `Fetch` for the parameter and return types of `initializeFetch` and `getFetch`.
+  - `InlineType`: Retain `HEAD`'s inline `typeof fetch` without exporting `Fetch`.
+  - `Hybrid`: Export `type Fetch = typeof fetch;` to avoid breaking external imports, but keep inline `typeof fetch` annotations on `initializeFetch` and `getFetch`.
+- **Selected Option**: `TypedFetch`
+- **Relevant Discussion**: Standardizes on the reusable `Fetch` type alias introduced in `origin/tree/main` (PR #10523) and imported by `transport.ts`, while maintaining full type and runtime compatibility with `HEAD`.
+
+## Decision 10: Merge Conflict Resolution for `network/index.ts`
+
+- **Question**: How should the merge conflict in `packages/sql/src/network/index.ts` be resolved?
+- **Options Presented**:
+  - `Combine`: Re-export both `./transport` and `createBuilderFetch` (`export * from './transport'; export { createBuilderFetch } from './postgrestFetch';`).
+  - `TransportOnly`: Keep only `export * from './transport';` matching `origin/tree/main`, and change `FirebaseSql.ts` to import `createBuilderFetch` directly from `'../network/postgrestFetch'`.
+  - `ExportAll`: Export all internal network modules (`fetch`, `transport`, `headers`, and `postgrestFetch`).
+- **Selected Option**: `TransportOnly`
+- **Relevant Discussion**: Keeps `packages/sql/src/network/index.ts` matching `origin/tree/main` (`export * from './transport'`). `FirebaseSql.ts` will import `createBuilderFetch` directly from `'../network/postgrestFetch'`.
+
+## Decision 11: Merge Conflict Resolution for `Builder.ts`
+
+- **Question**: How should the merge conflict in `packages/sql/src/api/Builder.ts` (`MergePartialResult`) be resolved?
+- **Options Presented**:
+  - `ShortCircuitUnknown` (Recommended): Keep `HEAD`'s version with the `unknown extends Result$1` check.
+  - `Main`: Revert to `origin/tree/main`'s simpler implementation without the `unknown` short-circuit guard.
+  - `Hardened`: Adopt the comprehensive type guard from `code_review_report.md` (Finding 1) short-circuiting on `[Result$1] extends [never]` and `unknown extends Result$1`.
+- **Selected Option**: `ShortCircuitUnknown`
+- **Relevant Discussion**: Preserves the `unknown extends Result$1` guard in `MergePartialResult` so that untyped RPC return types do not degrade into plain object mappings over `Array.prototype` methods.
+
+## Decision 12: Merge Conflict Resolution for `api/index.ts`
+
+- **Question**: How should the merge conflict in `packages/sql/src/api/index.ts` be resolved?
+- **Options Presented**:
+  - `AllTypes` (Recommended): Keep `HEAD`'s exports (`Builder`, `FilterBuilder`, `FirebaseSqlRpcOptions`, `QueryBuilder`, `TransformBuilder`, and related option/result types).
+  - `Main`: Revert to `origin/tree/main` (`export { FirebaseSql, getSql, terminate } from './FirebaseSql';`), hiding all builder interfaces and options from the package index.
+  - `CoreTypesOnly`: Export only the primary interfaces and options, omitting internal type helpers such as `MergeDeep`, `Simplify`, and `NarrowResultColumn`.
+- **Selected Option**: `AllTypes`
+- **Relevant Discussion**: Preserves full TypeScript type exports for all builder interfaces, options, and response structures, consistent with Decision 6 in `ImplDecisions.md`.
+
+## Decision 13: Merge Conflict Resolution for `settings.ts`
+
+- **Question**: How should the merge conflict in `packages/sql/src/core/settings.ts` be resolved?
+- **Options Presented**:
+  - `KeepHeadWithValidation`: Keep `HEAD`'s version of `settings.ts`, preserving `DISALLOWED_HEADER_KEYS`, `validateHeaderName`, `validateHeaders`, and `normalizeHeaders` directly in `settings.ts`.
+  - `MainMinimal`: Adopt `origin/tree/main`'s minimal `settings.ts` (importing `validateHeaders` from `../network/headers`).
+  - `ReExportFromHeaders`: Keep `SqlServiceSettings` in `settings.ts`, import `validateHeaders` and `LOWERCASE_DISALLOWED_HEADER_KEYS` from `headers.ts`, and re-export aliases from `settings.ts`.
+- **Selected Option**: `MainMinimal`
+- **Relevant Discussion**: Standardizes `settings.ts` to `origin/tree/main`'s minimal design, importing `validateHeaders` from `../network/headers`. Subsequent conversation will update the dependent files (`FilterBuilderImpl.ts`, `postgrestFetch.ts`, `FirebaseSql.ts`, `settings.test.ts`, `Builders.test.ts`, and `FirebaseSql.test.ts`) to adapt to `headers.ts`.
+
+## Decision 14: Header Name Validation in `FilterBuilderImpl.ts`
+
+- **Question**: How should `packages/sql/src/api/impl/FilterBuilderImpl.ts` validate header names in `setHeader()`?
+- **Options Presented**:
+  - `Headers` (Recommended): Add and export `validateHeaderName(name: string): string` in `packages/sql/src/network/headers.ts` and import it into `FilterBuilderImpl.ts` from `../../network/headers`.
+  - `Inline`: Import `LOWERCASE_DISALLOWED_HEADER_KEYS` from `../../network/headers` directly into `FilterBuilderImpl.ts` and perform the validation check directly inside `setHeader()`.
+  - `Record`: Import `validateHeaders` from `../../network/headers` and invoke `validateHeaders({ [name]: value })` before calling `#delegate.setHeader(name, value)`.
+- **Selected Option**: `Headers`
+- **Relevant Discussion**: Centralizes header validation in `network/headers.ts`, preserves single-coercion and whitespace-trimming optimizations from Code Review Finding 7 with zero per-call object allocations, and updates `validateHeaders()` to reuse `validateHeaderName()`.
+
+## Decision 15: Disallowed Header Keys in `postgrestFetch.ts`
+
+- **Question**: How should `packages/sql/src/network/postgrestFetch.ts` be updated after `DISALLOWED_HEADER_KEYS` was removed from `settings.ts`?
+- **Options Presented**:
+  - `Import` (Recommended): Import `LOWERCASE_DISALLOWED_HEADER_KEYS` directly from `./headers` in `postgrestFetch.ts`, updating `buildRequestHeaders()` to check `!LOWERCASE_DISALLOWED_HEADER_KEYS.has(key.trim().toLowerCase())`.
+  - `Alias`: Export `DISALLOWED_HEADER_KEYS = LOWERCASE_DISALLOWED_HEADER_KEYS` from `packages/sql/src/network/headers.ts` and import `DISALLOWED_HEADER_KEYS` from `./headers`.
+  - `Refactor`: Refactor `buildRequestHeaders()` in `postgrestFetch.ts` to delegate header filtering and merging to helpers in `./headers`.
+- **Selected Option**: `Import`
+- **Relevant Discussion**: Adopts canonical `LOWERCASE_DISALLOWED_HEADER_KEYS` from `./headers` directly without unnecessary aliases or changing the fetch request header construction flow.
+
+## Decision 16: Merge Conflict Resolution for `FirebaseSql.ts`
+
+- **Question**: How should `packages/sql/src/api/FirebaseSql.ts` be resolved?
+- **Options Presented**:
+  - `Adopt` (Recommended): Retain HEAD's full Supabase-backed `FirebaseSql` implementation (`PostgrestClient`, `_state`, `from()`, `rpc()`), import `createBuilderFetch` directly from `../network/postgrestFetch` (honoring Decision 10), adopt `normalizeInstanceIdentifierHeaders` and `logDebug` from `origin/tree/main` for `getInstanceIdentifier()` and `getSql()`, and remove the merge conflict markers.
+  - `Local`: Retain HEAD's Supabase implementation and import `createBuilderFetch` from `../network/postgrestFetch`, but define `normalizeHeaders` locally within `FirebaseSql.ts` with its previous signature and behavior instead of adopting `origin/tree/main`'s `normalizeInstanceIdentifierHeaders` and `logDebug`.
+  - `Utility`: Retain HEAD's Supabase implementation and import `createBuilderFetch` from `../network/postgrestFetch`, but move `normalizeHeaders` into a shared utility module (such as `../network/headers` or `../util/encoder`) and import it into `FirebaseSql.ts`.
+- **Selected Option**: `Adopt`
+- **Relevant Discussion**: Retains the complete Supabase client implementation, switches `createBuilderFetch` to `../network/postgrestFetch` per Decision 10, and adopts `normalizeInstanceIdentifierHeaders` and debug logging from `origin/tree/main`.
+
+## Decision 17: Merge Conflict Resolution for `settings.test.ts`
+
+- **Question**: How should `packages/sql/src/core/settings.test.ts` be resolved after `DISALLOWED_HEADER_KEYS`, `validateHeaderName`, and `normalizeHeaders` were removed from `settings.ts`?
+- **Options Presented**:
+  - `Retain`: Retain the full test suite in `settings.test.ts`, updating imports from `../network/headers` for header validation helpers and dropping `normalizeHeaders`.
+  - `Split`: Keep only settings tests in `settings.test.ts` and move standalone header validation tests to `packages/sql/src/network/headers.test.ts`.
+  - `Minimal`: Revert `settings.test.ts` to `origin/tree/main`'s minimal version, testing only `copySqlServiceSettings`.
+- **Selected Option**: `Minimal`
+- **Relevant Discussion**: Reverts `settings.test.ts` to match `origin/tree/main`, focusing `settings.test.ts` solely on testing `copySqlServiceSettings`.
+
+## Decision 18: Disallowed Headers Assertion in `Builders.test.ts`
+
+- **Question**: How should `packages/sql/src/api/Builders.test.ts` be updated after `DISALLOWED_HEADER_KEYS` was removed from `settings.ts`?
+- **Options Presented**:
+  - `Direct` (Recommended): Remove the unused `DISALLOWED_HEADER_KEYS` import and eliminate the mutating `hadAuthDisallowed` wrapper, directly asserting that `qb.select().setHeader('Authorization', 'Bearer secret')` throws `FirebaseSqlError(Code.INVALID_ARGUMENT, SQL_CLIENT)`.
+  - `Iterate`: Import `LOWERCASE_DISALLOWED_HEADER_KEYS` from `../network/headers` and iterate over all keys in the set, asserting that `qb.select().setHeader(key, 'val')` throws `FirebaseSqlError` for each protected header.
+  - `Alias`: Export a mutable `DISALLOWED_HEADER_KEYS` `Set` from `../network/headers` and update the import in `Builders.test.ts` to `../network/headers`.
+- **Selected Option**: `Direct`
+- **Relevant Discussion**: Eliminates obsolete mutation of `DISALLOWED_HEADER_KEYS` and directly asserts that setting `'Authorization'` on the builder throws `FirebaseSqlError`.
+
+## Decision 19: Merge Conflict Resolution for `FirebaseSql.test.ts`
+
+- **Question**: How should `packages/sql/src/api/FirebaseSql.test.ts` be resolved after `DISALLOWED_HEADER_KEYS` was moved to `headers.ts` and `normalizeInstanceIdentifierHeaders` was adopted?
+- **Options Presented**:
+  - `Combine` (Recommended): Retain HEAD's comprehensive test suite for `FirebaseSql`, update the import and loop to use `LOWERCASE_DISALLOWED_HEADER_KEYS` from `../network/headers`, incorporate the `normalizeInstanceIdentifierHeaders()` unit test suite from `origin/tree/main`, and remove the duplicate/obsolete skeleton tests and merge conflict markers.
+  - `Head`: Retain only HEAD's test suite, updating `DISALLOWED_HEADER_KEYS` to `LOWERCASE_DISALLOWED_HEADER_KEYS` from `../network/headers`, and discard `origin/tree/main`'s `normalizeInstanceIdentifierHeaders()` unit tests along with all conflict markers.
+  - `Main`: Revert entirely to `origin/tree/main`'s test suite, discarding all Supabase client, query builder, RPC, and terminate tests.
+- **Selected Option**: `Combine`
+- **Relevant Discussion**: Retains the full Supabase test coverage while testing `LOWERCASE_DISALLOWED_HEADER_KEYS` and adding `origin/tree/main`'s test cases for `normalizeInstanceIdentifierHeaders()`.

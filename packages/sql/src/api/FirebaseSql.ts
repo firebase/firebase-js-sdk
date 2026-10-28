@@ -33,7 +33,6 @@ import {
 } from '../core/error';
 import { mapPostgrestFailureToFirebaseSqlError } from '../core/errorMapper';
 import {
-  normalizeHeaders,
   SqlServiceSettings,
   validateSqlServiceSettings
 } from '../core/settings';
@@ -45,7 +44,8 @@ import type {
   UntypedDatabase,
   UntypedSchema
 } from '../core/untypedSchema';
-import { createBuilderFetch } from '../network';
+import { logDebug } from '../logger';
+import { createBuilderFetch } from '../network/postgrestFetch';
 import { FIREBASE_SQL_COMPONENT_NAME } from '../util/constants';
 import { deepSortKeysForObj } from '../util/encoder';
 import { resolvePostgrestUrl } from '../util/url';
@@ -280,9 +280,11 @@ export function getSql(
   const provider = _getProvider(app, FIREBASE_SQL_COMPONENT_NAME);
 
   if (provider.isInitialized(instanceIdentifier)) {
+    logDebug('Re-using cached instance');
     return provider.getImmediate({ identifier: instanceIdentifier });
   }
 
+  logDebug('Creating new Firebase SQL instance');
   return provider.initialize({
     instanceIdentifier,
     options: validatedSettings
@@ -307,7 +309,7 @@ export function getInstanceIdentifier(
   projectId: string
 ): string {
   const resolvedUrl = resolvePostgrestUrl(settings, projectId);
-  const headers = normalizeHeaders(settings.headers);
+  const headers = normalizeInstanceIdentifierHeaders(settings.headers);
   return JSON.stringify(
     deepSortKeysForObj({
       resolvedUrl,
@@ -315,4 +317,28 @@ export function getInstanceIdentifier(
       headers
     })
   );
+}
+
+/**
+ * Normalizes the given headers by lowercasing the keys and sorting entries deterministically by key.
+ * Used for computing a deterministic instance cache key - NOT used for request headers.
+ * Duplicate keys with different case names will be de-duplicated based on sorting order. Does not mutate the input object.
+ * @returns headers with lowercased keys, sorted by key
+ * @internal
+ */
+export function normalizeInstanceIdentifierHeaders(
+  headers?: Record<string, string> | undefined
+): Record<string, string> {
+  if (!headers) {
+    return {};
+  }
+  const normalizedHeaders: Record<string, string> = {};
+  // initial sort so that repeated keys in the case of a duplicate key after lowercasing have deterministic values in the normalized list
+  const sortedEntries = Object.entries(headers).sort(([a], [b]) =>
+    a < b ? -1 : a > b ? 1 : 0
+  );
+  for (const [key, value] of sortedEntries) {
+    normalizedHeaders[key.toLowerCase()] = value;
+  }
+  return normalizedHeaders;
 }
