@@ -64,7 +64,7 @@ describe('FirebaseAttributesSpanProcessor', () => {
     processor.onStart(mockSpan, ROOT_CONTEXT);
 
     expect(setAttributesRecord[SPAN_ATTR_KEY.GCP_RESOURCE_NAME]).toBe(
-      '//firebasetelemetry.googleapis.com/projects/test-project/locations/us-central1/'
+      '//clienttelemetry.googleapis.com/projects/test-project/locations/us-central1/'
     );
     expect(setAttributesRecord[SPAN_ATTR_KEY.SERVICE_VERSION]).toBe('1.2.3');
     expect(setAttributesRecord[SPAN_ATTR_KEY.SESSION_ID]).toBe(

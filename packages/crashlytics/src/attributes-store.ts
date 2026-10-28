@@ -169,7 +169,7 @@ export class AttributesStore {
     const attributes: Attributes = {};
     if (this._projectId) {
       attributes[SPAN_ATTR_KEY.GCP_RESOURCE_NAME] =
-        `//firebasetelemetry.googleapis.com/projects/${this._projectId}/locations/${this._region}/`;
+        `//clienttelemetry.googleapis.com/projects/${this._projectId}/locations/${this._region}/`;
     }
 
     if (this._appVersion) {

@@ -384,7 +384,7 @@ describe('AttributesStore', () => {
       );
       const attributes = attributesStore.getSpanAttributes();
       expect(attributes[SPAN_ATTR_KEY.GCP_RESOURCE_NAME]).toBe(
-        '//firebasetelemetry.googleapis.com/projects/my-project/locations/us-central1/'
+        '//clienttelemetry.googleapis.com/projects/my-project/locations/us-central1/'
       );
     });
 
@@ -392,7 +392,7 @@ describe('AttributesStore', () => {
       const attributesStore = new AttributesStore({ projectId: 'my-project' });
       const attributes = attributesStore.getSpanAttributes();
       expect(attributes[SPAN_ATTR_KEY.GCP_RESOURCE_NAME]).toBe(
-        '//firebasetelemetry.googleapis.com/projects/my-project/locations/global/'
+        '//clienttelemetry.googleapis.com/projects/my-project/locations/global/'
       );
     });
 
