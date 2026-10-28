@@ -29,7 +29,9 @@ function getConcurrency() {
   }
   const totalMemGB = os.totalmem() / (1024 * 1024 * 1024);
   const memoryCap = Math.floor(totalMemGB / 1.5);
-  const cpuCap = process.env.CI ? 2 : Math.max(2, Math.floor(os.cpus().length / 2));
+  const cpuCap = process.env.CI
+    ? 2
+    : Math.max(2, Math.floor(os.cpus().length / 2));
   return Math.max(1, Math.min(12, Math.min(cpuCap, memoryCap)));
 }
 
@@ -69,18 +71,55 @@ function createPlaywrightProvider(options) {
   };
 }
 
+function getCoverageReportsDirectory(packageDir) {
+  const lifecycle = process.env.npm_lifecycle_event;
+  if (lifecycle && lifecycle !== 'npx') {
+    const subdir = lifecycle.replace(/[^a-zA-Z0-9_-]/g, '-');
+    return path.resolve(packageDir, 'coverage', subdir);
+  }
+  const projectArg = process.argv.find(arg => arg.startsWith('--project='));
+  if (projectArg) {
+    const project = projectArg.split('=')[1].replace(/[^a-zA-Z0-9_-]/g, '-');
+    return path.resolve(packageDir, 'coverage', project);
+  }
+  return path.resolve(packageDir, 'coverage', 'default');
+}
+
 export function createBaseConfig(importMetaUrl, customConfig = {}) {
-  const packageDir = typeof importMetaUrl === 'string'
-    ? (importMetaUrl.startsWith('file:') ? path.dirname(fileURLToPath(importMetaUrl)) : importMetaUrl)
-    : process.cwd();
+  const packageDir =
+    typeof importMetaUrl === 'string'
+      ? importMetaUrl.startsWith('file:')
+        ? path.dirname(fileURLToPath(importMetaUrl))
+        : importMetaUrl
+      : process.cwd();
 
   const setupFile = path.resolve(packageDir, 'test/setup.ts');
   const setupFiles = fs.existsSync(setupFile) ? [setupFile] : [];
 
+  const isChromiumOnly =
+    !process.env.BROWSERS ||
+    process.env.BROWSERS.split(',').every(
+      b => b.trim() === 'ChromeHeadless' || b.trim() === 'chromium'
+    );
+  const enableCoverage =
+    isChromiumOnly &&
+    (Boolean(process.env.FIREBASE_CI_TEST_START_TIME) ||
+      process.env.COVERAGE === 'true');
+
   const base = defineConfig({
     test: {
       globals: true,
-      reporters: process.env.GITHUB_ACTIONS ? ['default', 'github-actions'] : ['default'],
+      reporters: process.env.GITHUB_ACTIONS
+        ? ['default', 'github-actions']
+        : ['default'],
+      coverage: {
+        enabled: enableCoverage,
+        provider: 'v8',
+        reporter: ['html', 'lcovonly'],
+        reportsDirectory: getCoverageReportsDirectory(packageDir),
+        include: ['src/**/*.ts'],
+        exclude: ['**/*.test.ts', '**/test/**', '**/*.d.ts']
+      },
       projects: [
         {
           test: {
@@ -125,9 +164,7 @@ export function createBaseConfig(importMetaUrl, customConfig = {}) {
                   args: ['--disk-cache-size=1', '--media-cache-size=1']
                 }
               }),
-              instances: [
-                { browser: 'chromium' }
-              ],
+              instances: [{ browser: 'chromium' }],
               headless: true
             },
             isolate: true,
