@@ -777,6 +777,10 @@ Suggested change:
 +}
 ```
 
+#### Resolution
+- **Decision:** Addressed via `PreCheckOnly` in `packages/sql/src/network/postgrestFetch.ts` by adding `getEffectiveSignal` and `toAbortError`, checking `signal?.aborted` synchronously before and after initial token acquisition, `401` token refresh, and retry dispatch (cancelling discarded `401` `response.body` streams and preserving `state.active === null` precedence), and normalizing `baseFetch` abort rejections to `AbortError`/`TimeoutError` so `fetchWithRetry` skips retries without adding `raceWithAbort` listener subscriptions (with unit tests in `packages/sql/src/network/postgrestFetch.test.ts`).
+- **Commit:** `8710afcd7`
+
 ### Finding 17: (line 143): [HIGH] Missing `state.active` checks around `baseFetch` allow post-`terminate()` retries/backoff delays, and unreplayable `Request`/`ReadableStream` bodies throw `TypeError` on `401` retry.
 
 `createBuilderFetch` does not re-check `state.active === null` when `baseFetch` settles/rejects (lines L143–L146 and L170–L176) or after draining the `401` body (line L169), and does not guard one-shot request bodies before retrying:
