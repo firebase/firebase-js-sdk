@@ -217,98 +217,132 @@ export const createBuilderFetch: CreateBuilderFetch =
       appCheckToken
     );
 
-    let response: Response;
-    try {
-      response = await baseFetch(input, {
-        ...init,
-        headers: mergedHeaders
-      });
-    } catch (err) {
-      if (state.active !== null && signal?.aborted) {
-        throw toAbortError(signal, err);
-      }
-      throw err;
-    }
+    const isRequestInput =
+      typeof Request !== 'undefined' && input instanceof Request;
+    const canReplayBody =
+      !(
+        typeof ReadableStream !== 'undefined' &&
+        init?.body instanceof ReadableStream
+      ) && !(isRequestInput && init?.body === undefined && input.bodyUsed);
+    const retryInput =
+      canReplayBody &&
+      isRequestInput &&
+      init?.body === undefined &&
+      input.body !== null
+        ? input.clone()
+        : null;
+    let retryInputConsumed = false;
 
-    if (
-      response.status === 401 &&
-      authToken !== null &&
-      state.active !== null
-    ) {
-      if (signal?.aborted) {
-        await response.body?.cancel().catch(() => {});
-        throw toAbortError(signal);
-      }
-
-      let refreshedAuthToken: string | null = null;
-      try {
-        const cachedTokenData = await active.authTokenProvider.getToken({
-          forceRefresh: false
-        });
-        refreshedAuthToken = cachedTokenData?.accessToken
-          ? cachedTokenData.accessToken
-          : null;
-        if (
-          state.active !== null &&
-          !signal?.aborted &&
-          (refreshedAuthToken === null || refreshedAuthToken === authToken)
-        ) {
-          const refreshedTokenData = await active.authTokenProvider.getToken({
-            forceRefresh: true
-          });
-          refreshedAuthToken = refreshedTokenData?.accessToken
-            ? refreshedTokenData.accessToken
-            : null;
-        }
-      } catch (err) {
-        await response.body?.cancel().catch(() => {});
-        if (state.active !== null && signal?.aborted) {
-          throw toAbortError(signal);
-        }
-        throwTrackedClientError(tracker, resolveClientError(state, err));
-      }
-
+    const executeFetch = async (
+      targetInput: RequestInfo | URL,
+      requestHeaders: Record<string, string>
+    ): Promise<Response> => {
       if (state.active === null) {
-        await response.body?.cancel().catch(() => {});
         throwTrackedClientError(tracker, createTerminatedError());
       }
       if (signal?.aborted) {
-        await response.body?.cancel().catch(() => {});
         throw toAbortError(signal);
       }
-
-      // Only retry when refresh yields a non-null token distinct from the
-      // initial attempt for the same Auth principal; avoids redundant round-trips
-      // on non-Auth 401 rejections (such as invalid App Check tokens) and prevents
-      // replaying in-flight requests across mid-flight account switches.
-      const refreshedUid = active.authTokenProvider.getAuth()?.getUid();
-      if (
-        refreshedAuthToken !== null &&
-        refreshedAuthToken !== authToken &&
-        refreshedUid === initialUid
-      ) {
-        await response.body?.cancel().catch(() => {});
+      if (retryInput !== null && targetInput === retryInput) {
+        retryInputConsumed = true;
+      }
+      let res: Response;
+      try {
+        res = await baseFetch(targetInput, {
+          ...init,
+          headers: requestHeaders
+        });
+      } catch (err) {
+        if (state.active === null) {
+          throwTrackedClientError(tracker, createTerminatedError());
+        }
         if (signal?.aborted) {
+          throw toAbortError(signal, err);
+        }
+        throw err;
+      }
+      if (state.active === null) {
+        void res.body?.cancel().catch(() => {});
+        throwTrackedClientError(tracker, createTerminatedError());
+      }
+      return res;
+    };
+
+    try {
+      const response = await executeFetch(input, mergedHeaders);
+
+      if (
+        response.status === 401 &&
+        authToken !== null &&
+        canReplayBody &&
+        state.active !== null
+      ) {
+        if (signal?.aborted) {
+          await response.body?.cancel().catch(() => {});
           throw toAbortError(signal);
         }
-        const retryHeaders: Record<string, string> = Object.defineProperties(
-          {},
-          Object.getOwnPropertyDescriptors(mergedHeaders)
-        );
-        retryHeaders['x-firebase-auth-token'] = refreshedAuthToken;
+
+        let refreshedAuthToken: string | null = null;
         try {
-          return await baseFetch(input, {
-            ...init,
-            headers: retryHeaders
+          const cachedTokenData = await active.authTokenProvider.getToken({
+            forceRefresh: false
           });
-        } catch (err) {
-          if (state.active !== null && signal?.aborted) {
-            throw toAbortError(signal, err);
+          refreshedAuthToken = cachedTokenData?.accessToken
+            ? cachedTokenData.accessToken
+            : null;
+          if (
+            state.active !== null &&
+            !signal?.aborted &&
+            (refreshedAuthToken === null || refreshedAuthToken === authToken)
+          ) {
+            const refreshedTokenData = await active.authTokenProvider.getToken({
+              forceRefresh: true
+            });
+            refreshedAuthToken = refreshedTokenData?.accessToken
+              ? refreshedTokenData.accessToken
+              : null;
           }
-          throw err;
+        } catch (err) {
+          await response.body?.cancel().catch(() => {});
+          if (state.active !== null && signal?.aborted) {
+            throw toAbortError(signal);
+          }
+          throwTrackedClientError(tracker, resolveClientError(state, err));
+        }
+
+        if (state.active === null) {
+          await response.body?.cancel().catch(() => {});
+          throwTrackedClientError(tracker, createTerminatedError());
+        }
+        if (signal?.aborted) {
+          await response.body?.cancel().catch(() => {});
+          throw toAbortError(signal);
+        }
+
+        // Only retry when refresh yields a non-null token distinct from the
+        // initial attempt for the same Auth principal; avoids redundant round-trips
+        // on non-Auth 401 rejections (such as invalid App Check tokens) and prevents
+        // replaying in-flight requests across mid-flight account switches.
+        const refreshedUid = active.authTokenProvider.getAuth()?.getUid();
+        if (
+          refreshedAuthToken !== null &&
+          refreshedAuthToken !== authToken &&
+          refreshedUid === initialUid
+        ) {
+          await response.body?.cancel().catch(() => {});
+          const retryHeaders: Record<string, string> = Object.defineProperties(
+            {},
+            Object.getOwnPropertyDescriptors(mergedHeaders)
+          );
+          retryHeaders['x-firebase-auth-token'] = refreshedAuthToken;
+          return await executeFetch(retryInput ?? input, retryHeaders);
         }
       }
-    }
 
-    return response;
+      return response;
+    } finally {
+      if (!retryInputConsumed) {
+        void retryInput?.body?.cancel().catch(() => {});
+      }
+    }
   };

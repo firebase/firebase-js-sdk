@@ -1334,5 +1334,242 @@ describe('createBuilderFetch', () => {
       }
       expect(mockFetch).toHaveBeenCalledTimes(1);
     });
+
+    it('aborts immediately with Code.NOT_INITIALIZED and cancels response body when terminated during baseFetch without fetchWithRetry backoff', async () => {
+      const providers = createMockProviders('jwt-1', null, 'uid-a');
+      const state: MutableSqlClientState = {
+        active: {
+          appId: 'app-id',
+          authTokenProvider: providers.authProvider,
+          appCheckTokenProvider: providers.appCheckProvider
+        }
+      };
+
+      // 1. baseFetch resolves (e.g. 503) after state.active becomes null -> cancels res.body and skips GET retry backoff
+      const cancelSpy = vi.fn(async () => {});
+      const mockFetch = vi
+        .fn<typeof fetch>()
+        .mockImplementationOnce(async () => {
+          state.active = null;
+          const stream = new ReadableStream<Uint8Array>({
+            start(ctrl) {
+              ctrl.enqueue(
+                new TextEncoder().encode('{"message":"unavailable"}')
+              );
+            },
+            cancel: cancelSpy
+          });
+          return new Response(stream, { status: 503 });
+        });
+      initializeFetch(mockFetch);
+
+      const qbResolve = new QueryBuilderImpl(
+        new PostgrestQueryBuilder<
+          UntypedClientOptions,
+          UntypedSchema,
+          UntypedTable,
+          string
+        >(new URL('https://example.com/postgrest/users'), {
+          headers: {},
+          retry: true
+        }),
+        state,
+        createBuilderFetch,
+        mapPostgrestFailureToFirebaseSqlError
+      );
+
+      const resResolve = await qbResolve.select();
+      expect(resResolve.success).toBe(false);
+      if (!resResolve.success) {
+        expect(resResolve.error.code).toBe(Code.NOT_INITIALIZED);
+        expect(resResolve.error.category).toBe(
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        );
+      }
+      expect(cancelSpy).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      // 2. baseFetch rejects with network error after state.active becomes null -> aborts immediately with Code.NOT_INITIALIZED without GET retry backoff
+      state.active = {
+        appId: 'app-id',
+        authTokenProvider: providers.authProvider,
+        appCheckTokenProvider: providers.appCheckProvider
+      };
+      mockFetch.mockClear();
+      mockFetch.mockImplementationOnce(async () => {
+        state.active = null;
+        throw new TypeError('Failed to fetch');
+      });
+
+      const qbReject = new QueryBuilderImpl(
+        new PostgrestQueryBuilder<
+          UntypedClientOptions,
+          UntypedSchema,
+          UntypedTable,
+          string
+        >(new URL('https://example.com/postgrest/users'), {
+          headers: {},
+          retry: true
+        }),
+        state,
+        createBuilderFetch,
+        mapPostgrestFailureToFirebaseSqlError
+      );
+
+      const resReject = await qbReject.select();
+      expect(resReject.success).toBe(false);
+      if (!resReject.success) {
+        expect(resReject.error.code).toBe(Code.NOT_INITIALIZED);
+        expect(resReject.error.category).toBe(
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        );
+      }
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('aborts with Code.NOT_INITIALIZED without dispatching retry baseFetch if terminated during 401 response.body.cancel()', async () => {
+      const providers = createMockProviders('jwt-1', null, 'uid-a');
+      providers.authGetToken
+        .mockResolvedValueOnce({ accessToken: 'jwt-1' })
+        .mockResolvedValueOnce({ accessToken: 'jwt-2' });
+
+      const state: MutableSqlClientState = {
+        active: {
+          appId: 'app-id',
+          authTokenProvider: providers.authProvider,
+          appCheckTokenProvider: providers.appCheckProvider
+        }
+      };
+
+      const cancelSpy = vi.fn(async () => {
+        state.active = null;
+      });
+      const stream401 = new ReadableStream<Uint8Array>({
+        start(ctrl) {
+          ctrl.enqueue(new TextEncoder().encode('{"error":"expired"}'));
+        },
+        cancel: cancelSpy
+      });
+      const mockFetch = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(new Response(stream401, { status: 401 }));
+      initializeFetch(mockFetch);
+
+      const tracker: BuilderExecutionTracker = { clientError: null };
+      await expect(
+        createBuilderFetch(state, tracker)(
+          'https://example.com/postgrest/users',
+          { method: 'POST', body: '{"name":"Ada"}' }
+        )
+      ).rejects.toMatchObject({ name: 'AbortError' });
+
+      expect(tracker.clientError).toMatchObject({
+        code: Code.NOT_INITIALIZED,
+        category: FirebaseSqlErrorCategory.SQL_CLIENT
+      });
+      expect(cancelSpy).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('replays Request inputs with non-null bodies on 401 via cloned Request without throwing TypeError', async () => {
+      const providers = createMockProviders('jwt-1', null, 'uid-a');
+      providers.authGetToken
+        .mockResolvedValueOnce({ accessToken: 'jwt-1' })
+        .mockResolvedValueOnce({ accessToken: 'jwt-2' });
+
+      const state: MutableSqlClientState = {
+        active: {
+          appId: 'app-id',
+          authTokenProvider: providers.authProvider,
+          appCheckTokenProvider: providers.appCheckProvider
+        }
+      };
+
+      const seenBodies: string[] = [];
+      const seenAuthTokens: Array<string | undefined> = [];
+      const mockFetch = vi
+        .fn<typeof fetch>()
+        .mockImplementation(async (callInput, callInit) => {
+          expect(callInput).toBeInstanceOf(Request);
+          seenBodies.push(await (callInput as Request).text());
+          seenAuthTokens.push(
+            (callInit?.headers as Record<string, string>)[
+              'x-firebase-auth-token'
+            ]
+          );
+          if (seenBodies.length === 1) {
+            return new Response('{"error":"expired"}', { status: 401 });
+          }
+          return new Response('[{"id":1}]', { status: 201 });
+        });
+      initializeFetch(mockFetch);
+
+      const req = new Request('https://example.com/postgrest/users', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name: 'Grace' })
+      });
+
+      const tracker: BuilderExecutionTracker = { clientError: null };
+      const res = await createBuilderFetch(state, tracker)(req);
+      expect(res.status).toBe(201);
+      expect(seenBodies).toEqual(['{"name":"Grace"}', '{"name":"Grace"}']);
+      expect(seenAuthTokens).toEqual(['jwt-1', 'jwt-2']);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('skips 401 retry and returns the original 401 response for ReadableStream init.body or bodyUsed Request inputs', async () => {
+      const providers = createMockProviders('jwt-1', null, 'uid-a');
+      const state: MutableSqlClientState = {
+        active: {
+          appId: 'app-id',
+          authTokenProvider: providers.authProvider,
+          appCheckTokenProvider: providers.appCheckProvider
+        }
+      };
+
+      const mockFetch = vi
+        .fn<typeof fetch>()
+        .mockImplementation(
+          async () => new Response('{"error":"unauthorized"}', { status: 401 })
+        );
+      initializeFetch(mockFetch);
+
+      // 1. ReadableStream init.body
+      const bodyStream = new ReadableStream<Uint8Array>({
+        start(ctrl) {
+          ctrl.enqueue(new TextEncoder().encode('{"stream":true}'));
+          ctrl.close();
+        }
+      });
+      const streamTracker: BuilderExecutionTracker = { clientError: null };
+      const streamRes = await createBuilderFetch(state, streamTracker)(
+        'https://example.com/postgrest/users',
+        {
+          method: 'POST',
+          body: bodyStream,
+          ...({ duplex: 'half' } as Record<string, unknown>)
+        }
+      );
+      expect(streamRes.status).toBe(401);
+      expect(await streamRes.json()).toEqual({ error: 'unauthorized' });
+      expect(providers.authGetToken).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      // 2. Request input whose body has already been consumed (bodyUsed === true)
+      const usedReq = new Request('https://example.com/postgrest/users', {
+        method: 'POST',
+        body: '{"already":"used"}'
+      });
+      await usedReq.text();
+      expect(usedReq.bodyUsed).toBe(true);
+
+      const usedTracker: BuilderExecutionTracker = { clientError: null };
+      const usedRes = await createBuilderFetch(state, usedTracker)(usedReq);
+      expect(usedRes.status).toBe(401);
+      expect(await usedRes.json()).toEqual({ error: 'unauthorized' });
+      expect(providers.authGetToken).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
   });
 });
