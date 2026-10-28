@@ -36,3 +36,28 @@ export function logDebug(msg: string): void {
 export function logError(msg: string): void {
   logger.error(`Firebase SQL (${SDK_VERSION}): ${msg}`);
 }
+
+/**
+ * The App Check "placeholder" token, i.e. base64 of `{"error":"UNKNOWN_ERROR"}`,
+ * sent when App Check fails to obtain a real token.
+ * See `formatDummyToken(defaultTokenErrorData)` in `@firebase/app-check`.
+ */
+const PLACEHOLDER_APP_CHECK_TOKEN = 'eyJlcnJvciI6IlVOS05PV05fRVJST1IifQ==';
+
+/**
+ * Returns a partially redacted access token, keeping only a short prefix and
+ * suffix so that tokens can be correlated in logs without exposing them.
+ * @internal
+ */
+export function redactToken(token: string | null): string {
+  if (token === null) {
+    return 'null';
+  }
+  if (token === PLACEHOLDER_APP_CHECK_TOKEN) {
+    return `${token} (the "placeholder" App Check token)`;
+  }
+  if (token.length < 30) {
+    return '<redacted>';
+  }
+  return `${token.slice(0, 6)}<redacted>${token.slice(-6)}`;
+}

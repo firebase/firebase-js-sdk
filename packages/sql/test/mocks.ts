@@ -77,7 +77,7 @@ export class MockAppCheckProvider implements AppCheckTokenProvider {
 
   getToken = vi.fn(
     async (_options?: TokenOptions): Promise<AppCheckTokenResult | null> => {
-      return this.token ? { token: this.token } : null;
+      return this.token !== null ? { token: this.token } : null;
     }
   );
 

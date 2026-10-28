@@ -50,7 +50,6 @@ const TEST_URL =
 const BASE_SETTINGS: SqlServiceSettings = { serviceId: 's', location: 'l' };
 
 type FirebaseSqlTransportWithInternalProperties = FirebaseSqlTransport & {
-  _authToken: string | null;
   _isUsingEmulator: boolean;
 };
 
@@ -83,28 +82,6 @@ describe('FirebaseSqlTransport', () => {
     setSDKVersion(originalVersion);
     vi.restoreAllMocks();
     await Promise.all(getApps().map(app => deleteApp(app)));
-  });
-
-  it('registers a token change listener on authProvider and updates _authToken via onAuthTokenChanged', () => {
-    const authProvider = new MockAuthProvider('initial-auth-token');
-    const transport = new FirebaseSqlTransport({
-      settings: BASE_SETTINGS,
-      authTokenProvider: authProvider
-    });
-
-    expect(authProvider.addTokenChangeListener).toHaveBeenCalledTimes(1);
-    const registeredCallback =
-      authProvider.addTokenChangeListener.mock.calls[0][0];
-
-    registeredCallback('updated-access-token');
-    expect(
-      (transport as FirebaseSqlTransportWithInternalProperties)._authToken
-    ).toBe('updated-access-token');
-
-    registeredCallback(null);
-    expect(
-      (transport as FirebaseSqlTransportWithInternalProperties)._authToken
-    ).toBeNull();
   });
 
   describe('invokePostgrestOperation', () => {
@@ -223,7 +200,7 @@ describe('FirebaseSqlTransport', () => {
         expect(baselineHeaders.get(FirebaseHeaders.GOOG_API_CLIENT)).toBe(
           'gl-js/ fire/1.2.3'
         );
-        expect(baselineHeaders.get(FirebaseHeaders.FIREBASE_GMPDID)).toBe(
+        expect(baselineHeaders.get(FirebaseHeaders.FIREBASE_GMPID)).toBe(
           'test-app'
         );
 
@@ -294,9 +271,23 @@ describe('FirebaseSqlTransport', () => {
           expect(headers.has(FirebaseHeaders.FIREBASE_APPCHECK)).toBe(false);
         });
 
-        it('omits token headers and still executes the request when getToken() rejects', async () => {
+        it('rejects invokePostgrestOperation and does not call fetch when authProvider.getToken() rejects', async () => {
+          const authError = new Error('auth failure');
           const rejectingAuth = new MockAuthProvider();
-          rejectingAuth.getToken.mockRejectedValue(new Error('auth failure'));
+          rejectingAuth.getToken.mockRejectedValue(authError);
+          const transport = new FirebaseSqlTransport({
+            settings: BASE_SETTINGS,
+            authTokenProvider: rejectingAuth
+          });
+
+          await expect(
+            transport.invokePostgrestOperation(TEST_URL)
+          ).rejects.toBe(authError);
+          expect(mockFetch).not.toHaveBeenCalled();
+        });
+
+        it('executes successfully with auth token and omits App Check header when appCheckProvider.getToken() rejects', async () => {
+          const authProvider = new MockAuthProvider('my-auth-token');
           const rejectingAppCheck = new MockAppCheckProvider('');
           rejectingAppCheck.getToken.mockRejectedValue(
             new Error('appcheck failure')
@@ -304,16 +295,18 @@ describe('FirebaseSqlTransport', () => {
 
           const expectedResponse = new Response('OK', { status: 200 });
           mockFetch.mockResolvedValueOnce(expectedResponse);
-          const rejectingTransport = new FirebaseSqlTransport({
+          const transport = new FirebaseSqlTransport({
             settings: BASE_SETTINGS,
-            authTokenProvider: rejectingAuth,
+            authTokenProvider: authProvider,
             appCheckTokenProvider: rejectingAppCheck
           });
-          const response =
-            await rejectingTransport.invokePostgrestOperation(TEST_URL);
+
+          const response = await transport.invokePostgrestOperation(TEST_URL);
           expect(response).toBe(expectedResponse);
           const headers = getHeadersFromCall(mockFetch);
-          expect(headers.has(FirebaseHeaders.FIREBASE_AUTH_TOKEN)).toBe(false);
+          expect(headers.get(FirebaseHeaders.FIREBASE_AUTH_TOKEN)).toBe(
+            'my-auth-token'
+          );
           expect(headers.has(FirebaseHeaders.FIREBASE_APPCHECK)).toBe(false);
         });
 
@@ -354,7 +347,7 @@ describe('FirebaseSqlTransport', () => {
           expect(headers.get(FirebaseHeaders.GOOG_API_CLIENT)).toBe(
             'gl-js/ fire/1.2.3'
           );
-          expect(headers.get(FirebaseHeaders.FIREBASE_GMPDID)).toBe(
+          expect(headers.get(FirebaseHeaders.FIREBASE_GMPID)).toBe(
             '1:123456:web:abcdef'
           );
         });
@@ -367,7 +360,7 @@ describe('FirebaseSqlTransport', () => {
           expect(headers.get(FirebaseHeaders.GOOG_API_CLIENT)).toBe(
             'gl-js/ fire/1.2.3'
           );
-          expect(headers.has(FirebaseHeaders.FIREBASE_GMPDID)).toBe(false);
+          expect(headers.has(FirebaseHeaders.FIREBASE_GMPID)).toBe(false);
         });
 
         it('overwrites caller-supplied x-goog-api-client and x-firebase-gmpid headers', async () => {
@@ -384,7 +377,7 @@ describe('FirebaseSqlTransport', () => {
           expect(headers.get(FirebaseHeaders.GOOG_API_CLIENT)).toBe(
             'gl-js/ fire/1.2.3'
           );
-          expect(headers.get(FirebaseHeaders.FIREBASE_GMPDID)).toBe(
+          expect(headers.get(FirebaseHeaders.FIREBASE_GMPID)).toBe(
             'default-gmpid'
           );
         });
@@ -589,7 +582,7 @@ describe('FirebaseSqlTransport', () => {
         settings: BASE_SETTINGS
       }).invokePostgrestOperation(TEST_URL, {
         headers: {
-          [FirebaseHeaders.FIREBASE_AUTH_TOKEN]: 'custom-user-jwt'
+          Authorization: 'Bearer custom-jwt'
         }
       });
 

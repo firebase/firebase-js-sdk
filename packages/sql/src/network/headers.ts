@@ -44,25 +44,27 @@ export type FirebaseHeaders = Lowercase<
 export const FirebaseHeaders = Object.freeze({
   GOOG_API_CLIENT: 'x-goog-api-client' as const satisfies FirebaseHeaders,
   CLIENT_VERSION: 'x-client-version' as const satisfies FirebaseHeaders,
-  FIREBASE_GMPDID: 'x-firebase-gmpid' as const satisfies FirebaseHeaders,
+  FIREBASE_GMPID: 'x-firebase-gmpid' as const satisfies FirebaseHeaders,
   FIREBASE_AUTH_TOKEN:
     'x-firebase-auth-token' as const satisfies FirebaseHeaders,
   FIREBASE_APPCHECK: 'x-firebase-appcheck' as const satisfies FirebaseHeaders
 });
 
-/** Lowerecased HTTP Header keys forbidden for FSQL SDK */
-const FORBIDDEN_HEADERS = new Set<string>([
-  'X-Firebase-SqlConnect-Affinity',
-  'X-Goog-Request-Params',
-  'X-Firebase-Client',
-  'X-Firebase-Client-Log-Type'
-]);
+/**
+ * Lowercased HTTP header keys forbidden for FSQL SDK.
+ * Keep in sync with go/firebasesql:sdk:headers.
+ */
+const FORBIDDEN_HEADERS = [
+  'x-firebase-sqlconnect-affinity',
+  'x-goog-request-params',
+  'x-firebase-client',
+  'x-firebase-client-log-type',
+  'authorization'
+] as const;
 
 /** @internal */
-export const LOWERCASE_DISALLOWED_HEADER_KEYS = new Set<string>([
-  ...Object.values(FirebaseHeaders),
-  ...Array.from(FORBIDDEN_HEADERS).map(key => key.toLowerCase())
-]);
+export const LOWERCASE_DISALLOWED_HEADER_KEYS: ReadonlySet<string> =
+  new Set<string>([...Object.values(FirebaseHeaders), ...FORBIDDEN_HEADERS]);
 
 /**
  * Returns the {@linkcode FirebaseHeaders.GOOG_API_CLIENT | 'x-goog-api-client'} header value.
@@ -131,17 +133,31 @@ export function resolveRequestHeaders(
 
   mergeHeadersInit(headers, init?.headers);
 
+  for (const key of FORBIDDEN_HEADERS) {
+    headers.delete(key);
+  }
+
   // Firebase token headers
   // user-supplied authorization headers are overwritten
-  authToken &&
-    authToken.accessToken &&
+  if (authToken?.accessToken) {
     headers.set(FirebaseHeaders.FIREBASE_AUTH_TOKEN, authToken.accessToken);
-  appCheckToken &&
+  } else {
+    headers.delete(FirebaseHeaders.FIREBASE_AUTH_TOKEN);
+  }
+
+  if (appCheckToken?.token) {
     headers.set(FirebaseHeaders.FIREBASE_APPCHECK, appCheckToken.token);
+  } else {
+    headers.delete(FirebaseHeaders.FIREBASE_APPCHECK);
+  }
 
   // Telemetry headers
   headers.set(FirebaseHeaders.GOOG_API_CLIENT, getGoogApiClientValue());
-  _appId && headers.set(FirebaseHeaders.FIREBASE_GMPDID, _appId);
+  if (_appId !== undefined) {
+    headers.set(FirebaseHeaders.FIREBASE_GMPID, _appId);
+  } else {
+    headers.delete(FirebaseHeaders.FIREBASE_GMPID);
+  }
 
   // Normalize headers
   const headersRecord: Record<string, string> = {};

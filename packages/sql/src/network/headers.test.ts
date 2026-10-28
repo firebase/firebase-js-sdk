@@ -48,7 +48,7 @@ describe('resolveRequestHeaders()', () => {
     expect(result[FirebaseHeaders.FIREBASE_APPCHECK]).toBeUndefined();
   });
 
-  it('overwrites caller-supplied auth and App Check tokens over SDK tokens', () => {
+  it('overwrites caller-supplied auth and App Check tokens with SDK tokens', () => {
     const result = resolveRequestHeaders(
       { accessToken: 'sdk-auth-token' },
       { token: 'sdk-appcheck-token' },
@@ -66,10 +66,43 @@ describe('resolveRequestHeaders()', () => {
     );
   });
 
+  it('omits token headers when tokens are empty strings', () => {
+    const result = resolveRequestHeaders(
+      { accessToken: '' },
+      { token: '' },
+      {
+        headers: {
+          [FirebaseHeaders.FIREBASE_AUTH_TOKEN]: 'caller-auth-token',
+          [FirebaseHeaders.FIREBASE_APPCHECK]: 'caller-appcheck-token'
+        }
+      }
+    );
+    expect(result[FirebaseHeaders.FIREBASE_AUTH_TOKEN]).toBeUndefined();
+    expect(result[FirebaseHeaders.FIREBASE_APPCHECK]).toBeUndefined();
+  });
+
+  it('strips forbidden headers supplied by caller', () => {
+    const result = resolveRequestHeaders(null, null, {
+      headers: {
+        'x-firebase-sqlconnect-affinity': 'affinity-val',
+        'X-Goog-Request-Params': 'params-val',
+        'x-firebase-client': 'client-val',
+        'X-Firebase-Client-Log-Type': 'log-val',
+        'x-custom-header': 'custom-val'
+      }
+    });
+
+    expect(result['x-firebase-sqlconnect-affinity']).toBeUndefined();
+    expect(result['x-goog-request-params']).toBeUndefined();
+    expect(result['x-firebase-client']).toBeUndefined();
+    expect(result['x-firebase-client-log-type']).toBeUndefined();
+    expect(result['x-custom-header']).toBe('custom-val');
+  });
+
   it('attaches default telemetry', () => {
     const result = resolveRequestHeaders(null, null, undefined, 'app-123');
     expect(result[FirebaseHeaders.GOOG_API_CLIENT]).toBe('gl-js/ fire/1.2.3');
-    expect(result[FirebaseHeaders.FIREBASE_GMPDID]).toBe('app-123');
+    expect(result[FirebaseHeaders.FIREBASE_GMPID]).toBe('app-123');
   });
 
   it('overwrites caller-supplied telemetry headers', () => {
@@ -79,12 +112,12 @@ describe('resolveRequestHeaders()', () => {
       {
         headers: {
           [FirebaseHeaders.GOOG_API_CLIENT]: 'custom-client/9.9',
-          [FirebaseHeaders.FIREBASE_GMPDID]: 'custom-gmpid'
+          [FirebaseHeaders.FIREBASE_GMPID]: 'custom-gmpid'
         }
       },
       'app-123'
     );
     expect(result[FirebaseHeaders.GOOG_API_CLIENT]).toBe('gl-js/ fire/1.2.3');
-    expect(result[FirebaseHeaders.FIREBASE_GMPDID]).toBe('app-123');
+    expect(result[FirebaseHeaders.FIREBASE_GMPID]).toBe('app-123');
   });
 });

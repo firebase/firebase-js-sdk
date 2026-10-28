@@ -21,7 +21,6 @@ import { isCloudWorkstation } from '@firebase/util';
 import { SqlServiceSettings } from '../core/settings';
 import { AppCheckTokenProvider } from '../core/tokenProviders/AppCheckTokenProvider';
 import { FirebaseAuthTokenProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
-import { logDebug } from '../logger';
 
 import { Fetch, getFetch } from './fetch';
 import { FirebaseHeaders, resolveRequestHeaders } from './headers';
@@ -37,14 +36,6 @@ export interface FirebaseSqlTransportInterface {
    * Constructs and executes an FSQL HTTP request, and returns the response.
    */
   invokePostgrestOperation(url: string, init?: RequestInit): Promise<Response>;
-
-  /**
-   * Callback invoked when the Firebase Auth token is refreshed or changed. Note that this callback
-   * is called immediately asynchronously when the Auth Provider is initialized to provide
-   * the initial auth state.
-   * @param token The new access token or null if signed out.
-   */
-  onAuthTokenChanged: (token: string | null) => void;
 }
 
 /**
@@ -65,7 +56,6 @@ export interface FirebaseSqlTransportOptions {
 export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
   readonly settings?: SqlServiceSettings;
   protected _appId?: string;
-  protected _authToken: string | null = null;
   // TODO: Update _isUsingEmulator if we add emulator support in the future.
   protected _isUsingEmulator = false;
   protected authProvider?: FirebaseAuthTokenProvider;
@@ -76,16 +66,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
     this._appId = options.appId;
     this.authProvider = options.authTokenProvider;
     this.appCheckProvider = options.appCheckTokenProvider;
-    this.authProvider?.addTokenChangeListener(this.onAuthTokenChanged);
   }
-
-  /**
-   * Callback invoked when the Firebase Auth token is refreshed or changed.
-   */
-  onAuthTokenChanged = (token: string | null): void => {
-    logDebug(`Auth Token Changed: ${token}`);
-    this._authToken = token;
-  };
 
   /**
    * Constructs and executes an FSQL HTTP request, and returns the response.
@@ -98,7 +79,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
 
     const [authToken, appCheckToken] = await Promise.all([
       this.authProvider
-        ? this.authProvider.getToken({ forceRefresh: false }).catch(() => null)
+        ? this.authProvider.getToken({ forceRefresh: false })
         : Promise.resolve(null),
       this.appCheckProvider
         ? this.appCheckProvider

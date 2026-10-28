@@ -51,19 +51,10 @@ import { FIREBASE_SQL_COMPONENT_NAME } from '../util/constants';
 import { deepSortKeysForObj } from '../util/encoder';
 import { resolvePostgrestUrl } from '../util/url';
 
-import type { FilterBuilder } from './FilterBuilder';
-import type { QueryBuilder, QueryCountStrategy } from './QueryBuilder';
-
 declare module '@firebase/component' {
   interface NameServiceMapping {
     [FIREBASE_SQL_COMPONENT_NAME]: FirebaseSql;
   }
-}
-
-export interface FirebaseSqlRpcOptions {
-  head?: boolean | undefined;
-  get?: boolean | undefined;
-  count?: QueryCountStrategy | undefined;
 }
 
 /**
@@ -140,24 +131,6 @@ export class FirebaseSql {
       );
     }
     return Promise.resolve();
-  }
-
-  from(table: string): QueryBuilder {
-    throw new Error('not implemented');
-  }
-
-  rpc<
-    Args extends object & {
-      readonly [K in keyof Args]: unknown;
-    } & {
-      readonly [Symbol.iterator]?: never;
-    } = Record<string, unknown>
-  >(
-    fn: string,
-    params?: Args | undefined,
-    options?: Readonly<FirebaseSqlRpcOptions> | undefined
-  ): FilterBuilder<unknown, 'RPC'> {
-    throw new Error('not implemented');
   }
 }
 
