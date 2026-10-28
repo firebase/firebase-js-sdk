@@ -135,6 +135,10 @@ Suggested change:
 +}
 ```
 
+#### Resolution
+- **Decision:** Addressed by consolidating `UntypedClientOptions`, `UntypedRelationship`, `UntypedTable`, `UntypedFunction`, `UntypedSchema`, and `UntypedDatabase` into internal-only `packages/sql/src/core/untypedSchema.ts`, completing `FilterDelegateHandle` (`PromiseLike<PostgrestDelegateResponse>` plus all 48 delegated methods) in `packages/sql/src/api/impl/FilterBuilderImpl.ts` and `QueryDelegateHandle` (all 5 query methods) in `packages/sql/src/api/impl/QueryBuilderImpl.ts`, and removing `@supabase/postgrest-js` imports and unchecked `as` casts from both wrapper implementations (verified in `packages/sql/src/api/Builders.test.ts` and `packages/sql/dist/sql-public.d.ts`).
+- **Commit:** `5d8ce8630`
+
 ### Finding 3: (line 109): [HIGH] `FirebaseSql._state` uses TypeScript `private` instead of `#state`, leaking `_state` into `sql-public.d.ts` and onto runtime `FirebaseSql` instances.
 
 Declaring `private readonly _state: MutableSqlClientState;` without an ECMAScript `#` private field (and without `@internal`) causes API Extractor to emit `private readonly _state;` in `packages/sql/dist/sql-public.d.ts` and exposes `this._state` as an enumerable own property on every `FirebaseSql` instance (`Object.keys(sql)`, `JSON.stringify(sql)`). That runtime property exposes `authTokenProvider` and `appCheckTokenProvider` (including static `FirebaseServerApp` `authIdToken` and `appCheckToken` strings) and allows callers to mutate `_state.active` directly without executing `_delete()` cleanup. Also update `this._state` references on lines L136, L160–L162, L175, L185, L202, L212, and L220.
