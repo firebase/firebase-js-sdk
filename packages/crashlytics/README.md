@@ -71,11 +71,9 @@ Crashlytics for web leverages Google Cloud Logging, Error Reporting, and Storage
 
 ### Option 2: Using Firebase CLI
 
-If you prefer configuring your project via the terminal or using an AI coding agent, run the onboarding commands to enable the experiments and onboard:
+If you prefer configuring your project via the terminal or using an AI coding agent, run the following command:
 
 ```bash
-firebase experiments:enable crashlyticsWeb
-firebase experiments:enable crashlyticsWebAlerts
 firebase crashlytics:onboard:web <YOUR_FIREBASE_APP_ID> --project <YOUR_FIREBASE_PROJECT_ID>
 ```
 
