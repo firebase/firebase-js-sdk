@@ -79,7 +79,6 @@ describe('FirebaseSql', () => {
       );
 
       await FirebaseSql.terminate(client);
-
       expect(authTerminateSpy).toHaveBeenCalledTimes(1);
       expect(appCheckTerminateSpy).toHaveBeenCalledTimes(1);
 
@@ -394,6 +393,60 @@ describe('getSql()', () => {
       });
 
       expect(client1).toBe(client2);
+    });
+  });
+
+  describe('normalizeInstanceIdentifierHeaders()', () => {
+    it('returns an empty object when headers is undefined or empty', () => {
+      expect(FirebaseSql.normalizeInstanceIdentifierHeaders(undefined)).toEqual(
+        {}
+      );
+      expect(FirebaseSql.normalizeInstanceIdentifierHeaders({})).toEqual({});
+    });
+
+    it('lowercases all header keys', () => {
+      const input = {
+        'Content-Type': 'application/json',
+        'X-CUSTOM-HEADER': 'value'
+      };
+      expect(FirebaseSql.normalizeInstanceIdentifierHeaders(input)).toEqual({
+        'content-type': 'application/json',
+        'x-custom-header': 'value'
+      });
+    });
+
+    it('deterministically sorts entries by key code units regardless of values', () => {
+      const input = {
+        z: '1',
+        a: '9',
+        M: '5',
+        b: '2'
+      };
+      const result = FirebaseSql.normalizeInstanceIdentifierHeaders(input);
+      // Key order by code unit: 'M' (77), 'a' (97), 'b' (98), 'z' (122)
+      expect(Object.keys(result)).toEqual(['m', 'a', 'b', 'z']);
+    });
+
+    it('de-duplicates case-differing keys deterministically based on key sorting order', () => {
+      // In code-unit comparison, 'B' (66) < 'b' (98).
+      // 'b' is processed after 'B', overwriting 'B' regardless of values.
+      const input = {
+        b: 'lowercase-val',
+        B: 'uppercase-val'
+      };
+      expect(FirebaseSql.normalizeInstanceIdentifierHeaders(input)).toEqual({
+        b: 'lowercase-val'
+      });
+
+      const reversedValues = {
+        B: 'zzz',
+        b: 'aaa'
+      };
+      expect(
+        FirebaseSql.normalizeInstanceIdentifierHeaders(reversedValues)
+      ).toEqual({
+        b: 'aaa'
+      });
     });
   });
 });

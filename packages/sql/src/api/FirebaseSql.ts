@@ -31,7 +31,6 @@ import {
   FirebaseSqlError
 } from '../core/error';
 import {
-  normalizeHeaders,
   SqlServiceSettings,
   validateSqlServiceSettings
 } from '../core/settings';
@@ -43,23 +42,19 @@ import {
   FirebaseAuthProvider,
   FirebaseAuthTokenProvider
 } from '../core/tokenProviders/FirebaseAuthTokenProvider';
+import { logDebug } from '../logger';
+import {
+  FirebaseSqlTransport,
+  FirebaseSqlTransportInterface
+} from '../network';
 import { FIREBASE_SQL_COMPONENT_NAME } from '../util/constants';
 import { deepSortKeysForObj } from '../util/encoder';
 import { resolvePostgrestUrl } from '../util/url';
-
-import type { FilterBuilder } from './FilterBuilder';
-import type { QueryBuilder, QueryCountStrategy } from './QueryBuilder';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
     [FIREBASE_SQL_COMPONENT_NAME]: FirebaseSql;
   }
-}
-
-export interface FirebaseSqlRpcOptions {
-  head?: boolean | undefined;
-  get?: boolean | undefined;
-  count?: QueryCountStrategy | undefined;
 }
 
 /**
@@ -78,17 +73,29 @@ export class FirebaseSql {
   private _appCheckTokenProvider: AppCheckTokenProvider;
 
   /** @internal */
+  private _transport: FirebaseSqlTransportInterface;
+
+  /** @internal */
   constructor(
     /** The bound FirebaseApp instance. */
     readonly app: FirebaseApp,
     /** Resolved configuration settings. */
     readonly settings: SqlServiceSettings,
-    /** @internal */
+    /**
+     * The instance identifier for the Firebase SQL service instance.
+     * @internal
+     */
     readonly _instanceIdentifier: string,
-    /** @internal */
-    private authInternalProvider: Provider<FirebaseAuthInternalName>,
-    /** @internal */
-    private appCheckInternalProvider: Provider<AppCheckInternalComponentName>
+    /**
+     * The auth internal provider.
+     * @internal
+     */
+    authInternalProvider: Provider<FirebaseAuthInternalName>,
+    /**
+     * The app check internal provider.
+     * @internal
+     */
+    appCheckInternalProvider: Provider<AppCheckInternalComponentName>
   ) {
     this._postgrestUrl = resolvePostgrestUrl(
       this.settings,
@@ -103,6 +110,12 @@ export class FirebaseSql {
       app,
       appCheckInternalProvider
     );
+    this._transport = new FirebaseSqlTransport({
+      settings,
+      appId: app.options.appId,
+      authTokenProvider: this._authTokenProvider,
+      appCheckTokenProvider: this._appCheckTokenProvider
+    });
   }
 
   /** @internal */
@@ -118,24 +131,6 @@ export class FirebaseSql {
       );
     }
     return Promise.resolve();
-  }
-
-  from(table: string): QueryBuilder {
-    throw new Error('not implemented');
-  }
-
-  rpc<
-    Args extends object & {
-      readonly [K in keyof Args]: unknown;
-    } & {
-      readonly [Symbol.iterator]?: never;
-    } = Record<string, unknown>
-  >(
-    fn: string,
-    params?: Args | undefined,
-    options?: Readonly<FirebaseSqlRpcOptions> | undefined
-  ): FilterBuilder<unknown, 'RPC'> {
-    throw new Error('not implemented');
   }
 }
 
@@ -206,9 +201,11 @@ export function getSql(
   const provider = _getProvider(app, FIREBASE_SQL_COMPONENT_NAME);
 
   if (provider.isInitialized(instanceIdentifier)) {
+    logDebug('Re-using cached instance');
     return provider.getImmediate({ identifier: instanceIdentifier });
   }
 
+  logDebug('Creating new Firebase SQL instance');
   return provider.initialize({
     instanceIdentifier,
     options: validatedSettings
@@ -233,7 +230,7 @@ export function getInstanceIdentifier(
   projectId: string
 ): string {
   const resolvedUrl = resolvePostgrestUrl(settings, projectId);
-  const headers = normalizeHeaders(settings.headers);
+  const headers = normalizeInstanceIdentifierHeaders(settings.headers);
   return JSON.stringify(
     deepSortKeysForObj({
       resolvedUrl,
@@ -241,4 +238,28 @@ export function getInstanceIdentifier(
       headers
     })
   );
+}
+
+/**
+ * Normalizes the given headers by lowercasing the keys and sorting entries deterministically by key.
+ * Used for computing a deterministic instance cache key - NOT used for request headers.
+ * Duplicate keys with different case names will be de-duplicated based on sorting order. Does not mutate the input object.
+ * @returns headers with lowercased keys, sorted by key
+ * @internal
+ */
+export function normalizeInstanceIdentifierHeaders(
+  headers?: Record<string, string> | undefined
+): Record<string, string> {
+  if (!headers) {
+    return {};
+  }
+  const normalizedHeaders: Record<string, string> = {};
+  // initial sort so that repeated keys in the case of a duplicate key after lowercasing have deterministic values in the normalized list
+  const sortedEntries = Object.entries(headers).sort(([a], [b]) =>
+    a < b ? -1 : a > b ? 1 : 0
+  );
+  for (const [key, value] of sortedEntries) {
+    normalizedHeaders[key.toLowerCase()] = value;
+  }
+  return normalizedHeaders;
 }

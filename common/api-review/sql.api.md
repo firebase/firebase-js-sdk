@@ -33,11 +33,13 @@ export class FirebaseSql {
     constructor(
     app: FirebaseApp,
     settings: SqlServiceSettings,
-    _instanceIdentifier: string, authInternalProvider: Provider<FirebaseAuthInternalName>, appCheckInternalProvider: Provider<AppCheckInternalComponentName>);
+    _instanceIdentifier: string,
+    authInternalProvider: Provider<FirebaseAuthInternalName>,
+    appCheckInternalProvider: Provider<AppCheckInternalComponentName>);
     readonly app: FirebaseApp;
     // @internal (undocumented)
     _delete(): Promise<void>;
-    // @internal (undocumented)
+    // @internal
     readonly _instanceIdentifier: string;
     // @internal (undocumented)
     readonly _postgrestUrl: string;
