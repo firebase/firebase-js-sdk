@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
 import { ProviderId } from '../../model/enums';
 import { FirebaseError } from '@firebase/util';
 
@@ -27,9 +24,6 @@ import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../errors';
 import { signInWithCustomToken } from './custom_token';
-
-use(chaiAsPromised);
-
 describe('api/authentication/signInWithCustomToken', () => {
   const request = {
     token: 'my-token',
@@ -55,16 +49,19 @@ describe('api/authentication/signInWithCustomToken', () => {
 
     auth.tenantId = 'tenant-id';
     const response = await signInWithCustomToken(auth, request);
-    expect(response.providerId).to.eq(ProviderId.CUSTOM);
-    expect(response.idToken).to.eq('id-token');
-    expect(response.expiresIn).to.eq('1000');
-    expect(response.localId).to.eq('1234');
-    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.providerId).toBe(ProviderId.CUSTOM);
+    expect(response.idToken).toBe('id-token');
+    expect(response.expiresIn).toBe('1000');
+    expect(response.localId).toBe('1234');
+    expect(mock.calls[0].request).toEqual({
+      ...request,
+      tenantId: 'tenant-id'
+    });
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -86,10 +83,11 @@ describe('api/authentication/signInWithCustomToken', () => {
       400
     );
 
-    await expect(signInWithCustomToken(auth, request)).to.be.rejectedWith(
-      FirebaseError,
+    const promise = signInWithCustomToken(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The custom token format is incorrect. Please check the documentation. (auth/invalid-custom-token).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
