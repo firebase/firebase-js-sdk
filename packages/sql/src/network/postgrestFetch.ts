@@ -70,6 +70,38 @@ function resolveClientError(
   );
 }
 
+function getEffectiveSignal(
+  input: RequestInfo | URL,
+  init: RequestInit | undefined
+): AbortSignal | undefined {
+  if (init?.signal !== undefined) {
+    return init.signal ?? undefined;
+  }
+  if (typeof Request !== 'undefined' && input instanceof Request) {
+    return input.signal;
+  }
+  return undefined;
+}
+
+function toAbortError(signal: AbortSignal, thrown?: unknown): Error {
+  const reason: unknown = thrown !== undefined ? thrown : signal.reason;
+  if (
+    reason instanceof Error &&
+    (reason.name === 'AbortError' || reason.name === 'TimeoutError')
+  ) {
+    return reason;
+  }
+  const message =
+    reason instanceof Error
+      ? reason.message
+      : reason !== undefined
+        ? String(reason)
+        : 'The operation was aborted.';
+  const abortError = new Error(message);
+  abortError.name = 'AbortError';
+  return abortError;
+}
+
 function buildRequestHeaders(
   input: RequestInfo | URL,
   headersInit: HeadersInit | undefined,
@@ -145,6 +177,11 @@ export const createBuilderFetch: CreateBuilderFetch =
       throwTrackedClientError(tracker, resolveClientError(state, err));
     }
 
+    const signal = getEffectiveSignal(input, init);
+    if (signal?.aborted) {
+      throw toAbortError(signal);
+    }
+
     let authToken: string | null = null;
     let appCheckToken: string | null = null;
     let initialUid: string | null | undefined;
@@ -159,11 +196,17 @@ export const createBuilderFetch: CreateBuilderFetch =
         : null;
       initialUid = active.authTokenProvider.getAuth()?.getUid();
     } catch (err) {
+      if (state.active !== null && signal?.aborted) {
+        throw toAbortError(signal);
+      }
       throwTrackedClientError(tracker, resolveClientError(state, err));
     }
 
     if (state.active === null) {
       throwTrackedClientError(tracker, createTerminatedError());
+    }
+    if (signal?.aborted) {
+      throw toAbortError(signal);
     }
 
     const mergedHeaders = buildRequestHeaders(
@@ -174,16 +217,29 @@ export const createBuilderFetch: CreateBuilderFetch =
       appCheckToken
     );
 
-    const response = await baseFetch(input, {
-      ...init,
-      headers: mergedHeaders
-    });
+    let response: Response;
+    try {
+      response = await baseFetch(input, {
+        ...init,
+        headers: mergedHeaders
+      });
+    } catch (err) {
+      if (state.active !== null && signal?.aborted) {
+        throw toAbortError(signal, err);
+      }
+      throw err;
+    }
 
     if (
       response.status === 401 &&
       authToken !== null &&
       state.active !== null
     ) {
+      if (signal?.aborted) {
+        await response.body?.cancel().catch(() => {});
+        throw toAbortError(signal);
+      }
+
       let refreshedAuthToken: string | null = null;
       try {
         const cachedTokenData = await active.authTokenProvider.getToken({
@@ -194,6 +250,7 @@ export const createBuilderFetch: CreateBuilderFetch =
           : null;
         if (
           state.active !== null &&
+          !signal?.aborted &&
           (refreshedAuthToken === null || refreshedAuthToken === authToken)
         ) {
           const refreshedTokenData = await active.authTokenProvider.getToken({
@@ -205,12 +262,19 @@ export const createBuilderFetch: CreateBuilderFetch =
         }
       } catch (err) {
         await response.body?.cancel().catch(() => {});
+        if (state.active !== null && signal?.aborted) {
+          throw toAbortError(signal);
+        }
         throwTrackedClientError(tracker, resolveClientError(state, err));
       }
 
       if (state.active === null) {
         await response.body?.cancel().catch(() => {});
         throwTrackedClientError(tracker, createTerminatedError());
+      }
+      if (signal?.aborted) {
+        await response.body?.cancel().catch(() => {});
+        throw toAbortError(signal);
       }
 
       // Only retry when refresh yields a non-null token distinct from the
@@ -224,15 +288,25 @@ export const createBuilderFetch: CreateBuilderFetch =
         refreshedUid === initialUid
       ) {
         await response.body?.cancel().catch(() => {});
+        if (signal?.aborted) {
+          throw toAbortError(signal);
+        }
         const retryHeaders: Record<string, string> = Object.defineProperties(
           {},
           Object.getOwnPropertyDescriptors(mergedHeaders)
         );
         retryHeaders['x-firebase-auth-token'] = refreshedAuthToken;
-        return baseFetch(input, {
-          ...init,
-          headers: retryHeaders
-        });
+        try {
+          return await baseFetch(input, {
+            ...init,
+            headers: retryHeaders
+          });
+        } catch (err) {
+          if (state.active !== null && signal?.aborted) {
+            throw toAbortError(signal, err);
+          }
+          throw err;
+        }
       }
     }
 

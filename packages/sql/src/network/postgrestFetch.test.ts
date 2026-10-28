@@ -20,19 +20,27 @@ import type {
   FirebaseAuthInternal,
   FirebaseAuthTokenData
 } from '@firebase/auth-interop-types';
+import { PostgrestQueryBuilder } from '@supabase/postgrest-js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { QueryBuilderImpl } from '../api/impl/QueryBuilderImpl';
 import {
   Code,
   FirebaseSqlError,
   FirebaseSqlErrorCategory
 } from '../core/error';
+import { mapPostgrestFailureToFirebaseSqlError } from '../core/errorMapper';
 import type {
   BuilderExecutionTracker,
   MutableSqlClientState
 } from '../core/state';
 import type { AppCheckTokenProvider } from '../core/tokenProviders/AppCheckTokenProvider';
 import type { FirebaseAuthTokenProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
+import type {
+  UntypedClientOptions,
+  UntypedSchema,
+  UntypedTable
+} from '../core/untypedSchema';
 import { SDK_VERSION, setSDKVersion } from '../core/version';
 
 import { getFetch, initializeFetch } from './fetch';
@@ -79,7 +87,7 @@ function createMockProviders(
   >(async () => (initialAppCheck !== null ? { token: initialAppCheck } : null));
 
   const mockAuth: FirebaseAuthInternal = {
-    getToken: authGetToken,
+    getToken: refreshToken => authGetToken({ forceRefresh: refreshToken }),
     getUid: () => currentUid ?? null,
     addAuthTokenListener: vi.fn(),
     removeAuthTokenListener: vi.fn()
@@ -1076,6 +1084,255 @@ describe('createBuilderFetch', () => {
       expect(retryRes.status).toBe(200);
       expect(retryCase.cancelSpy).toHaveBeenCalledTimes(1);
       expect(retryCase.textSpy).not.toHaveBeenCalled();
+    });
+
+    it('fails immediately on pre-aborted init.signal or Request.signal without calling getToken()', async () => {
+      const providers = createMockProviders('jwt-1', 'ac-1', 'uid-a');
+      const state: MutableSqlClientState = {
+        active: {
+          appId: 'app-id',
+          authTokenProvider: providers.authProvider,
+          appCheckTokenProvider: providers.appCheckProvider
+        }
+      };
+      const mockFetch = vi.fn<typeof fetch>();
+      initializeFetch(mockFetch);
+
+      // 1. Pre-aborted init.signal
+      const initController = new AbortController();
+      initController.abort('pre-aborted init');
+      const initTracker: BuilderExecutionTracker = { clientError: null };
+
+      await expect(
+        createBuilderFetch(state, initTracker)(
+          'https://example.com/postgrest/users',
+          { signal: initController.signal }
+        )
+      ).rejects.toMatchObject({
+        name: 'AbortError',
+        message: 'pre-aborted init'
+      });
+      expect(initTracker.clientError).toBeNull();
+      expect(providers.authGetToken).not.toHaveBeenCalled();
+      expect(providers.appCheckGetToken).not.toHaveBeenCalled();
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // 2. Pre-aborted Request.signal (when init?.signal is undefined)
+      const reqController = new AbortController();
+      reqController.abort(new Error('pre-aborted request'));
+      const abortedReq = new Request('https://example.com/postgrest/users', {
+        signal: reqController.signal
+      });
+      const reqTracker: BuilderExecutionTracker = { clientError: null };
+
+      await expect(
+        createBuilderFetch(state, reqTracker)(abortedReq)
+      ).rejects.toMatchObject({
+        name: 'AbortError',
+        message: 'pre-aborted request'
+      });
+      expect(reqTracker.clientError).toBeNull();
+      expect(providers.authGetToken).not.toHaveBeenCalled();
+      expect(providers.appCheckGetToken).not.toHaveBeenCalled();
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('detects signals aborted during initial getToken() or 401 refresh at the next boundary', async () => {
+      // 1. Aborted while initial getToken() resolves
+      const initResolveProviders = createMockProviders(
+        'jwt-1',
+        'ac-1',
+        'uid-a'
+      );
+      const initResolveController = new AbortController();
+      initResolveProviders.authGetToken.mockImplementationOnce(async () => {
+        initResolveController.abort('aborted during getToken');
+        return { accessToken: 'jwt-1' };
+      });
+      const state: MutableSqlClientState = {
+        active: {
+          appId: 'app-id',
+          authTokenProvider: initResolveProviders.authProvider,
+          appCheckTokenProvider: initResolveProviders.appCheckProvider
+        }
+      };
+      const mockFetch = vi.fn<typeof fetch>();
+      initializeFetch(mockFetch);
+
+      const tracker1: BuilderExecutionTracker = { clientError: null };
+      await expect(
+        createBuilderFetch(state, tracker1)(
+          'https://example.com/postgrest/users',
+          { signal: initResolveController.signal }
+        )
+      ).rejects.toMatchObject({
+        name: 'AbortError',
+        message: 'aborted during getToken'
+      });
+      expect(tracker1.clientError).toBeNull();
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // 2. Aborted while initial getToken() rejects offline -> surfaces AbortError, not tracker.clientError
+      const initRejectProviders = createMockProviders('jwt-1', 'ac-1', 'uid-a');
+      const initRejectController = new AbortController();
+      initRejectProviders.authGetToken.mockImplementationOnce(async () => {
+        initRejectController.abort('user cancelled');
+        throw new Error('Offline token fetch failed');
+      });
+      state.active = {
+        appId: 'app-id',
+        authTokenProvider: initRejectProviders.authProvider,
+        appCheckTokenProvider: initRejectProviders.appCheckProvider
+      };
+
+      const tracker2: BuilderExecutionTracker = { clientError: null };
+      await expect(
+        createBuilderFetch(state, tracker2)(
+          'https://example.com/postgrest/users',
+          { signal: initRejectController.signal }
+        )
+      ).rejects.toMatchObject({
+        name: 'AbortError',
+        message: 'user cancelled'
+      });
+      expect(tracker2.clientError).toBeNull();
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      // 3. Aborted during 401 refresh (cached forceRefresh: false) -> skips forceRefresh: true, cancels 401 body, skips retry fetch
+      const refreshProviders = createMockProviders('jwt-1', null, 'uid-a');
+      const refreshController = new AbortController();
+      let refreshCalls = 0;
+      refreshProviders.authGetToken.mockImplementation(async () => {
+        refreshCalls++;
+        if (refreshCalls === 2) {
+          refreshController.abort('aborted during 401 refresh');
+        }
+        return { accessToken: 'jwt-1' };
+      });
+      state.active = {
+        appId: 'app-id',
+        authTokenProvider: refreshProviders.authProvider,
+        appCheckTokenProvider: refreshProviders.appCheckProvider
+      };
+
+      const cancelSpy = vi.fn(async () => {});
+      const stream401 = new ReadableStream<Uint8Array>({
+        start(ctrl) {
+          ctrl.enqueue(new TextEncoder().encode('{"error":"expired"}'));
+        },
+        cancel: cancelSpy
+      });
+      mockFetch.mockResolvedValueOnce(new Response(stream401, { status: 401 }));
+
+      const tracker3: BuilderExecutionTracker = { clientError: null };
+      await expect(
+        createBuilderFetch(state, tracker3)(
+          'https://example.com/postgrest/users',
+          { signal: refreshController.signal }
+        )
+      ).rejects.toMatchObject({
+        name: 'AbortError',
+        message: 'aborted during 401 refresh'
+      });
+      expect(tracker3.clientError).toBeNull();
+      expect(refreshProviders.authGetToken).toHaveBeenCalledTimes(2);
+      expect(cancelSpy).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('normalizes custom string and Error abort reasons to AbortError without triggering 3x fetchWithRetry GET retries', async () => {
+      const providers = createMockProviders('jwt-1', null, 'uid-a');
+      const state: MutableSqlClientState = {
+        active: {
+          appId: 'app-id',
+          authTokenProvider: providers.authProvider,
+          appCheckTokenProvider: providers.appCheckProvider
+        }
+      };
+
+      const mockFetch = vi
+        .fn<typeof fetch>()
+        .mockImplementation(async (_input, init) => {
+          const sig = init?.signal;
+          if (sig?.aborted) {
+            throw sig.reason;
+          }
+          return new Promise<Response>((_resolve, reject) => {
+            sig?.addEventListener(
+              'abort',
+              () => {
+                reject(sig.reason);
+              },
+              { once: true }
+            );
+          });
+        });
+      initializeFetch(mockFetch);
+
+      // 1. Custom string reason via QueryBuilderImpl GET (with PostgrestBuilder retry enabled)
+      const strController = new AbortController();
+      const qb1 = new QueryBuilderImpl(
+        new PostgrestQueryBuilder<
+          UntypedClientOptions,
+          UntypedSchema,
+          UntypedTable,
+          string
+        >(new URL('https://example.com/postgrest/users'), {
+          headers: {},
+          retry: true
+        }),
+        state,
+        createBuilderFetch,
+        mapPostgrestFailureToFirebaseSqlError
+      );
+
+      const pending1 = qb1
+        .select()
+        .abortSignal(strController.signal)
+        .then(res => res);
+      await Promise.resolve();
+      await Promise.resolve();
+      strController.abort('custom string reason');
+
+      const res1 = await pending1;
+      expect(res1.success).toBe(false);
+      if (!res1.success) {
+        expect(res1.error.message).toContain('custom string reason');
+      }
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      // 2. Custom Error reason via QueryBuilderImpl GET (with PostgrestBuilder retry enabled)
+      mockFetch.mockClear();
+      const errController = new AbortController();
+      const qb2 = new QueryBuilderImpl(
+        new PostgrestQueryBuilder<
+          UntypedClientOptions,
+          UntypedSchema,
+          UntypedTable,
+          string
+        >(new URL('https://example.com/postgrest/users'), {
+          headers: {},
+          retry: true
+        }),
+        state,
+        createBuilderFetch,
+        mapPostgrestFailureToFirebaseSqlError
+      );
+
+      const pending2 = qb2
+        .select()
+        .abortSignal(errController.signal)
+        .then(res => res);
+      await Promise.resolve();
+      await Promise.resolve();
+      errController.abort(new Error('custom error reason'));
+
+      const res2 = await pending2;
+      expect(res2.success).toBe(false);
+      if (!res2.success) {
+        expect(res2.error.message).toContain('custom error reason');
+      }
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
   });
 });
