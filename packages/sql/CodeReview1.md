@@ -831,6 +831,10 @@ Suggested change:
 +    };
 ```
 
+#### Resolution
+- **Decision:** Addressed in `packages/sql/src/network/postgrestFetch.ts` by wrapping `baseFetch` in `executeFetch` (checking `state.active === null` and `signal?.aborted` before dispatch and on rejection, and cancelling `res.body` with `Code.NOT_INITIALIZED` if terminated while in flight), cloning replayable `Request` inputs with non-null bodies before the initial fetch (cancelling unused `retryInput.body` streams in `finally`), and guarding `401` retries with `canReplayBody` so unreplayable `ReadableStream` or `bodyUsed` inputs return the original `401` response intact (with unit tests in `packages/sql/src/network/postgrestFetch.test.ts`).
+- **Commit:** `97a859fee`
+
 ### Finding 18: (line 148): [HIGH] HTTP `401` refresh retry can replay in-flight requests across different Auth principals.
 
 The `401` retry branch runs even when `authToken === null` and never compares the Auth UID that initiated the request against the UID active after `getToken({ forceRefresh: true })`. If a user signs in or switches accounts while an anonymous or prior user's request/mutation is in flight and receives HTTP `401`, `refreshedAuthToken !== authToken` evaluates to `true` and replays the prior principal's operation under the newly signed-in user's JWT.
