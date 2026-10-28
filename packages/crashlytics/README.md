@@ -84,7 +84,7 @@ firebase crashlytics:onboard:web <YOUR_FIREBASE_APP_ID> --project <YOUR_FIREBASE
 >   firebase login
 >   firebase use <YOUR_FIREBASE_PROJECT_ID>
 >   ```
-> **Automated Setup**: This command automatically enables the required Telemetry APIs (`firebasetelemetry.googleapis.com` and `firebasetelemetryadmin.googleapis.com`), provisions the `firebase-telemetry` Cloud Logging bucket and routing sink, configures telemetry settings for your web app, and optionally sets up email alerts for new and regressed issues.
+> **Automated Setup**: This command automatically enables the required Telemetry APIs (`clienttelemetry.googleapis.com`, `firebasetelemetry.googleapis.com`, `firebasetelemetryadmin.googleapis.com`, and `firebasecrashlytics.googleapis.com`), updates API key restrictions for `clienttelemetry.googleapis.com` (if restricted), provisions the `firebase-telemetry` Cloud Logging bucket and routing sink, configures telemetry settings for your web app, and optionally sets up email alerts for new and regressed issues.
 
 ---
 
