@@ -3648,9 +3648,13 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
+   *
    * Evaluates this aggregate function over a specific window frame, rather than
    * over the window frame defined by the enclosing
    * {@link @firebase/firestore/pipelines#Pipeline.(addWindowFields:1)} stage.
+   *
+   * Window Functions SDK features are in preview until the backend feature launches. Look for launch announcement at: https://docs.cloud.google.com/firestore/docs/release-notes
    *
    * The backend only accepts a frame (`documents` or `range`) here, and
    * rejects `partition` and `sort`, which must be specified on the enclosing
@@ -12346,8 +12350,12 @@ export class WindowSpecInternal implements ProtoValueSerializable, UserData {
 }
 
 /**
+ * @beta
+ *
  * A function that is evaluated over a window frame of documents, as part of an
  * {@link @firebase/firestore/pipelines#Pipeline.(addWindowFields:1)} stage.
+ *
+ * Window Functions SDK features are in preview until the backend feature launches. Look for launch announcement at: https://docs.cloud.google.com/firestore/docs/release-notes
  *
  * A `WindowFunction` is created either by one of the dedicated window function
  * factories (such as {@link @firebase/firestore/pipelines#rank}), or by calling
@@ -12382,9 +12390,13 @@ export class WindowFunction implements ProtoValueSerializable, UserData {
   ) {}
 
   /**
+   * @beta
+   *
    * Evaluates this window function over a specific window frame, rather than
    * over the window frame defined by the enclosing
    * {@link @firebase/firestore/pipelines#Pipeline.(addWindowFields:1)} stage.
+   *
+   * Window Functions SDK features are in preview until the backend feature launches. Look for launch announcement at: https://docs.cloud.google.com/firestore/docs/release-notes
    *
    * The backend only accepts a frame (`documents` or `range`) here, and
    * rejects `partition` and `sort`, which must be specified on the enclosing
@@ -12435,8 +12447,12 @@ export class WindowFunction implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
+   *
    * Assigns an alias to this `WindowFunction`. The alias specifies the name that
    * the computed value will have in the output document.
+   *
+   * Window Functions SDK features are in preview until the backend feature launches. Look for launch announcement at: https://docs.cloud.google.com/firestore/docs/release-notes
    *
    * @param name - The alias to assign to this `WindowFunction`.
    * @returns A new {@link @firebase/firestore/pipelines#AliasedWindowFunction}.
@@ -12487,8 +12503,11 @@ export class WindowFunction implements ProtoValueSerializable, UserData {
 }
 
 /**
+ * @beta
  *
  * A {@link @firebase/firestore/pipelines#WindowFunction} with an alias.
+ *
+ * Window Functions SDK features are in preview until the backend feature launches. Look for launch announcement at: https://docs.cloud.google.com/firestore/docs/release-notes
  */
 export class AliasedWindowFunction implements UserData {
   constructor(
@@ -12507,10 +12526,14 @@ export class AliasedWindowFunction implements UserData {
 }
 
 /**
+ * @beta
+ *
  * Returns the rank of each document within its partition according to the
  * window's sort order. Documents with equal sort values receive the same rank,
  * and the following rank is skipped. The window must specify exactly one sort
  * ordering.
+ *
+ * Window Functions SDK features are in preview until the backend feature launches. Look for launch announcement at: https://docs.cloud.google.com/firestore/docs/release-notes
  *
  * @example
  * ```typescript

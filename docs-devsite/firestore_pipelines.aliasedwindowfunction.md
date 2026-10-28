@@ -10,7 +10,12 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # AliasedWindowFunction class
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 A [WindowFunction](./firestore_lite_pipelines.windowfunction.md#windowfunction_class) with an alias.
+
+Window Functions SDK features are in preview until the backend feature launches. Look for launch announcement at: https://docs.cloud.google.com/firestore/docs/release-notes
 
 <b>Signature:</b>
 
@@ -22,16 +27,19 @@ export declare class AliasedWindowFunction
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(windowFunction, alias, \_methodName)](./firestore_pipelines.aliasedwindowfunction.md#aliasedwindowfunctionconstructor) |  | Constructs a new instance of the <code>AliasedWindowFunction</code> class |
+|  [(constructor)(windowFunction, alias, \_methodName)](./firestore_pipelines.aliasedwindowfunction.md#aliasedwindowfunctionconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the <code>AliasedWindowFunction</code> class |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [alias](./firestore_pipelines.aliasedwindowfunction.md#aliasedwindowfunctionalias) |  | string |  |
-|  [windowFunction](./firestore_pipelines.aliasedwindowfunction.md#aliasedwindowfunctionwindowfunction) |  | [WindowFunction](./firestore_pipelines.windowfunction.md#windowfunction_class) |  |
+|  [alias](./firestore_pipelines.aliasedwindowfunction.md#aliasedwindowfunctionalias) |  | string | <b><i>(Public Preview)</i></b> |
+|  [windowFunction](./firestore_pipelines.aliasedwindowfunction.md#aliasedwindowfunctionwindowfunction) |  | [WindowFunction](./firestore_pipelines.windowfunction.md#windowfunction_class) | <b><i>(Public Preview)</i></b> |
 
 ## AliasedWindowFunction.(constructor)
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Constructs a new instance of the `AliasedWindowFunction` class
 
@@ -55,6 +63,9 @@ constructor(
 
 ## AliasedWindowFunction.alias
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 <b>Signature:</b>
 
 ```typescript
@@ -62,6 +73,9 @@ readonly alias: string;
 ```
 
 ## AliasedWindowFunction.windowFunction
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 <b>Signature:</b>
 

@@ -49,7 +49,11 @@ import {
   rank
 } from '../util/pipeline_export';
 import { expectResults } from '../util/pipeline_helpers';
-import { getRunComprehensiveTests } from '../util/settings';
+import {
+  getRunComprehensiveTests,
+  getTargetBackend,
+  TargetBackend
+} from '../util/settings';
 
 /**
  * Test data for the window function suites below.
@@ -99,7 +103,13 @@ const windowTestDocs: { [id: string]: DocumentData } = {
   }
 };
 
-apiDescribe.skipClassic('Pipeline window functions', persistence => {
+// Window functions are in preview until the backend feature launches; skip against prod until then.
+const windowDescribe =
+  getTargetBackend() === TargetBackend.PROD
+    ? apiDescribe.skip
+    : apiDescribe.skipClassic;
+
+windowDescribe('Pipeline window functions', persistence => {
   addEqualityMatcher();
 
   let firestore: Firestore;
@@ -325,7 +335,7 @@ apiDescribe.skipClassic('Pipeline window functions', persistence => {
 // errors, and client-side validation. Set FIRESTORE_RUN_COMPREHENSIVE_TESTS=true
 // to run the full matrix.
 const comprehensiveDescribe = getRunComprehensiveTests()
-  ? apiDescribe.skipClassic
+  ? windowDescribe
   : apiDescribe.skip;
 
 comprehensiveDescribe('Pipeline window functions (count)', persistence => {

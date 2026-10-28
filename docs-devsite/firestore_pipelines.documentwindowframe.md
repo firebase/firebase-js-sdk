@@ -10,7 +10,12 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # DocumentWindowFrame interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Defines a document-count based window frame relative to the position of the current document in the group.
+
+Window Functions SDK features are in preview until the backend feature launches. Look for launch announcement at: https://docs.cloud.google.com/firestore/docs/release-notes
 
 Specifying `sort` on the enclosing [WindowSpec](./firestore_lite_pipelines.md#windowspec) is optional for `documents` window frames; if no `sort` expressions are specified, documents are processed in incoming stream (fetch) order.
 
@@ -24,10 +29,13 @@ export declare interface DocumentWindowFrame
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [following](./firestore_pipelines.documentwindowframe.md#documentwindowframefollowing) | number \| 'current' \| 'unbounded' \| [Expression](./firestore_pipelines.expression.md#expression_class) | The upper bound (inclusive) of the window frame, relative to the current document's position.<!-- -->Can be: - A number specifying a document offset relative to the current document. A positive integer (e.g. <code>2</code>) includes up to that many documents after the current document. A negative integer (e.g. <code>-1</code>) indicates a boundary preceding the current document, enabling frames that end before the current document (e.g. excluding the current document). - <code>'current'</code> to represent the current document's position only (documents tied on sort values are not included). - <code>'unbounded'</code> to include all documents to the last document in the group. |
-|  [preceding](./firestore_pipelines.documentwindowframe.md#documentwindowframepreceding) | number \| 'current' \| 'unbounded' \| [Expression](./firestore_pipelines.expression.md#expression_class) | The lower bound (inclusive) of the window frame, relative to the current document's position.<!-- -->Can be: - A number specifying a document offset relative to the current document. A positive integer (e.g. <code>2</code>) includes up to that many documents before the current document. A negative integer (e.g. <code>-1</code>) indicates a boundary following the current document, enabling frames that start after the current document. - <code>'current'</code> to represent the current document's position only (documents tied on sort values are not included). - <code>'unbounded'</code> to include all documents from the first document in the group. |
+|  [following](./firestore_pipelines.documentwindowframe.md#documentwindowframefollowing) | number \| 'current' \| 'unbounded' \| [Expression](./firestore_pipelines.expression.md#expression_class) | <b><i>(Public Preview)</i></b> The upper bound (inclusive) of the window frame, relative to the current document's position.<!-- -->Can be: - A number specifying a document offset relative to the current document. A positive integer (e.g. <code>2</code>) includes up to that many documents after the current document. A negative integer (e.g. <code>-1</code>) indicates a boundary preceding the current document, enabling frames that end before the current document (e.g. excluding the current document). - <code>'current'</code> to represent the current document's position only (documents tied on sort values are not included). - <code>'unbounded'</code> to include all documents to the last document in the group. |
+|  [preceding](./firestore_pipelines.documentwindowframe.md#documentwindowframepreceding) | number \| 'current' \| 'unbounded' \| [Expression](./firestore_pipelines.expression.md#expression_class) | <b><i>(Public Preview)</i></b> The lower bound (inclusive) of the window frame, relative to the current document's position.<!-- -->Can be: - A number specifying a document offset relative to the current document. A positive integer (e.g. <code>2</code>) includes up to that many documents before the current document. A negative integer (e.g. <code>-1</code>) indicates a boundary following the current document, enabling frames that start after the current document. - <code>'current'</code> to represent the current document's position only (documents tied on sort values are not included). - <code>'unbounded'</code> to include all documents from the first document in the group. |
 
 ## DocumentWindowFrame.following
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The upper bound (inclusive) of the window frame, relative to the current document's position.
 
@@ -40,6 +48,9 @@ following: number | 'current' | 'unbounded' | Expression;
 ```
 
 ## DocumentWindowFrame.preceding
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The lower bound (inclusive) of the window frame, relative to the current document's position.
 

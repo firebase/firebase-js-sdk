@@ -29,7 +29,7 @@ export type AddFieldsStageOptions = StageOptions & {
     fields: Selectable[];
 };
 
-// @public
+// @beta
 export type AddWindowFieldsStageOptions = StageOptions & {
     window: WindowSpec;
     fields: Array<AliasedAggregate | AliasedWindowFunction>;
@@ -44,6 +44,7 @@ export class AggregateFunction {
     // (undocumented)
     exprType: ExpressionType;
     /* Excluded from this release type: _methodName */
+    // @beta
     over(
     frame: OneOf<{
         documents: DocumentWindowFrame;
@@ -88,7 +89,7 @@ export class AliasedExpression implements Selectable {
     /* Excluded from this release type: _readUserData */
 }
 
-// @public
+// @beta
 export class AliasedWindowFunction {
     constructor(
     windowFunction: WindowFunction,
@@ -720,7 +721,7 @@ export type DocumentsStageOptions = StageOptions & {
     docs: Array<string | DocumentReference>;
 };
 
-// @public
+// @beta
 export interface DocumentWindowFrame {
     following: number | 'current' | 'unbounded' | Expression;
     preceding: number | 'current' | 'unbounded' | Expression;
@@ -2113,11 +2114,13 @@ export class Pipeline {
     /* Excluded from this release type: __constructor */
     addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
     addFields(options: AddFieldsStageOptions): Pipeline;
+    // @beta
     addWindowFields(
     window: WindowSpec,
     field: AliasedAggregate | AliasedWindowFunction,
     ...additionalFields: Array<AliasedAggregate | AliasedWindowFunction>
     ): Pipeline;
+    // @beta
     addWindowFields(options: AddWindowFieldsStageOptions): Pipeline;
     aggregate(
     accumulator: AliasedAggregate,
@@ -2266,7 +2269,7 @@ export function pow(base: string, exponent: number): FunctionExpression;
 // @public
 export function rand(): FunctionExpression;
 
-// @public
+// @beta
 export interface RangeWindowFrame {
     following: number | 'current' | 'unbounded' | Expression;
     preceding: number | 'current' | 'unbounded' | Expression;
@@ -2284,7 +2287,7 @@ export interface RangeWindowFrame {
     | Expression;
 }
 
-// @public
+// @beta
 export function rank(): WindowFunction;
 
 // @public
@@ -3013,7 +3016,7 @@ export type WhereStageOptions = StageOptions & {
     condition: BooleanExpression;
 };
 
-// @public
+// @beta
 export class WindowFunction {
     constructor(name: string, params?: Expression[]);
     as(name: string): AliasedWindowFunction;
@@ -3029,7 +3032,7 @@ export class WindowFunction {
     /* Excluded from this release type: _readUserData */
 }
 
-// @public
+// @beta
 export type WindowSpec = {
     partition?: Array<string | Expression>;
     sort?: Ordering | Ordering[];

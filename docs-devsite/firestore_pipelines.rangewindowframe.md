@@ -10,7 +10,12 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # RangeWindowFrame interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Defines a range-value based window frame relative to the sort value(s) of the current document.
+
+Window Functions SDK features are in preview until the backend feature launches. Look for launch announcement at: https://docs.cloud.google.com/firestore/docs/release-notes
 
 One or more `sort` expressions must be specified on the enclosing [WindowSpec](./firestore_lite_pipelines.md#windowspec) when using a `range` window frame. Range frames with numeric or time-unit offsets require a single numeric or timestamp `sort` expression, whereas frames bounded only by `'current'` and `'unbounded'` support multiple `sort` expressions and non-numeric sort values (such as strings or booleans).
 
@@ -24,11 +29,14 @@ export declare interface RangeWindowFrame
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [following](./firestore_pipelines.rangewindowframe.md#rangewindowframefollowing) | number \| 'current' \| 'unbounded' \| [Expression](./firestore_pipelines.expression.md#expression_class) | The upper bound (inclusive) of the window frame, relative to the sort value(s) of the current document.<!-- -->Can be: - A number specifying the value-based offset from the current document's sort value. A positive offset adds to the current document's sort value (looking into the future). A negative offset subtracts from the current document's sort value (shifting the upper boundary before the current document). - <code>'current'</code> to include all documents tied with the current document's sort value(s) (peer-inclusive, equivalent to an offset of <code>0</code>). - <code>'unbounded'</code> to include all documents to the end of the group. |
-|  [preceding](./firestore_pipelines.rangewindowframe.md#rangewindowframepreceding) | number \| 'current' \| 'unbounded' \| [Expression](./firestore_pipelines.expression.md#expression_class) | The lower bound (inclusive) of the window frame, relative to the sort value(s) of the current document.<!-- -->Can be: - A number specifying the value-based offset from the current document's sort value. A positive offset subtracts from the current document's sort value (looking into the past). A negative offset adds to the current document's sort value (shifting the lower boundary past the current document). - <code>'current'</code> to include all documents tied with the current document's sort value(s) (peer-inclusive, equivalent to an offset of <code>0</code>). - <code>'unbounded'</code> to include all documents from the start of the group. |
-|  [unit](./firestore_pipelines.rangewindowframe.md#rangewindowframeunit) | \| 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' \| 'week' \| 'month' \| 'quarter' \| 'year' \| [Expression](./firestore_pipelines.expression.md#expression_class) | The unit used to calculate range boundaries when the <code>sort</code> field contains date or time values. |
+|  [following](./firestore_pipelines.rangewindowframe.md#rangewindowframefollowing) | number \| 'current' \| 'unbounded' \| [Expression](./firestore_pipelines.expression.md#expression_class) | <b><i>(Public Preview)</i></b> The upper bound (inclusive) of the window frame, relative to the sort value(s) of the current document.<!-- -->Can be: - A number specifying the value-based offset from the current document's sort value. A positive offset adds to the current document's sort value (looking into the future). A negative offset subtracts from the current document's sort value (shifting the upper boundary before the current document). - <code>'current'</code> to include all documents tied with the current document's sort value(s) (peer-inclusive, equivalent to an offset of <code>0</code>). - <code>'unbounded'</code> to include all documents to the end of the group. |
+|  [preceding](./firestore_pipelines.rangewindowframe.md#rangewindowframepreceding) | number \| 'current' \| 'unbounded' \| [Expression](./firestore_pipelines.expression.md#expression_class) | <b><i>(Public Preview)</i></b> The lower bound (inclusive) of the window frame, relative to the sort value(s) of the current document.<!-- -->Can be: - A number specifying the value-based offset from the current document's sort value. A positive offset subtracts from the current document's sort value (looking into the past). A negative offset adds to the current document's sort value (shifting the lower boundary past the current document). - <code>'current'</code> to include all documents tied with the current document's sort value(s) (peer-inclusive, equivalent to an offset of <code>0</code>). - <code>'unbounded'</code> to include all documents from the start of the group. |
+|  [unit](./firestore_pipelines.rangewindowframe.md#rangewindowframeunit) | \| 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' \| 'week' \| 'month' \| 'quarter' \| 'year' \| [Expression](./firestore_pipelines.expression.md#expression_class) | <b><i>(Public Preview)</i></b> The unit used to calculate range boundaries when the <code>sort</code> field contains date or time values. |
 
 ## RangeWindowFrame.following
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The upper bound (inclusive) of the window frame, relative to the sort value(s) of the current document.
 
@@ -42,6 +50,9 @@ following: number | 'current' | 'unbounded' | Expression;
 
 ## RangeWindowFrame.preceding
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 The lower bound (inclusive) of the window frame, relative to the sort value(s) of the current document.
 
 Can be: - A number specifying the value-based offset from the current document's sort value. A positive offset subtracts from the current document's sort value (looking into the past). A negative offset adds to the current document's sort value (shifting the lower boundary past the current document). - `'current'` to include all documents tied with the current document's sort value(s) (peer-inclusive, equivalent to an offset of `0`<!-- -->). - `'unbounded'` to include all documents from the start of the group.
@@ -53,6 +64,9 @@ preceding: number | 'current' | 'unbounded' | Expression;
 ```
 
 ## RangeWindowFrame.unit
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The unit used to calculate range boundaries when the `sort` field contains date or time values.
 
