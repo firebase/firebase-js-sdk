@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import type { PostgrestQueryBuilder } from '@supabase/postgrest-js';
-
 import type {
   CreateBuilderFetch,
   MapPostgrestError,
@@ -34,53 +32,35 @@ import type {
 
 import { FilterBuilderImpl, FilterDelegateHandle } from './FilterBuilderImpl';
 
-interface UntypedClientOptions {
-  PostgrestVersion: '13';
-}
-
-interface UntypedRelationship {
-  foreignKeyName: string;
-  columns: string[];
-  isOneToOne?: boolean;
-  referencedRelation: string;
-  referencedColumns: string[];
-}
-
-interface UntypedTable {
-  Row: Record<string, unknown>;
-  Insert: Record<string, unknown>;
-  Update: Record<string, unknown>;
-  Relationships: UntypedRelationship[];
-}
-
-interface UntypedFunction {
-  Args: Record<string, unknown>;
-  Returns: unknown;
-}
-
-interface UntypedSchema {
-  Tables: Record<string, UntypedTable>;
-  Views: Record<string, UntypedTable>;
-  Functions: Record<string, UntypedFunction>;
-}
-
-type InternalPostgrestQueryBuilder = PostgrestQueryBuilder<
-  UntypedClientOptions,
-  UntypedSchema,
-  UntypedTable,
-  unknown
->;
-
 export interface QueryDelegateHandle {
   url: URL;
   headers: Headers;
   schema?: string | undefined;
   fetch?: typeof fetch | undefined;
   urlLengthLimit: number;
+  select(
+    columns?: string | undefined,
+    options?: Readonly<QuerySelectOptions> | undefined
+  ): FilterDelegateHandle;
+  insert(
+    values: Record<string, unknown> | Array<Record<string, unknown>>,
+    options?: Readonly<QueryInsertOptions> | undefined
+  ): FilterDelegateHandle;
+  upsert(
+    values: Record<string, unknown> | Array<Record<string, unknown>>,
+    options?: Readonly<QueryUpsertOptions> | undefined
+  ): FilterDelegateHandle;
+  update(
+    values: Record<string, unknown>,
+    options?: Readonly<QueryUpdateOptions> | undefined
+  ): FilterDelegateHandle;
+  delete(
+    options?: Readonly<QueryDeleteOptions> | undefined
+  ): FilterDelegateHandle;
 }
 
 export class QueryBuilderImpl implements QueryBuilder {
-  readonly #delegate: InternalPostgrestQueryBuilder;
+  readonly #delegate: QueryDelegateHandle;
   readonly #state: ReadonlySqlClientState;
   readonly #createFetch: CreateBuilderFetch;
   readonly #mapError: MapPostgrestError;
@@ -91,7 +71,7 @@ export class QueryBuilderImpl implements QueryBuilder {
     createFetch: CreateBuilderFetch,
     mapError: MapPostgrestError
   ) {
-    this.#delegate = delegate as InternalPostgrestQueryBuilder;
+    this.#delegate = delegate;
     this.#state = state;
     this.#createFetch = createFetch;
     this.#mapError = mapError;

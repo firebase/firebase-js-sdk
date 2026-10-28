@@ -40,6 +40,11 @@ import {
 import type { MutableSqlClientState } from '../core/state';
 import { AppCheckProvider } from '../core/tokenProviders/AppCheckTokenProvider';
 import { FirebaseAuthProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
+import type {
+  UntypedClientOptions,
+  UntypedDatabase,
+  UntypedSchema
+} from '../core/untypedSchema';
 import { createBuilderFetch } from '../network';
 import { FIREBASE_SQL_COMPONENT_NAME } from '../util/constants';
 import { deepSortKeysForObj } from '../util/encoder';
@@ -54,40 +59,6 @@ declare module '@firebase/component' {
   interface NameServiceMapping {
     [FIREBASE_SQL_COMPONENT_NAME]: FirebaseSql;
   }
-}
-
-interface UntypedClientOptions {
-  PostgrestVersion: '13';
-}
-
-interface UntypedRelationship {
-  foreignKeyName: string;
-  columns: string[];
-  isOneToOne?: boolean;
-  referencedRelation: string;
-  referencedColumns: string[];
-}
-
-interface UntypedTable {
-  Row: Record<string, unknown>;
-  Insert: Record<string, unknown>;
-  Update: Record<string, unknown>;
-  Relationships: UntypedRelationship[];
-}
-
-interface UntypedFunction {
-  Args: Record<string, unknown>;
-  Returns: unknown;
-}
-
-interface UntypedSchema {
-  Tables: Record<string, UntypedTable>;
-  Views: Record<string, UntypedTable>;
-  Functions: Record<string, UntypedFunction>;
-}
-
-interface UntypedDatabase {
-  [schema: string]: UntypedSchema;
 }
 
 export interface FirebaseSqlRpcOptions {

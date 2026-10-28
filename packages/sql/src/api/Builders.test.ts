@@ -16,6 +16,7 @@
  */
 
 import {
+  PostgrestClient,
   PostgrestFilterBuilder,
   PostgrestQueryBuilder
 } from '@supabase/postgrest-js';
@@ -34,6 +35,12 @@ import type {
   MapPostgrestError,
   MutableSqlClientState
 } from '../core/state';
+import type {
+  UntypedClientOptions,
+  UntypedDatabase,
+  UntypedSchema,
+  UntypedTable
+} from '../core/untypedSchema';
 import { getFetch, initializeFetch } from '../network/fetch';
 import { createBuilderFetch } from '../network/postgrestFetch';
 
@@ -46,36 +53,6 @@ import type {
   InvalidMethodError,
   OperationSuccess
 } from './index';
-
-interface UntypedClientOptions {
-  PostgrestVersion: '13';
-}
-
-interface UntypedRelationship {
-  foreignKeyName: string;
-  columns: string[];
-  isOneToOne?: boolean;
-  referencedRelation: string;
-  referencedColumns: string[];
-}
-
-interface UntypedTable {
-  Row: Record<string, unknown>;
-  Insert: Record<string, unknown>;
-  Update: Record<string, unknown>;
-  Relationships: UntypedRelationship[];
-}
-
-interface UntypedFunction {
-  Args: Record<string, unknown>;
-  Returns: unknown;
-}
-
-interface UntypedSchema {
-  Tables: Record<string, UntypedTable>;
-  Views: Record<string, UntypedTable>;
-  Functions: Record<string, UntypedFunction>;
-}
 
 interface CapturedRequest {
   url: URL;
@@ -1382,6 +1359,70 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
       expect((caughtReason as FirebaseSqlError).category).toBe(
         FirebaseSqlErrorCategory.SQL_CLIENT
       );
+    });
+
+    it('accepts PostgrestClient.from() and PostgrestClient.rpc() delegates structurally without casts', async () => {
+      const h = createHarness();
+      h.setResponder(req =>
+        req.url.pathname.endsWith('/rpc/ping')
+          ? jsonResponse({ ok: true })
+          : jsonResponse([{ id: 42 }])
+      );
+
+      const client = new PostgrestClient<
+        UntypedDatabase,
+        UntypedClientOptions,
+        string,
+        UntypedSchema
+      >('https://sql.example.test/v1', {
+        headers: {},
+        schema: 'public'
+      });
+
+      const createFetch: CreateBuilderFetch =
+        (_state, tracker) => async (input, init) => {
+          const rawUrl =
+            typeof input === 'string'
+              ? input
+              : input instanceof URL
+                ? input.toString()
+                : input.url;
+          h.requests.push({
+            url: new URL(rawUrl),
+            method: init?.method ?? 'GET',
+            headers: new Headers(init?.headers),
+            body: typeof init?.body === 'string' ? init.body : undefined,
+            signal: init?.signal,
+            tracker
+          });
+          return rawUrl.includes('/rpc/ping')
+            ? jsonResponse({ ok: true })
+            : jsonResponse([{ id: 42 }]);
+        };
+
+      const qb = new QueryBuilderImpl(
+        client.from('users'),
+        h.state,
+        createFetch,
+        mapPostgrestFailureToFirebaseSqlError
+      );
+      const selectRes = await qb.select().eq('id', 42);
+      expect(selectRes.success).toBe(true);
+      if (selectRes.success) {
+        expect(selectRes.data).toEqual([{ id: 42 }]);
+      }
+
+      const rpc = new FilterBuilderImpl<unknown, 'RPC'>(
+        client.rpc('ping', { echo: 1 }),
+        h.state,
+        createFetch,
+        mapPostgrestFailureToFirebaseSqlError
+      );
+      const rpcRes = await rpc;
+      expect(rpcRes.success).toBe(true);
+      if (rpcRes.success) {
+        expect(rpcRes.data).toEqual({ ok: true });
+      }
     });
   });
 });
