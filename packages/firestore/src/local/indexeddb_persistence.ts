@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { isSafari } from '@firebase/util';
+import { isSafariOrWebkit } from '@firebase/util';
 
 import { User } from '../auth/user';
 import { DatabaseId } from '../core/database_info';
@@ -989,16 +989,8 @@ export class IndexedDbPersistence implements Persistence {
         // to make sure it gets a chance to run.
         this.markClientZombied();
 
-        const safariIndexdbBugVersionRegex = /(?:Version|Mobile)\/1[456]/;
-        if (
-          isSafari() &&
-          (navigator.appVersion.match(safariIndexdbBugVersionRegex) ||
-            navigator.userAgent.match(safariIndexdbBugVersionRegex))
-        ) {
-          // On Safari 14, 15, and 16, we do not run any cleanup actions as it might
-          // trigger a bug that prevents Safari from re-opening IndexedDB during
-          // the next page load.
-          // See https://bugs.webkit.org/show_bug.cgi?id=226547
+        if (isSafariOrWebkit()) {
+          // cleanup here stops WebKit reopening IndexedDB on the next page: https://bugs.webkit.org/show_bug.cgi?id=226547
           this.queue.enterRestrictedMode(/* purgeExistingTasks= */ true);
         }
 
