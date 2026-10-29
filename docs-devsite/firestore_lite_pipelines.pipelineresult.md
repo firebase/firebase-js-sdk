@@ -97,8 +97,8 @@ An object containing all fields in the document or 'undefined' if the document d
 ```
 let p = firestore.pipeline().collection('col');
 
-p.execute().then(results => {
-  let data = results[0].data();
+execute(p).then(snapshot => {
+  let data = snapshot.results[0].data();
   console.log(`Retrieved data: ${JSON.stringify(data)}`);
 });
 
@@ -132,8 +132,8 @@ The data at the specified field location or `undefined` if no such field exists.
 ```
 let p = firestore.pipeline().collection('col');
 
-p.execute().then(results => {
-  let field = results[0].get('a.b');
+execute(p).then(snapshot => {
+  let field = snapshot.results[0].get('a.b');
   console.log(`Retrieved field value: ${field}`);
 });
 

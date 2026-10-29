@@ -79,11 +79,12 @@ get results(): PipelineResult[];
 
 
 ```typescript
-const snapshot: PipelineSnapshot = await firestore
-  .pipeline()
-  .collection('myCollection')
-  .where(field('value').greaterThan(10))
-  .execute();
+const snapshot: PipelineSnapshot = await execute(
+  firestore
+    .pipeline()
+    .collection('myCollection')
+    .where(field('value').greaterThan(10))
+);
 
 snapshot.results.forEach(doc => {
   console.log(doc.id, '=>', doc.data());

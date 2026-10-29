@@ -40,11 +40,12 @@ import { AbstractUserDataWriter } from './user_data_writer';
  *
  * @example
  * ```typescript
- * const snapshot: PipelineSnapshot = await firestore
- *   .pipeline()
- *   .collection('myCollection')
- *   .where(field('value').greaterThan(10))
- *   .execute();
+ * const snapshot: PipelineSnapshot = await execute(
+ *   firestore
+ *     .pipeline()
+ *     .collection('myCollection')
+ *     .where(field('value').greaterThan(10))
+ * );
  *
  * snapshot.results.forEach(doc => {
  *   console.log(doc.id, '=>', doc.data());
@@ -221,8 +222,8 @@ export class PipelineResult<AppModelType = DocumentData> {
    * ```
    * let p = firestore.pipeline().collection('col');
    *
-   * p.execute().then(results => {
-   *   let data = results[0].data();
+   * execute(p).then(snapshot => {
+   *   let data = snapshot.results[0].data();
    *   console.log(`Retrieved data: ${JSON.stringify(data)}`);
    * });
    * ```
@@ -259,8 +260,8 @@ export class PipelineResult<AppModelType = DocumentData> {
    * ```
    * let p = firestore.pipeline().collection('col');
    *
-   * p.execute().then(results => {
-   *   let field = results[0].get('a.b');
+   * execute(p).then(snapshot => {
+   *   let field = snapshot.results[0].get('a.b');
    *   console.log(`Retrieved field value: ${field}`);
    * });
    * ```
