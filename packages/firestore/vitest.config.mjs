@@ -178,6 +178,8 @@ config.test.projects = config.test.projects.map(project => {
               USE_MOCK_PERSISTENCE: process.env.USE_MOCK_PERSISTENCE,
               FIRESTORE_RUN_LARGE_DOC_TESTS:
                 process.env.FIRESTORE_RUN_LARGE_DOC_TESTS,
+              FIRESTORE_RUN_COMPREHENSIVE_TESTS:
+                process.env.FIRESTORE_RUN_COMPREHENSIVE_TESTS,
               INCLUDE_FIRESTORE_PERSISTENCE:
                 process.env.INCLUDE_FIRESTORE_PERSISTENCE
             })
