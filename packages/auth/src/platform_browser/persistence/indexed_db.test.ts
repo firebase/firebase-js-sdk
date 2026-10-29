@@ -19,6 +19,12 @@ import { FakeServiceWorker } from '../../../test/helpers/fake_service_worker';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { PersistenceInternal, PersistenceType } from '../../core/persistence';
 import {
+  _persistenceKeyName,
+  KeyName,
+  PersistenceUserManager
+} from '../../core/persistence/persistence_user_manager';
+import { browserLocalPersistence } from './local_storage';
+import {
   SingletonInstantiator,
   _getInstance
 } from '../../core/util/instantiator';
@@ -142,6 +148,128 @@ describe('platform_browser/persistence/indexed_db', () => {
 
       expect(await persistence._isAvailable()).toBe(true);
       expect((indexedDB.open as MockInstance).mock.calls.length).toBe(3);
+    });
+
+    it('should time out without retrying and close late connection if indexedDB.open hangs', async () => {
+      (persistence as any).dbPromise = null;
+      let successCallback: (() => void) | undefined;
+      const fakeDbClose = vi.fn();
+      const fakeRequest: any = {
+        result: { close: fakeDbClose },
+        addEventListener(evt: string, cb: () => void) {
+          if (evt === 'success') {
+            successCallback = cb;
+          }
+        }
+      };
+      vi.spyOn(indexedDB, 'open').mockReturnValue(fakeRequest);
+
+      expect(await persistence._isAvailable()).toBe(false);
+      // Should not retry on timeout
+      expect((indexedDB.open as MockInstance).mock.calls.length).toBe(1);
+
+      // If the hung open request eventually succeeds after timeout, it must close the leaked connection
+      expect(successCallback).toBeDefined();
+      successCallback!();
+      expect(fakeDbClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('should time out, abort blocked transaction, and return false if readwrite transaction hangs due to a suspended tab', async () => {
+      (persistence as any).dbPromise = null;
+      const abortSpy = vi.fn();
+      const fakeDb: any = {
+        close: vi.fn(),
+        transaction: () => ({
+          objectStore: () => ({
+            put: () => ({
+              transaction: { abort: abortSpy },
+              addEventListener: () => {}
+            })
+          })
+        })
+      };
+
+      vi.spyOn(persistence as any, '_openDb').mockResolvedValue(fakeDb);
+
+      expect(await persistence._isAvailable()).toBe(false);
+      expect(abortSpy).toHaveBeenCalledTimes(1);
+      expect(fakeDb.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('should unblock PersistenceUserManager.create and preserve user when a suspended background tab blocks readwrite transactions (#10540)', async () => {
+      const auth = await testAuth();
+      const user = testUser(auth, 'tab-a-signed-in-uid');
+      const userKey = _persistenceKeyName(
+        KeyName.AUTH_USER,
+        auth.config.apiKey,
+        auth.name
+      );
+      const fallbackLocal = _getInstance<PersistenceInternal>(
+        browserLocalPersistence
+      );
+
+      try {
+        // 1. Tab A signs in and persists the user in real IndexedDB
+        await persistence._set(userKey, user.toJSON());
+
+        // 2. Simulate Tab A suspended mid-poll (holding a frozen readonly transaction):
+        //    - readonly transactions ('readonly') succeed concurrently in Tab B
+        //    - readwrite transactions ('readwrite') in Tab B queue behind Tab A and hang forever
+        const originalTransaction = IDBDatabase.prototype.transaction;
+        const abortSpy = vi.fn();
+
+        vi.spyOn(IDBDatabase.prototype, 'transaction').mockImplementation(
+          function (
+            this: IDBDatabase,
+            storeNames: string | Iterable<string>,
+            mode?: IDBTransactionMode
+          ) {
+            if (mode === 'readwrite') {
+              const hungRequest = {
+                transaction: { abort: abortSpy },
+                addEventListener: () => {}
+              };
+              return {
+                objectStore: () => ({
+                  put: () => hungRequest,
+                  delete: () => hungRequest,
+                  clear: () => hungRequest
+                })
+              } as any;
+            }
+            return originalTransaction.call(this, storeNames, mode);
+          }
+        );
+
+        // 3. Tab B initializes PersistenceUserManager with [indexedDBLocalPersistence] (single persistence)
+        const singleManager = await PersistenceUserManager.create(auth, [
+          persistence
+        ]);
+        expect(abortSpy).toHaveBeenCalledTimes(1);
+        // Keeps indexedDBLocalPersistence (does not downgrade to inMemoryPersistence) and reads user via readonly _get
+        expect(singleManager.persistence).toBe(persistence);
+        expect((await singleManager.getCurrentUser())?.uid).toBe(
+          'tab-a-signed-in-uid'
+        );
+
+        // 4. Tab B initializes PersistenceUserManager with [indexedDBLocalPersistence, browserLocalPersistence]
+        const multiManager = await PersistenceUserManager.create(auth, [
+          persistence,
+          fallbackLocal
+        ]);
+
+        // Verify Tab B did not hang, aborted the blocked readwrite probe and migration delete,
+        // migrated to browserLocalPersistence, and preserved the signed-in user read via readonly _get!
+        expect(abortSpy).toHaveBeenCalledTimes(3);
+        expect(multiManager.persistence).toBe(fallbackLocal);
+        expect((await multiManager.getCurrentUser())?.uid).toBe(
+          'tab-a-signed-in-uid'
+        );
+      } finally {
+        vi.restoreAllMocks();
+        await persistence._remove(userKey);
+        await fallbackLocal._remove(userKey);
+      }
     });
   });
 
@@ -427,6 +555,52 @@ describe('platform_browser/persistence/indexed_db', () => {
       await persistence._remove(key);
       expect(await persistence._get(key)).toBeNull();
     });
+
+    it('should recover and complete operation when pagehide closes connection after _openDb resolves', async () => {
+      const key = 'mid-operation-pagehide-key';
+      const value = 'mid-operation-pagehide-val';
+      const originalOpenDb = (persistence as any)._openDb.bind(persistence);
+      let closedOnce = false;
+
+      vi.spyOn(persistence as any, '_openDb').mockImplementation(async () => {
+        const openedDb: IDBDatabase = await originalOpenDb();
+        if (!closedOnce) {
+          closedOnce = true;
+          // Simulate pagehide closing the DB connection right after _openDb() resolves
+          // before the transaction is created in op(db).
+          openedDb.close();
+        }
+        return openedDb;
+      });
+
+      await persistence._set(key, value);
+      expect(closedOnce).toBe(true);
+      expect(await persistence._get(key)).toBe(value);
+
+      await persistence._remove(key);
+      expect(await persistence._get(key)).toBeNull();
+    });
+
+    it('should safely handle concurrent operations when the database connection closes mid-flight', async () => {
+      const db = await (
+        persistence as unknown as {
+          _openDb(): Promise<IDBDatabase>;
+        }
+      )._openDb();
+      db.close();
+
+      await Promise.all([
+        persistence._set('concurrent-key-1', 'val-1'),
+        persistence._set('concurrent-key-2', 'val-2'),
+        persistence._get('concurrent-key-1')
+      ]);
+
+      expect(await persistence._get('concurrent-key-1')).toBe('val-1');
+      expect(await persistence._get('concurrent-key-2')).toBe('val-2');
+
+      await persistence._remove('concurrent-key-1');
+      await persistence._remove('concurrent-key-2');
+    });
   });
 
   describe('page lifecycle events', () => {
@@ -567,6 +741,113 @@ describe('platform_browser/persistence/indexed_db', () => {
 
       // 4. Assert that the listener was NOT notified with null (sign-out prevented)
       expect(callback).not.toHaveBeenCalledWith(null);
+    });
+
+    it('should complete in-flight writes and subsequent reads when visibilitychange or pagehide fires mid-write', async () => {
+      persistence._addListener(key, callback);
+      const originalOpenDb = (persistence as any)._openDb.bind(persistence);
+      let triggeredLifecycle = false;
+
+      vi.spyOn(persistence as any, '_openDb').mockImplementation(async () => {
+        const opened = await originalOpenDb();
+        if (!triggeredLifecycle && (persistence as any).pendingWrites > 0) {
+          triggeredLifecycle = true;
+          vi.spyOn(
+            Document.prototype,
+            'visibilityState',
+            'get'
+          ).mockReturnValue('hidden');
+          document.dispatchEvent(new Event('visibilitychange'));
+          window.dispatchEvent(new Event('pagehide'));
+        }
+        return opened;
+      });
+
+      await persistence._set(key, 'popup-auth-user');
+      expect(triggeredLifecycle).toBe(true);
+      expect((persistence as any).pendingWrites).toBe(0);
+      expect(await persistence._get(key)).toBe('popup-auth-user');
+
+      await persistence._remove(key);
+      expect(await persistence._get(key)).toBeNull();
+    });
+
+    it('should not evict cached user if an in-flight poll returns empty or errors during pagehide', async () => {
+      await persistence._set(key, value);
+      persistence._addListener(key, callback);
+      callback.mockClear();
+
+      // Simulate getAll() returning empty array right as pagehide fires
+      const withRetriesSpy = vi
+        .spyOn(persistence as any, '_withRetries')
+        .mockImplementationOnce(async () => {
+          window.dispatchEvent(new Event('pagehide'));
+          return [];
+        });
+
+      await (persistence as any)._poll();
+      expect(withRetriesSpy).toHaveBeenCalledTimes(1);
+      expect(callback).not.toHaveBeenCalled();
+      expect((persistence as any).localCache[key]).toBe(value);
+
+      // Reset isClosing via pageshow, then verify that if _withRetries rejects with AbortError
+      // during pagehide, localCache is untouched
+      window.dispatchEvent(new Event('pageshow'));
+      withRetriesSpy.mockImplementationOnce(async () => {
+        window.dispatchEvent(new Event('pagehide'));
+        throw new DOMException('Transaction aborted', 'AbortError');
+      });
+
+      await (persistence as any)._poll();
+      expect(withRetriesSpy).toHaveBeenCalledTimes(2);
+      expect(callback).not.toHaveBeenCalled();
+      expect((persistence as any).localCache[key]).toBe(value);
+    });
+
+    it('should skip background IndexedDB polling while document.visibilityState is hidden and resume polling when visible', async () => {
+      persistence._addListener(key, callback);
+      await persistence._set(key, value);
+      callback.mockClear();
+
+      const visibilitySpy = vi
+        .spyOn(Document.prototype, 'visibilityState', 'get')
+        .mockReturnValue('hidden');
+      const withRetriesSpy = vi.spyOn(persistence as any, '_withRetries');
+
+      // Modify DB directly while tab is hidden
+      await _putObject(db, key, 'updated-while-hidden');
+
+      // Advance poll timer while hidden: _poll() must not open any IndexedDB transactions
+      await waitUntilPoll();
+      expect(withRetriesSpy).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled();
+
+      // Restore visibility to 'visible': next poll tick should read IndexedDB and notify listener
+      visibilitySpy.mockReturnValue('visible');
+      await waitUntilPoll();
+      expect(withRetriesSpy).toHaveBeenCalled();
+      expect(callback).toHaveBeenCalledWith('updated-while-hidden');
+    });
+
+    it('should discard in-flight poll results if document becomes hidden before poll completes', async () => {
+      await persistence._set(key, value);
+      persistence._addListener(key, callback);
+      callback.mockClear();
+
+      vi.spyOn(persistence as any, '_withRetries').mockImplementationOnce(
+        async () => {
+          vi.spyOn(
+            Document.prototype,
+            'visibilityState',
+            'get'
+          ).mockReturnValue('hidden');
+          return [];
+        }
+      );
+
+      await (persistence as any)._poll();
+      expect(callback).not.toHaveBeenCalled();
+      expect((persistence as any).localCache[key]).toBe(value);
     });
   });
 });

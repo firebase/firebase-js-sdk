@@ -243,6 +243,48 @@ describe('core/persistence/persistence_user_manager', () => {
       expect(b.stub._get).toHaveBeenCalledTimes(1);
       expect(c.stub._get).toHaveBeenCalledTimes(1);
     });
+
+    it('falls back to next available persistence and loads user when primary persistence throws on _isAvailable, _get, and _remove', async () => {
+      const brokenPrimary = makePersistence(PersistenceType.LOCAL, true);
+      const fallbackSecondary = makePersistence(PersistenceType.LOCAL, true);
+      const user = testUser(auth, 'fallback-uid');
+
+      brokenPrimary.stub._isAvailable.mockRejectedValue(
+        new Error('IndexedDB open failed')
+      );
+      brokenPrimary.stub._get.mockRejectedValue(
+        new Error('IndexedDB read failed')
+      );
+      brokenPrimary.stub._remove.mockRejectedValue(
+        new Error('IndexedDB remove failed')
+      );
+
+      fallbackSecondary.stub._isAvailable.mockResolvedValue(true);
+      fallbackSecondary.stub._get.mockResolvedValue(user.toJSON());
+
+      const out = await PersistenceUserManager.create(auth, [
+        brokenPrimary.persistence,
+        fallbackSecondary.persistence
+      ]);
+
+      expect(out.persistence).toBe(fallbackSecondary.persistence);
+      expect((await out.getCurrentUser())?.uid).toBe('fallback-uid');
+    });
+
+    it('keeps persistence with user when _shouldAllowMigration is true but no other migration target is available', async () => {
+      const a = makePersistence(PersistenceType.LOCAL, true);
+      const user = testUser(auth, 'existing-local-uid');
+
+      // Simulate #10540 with single [indexedDBLocalPersistence] where readwrite (_isAvailable)
+      // fails due to a suspended background tab, while readonly (_get) still succeeds.
+      a.stub._isAvailable.mockResolvedValue(false);
+      a.stub._get.mockResolvedValue(user.toJSON());
+
+      const out = await PersistenceUserManager.create(auth, [a.persistence]);
+      // Should keep `a.persistence` rather than polluting the shared inMemoryPersistence singleton
+      expect(out.persistence).toBe(a.persistence);
+      expect((await out.getCurrentUser())?.uid).toBe('existing-local-uid');
+    });
   });
 
   describe('manager methods', () => {

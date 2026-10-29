@@ -47,6 +47,11 @@ const DB_VERSION = 1;
 const DB_OBJECTSTORE_NAME = 'firebaseLocalStorage';
 const DB_DATA_KEYPATH = 'fbase_key';
 
+export const _POLLING_INTERVAL_MS = 800;
+export const _TRANSACTION_RETRY_COUNT = 3;
+export const _DB_TIMEOUT_MS = 800;
+const DB_TIMEOUT_ERROR = 'DB_TIMEOUT';
+
 interface DBObject {
   [DB_DATA_KEYPATH]: string;
   value: PersistedBlob;
@@ -63,11 +68,30 @@ class DBPromise<T> {
 
   toPromise(): Promise<T> {
     return new Promise<T>((resolve, reject) => {
+      let settled = false;
+      const timer = setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          try {
+            this.request.transaction?.abort();
+          } catch {}
+          reject(new Error(DB_TIMEOUT_ERROR));
+        }
+      }, _DB_TIMEOUT_MS);
+
       this.request.addEventListener('success', () => {
-        resolve(this.request.result);
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          resolve(this.request.result);
+        }
       });
       this.request.addEventListener('error', () => {
-        reject(this.request.error);
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          reject(this.request.error);
+        }
       });
     });
   }
@@ -92,8 +116,20 @@ export function _deleteDatabase(): Promise<void> {
 export function _openDatabase(): Promise<IDBDatabase> {
   const request = indexedDB.open(DB_NAME, DB_VERSION);
   return new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        reject(new Error(DB_TIMEOUT_ERROR));
+      }
+    }, _DB_TIMEOUT_MS);
+
     request.addEventListener('error', () => {
-      reject(request.error);
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
+        reject(request.error);
+      }
     });
 
     request.addEventListener('upgradeneeded', () => {
@@ -102,12 +138,21 @@ export function _openDatabase(): Promise<IDBDatabase> {
       try {
         db.createObjectStore(DB_OBJECTSTORE_NAME, { keyPath: DB_DATA_KEYPATH });
       } catch (e) {
-        reject(e);
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          reject(e);
+        }
       }
     });
 
     request.addEventListener('success', async () => {
       const db: IDBDatabase = request.result;
+      if (settled) {
+        db.close();
+        return;
+      }
+      clearTimeout(timer);
       // Strange bug that occurs in Firefox when multiple tabs are opened at the
       // same time. The only way to recover seems to be deleting the database
       // and re-initializing it.
@@ -116,9 +161,23 @@ export function _openDatabase(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(DB_OBJECTSTORE_NAME)) {
         // Need to close the database or else you get a `blocked` event
         db.close();
-        await _deleteDatabase();
-        resolve(await _openDatabase());
+        try {
+          await _deleteDatabase();
+          const reopenedDb = await _openDatabase();
+          if (settled) {
+            reopenedDb.close();
+            return;
+          }
+          settled = true;
+          resolve(reopenedDb);
+        } catch (e) {
+          if (!settled) {
+            settled = true;
+            reject(e);
+          }
+        }
       } else {
+        settled = true;
         resolve(db);
       }
     });
@@ -150,9 +209,6 @@ export function _deleteObject(db: IDBDatabase, key: string): Promise<void> {
   const request = getObjectStore(db, true).delete(key);
   return new DBPromise<void>(request).toPromise();
 }
-
-export const _POLLING_INTERVAL_MS = 800;
-export const _TRANSACTION_RETRY_COUNT = 3;
 
 class IndexedDBLocalPersistence implements InternalPersistence {
   static type: 'LOCAL' = 'LOCAL';
@@ -227,30 +283,49 @@ class IndexedDBLocalPersistence implements InternalPersistence {
     if (this.dbPromise) {
       return this.dbPromise;
     }
-    this.dbPromise = _openDatabase();
-    this.dbPromise.catch(() => {
-      this.dbPromise = null;
+    const dbPromise = _openDatabase();
+    this.dbPromise = dbPromise;
+    dbPromise.catch(() => {
+      if (this.dbPromise === dbPromise) {
+        this.dbPromise = null;
+      }
     });
-    return this.dbPromise;
+    return dbPromise;
   }
 
   async _withRetries<T>(op: (db: IDBDatabase) => Promise<T>): Promise<T> {
     let numAttempts = 0;
 
     while (true) {
+      let db: IDBDatabase | undefined;
+      let dbPromiseBeforeOp: Promise<IDBDatabase> | null = null;
       try {
-        const db = await this._openDb();
+        const openPromise = this._openDb();
+        dbPromiseBeforeOp = this.dbPromise;
+        db = await openPromise;
         return await op(db);
       } catch (e) {
-        if (numAttempts++ > _TRANSACTION_RETRY_COUNT) {
+        const isTimeout = e instanceof Error && e.message === DB_TIMEOUT_ERROR;
+        if (isTimeout || numAttempts++ > _TRANSACTION_RETRY_COUNT) {
+          if (isTimeout && db) {
+            db.close();
+            if (dbPromiseBeforeOp && this.dbPromise === dbPromiseBeforeOp) {
+              this.dbPromise = null;
+            }
+          }
           throw e;
         }
-        if (this.dbPromise) {
-          const dbPromise = this.dbPromise;
+        if (db) {
+          db.close();
+          if (dbPromiseBeforeOp && this.dbPromise === dbPromiseBeforeOp) {
+            this.dbPromise = null;
+          }
+        } else if (this.dbPromise) {
+          const currentDbPromise = this.dbPromise;
           this.dbPromise = null;
           try {
-            const db = await dbPromise;
-            db.close();
+            const openedDb = await currentDbPromise;
+            openedDb.close();
           } catch {}
         }
         // TODO: consider adding exponential backoff
@@ -399,8 +474,16 @@ class IndexedDBLocalPersistence implements InternalPersistence {
     });
   }
 
+  private isDocumentHidden(): boolean {
+    return (
+      !_isWorker() &&
+      typeof document !== 'undefined' &&
+      document.visibilityState === 'hidden'
+    );
+  }
+
   private async _poll(): Promise<string[]> {
-    if (this.isClosing) {
+    if (this.isClosing || this.isDocumentHidden()) {
       return [];
     }
     try {
@@ -410,7 +493,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
         return new DBPromise<DBObject[] | null>(getAllRequest).toPromise();
       });
 
-      if (this.isClosing) {
+      if (this.isClosing || this.isDocumentHidden()) {
         return [];
       }
 
@@ -444,7 +527,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
       }
       return keys;
     } catch (e) {
-      if (!this.isClosing) {
+      if (!this.isClosing && !this.isDocumentHidden()) {
         _logWarn(`Firebase Auth cross-tab polling failed with error: ${e}`);
       }
       return [];
