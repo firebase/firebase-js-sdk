@@ -12337,7 +12337,7 @@ export class WindowSpecInternal implements ProtoValueSerializable, UserData {
     // an unknown type into a proto `Value`.
     throw new FirestoreError(
       'invalid-argument',
-      `Invalid window frame '${boundName}' bound. Expected a number, ` +
+      `Invalid window frame bound: '${boundName}'. Expected a number, ` +
         `'current', 'unbounded', or an Expression.`
     );
   }
