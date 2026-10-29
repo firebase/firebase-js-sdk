@@ -146,9 +146,10 @@ export function _errorForResponse(
 
   let details: unknown = undefined;
 
+  const errorJSON = bodyJSON && bodyJSON.error;
+
   // Then look through the body for explicit details.
   try {
-    const errorJSON = bodyJSON && bodyJSON.error;
     if (errorJSON) {
       const statusText = errorJSON.status;
       if (typeof statusText === 'string') {
@@ -182,10 +183,7 @@ export function _errorForResponse(
     // If we couldn't parse explicit error data, that's fine.
   }
 
-  if (code === 'ok') {
-    // Technically, there's an edge case where a developer could explicitly
-    // return an error code of OK, and we will treat it as success, but that
-    // seems reasonable.
+  if (code === 'ok' && !errorJSON) {
     return null;
   }
 
