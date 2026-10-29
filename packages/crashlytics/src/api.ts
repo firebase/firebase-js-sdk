@@ -47,7 +47,7 @@ declare module '@firebase/component' {
  * @param options - {@link CrashlyticsOptions} that configure the Crashlytics instance.
  * @returns The default {@link Crashlytics} instance for the given {@link @firebase/app#FirebaseApp}.
  *
- * @public
+ * @beta
  */
 export function getCrashlytics(
   app: FirebaseApp = getApp(),
@@ -81,7 +81,7 @@ export function getCrashlytics(
 /**
  * Queues an error to be uploaded to the Firebase Crashlytics API.
  *
- * @public
+ * @beta
  *
  * @param crashlytics - The {@link Crashlytics} instance.
  * @param error - The caught exception, typically an Error object
@@ -153,7 +153,7 @@ export function recordError(
 }
 
 /**
- * Queues a log message to be uploaded to the Firebase Crashlytics API.
+ * <b>(EXPERIMENTAL)</b> Queues a log message to be uploaded to the Firebase Crashlytics API.
  *
  * @public
  *

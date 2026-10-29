@@ -135,7 +135,7 @@ class BreadcrumbsFeatureImpl implements CrashlyticsFeatureInternal {
 }
 
 /**
- * Enables Crashlytics breadcrumb and trace telemetry collection when passed in
+ * <b>(EXPERIMENTAL)</b> Enables Crashlytics breadcrumb and trace telemetry collection when passed in
  * {@link CrashlyticsOptions.features}.
  *
  * When enabled, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and

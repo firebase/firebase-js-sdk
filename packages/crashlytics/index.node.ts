@@ -1,4 +1,11 @@
 /**
+ * The Firebase Crashlytics Web SDK.
+ *
+ * @beta
+ * @packageDocumentation
+ */
+
+/**
  * @license
  * Copyright 2025 Google LLC
  *

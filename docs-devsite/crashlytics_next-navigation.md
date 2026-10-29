@@ -15,19 +15,22 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  [CrashlyticsRoutes({ firebaseApp, crashlyticsOptions }, input)](./crashlytics_next-navigation.md#crashlyticsroutes_097ca29) | A client-side routing component for Next.js App Router that automatically captures navigation events and updates route attributes.<!-- -->This component should be mounted inside a root Client Component layout. |
+|  [CrashlyticsRoutes({ firebaseApp, crashlyticsOptions }, input)](./crashlytics_next-navigation.md#crashlyticsroutes_097ca29) | <b><i>(Public Preview)</i></b> A client-side routing component for Next.js App Router that automatically captures navigation events and updates route attributes.<!-- -->This component should be mounted inside a root Client Component layout. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [Crashlytics](./crashlytics_next-navigation.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
-|  [CrashlyticsFeature](./crashlytics_next-navigation.crashlyticsfeature.md#crashlyticsfeature_interface) | An opaque feature plugin object returned by Crashlytics feature factory functions such as [breadcrumbs()](./crashlytics.md#breadcrumbs)<!-- -->. |
-|  [CrashlyticsOptions](./crashlytics_next-navigation.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [Crashlytics](./crashlytics_next-navigation.crashlytics.md#crashlytics_interface) | <b><i>(Public Preview)</i></b> An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [CrashlyticsFeature](./crashlytics_next-navigation.crashlyticsfeature.md#crashlyticsfeature_interface) | <b>(EXPERIMENTAL)</b> An opaque feature plugin object returned by Crashlytics feature factory functions such as [breadcrumbs()](./crashlytics.md#breadcrumbs)<!-- -->. |
+|  [CrashlyticsOptions](./crashlytics_next-navigation.crashlyticsoptions.md#crashlyticsoptions_interface) | <b><i>(Public Preview)</i></b> Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
 
 ## function({ firebaseApp, crashlyticsOptions }, ...)
 
 ### CrashlyticsRoutes({ firebaseApp, crashlyticsOptions }, input) {:#crashlyticsroutes_097ca29}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 A client-side routing component for Next.js App Router that automatically captures navigation events and updates route attributes.
 

@@ -78,7 +78,7 @@ export * from '../public-types';
  * @param crashlyticsOptions - {@link CrashlyticsOptions} that configure the Crashlytics instance.
  * @returns The rendered routes wrapped in an error boundary.
  *
- * @public
+ * @beta
  */
 export function CrashlyticsRoutes({
   firebaseApp,

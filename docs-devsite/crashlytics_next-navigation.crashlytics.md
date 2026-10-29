@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # Crashlytics interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 An instance of the Firebase Crashlytics SDK.
 
 Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->.
@@ -24,9 +27,12 @@ export interface Crashlytics
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [app](./crashlytics_next-navigation.crashlytics.md#crashlyticsapp) | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this [Crashlytics](./crashlytics_next-navigation.crashlytics.md#crashlytics_interface) instance is associated with. |
+|  [app](./crashlytics_next-navigation.crashlytics.md#crashlyticsapp) | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | <b><i>(Public Preview)</i></b> The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this [Crashlytics](./crashlytics_next-navigation.crashlytics.md#crashlytics_interface) instance is associated with. |
 
 ## Crashlytics.app
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this [Crashlytics](./crashlytics_next-navigation.crashlytics.md#crashlytics_interface) instance is associated with.
 

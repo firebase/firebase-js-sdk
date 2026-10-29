@@ -9,7 +9,7 @@ import { default as default_2 } from 'react';
 import { FirebaseApp } from '@firebase/app';
 import { RoutesProps } from 'react-router-dom';
 
-// @public
+// @beta
 export interface Crashlytics {
     app: FirebaseApp;
 }
@@ -17,18 +17,19 @@ export interface Crashlytics {
 // @public
 export interface CrashlyticsFeature {}
 
-// @public
+// @beta
 export interface CrashlyticsOptions {
     appVersion?: string;
     captureUnhandledErrors?: boolean;
     customAttributes?: AnyValueMap;
     endpointUrl?: string;
+    // @public
     features?: CrashlyticsFeature[];
     region?: string;
     registerGlobalLoggerProvider?: boolean;
 }
 
-// @public
+// @beta
 export function CrashlyticsRoutes(input: RoutesProps & {
     firebaseApp: FirebaseApp;
     crashlyticsOptions?: CrashlyticsOptions;
