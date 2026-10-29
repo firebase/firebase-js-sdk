@@ -250,11 +250,9 @@ You can enable or manage email alerts either during initial project onboarding o
 
 ### Option 2: Set up email alerts via the Firebase CLI
 
-When onboarding your web app with the Firebase CLI, enable the `crashlyticsWebAlerts` experiment alongside `crashlyticsWeb` to configure email alerts directly from your terminal:
+Configure email alerts directly from your terminal during onboarding:
 
 ```bash
-firebase experiments:enable crashlyticsWeb
-firebase experiments:enable crashlyticsWebAlerts
 firebase crashlytics:onboard:web <YOUR_FIREBASE_APP_ID> --project <YOUR_FIREBASE_PROJECT_ID>
 ```
 
