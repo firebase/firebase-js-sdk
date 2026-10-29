@@ -246,6 +246,46 @@ describe('FetchTransport', () => {
       expect(sentHeaders?.get('content-type')).toBe('application/json');
     });
 
+    it('continues sending telemetry when a dynamic header provider rejects or throws', async () => {
+      // arrange
+      const fetchStub = vi
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValue(new Response('test response', { status: 200 }));
+
+      const rejectingProvider: DynamicHeaderProvider = {
+        getHeader: vi.fn().mockRejectedValue(new Error('App Check token error'))
+      };
+      const throwingProvider: DynamicHeaderProvider = {
+        getHeader: vi.fn().mockImplementation(() => {
+          throw new Error('Sync provider error');
+        })
+      };
+      const succeedingProvider: DynamicHeaderProvider = {
+        getHeader: vi
+          .fn()
+          .mockResolvedValue(['dynamic-header', 'dynamic-value'])
+      };
+
+      const transport = new FetchTransport({
+        ...testTransportParameters,
+        dynamicHeaderProviders: [
+          rejectingProvider,
+          throwingProvider,
+          succeedingProvider
+        ]
+      });
+
+      // act
+      const response = await transport.send(testPayload, requestTimeout);
+
+      // assert
+      expect(response.status).toBe('success');
+      expect(fetchStub).toHaveBeenCalledOnce();
+      const sentHeaders = fetchStub.mock.calls[0][1]?.headers as Headers;
+      expect(sentHeaders?.get('foo')).toBe('foo-value');
+      expect(sentHeaders?.get('dynamic-header')).toBe('dynamic-value');
+    });
+
     it('sets keepalive: true when payload is within the safe limit', async () => {
       // arrange
       const fetchStub = vi

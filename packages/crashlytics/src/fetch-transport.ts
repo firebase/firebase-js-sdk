@@ -78,9 +78,14 @@ export class FetchTransport implements IExporterTransport {
         this.parameters.dynamicHeaderProviders.length > 0
       ) {
         const dynamicHeaderPromises =
-          this.parameters.dynamicHeaderProviders.map(provider =>
-            provider.getHeader()
-          );
+          this.parameters.dynamicHeaderProviders.map(async provider => {
+            try {
+              return await provider.getHeader();
+            } catch (err) {
+              diag.debug(`Failed to retrieve dynamic header: ${err}`);
+              return null;
+            }
+          });
         const resolvedHeaders = await Promise.all(dynamicHeaderPromises);
 
         for (const header of resolvedHeaders) {

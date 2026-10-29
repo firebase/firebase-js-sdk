@@ -20,6 +20,7 @@ import {
   EnvironmentProviders,
   ErrorHandler,
   inject,
+  Injector,
   makeEnvironmentProviders,
   provideEnvironmentInitializer
 } from '@angular/core';
@@ -96,14 +97,22 @@ export function getRawPath(url: string): string {
  * @internal
  */
 export class FirebaseErrorHandler implements ErrorHandler {
-  private readonly router = inject(Router);
+  private readonly injector = inject(Injector);
+  private _router?: Router;
   private readonly crashlytics: Crashlytics;
 
   constructor(app: FirebaseApp, crashlyticsOptions?: CrashlyticsOptions) {
     this.crashlytics = getCrashlytics(app, crashlyticsOptions);
     const attributesStore = (this.crashlytics as CrashlyticsInternal)
       .attributesStore;
-    attributesStore.setRoutePathProvider(() => getSafeRoutePath(this.router));
+    attributesStore.setRoutePathProvider(() => {
+      try {
+        this._router ??= this.injector.get(Router);
+        return getSafeRoutePath(this._router);
+      } catch {
+        return '/';
+      }
+    });
   }
 
   handleError(error: unknown): void {

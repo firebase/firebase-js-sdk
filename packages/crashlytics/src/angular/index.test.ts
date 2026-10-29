@@ -110,6 +110,27 @@ describe('FirebaseErrorHandler', () => {
     expect(provider!()).toBe('/static-route');
   });
 
+  it('should lazily resolve Router and fall back to "/" if Router is unavailable', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideExperimentalZonelessChangeDetection()]
+    });
+
+    const setRoutePathProviderSpy = vi.spyOn(
+      attributesStore,
+      'setRoutePathProvider'
+    );
+    const testInjector = TestBed.inject(Injector);
+
+    expect(() =>
+      runInInjectionContext(testInjector, () => new FirebaseErrorHandler(app))
+    ).not.toThrow();
+
+    const provider = setRoutePathProviderSpy.mock.calls[0][0];
+    expect(provider).toBeDefined();
+    expect(provider!()).toBe('/');
+  });
+
   it('should log the error to the console', async () => {
     const testError = new Error('Test error message');
     errorHandler.handleError(testError);
