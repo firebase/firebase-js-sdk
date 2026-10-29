@@ -305,28 +305,22 @@ class IndexedDBLocalPersistence implements InternalPersistence {
         db = await openPromise;
         return await op(db);
       } catch (e) {
-        const isTimeout = e instanceof Error && e.message === DB_TIMEOUT_ERROR;
-        if (isTimeout || numAttempts++ > _TRANSACTION_RETRY_COUNT) {
-          if (isTimeout && db) {
-            db.close();
-            if (dbPromiseBeforeOp && this.dbPromise === dbPromiseBeforeOp) {
-              this.dbPromise = null;
-            }
-          }
-          throw e;
-        }
         if (db) {
           db.close();
           if (dbPromiseBeforeOp && this.dbPromise === dbPromiseBeforeOp) {
             this.dbPromise = null;
           }
-        } else if (this.dbPromise) {
+        } else if (this.dbPromise && this.dbPromise === dbPromiseBeforeOp) {
           const currentDbPromise = this.dbPromise;
           this.dbPromise = null;
           try {
             const openedDb = await currentDbPromise;
             openedDb.close();
           } catch {}
+        }
+        const isTimeout = e instanceof Error && e.message === DB_TIMEOUT_ERROR;
+        if (isTimeout || numAttempts++ > _TRANSACTION_RETRY_COUNT) {
+          throw e;
         }
         // TODO: consider adding exponential backoff
       }

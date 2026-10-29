@@ -601,6 +601,50 @@ describe('platform_browser/persistence/indexed_db', () => {
       await persistence._remove('concurrent-key-1');
       await persistence._remove('concurrent-key-2');
     });
+
+    it('should close db and clear dbPromise when non-timeout retries are exhausted so subsequent operations recover', async () => {
+      const closeSpies: MockInstance[] = [];
+      const originalOpenDb = (persistence as any)._openDb.bind(persistence);
+      (persistence as any).dbPromise = null;
+
+      let shouldFail = true;
+      const openDbSpy = vi
+        .spyOn(persistence as any, '_openDb')
+        .mockImplementation(async () => {
+          const openedDb: IDBDatabase = await originalOpenDb();
+          closeSpies.push(vi.spyOn(openedDb, 'close'));
+          return openedDb;
+        });
+
+      await expect(
+        (persistence as any)._withRetries(async () => {
+          if (shouldFail) {
+            throw new DOMException(
+              'The database connection is closing.',
+              'InvalidStateError'
+            );
+          }
+          return 'ok';
+        })
+      ).rejects.toThrow('The database connection is closing.');
+
+      // numAttempts++ > _TRANSACTION_RETRY_COUNT (3) runs for numAttempts = 0, 1, 2, 3, 4 (5 attempts total)
+      expect(closeSpies).toHaveLength(5);
+      for (const spy of closeSpies) {
+        expect(spy).toHaveBeenCalledTimes(1);
+      }
+      // Broken connection promise must be cleared even after final retry exhaustion
+      expect((persistence as any).dbPromise).toBeNull();
+
+      // Subsequent operation should open a fresh connection and succeed
+      shouldFail = false;
+      openDbSpy.mockRestore();
+      await persistence._set('recover-after-exhaustion', 'recovered-val');
+      expect(await persistence._get('recover-after-exhaustion')).toBe(
+        'recovered-val'
+      );
+      await persistence._remove('recover-after-exhaustion');
+    });
   });
 
   describe('page lifecycle events', () => {
