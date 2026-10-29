@@ -68,7 +68,6 @@ function writePackageJson(packageName: string): void {
 
 function loadApiExtractorConfig(
   packageName: string,
-  packageRoot: string,
   typescriptDtsPath: string,
   rollupDtsPath: string,
   untrimmedRollupDtsPath: string,
@@ -92,14 +91,6 @@ function loadApiExtractorConfig(
     },
     'tsdocMetadata': {
       'enabled': false
-    },
-    'docModel': {
-      'enabled': dtsRollupEnabled,
-      'apiJsonFilePath': path.resolve(
-        packageRoot,
-        'temp',
-        `${packageName}.api.json`
-      )
     },
     'apiReport': {
       'enabled': apiReportEnabled,
@@ -168,7 +159,6 @@ export async function generateApi(
 
   let extractorConfig = loadApiExtractorConfig(
     packageName,
-    packageRoot,
     typescriptDtsPath,
     rollupDtsPath,
     untrimmedRollupDtsPath,
@@ -198,7 +188,6 @@ export async function generateApi(
 
   extractorConfig = loadApiExtractorConfig(
     packageName,
-    packageRoot,
     publicDtsPath,
     rollupDtsPath,
     untrimmedRollupDtsPath,
