@@ -28,4 +28,56 @@ export {
   copySqlServiceSettings
 } from '../core/settings';
 
-export { FirebaseSql, getSql, terminate } from './FirebaseSql';
+export type {
+  Builder,
+  CheckMatchingArrayTypes,
+  ContainsNull,
+  ExplicitKeys,
+  IsPlainObject,
+  IsValidResultOverride,
+  MergeDeep,
+  MergeExplicit,
+  MergePartialResult,
+  OperationBase,
+  OperationFailure,
+  OperationResult,
+  OperationSuccess,
+  SelectQueryError,
+  Simplify
+} from './Builder';
+
+export type {
+  FilterBuilder,
+  FilterOperator,
+  FilterOrOptions,
+  FilterTextSearchOptions,
+  FilterTextSearchType,
+  NarrowResultColumn
+} from './FilterBuilder';
+
+export {
+  FirebaseSql,
+  type FirebaseSqlRpcOptions,
+  getSql,
+  terminate
+} from './FirebaseSql';
+
+export type {
+  QueryBuilder,
+  QueryCountStrategy,
+  QueryDeleteOptions,
+  QueryInsertOptions,
+  QuerySelectOptions,
+  QueryUpdateOptions,
+  QueryUpsertOptions
+} from './QueryBuilder';
+
+export type {
+  InvalidMethodError,
+  TransformBuilder,
+  TransformExplainFormat,
+  TransformExplainOptions,
+  TransformLimitOptions,
+  TransformOrderOptions,
+  TransformRangeOptions
+} from './TransformBuilder';

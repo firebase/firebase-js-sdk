@@ -24,37 +24,47 @@ import {
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
+import { PostgrestClient } from '@supabase/postgrest-js';
 
 import {
-  FirebaseSqlErrorCategory,
   Code,
-  FirebaseSqlError
+  FirebaseSqlError,
+  FirebaseSqlErrorCategory
 } from '../core/error';
+import { mapPostgrestFailureToFirebaseSqlError } from '../core/errorMapper';
 import {
   SqlServiceSettings,
   validateSqlServiceSettings
 } from '../core/settings';
-import {
-  AppCheckProvider,
-  AppCheckTokenProvider
-} from '../core/tokenProviders/AppCheckTokenProvider';
-import {
-  FirebaseAuthProvider,
-  FirebaseAuthTokenProvider
-} from '../core/tokenProviders/FirebaseAuthTokenProvider';
+import type { MutableSqlClientState } from '../core/state';
+import { AppCheckProvider } from '../core/tokenProviders/AppCheckTokenProvider';
+import { FirebaseAuthProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
+import type {
+  UntypedClientOptions,
+  UntypedDatabase,
+  UntypedSchema
+} from '../core/untypedSchema';
 import { logDebug } from '../logger';
-import {
-  FirebaseSqlTransport,
-  FirebaseSqlTransportInterface
-} from '../network';
+import { createBuilderFetch } from '../network/postgrestFetch';
 import { FIREBASE_SQL_COMPONENT_NAME } from '../util/constants';
 import { deepSortKeysForObj } from '../util/encoder';
 import { resolvePostgrestUrl } from '../util/url';
+
+import type { FilterBuilder } from './FilterBuilder';
+import { FilterBuilderImpl } from './impl/FilterBuilderImpl';
+import { QueryBuilderImpl } from './impl/QueryBuilderImpl';
+import type { QueryBuilder, QueryCountStrategy } from './QueryBuilder';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
     [FIREBASE_SQL_COMPONENT_NAME]: FirebaseSql;
   }
+}
+
+export interface FirebaseSqlRpcOptions {
+  head?: boolean | undefined;
+  get?: boolean | undefined;
+  count?: QueryCountStrategy | undefined;
 }
 
 /**
@@ -65,15 +75,14 @@ export class FirebaseSql {
   readonly _postgrestUrl: string;
 
   /** @internal */
-  private _isDeleted = false;
+  private readonly _state: MutableSqlClientState;
 
-  /** @internal */
-  private _authTokenProvider: FirebaseAuthTokenProvider;
-  /** @internal */
-  private _appCheckTokenProvider: AppCheckTokenProvider;
-
-  /** @internal */
-  private _transport: FirebaseSqlTransportInterface;
+  readonly #postgrestClient: PostgrestClient<
+    UntypedDatabase,
+    UntypedClientOptions,
+    string,
+    UntypedSchema
+  >;
 
   /** @internal */
   constructor(
@@ -81,49 +90,47 @@ export class FirebaseSql {
     readonly app: FirebaseApp,
     /** Resolved configuration settings. */
     readonly settings: SqlServiceSettings,
-    /**
-     * The instance identifier for the Firebase SQL service instance.
-     * @internal
-     */
+    /** @internal */
     readonly _instanceIdentifier: string,
-    /**
-     * The auth internal provider.
-     * @internal
-     */
-    authInternalProvider: Provider<FirebaseAuthInternalName>,
-    /**
-     * The app check internal provider.
-     * @internal
-     */
-    appCheckInternalProvider: Provider<AppCheckInternalComponentName>
+    /** @internal */
+    private authInternalProvider: Provider<FirebaseAuthInternalName>,
+    /** @internal */
+    private appCheckInternalProvider: Provider<AppCheckInternalComponentName>
   ) {
     this._postgrestUrl = resolvePostgrestUrl(
       this.settings,
       app.options.projectId!
     );
 
-    this._authTokenProvider = new FirebaseAuthProvider(
-      app,
-      authInternalProvider
-    );
-    this._appCheckTokenProvider = new AppCheckProvider(
-      app,
-      appCheckInternalProvider
-    );
-    this._transport = new FirebaseSqlTransport({
-      settings,
-      appId: app.options.appId,
-      authTokenProvider: this._authTokenProvider,
-      appCheckTokenProvider: this._appCheckTokenProvider
+    this._state = {
+      active: {
+        appId: app.options.appId,
+        authTokenProvider: new FirebaseAuthProvider(app, authInternalProvider),
+        appCheckTokenProvider: new AppCheckProvider(
+          app,
+          appCheckInternalProvider
+        )
+      }
+    };
+
+    this.#postgrestClient = new PostgrestClient<
+      UntypedDatabase,
+      UntypedClientOptions,
+      string,
+      UntypedSchema
+    >(this._postgrestUrl, {
+      headers: this.settings.headers,
+      schema: this.settings.schemaName
     });
   }
 
   /** @internal */
   _delete(): Promise<void> {
-    if (!this._isDeleted) {
-      this._isDeleted = true;
-      this._appCheckTokenProvider.terminate();
-      this._authTokenProvider.terminate();
+    if (this._state.active !== null) {
+      const active = this._state.active;
+      this._state.active = null;
+      active.appCheckTokenProvider.terminate();
+      active.authTokenProvider.terminate();
       _removeServiceInstance(
         this.app,
         FIREBASE_SQL_COMPONENT_NAME,
@@ -131,6 +138,78 @@ export class FirebaseSql {
       );
     }
     return Promise.resolve();
+  }
+
+  // Encode table and RPC names so `/`, `?`, `#`, and dot-segments cannot traverse out of
+  // `/postgrest` or inject query parameters on the shared `firebasedataconnect.googleapis.com`
+  // origin (deviating from `PostgrestClient`'s raw URL interpolation while leaving blank
+  // `from('')` inputs untouched so `@supabase/postgrest-js`'s raw `Error` still propagates).
+  #encodeResourceSegment(segment: string, preserveBlank: boolean): string {
+    if (segment === '.' || segment === '..') {
+      throw new FirebaseSqlError(
+        Code.INVALID_ARGUMENT,
+        `Invalid resource name "${segment}".`,
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+    }
+    if (
+      typeof segment !== 'string' ||
+      segment.length === 0 ||
+      (preserveBlank && segment.trim() === '')
+    ) {
+      return segment;
+    }
+    return encodeURIComponent(segment);
+  }
+
+  from(table: string): QueryBuilder {
+    if (this._state.active === null) {
+      throw new FirebaseSqlError(
+        Code.NOT_INITIALIZED,
+        'FirebaseSql instance has been terminated.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+    }
+    const delegate = this.#postgrestClient.from(
+      this.#encodeResourceSegment(table, true)
+    );
+    return new QueryBuilderImpl(
+      delegate,
+      this._state,
+      createBuilderFetch,
+      mapPostgrestFailureToFirebaseSqlError
+    );
+  }
+
+  rpc<
+    Args extends object & {
+      readonly [K in keyof Args]: unknown;
+    } & {
+      readonly [Symbol.iterator]?: never;
+    } = Record<string, unknown>
+  >(
+    fn: string,
+    params?: Args | undefined,
+    options?: Readonly<FirebaseSqlRpcOptions> | undefined
+  ): FilterBuilder<unknown, 'RPC'> {
+    if (this._state.active === null) {
+      throw new FirebaseSqlError(
+        Code.NOT_INITIALIZED,
+        'FirebaseSql instance has been terminated.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+    }
+    const delegate = this.#postgrestClient.rpc(
+      this.#encodeResourceSegment(fn, false),
+      params as Record<string, unknown> | undefined,
+      options
+    );
+    return new FilterBuilderImpl<unknown, 'RPC'>(
+      delegate,
+      this._state,
+      createBuilderFetch,
+      mapPostgrestFailureToFirebaseSqlError
+    );
   }
 }
 
