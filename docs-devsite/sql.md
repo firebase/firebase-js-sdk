@@ -34,8 +34,28 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Interface | Description |
 |  --- | --- |
+|  [Builder](./sql.builder.md#builder_interface) |  |
+|  [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) |  |
+|  [FilterOrOptions](./sql.filteroroptions.md#filteroroptions_interface) |  |
+|  [FilterTextSearchOptions](./sql.filtertextsearchoptions.md#filtertextsearchoptions_interface) |  |
+|  [FirebaseSqlRpcOptions](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptions_interface) |  |
+|  [InvalidMethodError](./sql.invalidmethoderror.md#invalidmethoderror_interface) |  |
+|  [OperationBase](./sql.operationbase.md#operationbase_interface) |  |
+|  [OperationFailure](./sql.operationfailure.md#operationfailure_interface) |  |
+|  [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface) |  |
+|  [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) |  |
+|  [QueryDeleteOptions](./sql.querydeleteoptions.md#querydeleteoptions_interface) |  |
+|  [QueryInsertOptions](./sql.queryinsertoptions.md#queryinsertoptions_interface) |  |
+|  [QuerySelectOptions](./sql.queryselectoptions.md#queryselectoptions_interface) |  |
+|  [QueryUpdateOptions](./sql.queryupdateoptions.md#queryupdateoptions_interface) |  |
+|  [QueryUpsertOptions](./sql.queryupsertoptions.md#queryupsertoptions_interface) |  |
 |  [SerializedFirebaseSqlError](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerror_interface) | Plain JSON-serializable representation of a <code>FirebaseSqlError</code>. |
 |  [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Service connection settings for configuring a Firebase SQL client instance. |
+|  [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) |  |
+|  [TransformExplainOptions](./sql.transformexplainoptions.md#transformexplainoptions_interface) |  |
+|  [TransformLimitOptions](./sql.transformlimitoptions.md#transformlimitoptions_interface) |  |
+|  [TransformOrderOptions](./sql.transformorderoptions.md#transformorderoptions_interface) |  |
+|  [TransformRangeOptions](./sql.transformrangeoptions.md#transformrangeoptions_interface) |  |
 
 ## Variables
 
@@ -48,9 +68,25 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Type Alias | Description |
 |  --- | --- |
+|  [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes) |  |
 |  [Code](./sql.md#code) | Error codes emitted by Firebase SQL client and platform operations. |
+|  [ContainsNull](./sql.md#containsnull) |  |
+|  [ExplicitKeys](./sql.md#explicitkeys) |  |
+|  [FilterOperator](./sql.md#filteroperator) |  |
+|  [FilterTextSearchType](./sql.md#filtertextsearchtype) |  |
 |  [FirebaseSqlErrorCategory](./sql.md#firebasesqlerrorcategory) | Categories identifying the origin of a <code>FirebaseSqlError</code>. |
 |  [FirebaseSqlErrorCode](./sql.md#firebasesqlerrorcode) | Error codes emitted by Firebase SQL client and platform operations. |
+|  [IsPlainObject](./sql.md#isplainobject) |  |
+|  [IsValidResultOverride](./sql.md#isvalidresultoverride) |  |
+|  [MergeDeep](./sql.md#mergedeep) |  |
+|  [MergeExplicit](./sql.md#mergeexplicit) |  |
+|  [MergePartialResult](./sql.md#mergepartialresult) |  |
+|  [NarrowResultColumn](./sql.md#narrowresultcolumn) |  |
+|  [OperationResult](./sql.md#operationresult) |  |
+|  [QueryCountStrategy](./sql.md#querycountstrategy) |  |
+|  [SelectQueryError](./sql.md#selectqueryerror) |  |
+|  [Simplify](./sql.md#simplify) |  |
+|  [TransformExplainFormat](./sql.md#transformexplainformat) |  |
 
 ## function(app, ...)
 
@@ -171,6 +207,18 @@ FirebaseSqlErrorCategory: Readonly<{
 }>
 ```
 
+## CheckMatchingArrayTypes
+
+<b>Signature:</b>
+
+```typescript
+export type CheckMatchingArrayTypes<T, NewResult> = T extends SelectQueryError<string> ? NewResult : IsValidResultOverride<T, NewResult, {
+    Error: 'Type mismatch: Cannot cast array result to a single object. Use .overrideTypes<Array<YourType>> or .returns<Array<YourType>> (deprecated) for array results or .single() to convert the result to a single object';
+}, {
+    Error: 'Type mismatch: Cannot cast single object to array type. Remove Array wrapper from return type or make sure you are not using .single() up in the calling chain';
+}> extends infer ValidationResult ? ValidationResult extends true ? ContainsNull<T> extends true ? NewResult | null : NewResult : ValidationResult : never;
+```
+
 ## Code
 
 Error codes emitted by Firebase SQL client and platform operations.
@@ -179,6 +227,40 @@ Error codes emitted by Firebase SQL client and platform operations.
 
 ```typescript
 export type Code = FirebaseSqlErrorCode;
+```
+
+## ContainsNull
+
+<b>Signature:</b>
+
+```typescript
+export type ContainsNull<T> = unknown extends T ? false : null extends T ? true : false;
+```
+
+## ExplicitKeys
+
+<b>Signature:</b>
+
+```typescript
+export type ExplicitKeys<T> = {
+    [K in keyof T]: string extends K ? never : K;
+}[keyof T];
+```
+
+## FilterOperator
+
+<b>Signature:</b>
+
+```typescript
+export type FilterOperator = 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'ilike' | 'is' | 'isdistinct' | 'in' | 'cs' | 'cd' | 'sl' | 'sr' | 'nxl' | 'nxr' | 'adj' | 'ov' | 'fts' | 'plfts' | 'phfts' | 'wfts' | 'match' | 'imatch';
+```
+
+## FilterTextSearchType
+
+<b>Signature:</b>
+
+```typescript
+export type FilterTextSearchType = 'plain' | 'phrase' | 'websearch';
 ```
 
 ## FirebaseSqlErrorCategory
@@ -199,4 +281,106 @@ Error codes emitted by Firebase SQL client and platform operations.
 
 ```typescript
 export type FirebaseSqlErrorCode = 'other' | 'already-initialized' | 'not-initialized' | 'not-supported' | 'invalid-argument' | 'partial-error' | 'unauthorized';
+```
+
+## IsPlainObject
+
+<b>Signature:</b>
+
+```typescript
+export type IsPlainObject<T> = T extends unknown[] ? false : T extends object ? true : false;
+```
+
+## IsValidResultOverride
+
+<b>Signature:</b>
+
+```typescript
+export type IsValidResultOverride<T, NewResult, ErrorResult, ErrorNewResult> = unknown extends T ? true : T extends unknown[] ? NewResult extends unknown[] ? true : ErrorResult : NewResult extends unknown[] ? ErrorNewResult : true;
+```
+
+## MergeDeep
+
+<b>Signature:</b>
+
+```typescript
+export type MergeDeep<New, Row> = Simplify<MergeExplicit<New, Row> & (string extends keyof Row ? {
+    [K: string]: Row[string];
+} : {})>;
+```
+
+## MergeExplicit
+
+<b>Signature:</b>
+
+```typescript
+export type MergeExplicit<New, Row> = {
+    [K in ExplicitKeys<New> | ExplicitKeys<Row>]: K extends keyof New ? K extends keyof Row ? Row[K] extends SelectQueryError<string> ? New[K] : New[K] extends unknown[] ? Row[K] extends unknown[] ? Array<Simplify<MergeDeep<NonNullable<New[K][number]>, NonNullable<Row[K][number]>>>> : New[K] : IsPlainObject<NonNullable<New[K]>> extends true ? IsPlainObject<NonNullable<Row[K]>> extends true ? ContainsNull<New[K]> extends true ? Simplify<MergeDeep<NonNullable<New[K]>, NonNullable<Row[K]>>> | null : Simplify<MergeDeep<New[K], NonNullable<Row[K]>>> : New[K] : New[K] : New[K] : K extends keyof Row ? Row[K] : never;
+};
+```
+
+## MergePartialResult
+
+<b>Signature:</b>
+
+```typescript
+export type MergePartialResult<NewResult, Result$1, Options> = Options extends {
+    merge: true;
+} ? unknown extends Result$1 ? NewResult : Result$1 extends unknown[] ? NewResult extends unknown[] ? Array<Simplify<MergeDeep<NewResult[number], Result$1[number]>>> : never : Simplify<MergeDeep<NewResult, Result$1>> : NewResult;
+```
+
+## NarrowResultColumn
+
+<b>Signature:</b>
+
+```typescript
+export type NarrowResultColumn<T, Col extends string> = T extends Array<infer Item> ? Item extends object ? Col extends keyof Item ? Array<{
+    [K in keyof Item]: K extends Col ? NonNullable<Item[K]> : Item[K];
+}> : T : T : T extends object ? Col extends keyof T ? {
+    [K in keyof T]: K extends Col ? NonNullable<T[K]> : T[K];
+} : T : T;
+```
+
+## OperationResult
+
+<b>Signature:</b>
+
+```typescript
+export type OperationResult<T> = OperationSuccess<T> | OperationFailure;
+```
+
+## QueryCountStrategy
+
+<b>Signature:</b>
+
+```typescript
+export type QueryCountStrategy = 'exact' | 'planned' | 'estimated' | (string & {});
+```
+
+## SelectQueryError
+
+<b>Signature:</b>
+
+```typescript
+export type SelectQueryError<Message extends string> = {
+    error: true;
+} & Message;
+```
+
+## Simplify
+
+<b>Signature:</b>
+
+```typescript
+export type Simplify<T> = T extends object ? {
+    [K in keyof T]: T[K];
+} : T;
+```
+
+## TransformExplainFormat
+
+<b>Signature:</b>
+
+```typescript
+export type TransformExplainFormat = 'json' | 'text';
 ```
