@@ -56,8 +56,9 @@ export function timeInputToMilliseconds(time: TimeInput): number {
 }
 
 /**
- * Generates a unique UUID v4 format string.
- * Uses Web Crypto API when available, otherwise falls back to a pseudo-random Math.random-based generator.
+ * Generates a unique UUID v4 format string using the Web Crypto API.
+ * Uses `crypto.randomUUID()` when available (Secure Contexts), otherwise falls back to
+ * `crypto.getRandomValues()` for non-HTTPS contexts.
  *
  * @internal
  */
@@ -68,11 +69,21 @@ export function generateUuid(): string {
   ) {
     return crypto.randomUUID();
   }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+  if (
+    typeof crypto !== 'undefined' &&
+    typeof crypto.getRandomValues === 'function'
+  ) {
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    // Set RFC 4122 version 4 (0100xxxx) and variant 1 (10xxxxxx) bits.
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join(
+      ''
+    );
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+  }
+  throw new Error('Web Crypto API is not available to generate a UUID.');
 }
 
 /**
@@ -275,7 +286,11 @@ export function getTelemetryEndpointUrl(
 ): string {
   const options = crashlyticsOptions || {};
   if (options.endpointUrl) {
-    return options.endpointUrl.replace(/\/+$/, '');
+    let end = options.endpointUrl.length;
+    while (end > 0 && options.endpointUrl[end - 1] === '/') {
+      end--;
+    }
+    return options.endpointUrl.slice(0, end);
   }
   const region = options.region || DEFAULT_TELEMETRY_REGION;
   if (region !== DEFAULT_TELEMETRY_REGION) {

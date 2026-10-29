@@ -239,16 +239,40 @@ describe('helpers', () => {
       expect(randomUUIDStub).toHaveBeenCalled();
     });
 
-    it('should still generate a valid v4 UUID using Math.random when crypto is undefined', () => {
+    it('should fall back to crypto.getRandomValues when crypto.randomUUID is unavailable', () => {
+      const getRandomValuesStub = vi
+        .fn()
+        .mockImplementation((arr: Uint8Array) => {
+          for (let i = 0; i < arr.length; i++) {
+            arr[i] = i;
+          }
+          return arr;
+        });
+      const cryptoMock: Partial<Crypto> = {
+        randomUUID: undefined,
+        getRandomValues: getRandomValuesStub
+      };
+
+      Object.defineProperty(globalThis, 'crypto', {
+        value: cryptoMock,
+        writable: true
+      });
+
+      const uuid = generateUuid();
+      expect(uuid).toMatch(UUID_REGEX);
+      expect(uuid).toBe('00010203-0405-4607-8809-0a0b0c0d0e0f');
+      expect(getRandomValuesStub).toHaveBeenCalledOnce();
+    });
+
+    it('should throw when Web Crypto API is completely unavailable', () => {
       Object.defineProperty(globalThis, 'crypto', {
         value: undefined,
         writable: true
       });
-      const randomSpy = vi.spyOn(Math, 'random');
-      const uuid = generateUuid();
-      expect(uuid).toMatch(UUID_REGEX);
-      expect(randomSpy).toHaveBeenCalled();
-      randomSpy.mockRestore();
+      expect(() => generateUuid()).toThrow(
+        'Web Crypto API is not available to generate a UUID.'
+      );
+      expect(() => startNewSession(fakeCrashlytics)).not.toThrow();
     });
   });
 
@@ -384,6 +408,19 @@ describe('helpers', () => {
           endpointUrl: 'https://custom-proxy.internal.net/'
         })
       ).toBe('https://custom-proxy.internal.net');
+      expect(
+        getTelemetryEndpointUrl({
+          endpointUrl: 'https://custom-proxy.internal.net///'
+        })
+      ).toBe('https://custom-proxy.internal.net');
+      const longSlashesPrefix = `https://custom-proxy.internal.net/${'/'.repeat(
+        10000
+      )}v1`;
+      expect(
+        getTelemetryEndpointUrl({
+          endpointUrl: `${longSlashesPrefix}///`
+        })
+      ).toBe(longSlashesPrefix);
       expect(
         getTelemetryEndpointUrl({
           endpointUrl: 'https://custom-proxy.internal.net',
