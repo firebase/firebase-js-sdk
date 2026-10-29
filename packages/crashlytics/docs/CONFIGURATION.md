@@ -229,11 +229,11 @@ Under the hood, Crashlytics uses **Google Cloud Monitoring** to provision app-sc
 
 ### Option 1: Set up email alerts in the Firebase Console (UI)
 
-You can enable or manage email alerts either during initial project onboarding or at any time afterward in your Firebase project settings.
+You can enable or manage email alerts either during initial project setup or at any time afterward in your Firebase project settings.
 
-#### During project onboarding
+#### During project setup
 
-1. Open the [Firebase Console Crashlytics dashboard](https://console.firebase.google.com/u/0/project/_/crashlytics) and start the Crashlytics web onboarding flow.
+1. Open the [Firebase Console Crashlytics dashboard](https://console.firebase.google.com/u/0/project/_/crashlytics) and start the Crashlytics web setup flow.
 2. In the **Set Up Alerts (Optional)** step, select the email alerts you want to receive at your signed-in email address (**New issues** and **Regressed issues** are selected by default).
 3. Click **Continue** to automatically create the Cloud Monitoring alert policies and subscribe your email address.
 
@@ -250,13 +250,13 @@ You can enable or manage email alerts either during initial project onboarding o
 
 ### Option 2: Set up email alerts via the Firebase CLI
 
-Configure email alerts directly from your terminal during onboarding:
+Configure email alerts directly from your terminal during setup:
 
 ```bash
-firebase crashlytics:onboard:web <YOUR_FIREBASE_APP_ID> --project <YOUR_FIREBASE_PROJECT_ID>
+firebase crashlytics:setup <YOUR_FIREBASE_APP_ID> --project <YOUR_FIREBASE_PROJECT_ID>
 ```
 
-During the interactive onboarding flow, you will be prompted to choose which email alerts to enable for your authenticated account (**New issues** and **Regressed issues** are selected by default):
+During the interactive setup flow, you will be prompted to choose which email alerts to enable for your authenticated account (**New issues** and **Regressed issues** are selected by default):
 
 ```text
 ? Which email alerts would you like to enable? (Optional)

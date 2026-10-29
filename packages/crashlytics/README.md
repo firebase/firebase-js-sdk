@@ -39,7 +39,7 @@ When you copy this into your coding agent, make sure to do the following before 
 2. Point your coding agent to the GitHub README files in `packages/crashlytics/`.
 
 ```markdown
-I would like to onboard the Crashlytics JS SDK to my app. My firebase app config is as follows:
+I would like to set up the Crashlytics JS SDK to my app. My firebase app config is as follows:
 
 const firebaseConfig = {
   apiKey: "<YOUR_FIREBASE_API_KEY>",
@@ -74,7 +74,7 @@ Crashlytics for web leverages Google Cloud Logging, Error Reporting, and Storage
 If you prefer configuring your project via the terminal or using an AI coding agent, run the following command:
 
 ```bash
-firebase crashlytics:onboard:web <YOUR_FIREBASE_APP_ID> --project <YOUR_FIREBASE_PROJECT_ID>
+firebase crashlytics:setup <YOUR_FIREBASE_APP_ID> --project <YOUR_FIREBASE_PROJECT_ID>
 ```
 
 > [!NOTE]
