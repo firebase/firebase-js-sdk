@@ -34,16 +34,27 @@ const deps = [
 ];
 
 function replaceSource(autoConstantsPath, breadcrumbsPath) {
-  const replacements = {
+  const autoConstantsPlugin = replacePlugin({
     './src/auto-constants': `'${autoConstantsPath}'`,
     '../auto-constants': `'${autoConstantsPath}'`,
-    delimiters: ["'", "'"]
+    './auto-constants': `'${autoConstantsPath}'`,
+    delimiters: ["'", "'"],
+    preventAssignment: true
+  });
+  const breadcrumbsPlugin = breadcrumbsPath
+    ? replacePlugin({
+        './src/breadcrumbs': `'${breadcrumbsPath}'`,
+        '../breadcrumbs': `'${breadcrumbsPath}'`,
+        delimiters: ["'", "'"],
+        preventAssignment: true
+      })
+    : null;
+
+  return {
+    name: 'replace-source',
+    transform: breadcrumbsPlugin ? breadcrumbsPlugin.transform : undefined,
+    renderChunk: autoConstantsPlugin.renderChunk
   };
-  if (breadcrumbsPath) {
-    replacements['./src/breadcrumbs'] = `'${breadcrumbsPath}'`;
-    replacements['../breadcrumbs'] = `'${breadcrumbsPath}'`;
-  }
-  return replacePlugin(replacements);
 }
 
 function replaceBuildTarget(format, target = 2020) {
