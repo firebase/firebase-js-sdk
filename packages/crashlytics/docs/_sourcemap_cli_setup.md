@@ -4,12 +4,11 @@ Web applications compile, minify, and scramble code names in production. Without
 
 #### 1. CLI Prerequisites & Authentication
 
-1. Ensure that you have **Firebase CLI v15.19.1 or later** installed. Follow the instructions at [firebase.google.com/docs/cli](https://firebase.google.com/docs/cli) to set up or update the CLI.
-2. Log in to the CLI, enable the Crashlytics for Web experiment, and set your project (these steps only need to be run once):
+1. Ensure that you have **Firebase CLI v15.34.2 or later** installed. Follow the instructions at [firebase.google.com/docs/cli](https://firebase.google.com/docs/cli) to set up or update the CLI.
+2. Log in to the CLI and set your project (these steps only need to be run once):
 
 ```bash
 firebase login
-firebase experiments:enable crashlyticsWeb
 firebase use <YOUR_FIREBASE_PROJECT_ID>
 ```
 
@@ -18,11 +17,11 @@ firebase use <YOUR_FIREBASE_PROJECT_ID>
 Upload source maps using the following command:
 
 ```bash
-firebase crashlytics:sourcemap:upload --project <YOUR_FIREBASE_PROJECT_ID> --app <YOUR_FIREBASE_APP_ID> --debug <DIRECTORY>
+firebase crashlytics:sourcemap:upload <BUILD_OUTPUT_DIR> --project <YOUR_FIREBASE_PROJECT_ID> --app <YOUR_FIREBASE_APP_ID> --debug
 ```
 
 > [!NOTE]
-> This command will recursively look for all source maps within the supplied `<DIRECTORY>` path.
+> This command will recursively look for all source maps within the supplied `<BUILD_OUTPUT_DIR>` path.
 
 > [!CAUTION]
 > **Security Warning**: Generating source maps may expose them to the public, potentially causing your source code to be leaked. You can prevent this by configuring your server to deny access to `.js.map` files, or by passing the `--clean` flag to `firebase crashlytics:sourcemap:upload` to automatically delete `.js.map` files after uploading them to Firebase.
