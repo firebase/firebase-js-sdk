@@ -182,7 +182,7 @@
   "devDependencies": {
     "@angular/common": "19.2.15",
     "@angular/compiler": "19.2.15",
-    "@angular/core": "19.2.15",
+    "@angular/core": "19.2.23",
     "@angular/platform-browser": "19.2.15",
     "@angular/router": "19.2.15",
     "@firebase/app": "0.16.4",
