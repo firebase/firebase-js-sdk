@@ -17,11 +17,13 @@
 
 import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
 import { newTextEncoder } from '../../../src/platform/text_serializer';
+import { BundleElement } from '../../../src/protos/firestore_bundle_proto';
 import {
   BundleReader,
   SizedBundleElement
 } from '../../../src/util/bundle_reader';
 import { newBundleReader } from '../../../src/util/bundle_reader_impl';
+import { newBundleReaderSync } from '../../../src/util/bundle_reader_sync_impl';
 import { JSON_SERIALIZER } from '../local/persistence_test_helpers';
 
 import {
@@ -40,7 +42,9 @@ import {
   metaString,
   doc2String,
   doc1,
-  doc2
+  doc2,
+  lengthPrefixedString,
+  MULTI_BYTE_VALUES
 } from './bundle_data';
 const encoder = newTextEncoder();
 
@@ -112,15 +116,6 @@ function genericBundleReadingTests(bytesPerRead: number): void {
     }
 
     return Promise.resolve(result);
-  }
-
-  function verifySizedElement(
-    element: SizedBundleElement,
-    payload: unknown,
-    payloadString: string
-  ): void {
-    expect(element.payload).toEqual(payload);
-    expect(element.byteLength).toBe(encoder.encode(payloadString).byteLength);
   }
 
   async function generateBundleAndParse(
@@ -265,5 +260,108 @@ function genericBundleReadingTests(bytesPerRead: number): void {
         generateBundleAndParse(doc1MetaString + doc1String, bytesPerRead)
       ).rejects.toThrow('The first element of the bundle is not a metadata');
     }
+  );
+}
+
+// Regression tests for https://github.com/firebase/firebase-js-sdk/issues/10557
+// Bundle element length prefixes are UTF-8 byte counts, which differ from the
+// UTF-16 string length whenever the element contains non-ASCII characters.
+const DOCUMENTS_PREFIX = 'projects/test-project/databases/(default)/documents';
+
+function multiByteMeta(value: string): BundleElement {
+  return { metadata: { ...meta.metadata, id: `test-bundle${value}` } };
+}
+
+function multiByteDocMeta(value: string): BundleElement {
+  return {
+    documentMetadata: {
+      ...doc1Meta.documentMetadata,
+      name: `${DOCUMENTS_PREFIX}/collectionId/doc${value}`
+    }
+  };
+}
+
+function multiByteDoc(value: string): BundleElement {
+  return {
+    document: {
+      name: `${DOCUMENTS_PREFIX}/collectionId/doc${value}`,
+      createTime: { seconds: 1, nanos: 2 },
+      updateTime: { seconds: 3, nanos: 4 },
+      fields: {
+        [`k${value}`]: { integerValue: '1' },
+        // Last so that the value sits right before the element's closing bytes.
+        foo: { stringValue: value }
+      }
+    }
+  };
+}
+
+describe('Bundle with multi-byte UTF-8 characters', () => {
+  for (const [name, value] of Object.entries(MULTI_BYTE_VALUES)) {
+    const metaElement = multiByteMeta(value);
+    const docMetaElement = multiByteDocMeta(value);
+    const docElement = multiByteDoc(value);
+    const docMetaString = lengthPrefixedString(docMetaElement);
+    const docString = lengthPrefixedString(docElement);
+    const bundleString =
+      lengthPrefixedString(metaElement) +
+      docMetaString +
+      docString +
+      doc2String;
+
+    it(`BundleReaderSync reads elements containing ${name}`, () => {
+      const reader = newBundleReaderSync(bundleString, JSON_SERIALIZER);
+      expect(reader.getMetadata()).toEqual(metaElement.metadata);
+      const elements = reader.getElements();
+      expect(elements.length).toBe(3);
+      verifySizedElement(elements[0], docMetaElement, docMetaString);
+      verifySizedElement(elements[1], docElement, docString);
+      verifySizedElement(elements[2], doc2, doc2String);
+    });
+
+    for (const bytesPerRead of [1, 4, 1024]) {
+      it(`BundleReader reads elements containing ${name} with bytesPerRead ${bytesPerRead}`, async () => {
+        const reader = newBundleReader(
+          byteStreamReaderFromString(bundleString, bytesPerRead),
+          JSON_SERIALIZER
+        );
+        expect(await reader.getMetadata()).toEqual(metaElement.metadata);
+        verifySizedElement(
+          (await reader.nextElement())!,
+          docMetaElement,
+          docMetaString
+        );
+        verifySizedElement(
+          (await reader.nextElement())!,
+          docElement,
+          docString
+        );
+        verifySizedElement((await reader.nextElement())!, doc2, doc2String);
+        expect(await reader.nextElement()).toBeNull();
+      });
+    }
+  }
+
+  for (const prefix of ['abc', '-5', '1.5']) {
+    it(`BundleReaderSync throws on an invalid length prefix '${prefix}'`, () => {
+      expect(() =>
+        newBundleReaderSync(prefix + JSON.stringify(meta), JSON_SERIALIZER)
+      ).toThrow(`length string (${prefix}) is not valid number`);
+    });
+  }
+});
+
+/**
+ * Verifies an element's payload, and that its byteLength is the full UTF-8
+ * byte length of its length-prefixed serialization.
+ */
+function verifySizedElement(
+  element: SizedBundleElement,
+  payload: unknown,
+  lengthPrefixedPayload: string
+): void {
+  expect(element.payload).toEqual(payload);
+  expect(element.byteLength).toBe(
+    encoder.encode(lengthPrefixedPayload).byteLength
   );
 }

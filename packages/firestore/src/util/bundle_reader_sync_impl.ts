@@ -15,29 +15,40 @@
  * limitations under the License.
  */
 
+import { newTextDecoder, newTextEncoder } from '../platform/text_serializer';
 import { BundleMetadata } from '../protos/firestore_bundle_proto';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { Code, FirestoreError } from '../util/error';
 
 import { BundleReaderSync, SizedBundleElement } from './bundle_reader';
 
+/** The UTF-8 code unit for '{'. */
+const OPEN_BRACE = 0x7b;
+
 /**
- * A class that can parse a bundle form the string serialization of a bundle.
+ * A class that can parse a bundle from the string serialization of a bundle.
+ *
+ * Bundle element length prefixes are specified as UTF-8 byte counts, so the
+ * bundle string is UTF-8 encoded and parsed as bytes rather than as UTF-16
+ * code units (which would differ for any non-ASCII character).
  */
 export class BundleReaderSyncImpl implements BundleReaderSync {
   private metadata: BundleMetadata;
   private elements: SizedBundleElement[];
   private cursor: number;
+  private readonly bundleData: Uint8Array;
+  private readonly textDecoder = newTextDecoder();
   constructor(
-    private bundleData: string,
+    bundleData: string,
     readonly serializer: JsonProtoSerializer
   ) {
+    this.bundleData = newTextEncoder().encode(bundleData);
     this.cursor = 0;
     this.elements = [];
 
     let element = this.nextElement();
     if (element && element.isBundleMetadata()) {
-      this.metadata = element as BundleMetadata;
+      this.metadata = element.payload.metadata!;
     } else {
       throw new Error(`The first element of the bundle is not a metadata object, it is
          ${JSON.stringify(element?.payload)}`);
@@ -71,16 +82,21 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
     if (this.cursor === this.bundleData.length) {
       return null;
     }
+    const prefixStart = this.cursor;
     const length: number = this.readLength();
+    const prefixLength = this.cursor - prefixStart;
     const jsonString = this.readJsonString(length);
-    return new SizedBundleElement(JSON.parse(jsonString), length);
+    return new SizedBundleElement(
+      JSON.parse(jsonString),
+      prefixLength + length
+    );
   }
 
   /**
-   * Reads from a specified position from the bundleData string, for a specified
-   * number of bytes.
+   * Reads from a specified position from the UTF-8 encoded bundleData, for a
+   * specified number of bytes.
    *
-   * @param length - how many characters to read.
+   * @param length - how many bytes to read.
    * @returns a string parsed from the bundle.
    */
   private readJsonString(length: number): string {
@@ -90,27 +106,39 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
         'Reached the end of bundle when more is expected.'
       );
     }
-    const result = this.bundleData.slice(this.cursor, (this.cursor += length));
-    return result;
+    return this.textDecoder.decode(
+      this.bundleData.subarray(this.cursor, (this.cursor += length))
+    );
   }
 
   /**
-   * Reads from the current cursor until the first '{'.
+   * Reads from the current cursor until the first '{', and advances the cursor
+   * to it.
    *
-   * @returns  A string to integer represention of the parsed value.
-   * @throws An {@link Error} if the cursor has reached the end of the stream, since lengths
-   * prefix bundle objects.
+   * @returns The parsed length of the next element, in bytes.
+   * @throws An {@link Error} if the cursor has reached the end of the
+   * bundle data, since lengths prefix bundle objects, or if the length prefix
+   * is not a non-negative integer.
    */
   private readLength(): number {
     const startIndex = this.cursor;
     let curIndex = this.cursor;
     while (curIndex < this.bundleData.length) {
-      if (this.bundleData[curIndex] === '{') {
+      if (this.bundleData[curIndex] === OPEN_BRACE) {
         if (curIndex === startIndex) {
           throw new Error('First character is a bracket and not a number');
         }
+        const lengthString = this.textDecoder.decode(
+          this.bundleData.subarray(startIndex, curIndex)
+        );
+        const length = Number(lengthString);
+        if (!Number.isInteger(length) || length < 0) {
+          throw new Error(
+            `length string (${lengthString}) is not valid number`
+          );
+        }
         this.cursor = curIndex;
-        return Number(this.bundleData.slice(startIndex, curIndex));
+        return length;
       }
       curIndex++;
     }
