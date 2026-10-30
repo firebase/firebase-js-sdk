@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { repoInfoConnectionURL } from '../src/core/RepoInfo';
 import {
   LAST_SESSION_PARAM,
@@ -37,16 +35,14 @@ describe('RepoInfo', () => {
     urlParams[LAST_SESSION_PARAM] = 'test';
 
     const websocketUrl = repoInfoConnectionURL(repoInfo, WEBSOCKET, urlParams);
-    expect(websocketUrl).to.equal(
-      'wss://test-ns.firebaseio.com/.ws?v=5&ls=test'
-    );
+    expect(websocketUrl).toBe('wss://test-ns.firebaseio.com/.ws?v=5&ls=test');
 
     const longPollingUrl = repoInfoConnectionURL(
       repoInfo,
       LONG_POLLING,
       urlParams
     );
-    expect(longPollingUrl).to.equal(
+    expect(longPollingUrl).toBe(
       'https://test-ns.firebaseio.com/.lp?v=5&ls=test'
     );
   });
