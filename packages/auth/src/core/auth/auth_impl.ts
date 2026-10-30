@@ -196,7 +196,6 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
         await this.initializeCurrentUser(popupRedirectResolver);
       } catch (e) {
         _logWarn(`Failed to initialize current user: ${e}`);
-        await this.directlySetCurrentUser(null).catch(() => {});
       }
 
       this.lastNotifiedUid = this.currentUser?.uid || null;
