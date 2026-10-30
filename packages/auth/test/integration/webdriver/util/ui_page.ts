@@ -15,51 +15,49 @@
  * limitations under the License.
  */
 
-import { By, until, WebDriver } from 'selenium-webdriver';
+import type { Page } from 'playwright';
+import type { AuthDriver } from './auth_driver';
 
-const ANONYMOUS_IDP_BUTTON = By.css('button.firebaseui-idp-anonymous');
-const GOOGLE_IDP_BUTTON = By.css('button.firebaseui-idp-google');
-const PHONE_IDP_BUTTON = By.css('button.firebaseui-idp-phone');
-const EMAIL_IDP_BUTTON = By.css('button.firebaseui-idp-password');
-const PHONE_INPUT = By.css('input[name="phoneNumber"]');
-const SUBMIT_BUTTON = By.css('button.firebaseui-id-submit');
-const PHONE_CONFIRMATION_INPUT = By.css('input[name="phoneConfirmationCode"]');
-const EMAIL_INPUT = By.css('input[name="email"]');
-const EMAIL_NAME_INPUT = By.css('input[name="name"]');
-const EMAIL_PASSWORD_INPUT = By.css('input[type="password"]');
+const ANONYMOUS_IDP_BUTTON = 'button.firebaseui-idp-anonymous';
+const GOOGLE_IDP_BUTTON = 'button.firebaseui-idp-google';
+const PHONE_IDP_BUTTON = 'button.firebaseui-idp-phone';
+const EMAIL_IDP_BUTTON = 'button.firebaseui-idp-password';
+const PHONE_INPUT = 'input[name="phoneNumber"]';
+const SUBMIT_BUTTON = 'button.firebaseui-id-submit';
+const PHONE_CONFIRMATION_INPUT = 'input[name="phoneConfirmationCode"]';
+const EMAIL_INPUT = 'input[name="email"]';
+const EMAIL_NAME_INPUT = 'input[name="name"]';
+const EMAIL_PASSWORD_INPUT = 'input[type="password"]';
 
 export class UiPage {
-  constructor(private readonly driver: WebDriver) {}
+  constructor(private readonly driver: AuthDriver | Page) {}
+
+  private get page(): Page {
+    return 'page' in this.driver ? this.driver.page : this.driver;
+  }
 
   async clickGuestSignIn(): Promise<void> {
-    await this.driver.wait(until.elementLocated(ANONYMOUS_IDP_BUTTON));
-    return this.driver.findElement(ANONYMOUS_IDP_BUTTON).click();
+    await this.page.locator(ANONYMOUS_IDP_BUTTON).click();
   }
 
   async clickGoogleSignIn(): Promise<void> {
-    await this.driver.wait(until.elementLocated(GOOGLE_IDP_BUTTON));
-    return this.driver.findElement(GOOGLE_IDP_BUTTON).click();
+    await this.page.locator(GOOGLE_IDP_BUTTON).click();
   }
 
   async clickPhoneSignIn(): Promise<void> {
-    await this.driver.wait(until.elementLocated(PHONE_IDP_BUTTON));
-    return this.driver.findElement(PHONE_IDP_BUTTON).click();
+    await this.page.locator(PHONE_IDP_BUTTON).click();
   }
 
   async clickEmailSignIn(): Promise<void> {
-    await this.driver.wait(until.elementLocated(EMAIL_IDP_BUTTON));
-    const button = await this.driver.findElement(EMAIL_IDP_BUTTON);
-    await this.driver.wait(until.elementIsEnabled(button));
-    await this.driver.wait(until.elementIsVisible(button));
-    await this.driver.executeScript('arguments[0].click();', button);
+    const button = this.page.locator(`${EMAIL_IDP_BUTTON}:not([disabled])`);
+    await button.waitFor({ state: 'visible' });
+    await button.evaluate((el: HTMLElement) => el.click());
   }
 
   async clickSubmit(): Promise<void> {
-    await this.driver.wait(until.elementLocated(SUBMIT_BUTTON));
-    const button = await this.driver.findElement(SUBMIT_BUTTON);
-    await this.driver.wait(until.elementIsEnabled(button));
-    await this.driver.wait(until.elementIsVisible(button));
-    await this.driver.executeScript('arguments[0].click();', button);
+    const button = this.page.locator(`${SUBMIT_BUTTON}:not([disabled])`);
+    await button.waitFor({ state: 'visible' });
+    await button.evaluate((el: HTMLElement) => el.click());
   }
 
   async enterPhoneNumber(phoneNumber: string): Promise<void> {
@@ -67,7 +65,9 @@ export class UiPage {
   }
 
   async waitForCodeInputToBePresent(): Promise<void> {
-    await this.driver.wait(until.elementLocated(PHONE_CONFIRMATION_INPUT));
+    await this.page
+      .locator(PHONE_CONFIRMATION_INPUT)
+      .waitFor({ state: 'attached' });
   }
 
   async enterPhoneCode(code: string): Promise<void> {
@@ -86,18 +86,15 @@ export class UiPage {
     return this.fillInput(EMAIL_PASSWORD_INPUT, name);
   }
 
-  private async fillInput(input: By, text: string): Promise<void> {
-    await this.driver.wait(until.elementLocated(input));
-    const el = await this.driver.findElement(input);
-    await this.driver.wait(until.elementIsVisible(el));
+  private async fillInput(selector: string, text: string): Promise<void> {
+    const el = this.page.locator(selector);
+    await el.waitFor({ state: 'visible' });
     await el.click();
-    await this.driver.sleep(100);
-    await this.driver.executeScript(
-      `arguments[0].value = arguments[1];
-       arguments[0].dispatchEvent(new Event('input', { bubbles: true }));
-       arguments[0].dispatchEvent(new Event('change', { bubbles: true }));`,
-      el,
-      text
-    );
+    await this.page.waitForTimeout(100);
+    await el.evaluate((input: HTMLInputElement, val: string) => {
+      input.value = val;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }, text);
   }
 }

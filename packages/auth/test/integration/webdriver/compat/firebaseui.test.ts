@@ -16,8 +16,7 @@
  */
 
 import { CoreFunction, UiFunction } from '../util/functions';
-import { until } from 'selenium-webdriver';
-import { User } from '@firebase/auth-types';
+import type { User } from '@firebase/auth-types';
 import { browserDescribe } from '../util/test_runner';
 import { UiPage } from '../util/ui_page';
 import { IdPPage } from '../util/idp_page';
@@ -33,11 +32,13 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
 
   async function startUi(signInFlow = 'redirect'): Promise<UiPage> {
     await driver.call(UiFunction.START, signInFlow);
-    return new UiPage(driver.webDriver);
+    return new UiPage(driver);
   }
 
   async function waitForLoggedInPage(): Promise<void> {
-    await driver.webDriver.wait(until.titleIs('User logged in'));
+    await driver.page.waitForFunction(
+      () => document.title === 'User logged in'
+    );
     await driver.reinitOnRedirect();
   }
 
@@ -53,7 +54,7 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
   it('allows google redirect sign in', async () => {
     const page = await startUi();
     await page.clickGoogleSignIn();
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
 
     // We're now on the widget page; wait for load
     await widget.pageLoad();
@@ -81,7 +82,7 @@ browserDescribe('WebDriver integration with FirebaseUI', driver => {
   it('allows google popup sign in', async () => {
     const page = await startUi('popup');
     await page.clickGoogleSignIn();
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
     await driver.selectPopupWindow();
 
     // We're now on the widget page; wait for load
