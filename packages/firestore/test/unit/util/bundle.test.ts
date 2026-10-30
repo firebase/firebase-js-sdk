@@ -342,11 +342,13 @@ describe('Bundle with multi-byte UTF-8 characters', () => {
     }
   }
 
-  it('BundleReaderSync throws on a non-numeric length prefix', () => {
-    expect(() =>
-      newBundleReaderSync('abc' + JSON.stringify(meta), JSON_SERIALIZER)
-    ).toThrow('length string (abc) is not valid number');
-  });
+  for (const prefix of ['abc', '-5', '1.5']) {
+    it(`BundleReaderSync throws on an invalid length prefix '${prefix}'`, () => {
+      expect(() =>
+        newBundleReaderSync(prefix + JSON.stringify(meta), JSON_SERIALIZER)
+      ).toThrow(`length string (${prefix}) is not valid number`);
+    });
+  }
 });
 
 /**

@@ -118,7 +118,7 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
    * @returns The parsed length of the next element, in bytes.
    * @throws An {@link Error} if the cursor has reached the end of the
    * bundle data, since lengths prefix bundle objects, or if the length prefix
-   * is not a valid number.
+   * is not a non-negative integer.
    */
   private readLength(): number {
     const startIndex = this.cursor;
@@ -132,7 +132,7 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
           this.bundleData.subarray(startIndex, curIndex)
         );
         const length = Number(lengthString);
-        if (isNaN(length)) {
+        if (!Number.isInteger(length) || length < 0) {
           throw new Error(
             `length string (${lengthString}) is not valid number`
           );
