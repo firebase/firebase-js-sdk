@@ -846,6 +846,17 @@ toc:
     path: /docs/reference/js/remote-config.remoteconfigsettings.md
   - title: Value
     path: /docs/reference/js/remote-config.value.md
+- title: sql
+  path: /docs/reference/js/sql.md
+  section:
+  - title: FirebaseSql
+    path: /docs/reference/js/sql.firebasesql.md
+  - title: FirebaseSqlError
+    path: /docs/reference/js/sql.firebasesqlerror.md
+  - title: SerializedFirebaseSqlError
+    path: /docs/reference/js/sql.serializedfirebasesqlerror.md
+  - title: SqlServiceSettings
+    path: /docs/reference/js/sql.sqlservicesettings.md
 - title: storage
   path: /docs/reference/js/storage.md
   section:

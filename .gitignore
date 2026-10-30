@@ -108,3 +108,7 @@ mocks-lookup.ts
 
 # temp changeset output
 changeset-temp.json
+
+# vitest artifacts
+__screenshots__
+.vitest-attachments
