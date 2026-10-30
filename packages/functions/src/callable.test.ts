@@ -489,6 +489,46 @@ describe('Firebase Functions > Stream', () => {
     await dataErrorPromise;
   });
 
+  it('rejects with the server error when its status is OK', async () => {
+    const mockResponse = new ReadableStream({
+      start(controller) {
+        controller.enqueue(
+          new TextEncoder().encode(
+            'data: {"error":{"status":"OK","message":"explicit ok"}}\n'
+          )
+        );
+        controller.close();
+      }
+    });
+
+    mockFetch.mockResolvedValue({
+      body: mockResponse,
+      headers: new Headers({ 'Content-Type': 'text/event-stream' }),
+      status: 200,
+      statusText: 'OK'
+    } as Response);
+
+    const func = httpsCallable<Record<string, any>, string, string>(
+      functions,
+      'stream'
+    );
+    const streamResult = await func.stream({});
+    const dataErrorPromise = expectError(
+      streamResult.data,
+      'ok',
+      'explicit ok',
+      0
+    );
+    const streamErrorPromise = expectError(
+      streamResult.stream[Symbol.asyncIterator]().next(),
+      'ok',
+      'explicit ok',
+      0
+    );
+
+    await Promise.all([dataErrorPromise, streamErrorPromise]);
+  });
+
   it('includes authentication and app check tokens in request headers', async () => {
     const authMock: FirebaseAuthInternal = {
       getToken: async () => ({ accessToken: 'auth-token' })
