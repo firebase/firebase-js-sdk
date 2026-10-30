@@ -1585,6 +1585,10 @@ describe.skipIf(!IndexedDbPersistence.isAvailable())(
   () => {
     beforeEach(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     afterAll(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
     it.each([
