@@ -143,11 +143,12 @@ export function createTracingProvider(
      Ex: https://api.example.com/traces?version=1
      '.' -> matches any character so https://api-example.com/traces?version=1 will be ignored too
      `?` -> makes the `s` optional so https://api.example.com/traceversion=1 will be ignored too
+     Anchor with `^` so only requests actually targeting the endpoint are ignored.
   */
-  const cleanedRegexEndpointUrl = endpointUrl.replace(
+  const cleanedRegexEndpointUrl = `^${endpointUrl.replace(
     /[.*+?^${}()|[\]\\]/g,
     '\\$&'
-  );
+  )}`;
 
   const networkInstrumentationConfig = {
     ignoreUrls: [new RegExp(cleanedRegexEndpointUrl)],

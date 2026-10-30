@@ -187,7 +187,7 @@ describe('createTracingProvider', () => {
     );
 
     const mockCrashlyticsOptions = {
-      endpointUrl: 'my-custom-endpoint.url'
+      endpointUrl: 'https://my-custom-endpoint.url'
     } as CrashlyticsOptions;
 
     createTracingProvider(
@@ -205,7 +205,15 @@ describe('createTracingProvider', () => {
     expect(fetchConfig.ignoreUrls).toHaveLength(1);
 
     const fetchPatterns = fetchConfig.ignoreUrls.map((r: RegExp) => r.source);
-    expect(fetchPatterns).toContain('my-custom-endpoint\\.url');
+    expect(fetchPatterns).toContain('^https:\\/\\/my-custom-endpoint\\.url');
+    expect(
+      fetchConfig.ignoreUrls[0].test('https://my-custom-endpoint.url/v1/traces')
+    ).toBe(true);
+    expect(
+      fetchConfig.ignoreUrls[0].test(
+        'https://other.com?url=https://my-custom-endpoint.url'
+      )
+    ).toBe(false);
     expect(fetchConfig.semconvStabilityOptIn).toBe('http');
   });
 
@@ -220,7 +228,7 @@ describe('createTracingProvider', () => {
     );
 
     const mockCrashlyticsOptions = {
-      endpointUrl: 'my-custom-endpoint.url'
+      endpointUrl: 'https://my-custom-endpoint.url'
     } as CrashlyticsOptions;
 
     createTracingProvider(
@@ -238,7 +246,15 @@ describe('createTracingProvider', () => {
     expect(xhrConfig.ignoreUrls).toHaveLength(1);
 
     const xhrPatterns = xhrConfig.ignoreUrls.map((r: RegExp) => r.source);
-    expect(xhrPatterns).toContain('my-custom-endpoint\\.url');
+    expect(xhrPatterns).toContain('^https:\\/\\/my-custom-endpoint\\.url');
+    expect(
+      xhrConfig.ignoreUrls[0].test('https://my-custom-endpoint.url/v1/traces')
+    ).toBe(true);
+    expect(
+      xhrConfig.ignoreUrls[0].test(
+        'https://other.com?url=https://my-custom-endpoint.url'
+      )
+    ).toBe(false);
     expect(xhrConfig.semconvStabilityOptIn).toBe('http');
   });
 
