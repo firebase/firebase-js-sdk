@@ -61,7 +61,7 @@ null
 
 ```tsx
 // app/layout.tsx
-import { CrashlyticsRoutes } from '@firebase/crashlytics/next-navigation';
+import { CrashlyticsRoutes } from 'firebase/crashlytics/next-navigation';
 
 export default function RootLayout({ children }) {
   return (

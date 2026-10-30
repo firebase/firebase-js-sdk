@@ -144,7 +144,7 @@ class BreadcrumbsFeatureImpl implements CrashlyticsFeatureInternal {
  *
  * @example
  * ```ts
- * import { getCrashlytics, breadcrumbs } from '@firebase/crashlytics';
+ * import { getCrashlytics, breadcrumbs } from 'firebase/crashlytics';
  *
  * const crashlytics = getCrashlytics(app, {
  *   features: [breadcrumbs()]

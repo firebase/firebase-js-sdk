@@ -8,11 +8,11 @@ In `src/app/app.config.ts`, define a `CrashlyticsOptions` object with `features:
 // src/app/app.config.ts
 import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
-+import { breadcrumbs } from '@firebase/crashlytics';
++import { breadcrumbs } from 'firebase/crashlytics';
 import {
 +  CrashlyticsOptions,
   provideCrashlytics
-} from '@firebase/crashlytics/angular';
+} from 'firebase/crashlytics/angular';
 import { app } from '../lib/firebase';
 import { routes } from './app.routes';
 

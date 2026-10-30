@@ -33,10 +33,10 @@ firebase experiments:enable crashlyticsWebBreadcrumbs
 
 ### Step 2: Update SDK Packages
 
-Update your dependencies to ensure you have the preview build containing the tracing and router modules:
+Update your dependencies to ensure you have the latest `firebase` package containing the tracing and router modules:
 
 ```sh
-npm install @firebase/app@eap-crashlytics @firebase/crashlytics@eap-crashlytics
+npm install firebase
 ```
 
 ### Step 3: Add Breadcrumbs to your initialization
@@ -50,8 +50,8 @@ Breadcrumbs are off by default. To turn them on, pass `features: [breadcrumbs()]
 If you initialize Crashlytics directly without a framework integration, pass the option to `getCrashlytics()`:
 
 ```diff
--import { getCrashlytics } from '@firebase/crashlytics';
-+import { getCrashlytics, breadcrumbs } from '@firebase/crashlytics';
+-import { getCrashlytics } from 'firebase/crashlytics';
++import { getCrashlytics, breadcrumbs } from 'firebase/crashlytics';
 
 -const crashlytics = getCrashlytics(app);
 +const crashlytics = getCrashlytics(app, { features: [breadcrumbs()] });
@@ -95,7 +95,7 @@ Repeat Step 3\. You should now see navigation events like
 In addition to automatic breadcrumbs (clicks, route changes, network requests, and page visibility events), you can emit custom diagnostic logs and attach key-value attributes anywhere in your application.
 
 ```ts
-import { getCrashlytics, log } from '@firebase/crashlytics';
+import { getCrashlytics, log } from 'firebase/crashlytics';
 
 const crashlytics = getCrashlytics(app);
 

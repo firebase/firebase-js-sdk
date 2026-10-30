@@ -63,8 +63,8 @@ The rendered routes wrapped in an error boundary.
 
 ```tsx
 import { useEffect, useState } from "react";
-import { CrashlyticsRoutes } from "@firebase/crashlytics/react-router";
-import { FirebaseApp, initializeApp } from "@firebase/app";
+import { CrashlyticsRoutes } from "firebase/crashlytics/react-router";
+import { FirebaseApp, initializeApp } from "firebase/app";
 
 export default function MyApp() {
   const [app, setApp] = useState<FirebaseApp | null>(null);

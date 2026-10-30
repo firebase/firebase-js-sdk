@@ -45,8 +45,8 @@ export * from '../public-types';
  * @example
  * ```tsx
  * import { useEffect, useState } from "react";
- * import { CrashlyticsRoutes } from "@firebase/crashlytics/react-router";
- * import { FirebaseApp, initializeApp } from "@firebase/app";
+ * import { CrashlyticsRoutes } from "firebase/crashlytics/react-router";
+ * import { FirebaseApp, initializeApp } from "firebase/app";
  *
  * export default function MyApp() {
  *   const [app, setApp] = useState<FirebaseApp | null>(null);

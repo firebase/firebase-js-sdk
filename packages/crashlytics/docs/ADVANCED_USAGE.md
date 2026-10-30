@@ -1,6 +1,6 @@
 # Advanced Usage - Firebase Crashlytics
 
-This guide covers advanced usage scenarios for Firebase Crashlytics in web applications, including programmatic error capturing, custom attributes, force flushing telemetry, app versioning, and best practices.
+This guide covers advanced usage scenarios for Firebase Crashlytics in web applications, including programmatic error capturing, custom attributes, force flushing telemetry, and app versioning.
 
 ---
 
@@ -9,7 +9,7 @@ This guide covers advanced usage scenarios for Firebase Crashlytics in web appli
 While uncaught exceptions will be logged automatically by framework integrations, you can also record handled exceptions manually using `recordError()`.
 
 ```typescript
-import { recordError, getCrashlytics } from '@firebase/crashlytics';
+import { recordError, getCrashlytics } from 'firebase/crashlytics';
 import { app } from './lib/firebase';
 
 const crashlytics = getCrashlytics(app);
@@ -40,7 +40,7 @@ By default, the telemetry engine batches logs into memory segments to preserve b
 Call the asynchronous `flush` command to send all queued errors to the backend:
 
 ```typescript
-import { recordError, flush, getCrashlytics } from '@firebase/crashlytics';
+import { recordError, flush, getCrashlytics } from 'firebase/crashlytics';
 import { app } from './lib/firebase';
 
 const crashlytics = getCrashlytics(app);
@@ -61,33 +61,11 @@ async function handleApplicationCrash(error: Error) {
 
 ## App Versioning
 
-Adding a version to your app is recommended, but not required. The `@firebase/crashlytics` package provides a `crashlytics-setconstants` CLI helper (backed by `setconstants.js`) that determines a version for your app in precedence order (`--appVersion=<version>`, current Git commit hash, or `package.json` version). Update the build scripts in your `package.json` as follows:
+Adding a version to your app is recommended, but not required. The Crashlytics SDK provides a `crashlytics-setconstants` CLI helper (backed by `setconstants.js`) that determines a version for your app in precedence order (`--appVersion=<version>`, current Git commit hash, or `package.json` version). Update the build scripts in your `package.json` as follows:
 
 ```json
 "dev": "npm run firebase-set-constants && <existing command>",
 "build": "npm run firebase-set-constants && <existing command>",
 "start": "npm run firebase-set-constants && <existing command>",
 "firebase-set-constants": "crashlytics-setconstants"
-```
-
----
-
-## Best Practices & Gotchas
-
-To ensure smooth integration during the private preview, review these essential best practices:
-
-### Avoid Dual Package Hazards
-
-Do not mix imports from the main `firebase` umbrella package (e.g. `firebase/app`) and individual `@firebase/*` sub-packages. Doing so can duplicate registration tokens and throw runtime errors like `Component app-check has not been registered yet`.
-
-- **Resolution**: Since the Crashlytics subpackage is available via `@firebase/crashlytics` during private preview, standardize your imports to exclusively use the scoped sub-packages throughout the project:
-
-```typescript
-// ❌ Avoid mixing import styles
-import { initializeApp } from "firebase/app";
-import { recordError } from "@firebase/crashlytics";
-
-// ✅ Import consistently
-import { initializeApp } from '@firebase/app';
-import { recordError } from '@firebase/crashlytics';
 ```

@@ -17,7 +17,7 @@ If you're using React Router (v6+) in your application instead of Next.js-based 
 // src/App.tsx
 import React from 'react';
 import { BrowserRouter, Route } from 'react-router-dom';
-import { CrashlyticsRoutes } from '@firebase/crashlytics/react-router';
+import { CrashlyticsRoutes } from 'firebase/crashlytics/react-router';
 import { app } from './lib/firebase'; // Shared initialization script
 import Home from './pages/Home';
 import Profile from './pages/Profile';
@@ -98,10 +98,6 @@ Update your `build` script in `package.json` to upload and delete source maps au
 
 To ensure smooth integration during the private preview, review these essential best practices:
 
-<!-- #include "../../docs/ADVANCED_USAGE.md#avoid-dual-package-hazards" -->
-> [!NOTE]
-> For import standardization guidelines, see [Advanced Usage: Avoid Dual Package Hazards](../../docs/ADVANCED_USAGE.md#avoid-dual-package-hazards).
-
 ### TypeScript: `verbatimModuleSyntax` Resolution
 
 Vite and React templates often enforce strict `verbatimModuleSyntax: true` inside `tsconfig.json`. This requires explicit `import type` definitions for type-only imports.
@@ -111,7 +107,7 @@ Vite and React templates often enforce strict `verbatimModuleSyntax: true` insid
 import { FirebaseApp } from 'firebase/app';
 
 // ✅ Compiles successfully
-import type { FirebaseApp } from '@firebase/app';
+import type { FirebaseApp } from 'firebase/app';
 ```
 
 <!-- #include "../../docs/ADVANCED_USAGE.md#custom-attributes" -->

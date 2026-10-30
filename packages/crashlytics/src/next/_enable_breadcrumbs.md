@@ -8,8 +8,8 @@ In `src/instrumentation-client.ts`, pass `features: [breadcrumbs()]` to `getCras
 
 ```diff
 // src/instrumentation-client.ts
--import { getCrashlytics } from '@firebase/crashlytics';
-+import { getCrashlytics, breadcrumbs } from '@firebase/crashlytics';
+-import { getCrashlytics } from 'firebase/crashlytics';
++import { getCrashlytics, breadcrumbs } from 'firebase/crashlytics';
 import { app } from './lib/firebase';
 
 -getCrashlytics(app);
@@ -25,8 +25,8 @@ In your existing client-side provider component (e.g., `src/components/Crashlyti
 'use client';
 
 import React from 'react';
-+import { breadcrumbs } from '@firebase/crashlytics';
-import { FirebaseCrashlytics } from '@firebase/crashlytics/react';
++import { breadcrumbs } from 'firebase/crashlytics';
+import { FirebaseCrashlytics } from 'firebase/crashlytics/react';
 import { app } from '../lib/firebase'; // Your existing Firebase App singleton
 
 +const crashlyticsOptions = { features: [breadcrumbs()] };

@@ -14,7 +14,7 @@ This guide details how to integrate Firebase Crashlytics into a React applicatio
 If you are using TanStack Router, initialize Crashlytics with `getCrashlytics(app)` and register `recordError` in `defaultOnCatch`:
 
 ```typescript
-import { recordError, getCrashlytics } from "@firebase/crashlytics";
+import { recordError, getCrashlytics } from "firebase/crashlytics";
 import { app } from "./lib/firebase"; // shared initialization script
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
@@ -94,10 +94,6 @@ Update your `build` script in `package.json` to upload and delete source maps au
 
 To ensure smooth integration during the private preview, review these essential best practices:
 
-<!-- #include "../../docs/ADVANCED_USAGE.md#avoid-dual-package-hazards" -->
-> [!NOTE]
-> For import standardization guidelines, see [Advanced Usage: Avoid Dual Package Hazards](../../docs/ADVANCED_USAGE.md#avoid-dual-package-hazards).
-
 ### TypeScript: `verbatimModuleSyntax` Resolution
 
 Vite and React templates often enforce strict `verbatimModuleSyntax: true` inside `tsconfig.json`. This requires explicit `import type` definitions for type-only imports.
@@ -107,7 +103,7 @@ Vite and React templates often enforce strict `verbatimModuleSyntax: true` insid
 import { FirebaseApp } from 'firebase/app';
 
 // ✅ Compiles successfully
-import type { FirebaseApp } from '@firebase/app';
+import type { FirebaseApp } from 'firebase/app';
 ```
 
 <!-- #include "../../docs/ADVANCED_USAGE.md#custom-attributes" -->

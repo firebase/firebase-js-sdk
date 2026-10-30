@@ -2,19 +2,19 @@
 
 This guide covers the incremental steps to enable automatic route navigation tracking (screen views) for Next.js App Router applications in the Firebase Crashlytics Session Breadcrumbs & Logs private preview.
 
-To track route changes with parameterized dynamic route templates (e.g. `/users/:id` instead of raw URLs containing user identifiers), use `<CrashlyticsRoutes>` from `@firebase/crashlytics/next-navigation`.
+To track route changes with parameterized dynamic route templates (e.g. `/users/:id` instead of raw URLs containing user identifiers), use `<CrashlyticsRoutes>` from `firebase/crashlytics/next-navigation`.
 
 ### Step 1: Create or Update your Client Provider
 
-In `src/components/CrashlyticsProvider.tsx`, mount `<CrashlyticsRoutes>` from `@firebase/crashlytics/next-navigation` (replacing `<FirebaseCrashlytics>` if you already created this provider for Next.js < 15.3):
+In `src/components/CrashlyticsProvider.tsx`, mount `<CrashlyticsRoutes>` from `firebase/crashlytics/next-navigation` (replacing `<FirebaseCrashlytics>` if you already created this provider for Next.js < 15.3):
 
 ```tsx
 // src/components/CrashlyticsProvider.tsx
 'use client';
 
 import React from 'react';
-import { breadcrumbs } from '@firebase/crashlytics';
-import { CrashlyticsRoutes } from '@firebase/crashlytics/next-navigation';
+import { breadcrumbs } from 'firebase/crashlytics';
+import { CrashlyticsRoutes } from 'firebase/crashlytics/next-navigation';
 import { app } from '../lib/firebase'; // Your existing Firebase App singleton
 
 const crashlyticsOptions = { features: [breadcrumbs()] };

@@ -17,7 +17,7 @@ Integrate with Angular's global error-catching runtime and automatic route track
 // src/app/app.config.ts
 import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideCrashlytics } from '@firebase/crashlytics/angular';
+import { provideCrashlytics } from 'firebase/crashlytics/angular';
 import { app } from '../lib/firebase'; // Shared initialization script
 import { routes } from './app.routes';
 
@@ -118,10 +118,6 @@ Update your `build` script in `package.json` to upload and delete source maps au
 ## Framework-Specific Best Practices & Gotchas
 
 To ensure smooth integration during the private preview, review these essential best practices:
-
-<!-- #include "../../docs/ADVANCED_USAGE.md#avoid-dual-package-hazards" -->
-> [!NOTE]
-> For import standardization guidelines, see [Advanced Usage: Avoid Dual Package Hazards](../../docs/ADVANCED_USAGE.md#avoid-dual-package-hazards).
 
 <!-- #include "../../docs/ADVANCED_USAGE.md#custom-attributes" -->
 > [!NOTE]

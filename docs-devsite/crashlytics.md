@@ -90,7 +90,7 @@ export declare function breadcrumbs(): CrashlyticsFeature;
 
 
 ```ts
-import { getCrashlytics, breadcrumbs } from '@firebase/crashlytics';
+import { getCrashlytics, breadcrumbs } from 'firebase/crashlytics';
 
 const crashlytics = getCrashlytics(app, {
   features: [breadcrumbs()]

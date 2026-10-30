@@ -94,10 +94,10 @@ Before configuring framework-specific integrations, complete the core package in
 
 ### Install Packages
 
-Install the core Firebase App package and the preview Crashlytics module:
+Install the Firebase JS SDK:
 
 ```bash
-npm install @firebase/app@eap-crashlytics @firebase/crashlytics@eap-crashlytics
+npm install firebase
 ```
 
 ### Initialize Firebase App Singleton
@@ -106,7 +106,7 @@ Create a central configuration utility file (`src/lib/firebase.ts`) using the cr
 
 ```typescript
 // src/lib/firebase.ts
-import { initializeApp, getApps, getApp } from '@firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 
 const firebaseConfig = {
   apiKey: "<YOUR_FIREBASE_API_KEY>",
@@ -192,7 +192,6 @@ For advanced usage options and project configuration details, consult the follow
   - 🏷️ **[App Versioning](docs/ADVANCED_USAGE.md#app-versioning)**: Set up build script helpers to tag telemetry with commit hashes/versions.
   - ⚡ **[Programmatic Error Capturing](docs/ADVANCED_USAGE.md#programmatic-error-capturing)**: Manually record handled exceptions with custom metadata.
   - 🧹 **[Force Flushing](docs/ADVANCED_USAGE.md#force-flushing-telemetry-records-flush)**: Upload queued error telemetry immediately before unload.
-  - 💡 **[Best Practices & Gotchas](docs/ADVANCED_USAGE.md#best-practices--gotchas)**: Guidelines on import paths and framework best practices.
 - ⚙️ **[Configuration Guide](docs/CONFIGURATION.md)**:
   - 🔔 **[Alerting](docs/CONFIGURATION.md#alerting)**: Configure email alerts for new and regressed issues via the Firebase Console or CLI, or set up advanced Cloud Monitoring alerts.
   - 🎚️ **[Sampling](docs/CONFIGURATION.md#sampling)**: Control telemetry volume and costs using the Admin API or Cloud Logging exclusion filters.

@@ -79,6 +79,22 @@
     },
     "./package.json": "./package.json"
   },
+  "typesVersions": {
+    "*": {
+      "angular": [
+        "./dist/angular/index-public.d.ts"
+      ],
+      "next-navigation": [
+        "./dist/next-navigation/index-public.d.ts"
+      ],
+      "react": [
+        "./dist/react/index-public.d.ts"
+      ],
+      "react-router": [
+        "./dist/react-router/index-public.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist",
     "setconstants.js"

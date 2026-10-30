@@ -19,7 +19,7 @@ Create `src/instrumentation-client.ts` (or `instrumentation-client.ts` in your p
 
 ```typescript
 // src/instrumentation-client.ts
-import { getCrashlytics } from '@firebase/crashlytics';
+import { getCrashlytics } from 'firebase/crashlytics';
 import { app } from './lib/firebase'; // Shared initialization script
 
 getCrashlytics(app);
@@ -29,14 +29,14 @@ This single file initializes Crashlytics before React hydration and automaticall
 
 ### Next.js < 15.3: Client-Side / App Router Layout
 
-For Next.js versions earlier than 15.3, `layout.tsx` is a Server Component by default. Because `FirebaseApp` is non-serializable, wrap `<FirebaseCrashlytics>` (from `@firebase/crashlytics/react` to initialize Crashlytics and capture uncaught errors) in a Client Component (e.g., `src/components/CrashlyticsProvider.tsx`) marked with the `"use client"` directive:
+For Next.js versions earlier than 15.3, `layout.tsx` is a Server Component by default. Because `FirebaseApp` is non-serializable, wrap `<FirebaseCrashlytics>` (from `firebase/crashlytics/react` to initialize Crashlytics and capture uncaught errors) in a Client Component (e.g., `src/components/CrashlyticsProvider.tsx`) marked with the `"use client"` directive:
 
 ```tsx
 // src/components/CrashlyticsProvider.tsx
 'use client';
 
 import React from 'react';
-import { FirebaseCrashlytics } from '@firebase/crashlytics/react';
+import { FirebaseCrashlytics } from 'firebase/crashlytics/react';
 import { app } from '../lib/firebase'; // Shared initialization script
 
 export function CrashlyticsProvider({ children }: { children: React.ReactNode }) {
@@ -138,10 +138,6 @@ Update your `build` script in `package.json` to upload and delete source maps au
 
 To ensure smooth integration during the private preview, review these essential best practices:
 
-<!-- #include "../../docs/ADVANCED_USAGE.md#avoid-dual-package-hazards" -->
-> [!NOTE]
-> For import standardization guidelines, see [Advanced Usage: Avoid Dual Package Hazards](../../docs/ADVANCED_USAGE.md#avoid-dual-package-hazards).
-
 ### TypeScript: `verbatimModuleSyntax` Resolution
 
 Next.js application templates often enforce strict `verbatimModuleSyntax: true` inside `tsconfig.json`. This configuration requires explicit `import type` definitions for type-only imports.
@@ -153,7 +149,7 @@ Next.js application templates often enforce strict `verbatimModuleSyntax: true` 
 import { FirebaseApp } from 'firebase/app';
 
 // ✅ Compiles successfully
-import type { FirebaseApp } from '@firebase/app';
+import type { FirebaseApp } from 'firebase/app';
 ```
 
 <!-- #include "../../docs/ADVANCED_USAGE.md#custom-attributes" -->

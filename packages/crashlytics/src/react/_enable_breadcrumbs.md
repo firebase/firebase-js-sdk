@@ -7,8 +7,8 @@ In your root application component (typically `src/App.tsx`), define a `crashlyt
 ```diff
 // src/App.tsx
 import React from 'react';
-+import { breadcrumbs } from '@firebase/crashlytics';
-import { FirebaseCrashlytics } from '@firebase/crashlytics/react';
++import { breadcrumbs } from 'firebase/crashlytics';
+import { FirebaseCrashlytics } from 'firebase/crashlytics/react';
 import { app } from './lib/firebase'; // Your existing Firebase App singleton
 
 +const crashlyticsOptions = { features: [breadcrumbs()] };

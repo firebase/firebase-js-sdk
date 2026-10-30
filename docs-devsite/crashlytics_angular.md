@@ -60,7 +60,7 @@ Basic usage:
 ```typescript
 import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideCrashlytics } from '@firebase/crashlytics/angular';
+import { provideCrashlytics } from 'firebase/crashlytics/angular';
 import { app } from '../lib/firebase';
 import { routes } from './app.routes';
 
@@ -80,7 +80,7 @@ Providing telemetry options:
 ```typescript
 import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideCrashlytics } from '@firebase/crashlytics/angular';
+import { provideCrashlytics } from 'firebase/crashlytics/angular';
 import { app } from '../lib/firebase';
 import { routes } from './app.routes';
 

@@ -130,7 +130,7 @@ export class FirebaseErrorHandler implements ErrorHandler {
  * ```typescript
  * import { ApplicationConfig, ErrorHandler, inject, DestroyRef } from '@angular/core';
  * import { Router } from '@angular/router';
- * import { FirebaseErrorHandler, setupCrashlyticsRoutes } from '@firebase/crashlytics/angular';
+ * import { FirebaseErrorHandler, setupCrashlyticsRoutes } from 'firebase/crashlytics/angular';
  *
  * export const appConfig: ApplicationConfig = {
  *   providers: [
@@ -205,7 +205,7 @@ export function setupCrashlyticsRoutes({
  * ```typescript
  * import { ApplicationConfig } from '@angular/core';
  * import { provideRouter } from '@angular/router';
- * import { provideCrashlytics } from '@firebase/crashlytics/angular';
+ * import { provideCrashlytics } from 'firebase/crashlytics/angular';
  * import { app } from '../lib/firebase';
  * import { routes } from './app.routes';
  *
@@ -222,7 +222,7 @@ export function setupCrashlyticsRoutes({
  * ```typescript
  * import { ApplicationConfig } from '@angular/core';
  * import { provideRouter } from '@angular/router';
- * import { provideCrashlytics } from '@firebase/crashlytics/angular';
+ * import { provideCrashlytics } from 'firebase/crashlytics/angular';
  * import { app } from '../lib/firebase';
  * import { routes } from './app.routes';
  *

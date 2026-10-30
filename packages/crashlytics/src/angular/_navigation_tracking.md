@@ -8,7 +8,7 @@ Automatic route navigation tracking is enabled out of the box when you register 
 // src/app/app.config.ts
 import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideCrashlytics } from '@firebase/crashlytics/angular';
+import { provideCrashlytics } from 'firebase/crashlytics/angular';
 import { app } from '../lib/firebase';
 import { routes } from './app.routes';
 

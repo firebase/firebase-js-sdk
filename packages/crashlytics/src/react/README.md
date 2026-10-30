@@ -16,7 +16,7 @@ Wrap your root application component (typically `src/App.tsx` or `src/main.tsx`)
 ```tsx
 // src/App.tsx
 import React from 'react';
-import { FirebaseCrashlytics } from "@firebase/crashlytics/react";
+import { FirebaseCrashlytics } from "firebase/crashlytics/react";
 import { app } from './lib/firebase'; // Shared initialization script
 
 export default function App() {
@@ -94,10 +94,6 @@ Update your `build` script in `package.json` to upload and delete source maps au
 
 To ensure smooth integration during the private preview, review these essential best practices:
 
-<!-- #include "../../docs/ADVANCED_USAGE.md#avoid-dual-package-hazards" -->
-> [!NOTE]
-> For import standardization guidelines, see [Advanced Usage: Avoid Dual Package Hazards](../../docs/ADVANCED_USAGE.md#avoid-dual-package-hazards).
-
 ### TypeScript: `verbatimModuleSyntax` Resolution
 
 Vite, Next.js, and SvelteKit application templates often enforce strict `verbatimModuleSyntax: true` inside `tsconfig.json`. This configuration requires explicit `import type` definitions for type-only imports.
@@ -109,7 +105,7 @@ Vite, Next.js, and SvelteKit application templates often enforce strict `verbati
 import { FirebaseApp } from 'firebase/app';
 
 // ✅ Compiles successfully
-import type { FirebaseApp } from '@firebase/app';
+import type { FirebaseApp } from 'firebase/app';
 ```
 
 <!-- #include "../../docs/ADVANCED_USAGE.md#custom-attributes" -->

@@ -4,13 +4,13 @@ This guide covers the incremental steps to enable automatic route navigation tra
 
 ### Step 1: Replace `<Routes>` with `<CrashlyticsRoutes>`
 
-In your routing configuration (typically `src/App.tsx`), import `<CrashlyticsRoutes>` from `@firebase/crashlytics/react-router` and use it in place of React Router's standard `<Routes>` component:
+In your routing configuration (typically `src/App.tsx`), import `<CrashlyticsRoutes>` from `firebase/crashlytics/react-router` and use it in place of React Router's standard `<Routes>` component:
 
 ```diff
 // src/App.tsx
 import React from 'react';
 import { BrowserRouter, Route } from 'react-router-dom';
-+import { CrashlyticsRoutes } from '@firebase/crashlytics/react-router';
++import { CrashlyticsRoutes } from 'firebase/crashlytics/react-router';
 import { app } from './lib/firebase';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
