@@ -102,7 +102,9 @@ export interface AIOptions {
    */
   backend?: Backend;
   /**
-   * Whether to use App Check limited use tokens. Defaults to false.
+   * Whether to use App Check limited use tokens. Defaults to false. This option is applied when
+   * the {@link AI} instance for the given app and backend is first created by
+   * {@link getAI | getAI()}, and cannot be changed by later `getAI()` calls.
    */
   useLimitedUseAppCheckTokens?: boolean;
 }
