@@ -17,7 +17,14 @@
 
 import { expect } from 'vitest';
 
-import { copySqlServiceSettings, SqlServiceSettings } from './settings';
+import { LOWERCASE_DISALLOWED_HEADER_KEYS } from '../util/constants';
+
+import { Code, FirebaseSqlError, FirebaseSqlErrorCategory } from './error';
+import {
+  copySqlServiceSettings,
+  SqlServiceSettings,
+  validateInitializationHeaders
+} from './settings';
 
 describe('SqlServiceSettings', () => {
   const baseSettings: SqlServiceSettings = {
@@ -61,6 +68,30 @@ describe('SqlServiceSettings', () => {
       expect(withNullProto.headers).not.toBe(nullProtoHeaders);
       nullProtoHeaders['X-Custom'] = '2';
       expect(withNullProto.headers!['X-Custom']).toBe('1');
+    });
+  });
+
+  describe('validateHeaders', () => {
+    it('allows undefined or custom headers and rejects all LOWERCASE_DISALLOWED_HEADER_KEYS case-insensitively', () => {
+      expect(() => validateInitializationHeaders(undefined)).not.toThrow();
+      expect(() =>
+        validateInitializationHeaders({ 'X-Custom-Header': 'custom-val' })
+      ).not.toThrow();
+
+      for (const disallowedKey of LOWERCASE_DISALLOWED_HEADER_KEYS) {
+        let caught: unknown;
+        try {
+          validateInitializationHeaders({
+            [`  ${disallowedKey.toUpperCase()}  `]: 'val'
+          });
+        } catch (err) {
+          caught = err;
+        }
+        expect(caught).toBeInstanceOf(FirebaseSqlError);
+        const sqlErr = caught as FirebaseSqlError;
+        expect(sqlErr.code).toBe(Code.INVALID_ARGUMENT);
+        expect(sqlErr.category).toBe(FirebaseSqlErrorCategory.SQL_CLIENT);
+      }
     });
   });
 });
