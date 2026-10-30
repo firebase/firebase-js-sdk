@@ -50,11 +50,8 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
     if (element && element.isBundleMetadata()) {
       this.metadata = element.payload.metadata!;
     } else {
-      throw new FirestoreError(
-        Code.INTERNAL,
-        `The first element of the bundle is not a metadata object, it is
-         ${JSON.stringify(element?.payload)}`
-      );
+      throw new Error(`The first element of the bundle is not a metadata object, it is
+         ${JSON.stringify(element?.payload)}`);
     }
 
     do {
@@ -119,7 +116,7 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
    * to it.
    *
    * @returns The parsed length of the next element, in bytes.
-   * @throws A {@link FirestoreError} if the cursor has reached the end of the
+   * @throws An {@link Error} if the cursor has reached the end of the
    * bundle data, since lengths prefix bundle objects, or if the length prefix
    * is not a valid number.
    */
@@ -129,18 +126,14 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
     while (curIndex < this.bundleData.length) {
       if (this.bundleData[curIndex] === OPEN_BRACE) {
         if (curIndex === startIndex) {
-          throw new FirestoreError(
-            Code.INTERNAL,
-            'First character is a bracket and not a number'
-          );
+          throw new Error('First character is a bracket and not a number');
         }
         const lengthString = this.textDecoder.decode(
           this.bundleData.subarray(startIndex, curIndex)
         );
         const length = Number(lengthString);
         if (isNaN(length)) {
-          throw new FirestoreError(
-            Code.INTERNAL,
+          throw new Error(
             `length string (${lengthString}) is not valid number`
           );
         }
@@ -149,10 +142,7 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
       }
       curIndex++;
     }
-    throw new FirestoreError(
-      Code.INTERNAL,
-      'Reached the end of bundle when more is expected.'
-    );
+    throw new Error('Reached the end of bundle when more is expected.');
   }
 }
 
