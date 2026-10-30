@@ -413,6 +413,13 @@ describe('Firebase Functions > Stream', () => {
     expect(await streamResult.data).toBe('Final Result');
   });
 
+  it('surfaces the fetch failure of a non-streaming call', async () => {
+    mockFetch.mockRejectedValue(new TypeError('Load failed'));
+
+    const func = httpsCallable(functions, 'errTest');
+    await expectError(func({}), 'unavailable', 'Load failed', 0);
+  });
+
   it('handles network errors', async () => {
     mockFetch.mockRejectedValue(new Error('Network error'));
 
@@ -423,8 +430,8 @@ describe('Firebase Functions > Stream', () => {
     const streamResult = await func.stream({});
     const dataErrorPromise = expectError(
       streamResult.data,
-      'internal',
-      'internal',
+      'unavailable',
+      'Network error',
       0
     );
 
@@ -435,7 +442,9 @@ describe('Firebase Functions > Stream', () => {
       }
     } catch (error: unknown) {
       errorThrown = true;
-      expect((error as FunctionsError).code).toBe(`${FUNCTIONS_TYPE}/internal`);
+      expect((error as FunctionsError).code).toBe(
+        `${FUNCTIONS_TYPE}/unavailable`
+      );
     }
     expect(errorThrown).toBe(true);
     await dataErrorPromise;
