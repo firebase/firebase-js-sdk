@@ -15,23 +15,34 @@
  * limitations under the License.
  */
 
+import { newTextDecoder, newTextEncoder } from '../platform/text_serializer';
 import { BundleMetadata } from '../protos/firestore_bundle_proto';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { Code, FirestoreError } from '../util/error';
 
 import { BundleReaderSync, SizedBundleElement } from './bundle_reader';
 
+/** The UTF-8 code unit for '{'. */
+const OPEN_BRACE = 0x7b;
+
 /**
  * A class that can parse a bundle form the string serialization of a bundle.
+ *
+ * Bundle element length prefixes are specified as UTF-8 byte counts, so the
+ * bundle string is UTF-8 encoded and parsed as bytes rather than as UTF-16
+ * code units (which would differ for any non-ASCII character).
  */
 export class BundleReaderSyncImpl implements BundleReaderSync {
   private metadata: BundleMetadata;
   private elements: SizedBundleElement[];
   private cursor: number;
+  private readonly bundleData: Uint8Array;
+  private readonly textDecoder = newTextDecoder();
   constructor(
-    private bundleData: string,
+    bundleData: string,
     readonly serializer: JsonProtoSerializer
   ) {
+    this.bundleData = newTextEncoder().encode(bundleData);
     this.cursor = 0;
     this.elements = [];
 
@@ -77,10 +88,10 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
   }
 
   /**
-   * Reads from a specified position from the bundleData string, for a specified
-   * number of bytes.
+   * Reads from a specified position from the UTF-8 encoded bundleData, for a
+   * specified number of bytes.
    *
-   * @param length - how many characters to read.
+   * @param length - how many bytes to read.
    * @returns a string parsed from the bundle.
    */
   private readJsonString(length: number): string {
@@ -90,7 +101,9 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
         'Reached the end of bundle when more is expected.'
       );
     }
-    const result = this.bundleData.slice(this.cursor, (this.cursor += length));
+    const result = this.textDecoder.decode(
+      this.bundleData.subarray(this.cursor, (this.cursor += length))
+    );
     return result;
   }
 
@@ -105,12 +118,16 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
     const startIndex = this.cursor;
     let curIndex = this.cursor;
     while (curIndex < this.bundleData.length) {
-      if (this.bundleData[curIndex] === '{') {
+      if (this.bundleData[curIndex] === OPEN_BRACE) {
         if (curIndex === startIndex) {
           throw new Error('First character is a bracket and not a number');
         }
         this.cursor = curIndex;
-        return Number(this.bundleData.slice(startIndex, curIndex));
+        return Number(
+          this.textDecoder.decode(
+            this.bundleData.subarray(startIndex, curIndex)
+          )
+        );
       }
       curIndex++;
     }

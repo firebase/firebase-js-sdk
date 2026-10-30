@@ -43,6 +43,13 @@ import {
 } from '../../util/api_helpers';
 import { keys, query as internalQuery, orderBy } from '../../util/helpers';
 
+/** Strings whose UTF-8 byte length differs from their UTF-16 length. */
+const MULTI_BYTE_VALUES: { [name: string]: string } = {
+  'em-dash': '\u2014',
+  'emoji (surrogate pair)': '\ud83d\ude00 \ud83d\udd25',
+  'accented characters': 'caf\u00e9 na\u00efve \u00c5ngstr\u00f6m'
+};
+
 describe('Bundle', () => {
   it('loadBundle does not throw with an empty bundle string)', async () => {
     const db = newTestFirestore();
@@ -373,6 +380,25 @@ describe('DocumentSnapshot', () => {
       }
     }
   });
+
+  // Regression test for https://github.com/firebase/firebase-js-sdk/issues/10557
+  for (const [name, value] of Object.entries(MULTI_BYTE_VALUES)) {
+    it(`fromJSON round-trips toJSON result containing ${name}`, () => {
+      if (isNode()) {
+        const docSnap = documentSnapshot(
+          'foo/bar',
+          { v: value, nested: { [value]: [value] } },
+          /*fromCache=*/ true
+        );
+        const db = firestore();
+        const docSnapFromJSON = documentSnapshotFromJSON(db, docSnap.toJSON());
+        expect(docSnapFromJSON.data()).toEqual({
+          v: value,
+          nested: { [value]: [value] }
+        });
+      }
+    });
+  }
 });
 
 describe('Query', () => {
@@ -747,6 +773,36 @@ describe('QuerySnapshot', () => {
       expect(titles).toEqual(['A', 'B', 'C']);
     }
   });
+
+  // Regression test for https://github.com/firebase/firebase-js-sdk/issues/10557
+  for (const [name, value] of Object.entries(MULTI_BYTE_VALUES)) {
+    it(`fromJSON round-trips toJSON result containing ${name}`, () => {
+      if (isNode()) {
+        const snapshot = querySnapshot(
+          'foo',
+          {},
+          {
+            a: { v: value, [value]: 'key' },
+            b: { v: `${value}-${value}`, n: 2 }
+          },
+          keys(), // An empty set of mutated document keys signifies that there are no pending writes.
+          false,
+          false
+        );
+        const db = firestore();
+        const querySnap = querySnapshotFromJSON(db, snapshot.toJSON());
+        expect(querySnap.docs.length).toBe(2);
+        expect(querySnap.docs[0].data()).toEqual({
+          v: value,
+          [value]: 'key'
+        });
+        expect(querySnap.docs[1].data()).toEqual({
+          v: `${value}-${value}`,
+          n: 2
+        });
+      }
+    });
+  }
 
   it('fromJSON throws when parsing client-side toJSON result', () => {
     if (!isNode()) {

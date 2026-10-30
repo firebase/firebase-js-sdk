@@ -38,7 +38,7 @@ import {
 
 export const encoder = newTextEncoder();
 
-function lengthPrefixedString(o: {}): string {
+export function lengthPrefixedString(o: {}): string {
   const str = JSON.stringify(o);
   const l = encoder.encode(str).byteLength;
   return `${l}${str}`;

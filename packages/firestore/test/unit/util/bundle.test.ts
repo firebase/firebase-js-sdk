@@ -17,11 +17,13 @@
 
 import { toByteStreamReader } from '../../../src/platform/byte_stream_reader';
 import { newTextEncoder } from '../../../src/platform/text_serializer';
+import { BundleElement } from '../../../src/protos/firestore_bundle_proto';
 import {
   BundleReader,
   SizedBundleElement
 } from '../../../src/util/bundle_reader';
 import { newBundleReader } from '../../../src/util/bundle_reader_impl';
+import { newBundleReaderSync } from '../../../src/util/bundle_reader_sync_impl';
 import { JSON_SERIALIZER } from '../local/persistence_test_helpers';
 
 import {
@@ -40,7 +42,8 @@ import {
   metaString,
   doc2String,
   doc1,
-  doc2
+  doc2,
+  lengthPrefixedString
 } from './bundle_data';
 const encoder = newTextEncoder();
 
@@ -267,3 +270,65 @@ function genericBundleReadingTests(bytesPerRead: number): void {
     }
   );
 }
+
+// Regression tests for https://github.com/firebase/firebase-js-sdk/issues/10557
+// Bundle element length prefixes are UTF-8 byte counts, which differ from the
+// UTF-16 string length whenever the element contains non-ASCII characters.
+const multiByteValues: { [name: string]: string } = {
+  'em-dash': '\u2014',
+  'emoji (surrogate pair)': '\ud83d\ude00 \ud83d\udd25',
+  'accented characters': 'caf\u00e9 na\u00efve \u00c5ngstr\u00f6m'
+};
+
+function multiByteDoc(value: string): BundleElement {
+  return {
+    document: {
+      name: 'projects/test-project/databases/(default)/documents/collectionId/doc1',
+      createTime: { seconds: 1, nanos: 2 },
+      updateTime: { seconds: 3, nanos: 4 },
+      fields: { foo: { stringValue: value }, [value]: { integerValue: '1' } }
+    }
+  };
+}
+
+describe('Bundle with multi-byte UTF-8 characters', () => {
+  for (const [name, value] of Object.entries(multiByteValues)) {
+    const docElement = multiByteDoc(value);
+    const docString = lengthPrefixedString(docElement);
+    const bundleString = metaString + doc1MetaString + docString + doc2String;
+
+    it(`BundleReaderSync reads elements containing ${name}`, () => {
+      // Sanity check that this test actually exercises the multi-byte path.
+      const docJson = JSON.stringify(docElement);
+      expect(encoder.encode(docJson).byteLength).toBeGreaterThan(
+        docJson.length
+      );
+
+      const reader = newBundleReaderSync(bundleString, JSON_SERIALIZER);
+      // getMetadata() returns the metadata SizedBundleElement.
+      expect(
+        (reader.getMetadata() as unknown as SizedBundleElement).payload
+      ).toEqual(meta);
+      const elements = reader.getElements();
+      expect(elements.length).toBe(3);
+      expect(elements[0].payload).toEqual(doc1Meta);
+      expect(elements[1].payload).toEqual(docElement);
+      expect(elements[1].byteLength).toBe(encoder.encode(docJson).byteLength);
+      expect(elements[2].payload).toEqual(doc2);
+    });
+
+    for (const bytesPerRead of [1, 4, 1024]) {
+      it(`BundleReader reads elements containing ${name} with bytesPerRead ${bytesPerRead}`, async () => {
+        const reader = newBundleReader(
+          byteStreamReaderFromString(bundleString, bytesPerRead),
+          JSON_SERIALIZER
+        );
+        expect(await reader.getMetadata()).toEqual(meta.metadata);
+        expect((await reader.nextElement())!.payload).toEqual(doc1Meta);
+        expect((await reader.nextElement())!.payload).toEqual(docElement);
+        expect((await reader.nextElement())!.payload).toEqual(doc2);
+        expect(await reader.nextElement()).toBeNull();
+      });
+    }
+  }
+});
