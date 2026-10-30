@@ -16,7 +16,7 @@
  */
 import { LogCallback, LogLevelString, LogOptions } from '@firebase/logger';
 
-export type FirebaseOptions = {
+export declare interface FirebaseOptions {
   apiKey?: string;
   authDomain?: string;
   databaseURL?: string;
@@ -25,7 +25,7 @@ export type FirebaseOptions = {
   messagingSenderId?: string;
   appId?: string;
   measurementId?: string;
-};
+}
 
 export interface FirebaseAppConfig {
   name?: string;
