@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 4.19.1
+
+### Patch Changes
+
+- [`3a5d6a0`](https://github.com/firebase/firebase-js-sdk/commit/3a5d6a04eb68f8534222cf41dd34ec2ea113a21e) [#10519](https://github.com/firebase/firebase-js-sdk/pull/10519) - Graduate Pipeline Search from Public Preview to GA.
+
 ## 4.19.0
 
 ### Minor Changes

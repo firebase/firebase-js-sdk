@@ -1,5 +1,15 @@
 # @firebase/auth
 
+## 1.13.9
+
+### Patch Changes
+
+- [`3da3c2b`](https://github.com/firebase/firebase-js-sdk/commit/3da3c2baff8303e80424eeaf8ee0b555362cca8d) [#10535](https://github.com/firebase/firebase-js-sdk/pull/10535) - Update the on-demand ID token expiration buffer (`Buffer.TOKEN_REFRESH`) from 30 seconds to 5 minutes to match `User.getIdToken()` documentation and the proactive refresh offset.
+
+- [`0079975`](https://github.com/firebase/firebase-js-sdk/commit/0079975f661d9158ebbf22055b3903b00bd4a48a) [#10393](https://github.com/firebase/firebase-js-sdk/pull/10393) - - Fix an unhandled exception when a popup or redirect operation (e.g., `signInWithPopup`) is cancelled by a second call before the first operation finishes initializing.
+  - Fix an unhandled promise rejection during initial IndexedDB cache population if the page navigates away or is backgrounded while loading.
+  - Fix an uncatchable unhandled promise rejection when background reCAPTCHA Enterprise token verification fails during `initializeRecaptchaConfig` or `signInWithPhoneNumber`.
+
 ## 1.13.8
 
 ### Patch Changes
