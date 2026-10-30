@@ -33,6 +33,7 @@ import {
 } from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseInstallations } from '@firebase/installations-types';
+import { Logger } from '@firebase/logger';
 import { openDatabase, APP_NAMESPACE_STORE } from '../src/storage/storage';
 import { ERROR_FACTORY, ErrorCode } from '../src/errors';
 import { Experiment } from '../src/abt/experiment';
@@ -166,6 +167,40 @@ describe('Remote Config API', () => {
     });
     await ensureInitialized(rc);
     expect(getString(rc, 'foobar')).toBe('hello world');
+  });
+
+  describe('deprecated "firebase-server" templateId', () => {
+    let warnStub: MockInstance;
+
+    beforeEach(() => {
+      warnStub = vi
+        .spyOn(Logger.prototype, 'warn')
+        .mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      warnStub.mockRestore();
+    });
+
+    it('logs a warning once when templateId is "firebase-server"', () => {
+      const rc = getRemoteConfig(app, { templateId: 'firebase-server' });
+      const rc2 = getRemoteConfig(app, { templateId: 'firebase-server' });
+      expect(rc).toBe(rc2);
+      expect(warnStub).toHaveBeenCalledTimes(1);
+      expect(warnStub).toHaveBeenCalledWith(
+        expect.stringContaining('firebase-server')
+      );
+    });
+
+    it('does not log a warning for the default templateId', () => {
+      getRemoteConfig(app);
+      expect(warnStub).not.toHaveBeenCalled();
+    });
+
+    it('does not log a warning for the "firebase" templateId', () => {
+      getRemoteConfig(app, { templateId: 'firebase' });
+      expect(warnStub).not.toHaveBeenCalled();
+    });
   });
 
   it('calls updateActiveExperiments with empty experiments if no experiments are available in fetch response', async () => {

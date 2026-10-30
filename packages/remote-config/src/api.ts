@@ -63,6 +63,7 @@ export function getRemoteConfig(
   rcProvider.initialize({ options });
   const rc = rcProvider.getImmediate() as RemoteConfigImpl;
 
+  // Deprecated: SSR hydration, see RemoteConfigOptions.initialFetchResponse.
   if (options.initialFetchResponse) {
     // We use these initial writes as the initialization promise since they will hydrate the same
     // fields that `storageCache.loadFromStorage` would set.
