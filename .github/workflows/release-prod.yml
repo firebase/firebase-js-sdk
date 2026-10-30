@@ -35,7 +35,7 @@ jobs:
     - name: Set up Node (24)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
-        node-version: 24.19.0
+        node-version: 24.22.1
     - name: Checkout release branch (with history)
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
       with:
@@ -65,6 +65,7 @@ jobs:
         NPM_TOKEN_AUTH_INTEROP_TYPES: ${{secrets.NPM_TOKEN_AUTH_INTEROP_TYPES}}
         NPM_TOKEN_AUTH_TYPES: ${{secrets.NPM_TOKEN_AUTH_TYPES}}
         NPM_TOKEN_COMPONENT: ${{secrets.NPM_TOKEN_COMPONENT}}
+        NPM_TOKEN_CRASHLYTICS: ${{secrets.NPM_TOKEN_CRASHLYTICS}}
         NPM_TOKEN_DATA_CONNECT: ${{secrets.NPM_TOKEN_DATA_CONNECT}}
         NPM_TOKEN_DATABASE: ${{secrets.NPM_TOKEN_DATABASE}}
         NPM_TOKEN_DATABASE_TYPES: ${{secrets.NPM_TOKEN_DATABASE_TYPES}}
@@ -148,7 +149,7 @@ jobs:
     - name: Set up Node (24)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
-        node-version: 24.19.0
+        node-version: 24.22.1
     - name: Checkout release branch (with history)
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
       with:

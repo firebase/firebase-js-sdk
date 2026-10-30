@@ -1,0 +1,216 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
+import { CrashlyticsInternal, ErrorWithSymbol } from './types';
+import { ALREADY_LOGGED_FLAG, CRASHLYTICS_TYPE } from './constants';
+import { Crashlytics, CrashlyticsOptions } from './public-types';
+import { Provider } from '@firebase/component';
+import { Attributes } from '@opentelemetry/api';
+import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
+import { CrashlyticsService } from './service';
+import { deepEqual } from '@firebase/util';
+import { LOG_ATTR_KEY } from './attributes-store';
+import { flush, getBreadcrumbsFeature } from './helpers';
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    [CRASHLYTICS_TYPE]: CrashlyticsService;
+  }
+}
+
+/**
+ * Returns the default {@link Crashlytics} instance that is associated with the provided
+ * {@link @firebase/app#FirebaseApp}. If no instance exists, initializes a new instance with the
+ * default settings.
+ *
+ * @example
+ * ```javascript
+ * const crashlytics = getCrashlytics(app);
+ * ```
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
+ * @param options - {@link CrashlyticsOptions} that configure the Crashlytics instance.
+ * @returns The default {@link Crashlytics} instance for the given {@link @firebase/app#FirebaseApp}.
+ *
+ * @beta
+ */
+export function getCrashlytics(
+  app: FirebaseApp = getApp(),
+  options?: CrashlyticsOptions
+): Crashlytics {
+  const crashlyticsProvider: Provider<'crashlytics'> = _getProvider(
+    app,
+    CRASHLYTICS_TYPE
+  );
+
+  if (crashlyticsProvider.isInitialized()) {
+    const existingInstance = crashlyticsProvider.getImmediate();
+    if (deepEqual(options || {}, crashlyticsProvider.getOptions())) {
+      return existingInstance;
+    } else {
+      throw new Error(
+        'getCrashlytics() cannot be called with different options'
+      );
+    }
+  }
+  const crashlytics: CrashlyticsService = crashlyticsProvider.initialize({
+    options
+  });
+
+  if (options) {
+    crashlytics.options = options;
+  }
+  return crashlytics;
+}
+
+/**
+ * Queues an error to be uploaded to the Firebase Crashlytics API.
+ *
+ * @beta
+ *
+ * @param crashlytics - The {@link Crashlytics} instance.
+ * @param error - The caught exception, typically an Error object
+ * @param attributes - Optional, arbitrary attributes to attach to the error log
+ */
+export function recordError(
+  crashlytics: Crashlytics,
+  error: unknown,
+  attributes?: AnyValueMap
+): void {
+  if (!crashlytics) {
+    return;
+  }
+  if (error && typeof error === 'object') {
+    try {
+      (error as ErrorWithSymbol)[ALREADY_LOGGED_FLAG] = true;
+    } catch (e) {
+      // Ignore if frozen
+    }
+  }
+
+  // Cast to CrashlyticsInternal to access internal loggerProvider, tracingProvider, and processors
+  const {
+    loggerProvider,
+    telemetryStore,
+    onErrorSpanProcessor,
+    onErrorLogRecordProcessor
+  } = crashlytics as CrashlyticsInternal;
+
+  const logger = loggerProvider.getLogger('error-logger');
+  const customAttributes: AnyValueMap = attributes ? { ...attributes } : {};
+
+  if (error instanceof Error) {
+    logger.emit({
+      severityNumber: SeverityNumber.ERROR,
+      body: error.message,
+      attributes: {
+        'exception.type': error.name || 'Error',
+        'exception.stacktrace': error.stack || 'No stack trace available',
+        'exception.message': error.message,
+        ...customAttributes
+      }
+    });
+  } else if (typeof error === 'string') {
+    logger.emit({
+      severityNumber: SeverityNumber.ERROR,
+      body: error,
+      attributes: customAttributes
+    });
+  } else {
+    logger.emit({
+      severityNumber: SeverityNumber.ERROR,
+      body: `Unknown error type: ${typeof error}`,
+      attributes: customAttributes
+    });
+  }
+
+  if (onErrorSpanProcessor) {
+    onErrorSpanProcessor.onErrorOccurred();
+  }
+
+  if (onErrorLogRecordProcessor) {
+    onErrorLogRecordProcessor.onErrorOccurred();
+  }
+
+  if (telemetryStore) {
+    telemetryStore.clear();
+  }
+}
+
+/**
+ * <b>(EXPERIMENTAL)</b> Queues a log message to be uploaded to the Firebase Crashlytics API.
+ *
+ * @public
+ *
+ * @param crashlytics - The {@link Crashlytics} instance.
+ * @param message - The message to log.
+ * @param attributes - Optional, arbitrary attributes to attach to the log.
+ */
+export function log(
+  crashlytics: Crashlytics,
+  message: string,
+  attributes?: AnyValueMap
+): void {
+  if (!crashlytics) {
+    return;
+  }
+  // Cast to CrashlyticsInternal to access internal loggerProvider
+  const { loggerProvider } = crashlytics as CrashlyticsInternal;
+  const logger = loggerProvider.getLogger('custom-logger');
+  const customAttributes: AnyValueMap = attributes ? { ...attributes } : {};
+
+  logger.emit({
+    severityNumber: SeverityNumber.INFO,
+    body: message,
+    attributes: customAttributes
+  });
+}
+
+/**
+ * Creates a log for view boundary on navigation event
+ *
+ * @internal
+ *
+ * @param crashlytics - The {@link Crashlytics} instance.
+ * @param urlTemplate - The new URL pattern being navigated to.
+ * @param attributes - Optional, arbitrary attributes to attach to the view boundary log
+ */
+export function logViewBoundary(
+  crashlytics: Crashlytics,
+  urlTemplate: string,
+  attributes?: Attributes
+): void {
+  const { loggerProvider, attributesStore, options } =
+    crashlytics as CrashlyticsInternal;
+  if (!getBreadcrumbsFeature(options)) {
+    return;
+  }
+  const logger = loggerProvider.getLogger('view-boundary-logger');
+  const customAttributes = attributesStore.getLogAttributes({
+    [LOG_ATTR_KEY.APP_SCREEN_ID]: urlTemplate,
+    ...attributes
+  });
+
+  logger.emit({
+    severityNumber: SeverityNumber.INFO,
+    body: 'Navigation event',
+    attributes: customAttributes
+  });
+}
+
+export { flush };

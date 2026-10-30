@@ -36,7 +36,6 @@
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm test:all type-check lint",
     "test:all": "vitest run",
-    "test:integration": "run-p --npm-path npm test:all type-check lint && cd ../../integration/messaging && npm run-script test",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:browser": "vitest run",
     "test:browser:debug": "vitest --browser.headless=false",

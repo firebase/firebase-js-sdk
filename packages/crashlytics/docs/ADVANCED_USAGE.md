@@ -1,0 +1,71 @@
+# Advanced Usage - Firebase Crashlytics
+
+This guide covers advanced usage scenarios for Firebase Crashlytics in web applications, including programmatic error capturing, custom attributes, force flushing telemetry, and app versioning.
+
+---
+
+## Programmatic Error Capturing
+
+While uncaught exceptions will be logged automatically by framework integrations, you can also record handled exceptions manually using `recordError()`.
+
+```typescript
+import { recordError, getCrashlytics } from 'firebase/crashlytics';
+import { app } from './lib/firebase';
+
+const crashlytics = getCrashlytics(app);
+
+async function submitPaymentForm() {
+  try {
+    await api.processTransaction();
+  } catch (error) {
+    // Manually record handled errors with custom diagnostic context (key/value pairs)
+    recordError(crashlytics, error, {
+      userTier: 'Premium Gold',
+      checkoutStage: 'BillingAddressVerification',
+      transactionCode: 'tx_8412_err',
+      retryAttempts: 2
+    });
+
+    showFallbackBanner(error);
+  }
+}
+```
+
+---
+
+## Force Flushing Telemetry Records (`flush()`)
+
+By default, the telemetry engine batches logs into memory segments to preserve battery life and bandwidth. However, for short-lived operations (like Edge routines, cloud worker pathways, or right before a browser reloads or unloads), logs must be uploaded immediately.
+
+Call the asynchronous `flush` command to send all queued errors to the backend:
+
+```typescript
+import { recordError, flush, getCrashlytics } from 'firebase/crashlytics';
+import { app } from './lib/firebase';
+
+const crashlytics = getCrashlytics(app);
+
+async function handleApplicationCrash(error: Error) {
+  // Capture the error
+  recordError(crashlytics, error, { priority: 'IMMEDIATE' });
+
+  // Force an immediate upload before the process terminates or reloads
+  await flush(crashlytics);
+
+  // Safe to terminate the current execution context
+  window.location.reload();
+}
+```
+
+---
+
+## App Versioning
+
+Adding a version to your app is recommended, but not required. The Crashlytics SDK provides a `crashlytics-setconstants` CLI helper (backed by `setconstants.js`) that determines a version for your app in precedence order (`--appVersion=<version>`, current Git commit hash, or `package.json` version). Update the build scripts in your `package.json` as follows:
+
+```json
+"dev": "npm run firebase-set-constants && <existing command>",
+"build": "npm run firebase-set-constants && <existing command>",
+"start": "npm run firebase-set-constants && <existing command>",
+"firebase-set-constants": "crashlytics-setconstants"
+```

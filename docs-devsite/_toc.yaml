@@ -430,6 +430,51 @@ toc:
     path: /docs/reference/js/auth.userinfo.md
   - title: UserMetadata
     path: /docs/reference/js/auth.usermetadata.md
+- title: crashlytics
+  path: /docs/reference/js/crashlytics.md
+  section:
+  - title: Crashlytics
+    path: /docs/reference/js/crashlytics.crashlytics.md
+  - title: CrashlyticsFeature
+    path: /docs/reference/js/crashlytics.crashlyticsfeature.md
+  - title: CrashlyticsOptions
+    path: /docs/reference/js/crashlytics.crashlyticsoptions.md
+- title: crashlytics/angular
+  path: /docs/reference/js/crashlytics_angular.md
+  section:
+  - title: Crashlytics
+    path: /docs/reference/js/crashlytics_angular.crashlytics.md
+  - title: CrashlyticsFeature
+    path: /docs/reference/js/crashlytics_angular.crashlyticsfeature.md
+  - title: CrashlyticsOptions
+    path: /docs/reference/js/crashlytics_angular.crashlyticsoptions.md
+- title: crashlytics/next-navigation
+  path: /docs/reference/js/crashlytics_next-navigation.md
+  section:
+  - title: Crashlytics
+    path: /docs/reference/js/crashlytics_next-navigation.crashlytics.md
+  - title: CrashlyticsFeature
+    path: /docs/reference/js/crashlytics_next-navigation.crashlyticsfeature.md
+  - title: CrashlyticsOptions
+    path: /docs/reference/js/crashlytics_next-navigation.crashlyticsoptions.md
+- title: crashlytics/react
+  path: /docs/reference/js/crashlytics_react.md
+  section:
+  - title: Crashlytics
+    path: /docs/reference/js/crashlytics_react.crashlytics.md
+  - title: CrashlyticsFeature
+    path: /docs/reference/js/crashlytics_react.crashlyticsfeature.md
+  - title: CrashlyticsOptions
+    path: /docs/reference/js/crashlytics_react.crashlyticsoptions.md
+- title: crashlytics/react-router
+  path: /docs/reference/js/crashlytics_react-router.md
+  section:
+  - title: Crashlytics
+    path: /docs/reference/js/crashlytics_react-router.crashlytics.md
+  - title: CrashlyticsFeature
+    path: /docs/reference/js/crashlytics_react-router.crashlyticsfeature.md
+  - title: CrashlyticsOptions
+    path: /docs/reference/js/crashlytics_react-router.crashlyticsoptions.md
 - title: database
   path: /docs/reference/js/database.md
   section:
