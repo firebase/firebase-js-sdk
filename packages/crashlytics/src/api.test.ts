@@ -1,0 +1,1053 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { ExportResultCode } from '@opentelemetry/core';
+import {
+  LoggerProvider,
+  LogRecordExporter,
+  ReadableLogRecord,
+  SdkLogRecord
+} from '@opentelemetry/sdk-logs';
+import { resourceFromAttributes } from '@opentelemetry/resources';
+import { trace, TracerProvider } from '@opentelemetry/api';
+import {
+  Logger,
+  LogRecord,
+  SeverityNumber,
+  logs
+} from '@opentelemetry/api-logs';
+import {
+  FirebaseApp,
+  initializeApp,
+  _addOrOverwriteComponent,
+  deleteApp
+} from '@firebase/app';
+import { Component, ComponentType } from '@firebase/component';
+import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
+import {
+  recordError,
+  log,
+  flush,
+  getCrashlytics,
+  logViewBoundary
+} from './api';
+import { registerGlobalErrorListeners } from './helpers';
+import { CrashlyticsService } from './service';
+import { registerCrashlytics } from './register';
+import { _FirebaseInstallationsInternal } from '@firebase/installations';
+import { AUTO_CONSTANTS } from './auto-constants';
+import { CrashlyticsInternal, ErrorWithSymbol } from './types';
+import { ALREADY_LOGGED_FLAG } from './constants';
+import {
+  AttributesStore,
+  LOG_ATTR_KEY,
+  SPAN_ATTR_KEY,
+  SESSION_STORAGE_SESSION_ID_KEY
+} from './attributes-store';
+import { TelemetryStore } from './telemetry-store';
+import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
+import { FirebaseAttributesLogProcessor } from './logging/attributes-log-processor';
+import { breadcrumbs } from './breadcrumbs';
+import type { MockInstance } from 'vitest';
+
+const PROJECT_ID = 'my-project';
+const APP_ID = 'my-appid';
+const API_KEY = 'my-api-key';
+const MOCK_SESSION_ID = '00000000-0000-0000-0000-000000000000';
+
+const emittedLogs: LogRecord[] = [];
+
+const fakeLoggerProvider = {
+  getLogger: (): Logger => {
+    return {
+      emit: (logRecord: LogRecord) => {
+        const processor = new FirebaseAttributesLogProcessor(
+          fakeAttributesStore,
+          PROJECT_ID
+        );
+        processor.onEmit(logRecord as unknown as SdkLogRecord);
+        emittedLogs.push(logRecord);
+      },
+      enabled: () => true
+    };
+  },
+  forceFlush: () => {
+    emittedLogs.length = 0;
+    return Promise.resolve();
+  },
+  shutdown: () => Promise.resolve()
+} as unknown as LoggerProvider;
+
+const fakeApp = {
+  name: 'DEFAULT',
+  automaticDataCollectionEnabled: true,
+  options: {
+    projectId: PROJECT_ID,
+    appId: APP_ID
+  }
+} as FirebaseApp;
+let fakeAttributesStore = new AttributesStore(fakeApp.options);
+const fakeTelemetryStore = new TelemetryStore();
+const fakeTracingProvider = {
+  getTracer: () => ({
+    startActiveSpan: (name: string, fn: (span: any) => any) =>
+      fn({
+        end: () => {},
+        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+      })
+  }),
+  register: () => {},
+  shutdown: () => Promise.resolve()
+} as unknown as TracerProvider;
+
+const fakeCrashlytics: CrashlyticsInternal = {
+  app: fakeApp,
+  loggerProvider: fakeLoggerProvider,
+  tracingProvider: fakeTracingProvider,
+  attributesStore: fakeAttributesStore,
+  telemetryStore: fakeTelemetryStore
+};
+
+describe('Top level API', () => {
+  let app: FirebaseApp;
+  let originalSessionStorage: Storage | undefined;
+  let originalCrypto: Crypto | undefined;
+  let storage: Record<string, string> = {};
+  let getActiveSpanStub: MockInstance;
+
+  beforeEach(() => {
+    // Clear the logs before each test.
+    emittedLogs.length = 0;
+    app = getFakeApp();
+    storage = {};
+
+    // @ts-ignore
+    originalSessionStorage = globalThis.sessionStorage;
+    // @ts-ignore
+    originalCrypto = globalThis.crypto;
+
+    const sessionStorageMock: Partial<Storage> = {
+      getItem: (key: string) => storage[key] || null,
+      setItem: (key: string, value: string) => {
+        storage[key] = value;
+      }
+    };
+    const cryptoMock: Partial<Crypto> = {
+      randomUUID: () => MOCK_SESSION_ID
+    };
+
+    Object.defineProperty(globalThis, 'sessionStorage', {
+      value: sessionStorageMock,
+      writable: true
+    });
+    Object.defineProperty(globalThis, 'crypto', {
+      value: cryptoMock,
+      writable: true
+    });
+
+    // Simulate session creation that now happens in registerCrashlytics
+    storage[SESSION_STORAGE_SESSION_ID_KEY] = MOCK_SESSION_ID;
+
+    fakeAttributesStore = new AttributesStore(fakeApp.options);
+    fakeCrashlytics.attributesStore = fakeAttributesStore;
+
+    getActiveSpanStub = vi
+      .spyOn(trace, 'getActiveSpan')
+      .mockReturnValue(undefined);
+  });
+
+  afterEach(async () => {
+    await deleteApp(app);
+    Object.defineProperty(globalThis, 'sessionStorage', {
+      value: originalSessionStorage,
+      writable: true
+    });
+    Object.defineProperty(globalThis, 'crypto', {
+      value: originalCrypto,
+      writable: true
+    });
+    delete AUTO_CONSTANTS.appVersion;
+    getActiveSpanStub.mockRestore();
+  });
+
+  describe('getCrashlytics()', () => {
+    it('works without options', () => {
+      expect(getCrashlytics(getFakeApp())).toBeInstanceOf(CrashlyticsService);
+      // Two instances are the same
+      expect(getCrashlytics(getFakeApp())).toBe(getCrashlytics(getFakeApp()));
+    });
+
+    it('works with options: no config values', () => {
+      expect(getCrashlytics(getFakeApp(), {})).toBe(
+        getCrashlytics(getFakeApp())
+      );
+    });
+
+    it('works with options: config values set', () => {
+      const app = getFakeApp();
+      expect(
+        getCrashlytics(app, {
+          endpointUrl: 'http://endpoint1',
+          region: 'us-central1',
+          appVersion: '1.2.3'
+        })
+      ).toBe(
+        getCrashlytics(app, {
+          endpointUrl: 'http://endpoint1',
+          region: 'us-central1',
+          appVersion: '1.2.3'
+        })
+      );
+      expect(() => {
+        getCrashlytics(app, {
+          endpointUrl: 'http://endpoint2',
+          region: 'us-central1',
+          appVersion: '1.2.3'
+        });
+      }).toThrow('getCrashlytics() cannot be called with different options');
+      expect(() => {
+        getCrashlytics(app, {
+          endpointUrl: 'http://endpoint1',
+          region: 'us-east1',
+          appVersion: '1.2.3'
+        });
+      }).toThrow('getCrashlytics() cannot be called with different options');
+      expect(() => {
+        getCrashlytics(app, {
+          endpointUrl: 'http://endpoint1',
+          region: 'us-central1',
+          appVersion: '1.2.4'
+        });
+      }).toThrow('getCrashlytics() cannot be called with different options');
+      expect(() => {
+        getCrashlytics(app, {});
+      }).toThrow('getCrashlytics() cannot be called with different options');
+    });
+
+    it('works when called multiple times with fresh breadcrumbs() instances', () => {
+      const app = getFakeApp();
+      expect(
+        getCrashlytics(app, {
+          features: [breadcrumbs()]
+        })
+      ).toBe(
+        getCrashlytics(app, {
+          features: [breadcrumbs()]
+        })
+      );
+      expect(() => {
+        getCrashlytics(app, {
+          features: []
+        });
+      }).toThrow('getCrashlytics() cannot be called with different options');
+    });
+
+    it('works with captureUnhandledErrors option', () => {
+      const app = getFakeApp();
+      expect(
+        getCrashlytics(app, {
+          captureUnhandledErrors: false
+        })
+      ).toBe(
+        getCrashlytics(app, {
+          captureUnhandledErrors: false
+        })
+      );
+      expect(() => {
+        getCrashlytics(app, {
+          captureUnhandledErrors: true
+        });
+      }).toThrow('getCrashlytics() cannot be called with different options');
+    });
+  });
+
+  describe('registerCrashlytics()', () => {
+    it('should create a session and emit a log entry if none exists', () => {
+      // Clear storage to simulate no session
+      storage = {};
+      emittedLogs.length = 0;
+
+      getCrashlytics(getFakeApp());
+
+      // Check if session ID was created in storage
+      expect(storage[SESSION_STORAGE_SESSION_ID_KEY]).toBe(MOCK_SESSION_ID);
+    });
+
+    it('should not create a new session if one exists', () => {
+      storage[SESSION_STORAGE_SESSION_ID_KEY] = 'existing-session';
+      emittedLogs.length = 0;
+
+      getCrashlytics(getFakeApp());
+
+      expect(storage[SESSION_STORAGE_SESSION_ID_KEY]).toBe('existing-session');
+    });
+
+    it('should not initialize tracing by default when breadcrumbs() is not passed in features', () => {
+      const crashlytics = getCrashlytics(getFakeApp()) as CrashlyticsInternal;
+
+      expect(crashlytics.tracingProvider).toBeNull();
+      expect(crashlytics.telemetryStore).toBeUndefined();
+      expect(crashlytics.onErrorLogRecordProcessor).toBeUndefined();
+      expect(crashlytics.onErrorSpanProcessor).toBeUndefined();
+    });
+
+    it('should initialize tracing when breadcrumbs() is passed in features', () => {
+      const crashlytics = getCrashlytics(getFakeApp(), {
+        features: [breadcrumbs()]
+      }) as CrashlyticsInternal;
+
+      expect(crashlytics.tracingProvider).not.toBeNull();
+      expect(crashlytics.telemetryStore).toBeInstanceOf(TelemetryStore);
+      expect(crashlytics.onErrorLogRecordProcessor).toBeInstanceOf(
+        OnErrorLogRecordProcessor
+      );
+    });
+  });
+
+  describe('Global error listener auto-registration', () => {
+    let listeners: Record<string, Array<(event: any) => void>>;
+    let mockedWindow = false;
+    let addEventListenerStub: MockInstance | undefined;
+    let removeEventListenerStub: MockInstance | undefined;
+
+    beforeEach(() => {
+      listeners = {};
+      if (typeof window === 'undefined') {
+        const mockWindow = {
+          addEventListener: (event: string, cb: (e: any) => void) => {
+            if (!listeners[event]) {
+              listeners[event] = [];
+            }
+            listeners[event].push(cb);
+          },
+          removeEventListener: (event: string, cb: (e: any) => void) => {
+            if (listeners[event]) {
+              listeners[event] = listeners[event].filter(l => l !== cb);
+            }
+          }
+        };
+        mockedWindow = true;
+        Object.defineProperty(globalThis, 'window', {
+          value: mockWindow,
+          writable: true,
+          configurable: true
+        });
+      } else {
+        mockedWindow = false;
+        addEventListenerStub = vi
+          .spyOn(window, 'addEventListener')
+          .mockImplementation((event: string, cb: any) => {
+            if (!listeners[event]) {
+              listeners[event] = [];
+            }
+            listeners[event].push(cb);
+          });
+        removeEventListenerStub = vi
+          .spyOn(window, 'removeEventListener')
+          .mockImplementation((event: string, cb: any) => {
+            if (listeners[event]) {
+              listeners[event] = listeners[event].filter(l => l !== cb);
+            }
+          });
+      }
+    });
+
+    afterEach(async () => {
+      await deleteApp(app);
+      app = getFakeApp();
+
+      if (addEventListenerStub) {
+        addEventListenerStub.mockRestore();
+        addEventListenerStub = undefined;
+      }
+      if (removeEventListenerStub) {
+        removeEventListenerStub.mockRestore();
+        removeEventListenerStub = undefined;
+      }
+      if (mockedWindow) {
+        delete (globalThis as any).window;
+        mockedWindow = false;
+      }
+    });
+
+    it('automatically registers window error and unhandledrejection listeners in getCrashlytics by default', async () => {
+      getCrashlytics(app);
+
+      expect(listeners['error']).toHaveLength(1);
+      expect(listeners['unhandledrejection']).toHaveLength(1);
+
+      await deleteApp(app);
+      expect(listeners['error']).toHaveLength(0);
+      expect(listeners['unhandledrejection']).toHaveLength(0);
+
+      // Re-create app for outer afterEach
+      app = getFakeApp();
+    });
+
+    it('does not register window listeners when captureUnhandledErrors is false', () => {
+      getCrashlytics(app, { captureUnhandledErrors: false });
+
+      expect(listeners['error'] || []).toHaveLength(0);
+      expect(listeners['unhandledrejection'] || []).toHaveLength(0);
+    });
+
+    it('is idempotent and does not attach duplicate window listeners when called multiple times', () => {
+      const crashlytics = getCrashlytics(app);
+
+      expect(listeners['error']).toHaveLength(1);
+      expect(listeners['unhandledrejection']).toHaveLength(1);
+
+      // Subsequent call while already registered should be a no-op
+      const secondUnsub = registerGlobalErrorListeners(crashlytics);
+      expect(listeners['error']).toHaveLength(1);
+      expect(listeners['unhandledrejection']).toHaveLength(1);
+
+      // Invoking secondUnsub should not remove the active listeners
+      secondUnsub();
+      expect(listeners['error']).toHaveLength(1);
+      expect(listeners['unhandledrejection']).toHaveLength(1);
+    });
+
+    it('captures uncaught errors and unhandled rejections and skips already logged errors', () => {
+      const unsub = registerGlobalErrorListeners(fakeCrashlytics);
+
+      // Trigger error listener
+      const error = new Error('uncaught error');
+      listeners['error'][0]({ error } as any);
+
+      expect(emittedLogs).toHaveLength(1);
+      expect(emittedLogs[0].body).toBe('uncaught error');
+
+      // Trigger unhandledrejection listener
+      const rejection = new Error('unhandled rejection');
+      listeners['unhandledrejection'][0]({ reason: rejection } as any);
+
+      expect(emittedLogs).toHaveLength(2);
+      expect(emittedLogs[1].body).toBe('unhandled rejection');
+
+      // Trigger already logged error
+      const alreadyLoggedError = new Error('duplicate error');
+      (alreadyLoggedError as ErrorWithSymbol)[ALREADY_LOGGED_FLAG] = true;
+      listeners['error'][0]({ error: alreadyLoggedError } as any);
+
+      // Should not emit duplicate log
+      expect(emittedLogs).toHaveLength(2);
+
+      unsub();
+    });
+  });
+
+  describe('logViewBoundary()', () => {
+    it("should emit a log record with the severity number of SeverityNumber.INFO, the body of 'Navigation event', and the attribute of 'app.screen.id' as the path of navigation when breadcrumbs() is enabled", () => {
+      const urlTemplate = '/users/:id';
+      const crashlyticsWithTracing: CrashlyticsInternal = {
+        ...fakeCrashlytics,
+        options: { features: [breadcrumbs()] }
+      };
+      logViewBoundary(crashlyticsWithTracing, urlTemplate);
+
+      expect(emittedLogs.length).toBe(1);
+      const log = emittedLogs[0];
+      expect(log.severityNumber).toBe(SeverityNumber.INFO);
+      expect(log.body).toBe('Navigation event');
+      expect(log.attributes![SPAN_ATTR_KEY.APP_SCREEN_ID]).toBe(urlTemplate);
+    });
+
+    it('should emit a log record with additional attributes if available when breadcrumbs() is enabled', () => {
+      const urlTemplate = '/users/:id';
+      const additionalAttributes = { 'custom.attr': 'value' };
+      const crashlyticsWithTracing: CrashlyticsInternal = {
+        ...fakeCrashlytics,
+        options: { features: [breadcrumbs()] }
+      };
+      logViewBoundary(
+        crashlyticsWithTracing,
+        urlTemplate,
+        additionalAttributes
+      );
+
+      expect(emittedLogs.length).toBe(1);
+      const log = emittedLogs[0];
+      expect(log.attributes!['custom.attr']).toBe('value');
+      expect(log.attributes![SPAN_ATTR_KEY.APP_SCREEN_ID]).toBe(urlTemplate);
+    });
+
+    it('should not emit a log record when breadcrumbs() is not in features', () => {
+      const urlTemplate = '/users/:id';
+      const crashlyticsWithoutTracing: CrashlyticsInternal = {
+        ...fakeCrashlytics,
+        options: { features: [] }
+      };
+      logViewBoundary(fakeCrashlytics, urlTemplate);
+      logViewBoundary(crashlyticsWithoutTracing, urlTemplate);
+
+      expect(emittedLogs.length).toBe(0);
+    });
+  });
+
+  describe('recordError()', () => {
+    it('should capture an Error object correctly', () => {
+      const error = new Error('This is a test error');
+      error.stack = '...stack trace...';
+      error.name = 'TestError';
+
+      recordError(fakeCrashlytics, error);
+
+      expect(emittedLogs.length).toBe(1);
+      const log = emittedLogs[0];
+      expect(log.severityNumber).toBe(SeverityNumber.ERROR);
+      expect(log.body).toBe('This is a test error');
+      expect(log.attributes).toEqual({
+        'exception.type': 'TestError',
+        'exception.stacktrace': '...stack trace...',
+        'exception.message': 'This is a test error',
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should handle an Error object with no stack trace', () => {
+      const error = new Error('error with no stack');
+      error.stack = undefined;
+
+      recordError(fakeCrashlytics, error);
+
+      expect(emittedLogs.length).toBe(1);
+      const log = emittedLogs[0];
+      expect(log.severityNumber).toBe(SeverityNumber.ERROR);
+      expect(log.body).toBe('error with no stack');
+      expect(log.attributes).toEqual({
+        'exception.type': 'Error',
+        'exception.stacktrace': 'No stack trace available',
+        'exception.message': 'error with no stack',
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should capture a string error correctly', () => {
+      recordError(fakeCrashlytics, 'a string error');
+
+      expect(emittedLogs.length).toBe(1);
+      const log = emittedLogs[0];
+      expect(log.severityNumber).toBe(SeverityNumber.ERROR);
+      expect(log.body).toBe('a string error');
+      expect(log.attributes).toEqual({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should capture an unknown error type correctly', () => {
+      recordError(fakeCrashlytics, 12345);
+
+      expect(emittedLogs.length).toBe(1);
+      const log = emittedLogs[0];
+      expect(log.severityNumber).toBe(SeverityNumber.ERROR);
+      expect(log.body).toBe('Unknown error type: number');
+      expect(log.attributes).toEqual({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should propagate trace context', () => {
+      getActiveSpanStub.mockReturnValue({
+        spanContext: () => ({
+          traceId: 'my-trace',
+          spanId: 'my-span',
+          traceFlags: 0,
+          isRemote: false
+        })
+      } as any);
+
+      const error = new Error('This is a test error');
+      error.stack = '...stack trace...';
+      error.name = 'TestError';
+
+      recordError(fakeCrashlytics, error);
+
+      expect(emittedLogs[0].attributes).toEqual({
+        'exception.type': 'TestError',
+        'exception.stacktrace': '...stack trace...',
+        'exception.message': 'This is a test error',
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
+        'logging.googleapis.com/spanId': `my-span`,
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should propagate custom attributes', () => {
+      const error = new Error('This is a test error');
+      error.stack = '...stack trace...';
+      error.name = 'TestError';
+
+      recordError(fakeCrashlytics, error, {
+        strAttr: 'string attribute',
+        mapAttr: {
+          boolAttr: true,
+          numAttr: 2
+        },
+        arrAttr: [1, 2, 3]
+      });
+
+      expect(emittedLogs.length).toBe(1);
+      const log = emittedLogs[0];
+      expect(log.attributes).toEqual({
+        'exception.type': 'TestError',
+        'exception.stacktrace': '...stack trace...',
+        'exception.message': 'This is a test error',
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        strAttr: 'string attribute',
+        mapAttr: {
+          boolAttr: true,
+          numAttr: 2
+        },
+        arrAttr: [1, 2, 3],
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should propagate customAttributes from CrashlyticsOptions', () => {
+      const error = 'a string error';
+      fakeAttributesStore.updateOptions({
+        customAttributes: {
+          baseKey: 'baseValue',
+          commonKey: 'commonBaseValue'
+        }
+      });
+
+      recordError(fakeCrashlytics, error);
+
+      expect(emittedLogs.length).toBe(1);
+      const log = emittedLogs[0];
+      expect(log.attributes).toEqual({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        baseKey: 'baseValue',
+        commonKey: 'commonBaseValue',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('recordError attributes should take precedence over customAttributes from CrashlyticsOptions', () => {
+      const error = 'a string error';
+      fakeAttributesStore.updateOptions({
+        customAttributes: {
+          baseKey: 'baseValue',
+          commonKey: 'commonBaseValue'
+        }
+      });
+
+      recordError(fakeCrashlytics, error, {
+        commonKey: 'commonOverrideValue',
+        newKey: 'newValue'
+      });
+
+      expect(emittedLogs.length).toBe(1);
+      const log = emittedLogs[0];
+      expect(log.attributes).toEqual({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        baseKey: 'baseValue',
+        commonKey: 'commonOverrideValue',
+        newKey: 'newValue',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should use explicit app version when provided', () => {
+      AUTO_CONSTANTS.appVersion = '1.2.3'; // Unused
+      const crashlytics = new CrashlyticsService(
+        fakeCrashlytics.app,
+        fakeLoggerProvider,
+        fakeTracingProvider,
+        fakeAttributesStore,
+        fakeTelemetryStore
+      );
+      crashlytics.options = {
+        appVersion: '1.0.0'
+      };
+
+      recordError(crashlytics, 'a string error');
+
+      expect(emittedLogs.length).toBe(1);
+      const log = emittedLogs[0];
+      expect(log.attributes).toEqual({
+        [LOG_ATTR_KEY.APP_VERSION]: '1.0.0',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should use auto constants if available', () => {
+      AUTO_CONSTANTS.appVersion = '1.2.3';
+      fakeAttributesStore = new AttributesStore({ projectId: PROJECT_ID });
+      fakeCrashlytics.attributesStore = fakeAttributesStore;
+
+      recordError(fakeCrashlytics, 'a string error');
+
+      expect(emittedLogs.length).toBe(1);
+      const log = emittedLogs[0];
+      expect(log.attributes).toEqual({
+        [LOG_ATTR_KEY.APP_VERSION]: '1.2.3',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should retrieve route path attribute from attributesStore', () => {
+      const error = new Error('This is a test error');
+      error.stack = '...stack trace...';
+      error.name = 'TestError';
+
+      fakeAttributesStore.setRoutePathProvider(() => '/my-route');
+
+      recordError(fakeCrashlytics, error);
+
+      expect(emittedLogs.length).toBe(1);
+      const log = emittedLogs[0];
+      expect(log.attributes).toEqual({
+        'exception.type': 'TestError',
+        'exception.stacktrace': '...stack trace...',
+        'exception.message': 'This is a test error',
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.APP_SCREEN_ID]: '/my-route',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    describe('Session Metadata', () => {
+      it('should retrieve existing session ID from sessionStorage', () => {
+        storage[SESSION_STORAGE_SESSION_ID_KEY] = 'existing-session-id';
+        fakeAttributesStore = new AttributesStore({ projectId: PROJECT_ID });
+        fakeCrashlytics.attributesStore = fakeAttributesStore;
+
+        recordError(fakeCrashlytics, 'error');
+
+        expect(emittedLogs.length).toBe(1);
+        const log = emittedLogs[0];
+        expect(log.attributes![LOG_ATTR_KEY.SESSION_ID]).toBe(
+          'existing-session-id'
+        );
+      });
+
+      it('should handle errors when sessionStorage.getItem throws', () => {
+        const sessionStorageMock: Partial<Storage> = {
+          getItem: () => {
+            throw new Error('SecurityError');
+          },
+          setItem: () => {}
+        };
+
+        Object.defineProperty(globalThis, 'sessionStorage', {
+          value: sessionStorageMock,
+          writable: true
+        });
+
+        fakeAttributesStore = new AttributesStore({ projectId: PROJECT_ID });
+        fakeCrashlytics.attributesStore = fakeAttributesStore;
+
+        recordError(fakeCrashlytics, 'error');
+
+        expect(emittedLogs.length).toBe(1);
+        const log = emittedLogs[0];
+        expect(log.attributes![LOG_ATTR_KEY.SESSION_ID]).toBeUndefined();
+      });
+
+      it('should handle errors when sessionStorage.setItem throws', () => {
+        const sessionStorageMock: Partial<Storage> = {
+          getItem: () => null, // Emulate no existing session ID
+          setItem: () => {
+            throw new Error('SecurityError');
+          }
+        };
+
+        Object.defineProperty(globalThis, 'sessionStorage', {
+          value: sessionStorageMock,
+          writable: true
+        });
+
+        fakeAttributesStore = new AttributesStore({ projectId: PROJECT_ID });
+        fakeCrashlytics.attributesStore = fakeAttributesStore;
+
+        recordError(fakeCrashlytics, 'error');
+
+        expect(emittedLogs.length).toBe(1);
+        const log = emittedLogs[0];
+        expect(log.attributes![LOG_ATTR_KEY.SESSION_ID]).toBeUndefined();
+      });
+    });
+
+    it('should emit the error log record to the logger before calling onErrorOccurred on processors', () => {
+      const callOrder: string[] = [];
+
+      const mockOnErrorLogRecordProcessor = {
+        onErrorOccurred: vi.fn(() => {
+          callOrder.push('onErrorOccurred');
+        })
+      };
+
+      const mockLogger = {
+        emit: vi.fn(() => {
+          callOrder.push('emit');
+        })
+      };
+
+      const mockLoggerProvider = {
+        getLogger: () => mockLogger
+      } as unknown as LoggerProvider;
+
+      const crashlyticsInstance: CrashlyticsInternal = {
+        ...fakeCrashlytics,
+        loggerProvider: mockLoggerProvider,
+        onErrorLogRecordProcessor: mockOnErrorLogRecordProcessor as any
+      };
+
+      recordError(crashlyticsInstance, new Error('Test emit order'));
+
+      expect(mockLogger.emit).toHaveBeenCalledTimes(1);
+      expect(
+        mockOnErrorLogRecordProcessor.onErrorOccurred
+      ).toHaveBeenCalledTimes(1);
+      expect(callOrder).toEqual(['emit', 'onErrorOccurred']);
+    });
+
+    it('should immediately flush recorded error when using OnErrorLogRecordProcessor', async () => {
+      const exported: ReadableLogRecord[] = [];
+      const mockExporter: LogRecordExporter = {
+        export(logs, resultCallback) {
+          exported.push(...logs);
+          resultCallback({ code: ExportResultCode.SUCCESS });
+        },
+        shutdown: () => Promise.resolve(),
+        forceFlush: () => Promise.resolve()
+      };
+
+      const processor = new OnErrorLogRecordProcessor(
+        mockExporter,
+        fakeTelemetryStore
+      );
+      const resource = resourceFromAttributes({});
+      const realLoggerProvider = new LoggerProvider({
+        resource,
+        processors: [processor]
+      });
+
+      const crashlyticsInstance: CrashlyticsInternal = {
+        ...fakeCrashlytics,
+        loggerProvider: realLoggerProvider,
+        onErrorLogRecordProcessor: processor
+      };
+
+      recordError(crashlyticsInstance, new Error('Immediate export error'));
+      await processor.forceFlush();
+
+      expect(exported).toHaveLength(1);
+      expect(exported[0].body).toBe('Immediate export error');
+    });
+  });
+
+  describe('log()', () => {
+    it('should log a message with default metadata', () => {
+      log(fakeCrashlytics, 'This is a custom log message');
+
+      expect(emittedLogs.length).toBe(1);
+      const logRecord = emittedLogs[0];
+      expect(logRecord.severityNumber).toBe(SeverityNumber.INFO);
+      expect(logRecord.body).toBe('This is a custom log message');
+      expect(logRecord.attributes).toEqual({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should propagate custom attributes', () => {
+      log(fakeCrashlytics, 'User action', {
+        strAttr: 'string attribute',
+        mapAttr: {
+          boolAttr: true,
+          numAttr: 2
+        },
+        arrAttr: [1, 2, 3]
+      });
+
+      expect(emittedLogs.length).toBe(1);
+      const logRecord = emittedLogs[0];
+      expect(logRecord.severityNumber).toBe(SeverityNumber.INFO);
+      expect(logRecord.body).toBe('User action');
+      expect(logRecord.attributes).toEqual({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        strAttr: 'string attribute',
+        mapAttr: {
+          boolAttr: true,
+          numAttr: 2
+        },
+        arrAttr: [1, 2, 3],
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should propagate customAttributes from CrashlyticsOptions', () => {
+      fakeAttributesStore.updateOptions({
+        customAttributes: {
+          baseKey: 'baseValue',
+          commonKey: 'commonBaseValue'
+        }
+      });
+
+      log(fakeCrashlytics, 'Message with option attributes');
+
+      expect(emittedLogs.length).toBe(1);
+      const logRecord = emittedLogs[0];
+      expect(logRecord.attributes).toEqual({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        baseKey: 'baseValue',
+        commonKey: 'commonBaseValue',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('log attributes should take precedence over customAttributes from CrashlyticsOptions', () => {
+      fakeAttributesStore.updateOptions({
+        customAttributes: {
+          baseKey: 'baseValue',
+          commonKey: 'commonBaseValue'
+        }
+      });
+
+      log(fakeCrashlytics, 'Message with overridden attributes', {
+        commonKey: 'commonOverrideValue',
+        newKey: 'newValue'
+      });
+
+      expect(emittedLogs.length).toBe(1);
+      const logRecord = emittedLogs[0];
+      expect(logRecord.attributes).toEqual({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        baseKey: 'baseValue',
+        commonKey: 'commonOverrideValue',
+        newKey: 'newValue',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should propagate trace context', () => {
+      getActiveSpanStub.mockReturnValue({
+        spanContext: () => ({
+          traceId: 'my-trace',
+          spanId: 'my-span',
+          traceFlags: 0,
+          isRemote: false
+        })
+      } as any);
+
+      log(fakeCrashlytics, 'Traced log message');
+
+      expect(emittedLogs[0].attributes).toEqual({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
+        'logging.googleapis.com/spanId': 'my-span',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should retrieve route path attribute from attributesStore', () => {
+      fakeAttributesStore.setRoutePathProvider(() => '/my-route');
+
+      log(fakeCrashlytics, 'Route log message');
+
+      expect(emittedLogs.length).toBe(1);
+      expect(emittedLogs[0].attributes).toEqual({
+        [LOG_ATTR_KEY.APP_VERSION]: 'unset',
+        [LOG_ATTR_KEY.APP_SCREEN_ID]: '/my-route',
+        [LOG_ATTR_KEY.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+  });
+
+  describe('flush()', () => {
+    it('should flush logs correctly', async () => {
+      recordError(fakeCrashlytics, 'error1');
+      log(fakeCrashlytics, 'log1');
+
+      expect(emittedLogs.length).toBe(2);
+
+      await flush(fakeCrashlytics);
+
+      expect(emittedLogs.length).toBe(0);
+    });
+  });
+
+  describe('OpenTelemetry Integration', () => {
+    it('should support registerGlobalLoggerProvider in options', () => {
+      const crashlytics = getCrashlytics(getFakeApp(), {
+        registerGlobalLoggerProvider: true
+      });
+
+      expect(typeof crashlytics).toBe('object');
+      const globalLogger = logs.getLogger('global-app-logger');
+      expect(typeof globalLogger.emit).toBe('function');
+    });
+  });
+});
+
+function getFakeApp(): FirebaseApp {
+  registerCrashlytics();
+  const app = initializeApp({
+    projectId: PROJECT_ID,
+    appId: APP_ID,
+    apiKey: API_KEY
+  });
+  _addOrOverwriteComponent(
+    app,
+    //@ts-ignore
+    new Component(
+      'installations-internal',
+      () =>
+        ({
+          getId: async () => 'iid',
+          getToken: async () => 'authToken'
+        }) as _FirebaseInstallationsInternal,
+      ComponentType.PUBLIC
+    )
+  );
+  _addOrOverwriteComponent(
+    app,
+    //@ts-ignore
+    new Component(
+      'app-check-internal',
+      () => {
+        return {} as FirebaseAppCheckInternal;
+      },
+      ComponentType.PUBLIC
+    )
+  );
+  _addOrOverwriteComponent(
+    app,
+    //@ts-ignore
+    new Component(
+      'heartbeat',
+      // @ts-ignore
+      () => {
+        return {
+          triggerHeartbeat: () => {},
+          getHeartbeatsHeader: async () => ''
+        };
+      },
+      ComponentType.PUBLIC
+    )
+  );
+  return app;
+}

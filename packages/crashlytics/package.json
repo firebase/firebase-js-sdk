@@ -1,0 +1,215 @@
+{
+  "name": "@firebase/crashlytics",
+  "version": "0.0.1",
+  "description": "The Firebase Web Telemetry package of the Firebase JS SDK",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/index.node.cjs.js",
+  "module": "dist/index.esm.js",
+  "browser": "dist/index.esm.js",
+  "sideEffects": [
+    "./dist/index.esm.js",
+    "./dist/index.cjs.js",
+    "./dist/index.node.cjs.js",
+    "./dist/node-esm/index.node.esm.js",
+    "./dist/react/*",
+    "./dist/react-router/*",
+    "./dist/angular/*",
+    "./dist/next-navigation/*"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index-public.d.ts",
+      "node": {
+        "import": "./dist/node-esm/index.node.esm.js",
+        "default": "./dist/index.node.cjs.js"
+      },
+      "browser": {
+        "require": "./dist/index.cjs.js",
+        "import": "./dist/index.esm.js"
+      },
+      "default": "./dist/index.esm.js"
+    },
+    "./react": {
+      "types": "./dist/react/index-public.d.ts",
+      "node": {
+        "import": "./dist/react/index.esm.js",
+        "default": "./dist/react/index.cjs.js"
+      },
+      "browser": {
+        "require": "./dist/react/index.cjs.js",
+        "import": "./dist/react/index.esm.js"
+      },
+      "default": "./dist/react/index.esm.js"
+    },
+    "./react-router": {
+      "types": "./dist/react-router/index-public.d.ts",
+      "node": {
+        "import": "./dist/react-router/index.esm.js",
+        "default": "./dist/react-router/index.cjs.js"
+      },
+      "browser": {
+        "require": "./dist/react-router/index.cjs.js",
+        "import": "./dist/react-router/index.esm.js"
+      },
+      "default": "./dist/react-router/index.esm.js"
+    },
+    "./angular": {
+      "types": "./dist/angular/index-public.d.ts",
+      "node": {
+        "import": "./dist/angular/index.esm.js",
+        "default": "./dist/angular/index.cjs.js"
+      },
+      "browser": {
+        "require": "./dist/angular/index.cjs.js",
+        "import": "./dist/angular/index.esm.js"
+      },
+      "default": "./dist/angular/index.esm.js"
+    },
+    "./next-navigation": {
+      "types": "./dist/next-navigation/index-public.d.ts",
+      "node": {
+        "import": "./dist/next-navigation/index.esm.js",
+        "default": "./dist/next-navigation/index.cjs.js"
+      },
+      "browser": {
+        "require": "./dist/next-navigation/index.cjs.js",
+        "import": "./dist/next-navigation/index.esm.js"
+      },
+      "default": "./dist/next-navigation/index.esm.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "angular": [
+        "./dist/angular/index-public.d.ts"
+      ],
+      "next-navigation": [
+        "./dist/next-navigation/index-public.d.ts"
+      ],
+      "react": [
+        "./dist/react/index-public.d.ts"
+      ],
+      "react-router": [
+        "./dist/react-router/index-public.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist",
+    "setconstants.js"
+  ],
+  "bin": {
+    "crashlytics-setconstants": "./setconstants.js"
+  },
+  "scripts": {
+    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "build-only": "rollup -c --bundleConfigAsCjs",
+    "build": "rollup -c --bundleConfigAsCjs && yarn api-report",
+    "build:deps": "lerna run --scope @firebase/crashlytics --include-dependencies build",
+    "dev": "rollup -c --bundleConfigAsCjs -w",
+    "test": "run-p --npm-path npm lint test:all",
+    "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
+    "test:all": "vitest run",
+    "test:browser": "vitest run --project=browser",
+    "test:node": "vitest run --project=node",
+    "trusted-type-check": "tsec -p tsconfig.json --noEmit",
+    "api-report": "yarn api-report:main && yarn api-report:react && yarn api-report:react-router && yarn api-report:angular && yarn api-report:next-navigation && yarn api-report:api-json",
+    "api-report:main": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package crashlytics --packageRoot . --typescriptDts ./dist/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/index-public.d.ts",
+    "api-report:react": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package crashlytics-react --packageRoot . --typescriptDts ./dist/react/index.d.ts --rollupDts ./dist/react/private.d.ts --untrimmedRollupDts ./dist/react/internal.d.ts --publicDts ./dist/react/index-public.d.ts",
+    "api-report:react-router": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package crashlytics-react-router --packageRoot . --typescriptDts ./dist/react-router/index.d.ts --rollupDts ./dist/react-router/private.d.ts --untrimmedRollupDts ./dist/react-router/internal.d.ts --publicDts ./dist/react-router/index-public.d.ts",
+    "api-report:angular": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package crashlytics-angular --packageRoot . --typescriptDts ./dist/angular/index.d.ts --rollupDts ./dist/angular/private.d.ts --untrimmedRollupDts ./dist/angular/internal.d.ts --publicDts ./dist/angular/index-public.d.ts",
+    "api-report:next-navigation": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package crashlytics-next-navigation --packageRoot . --typescriptDts ./dist/next-navigation/index.d.ts --rollupDts ./dist/next-navigation/private.d.ts --untrimmedRollupDts ./dist/next-navigation/internal.d.ts --publicDts ./dist/next-navigation/index-public.d.ts",
+    "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose && api-extractor run -c src/react/api-extractor.react.json --local --verbose && api-extractor run -c src/react-router/api-extractor.react-router.json --local --verbose && api-extractor run -c src/angular/api-extractor.angular.json --local --verbose && api-extractor run -c src/next-navigation/api-extractor.next-navigation.json --local --verbose",
+    "typings:public": "node ../../scripts/build/use_typings.js ./dist/index-public.d.ts",
+    "test:browser:debug": "vitest --project=browser --browser.headless=false"
+  },
+  "peerDependencies": {
+    "@angular/core": ">= 14.0.0",
+    "@angular/router": ">= 14.0.0",
+    "@firebase/app": "0.x",
+    "@firebase/app-types": "0.x",
+    "@types/react": ">= 16.8.0",
+    "next": ">= 13.0.0",
+    "react": ">= 16.8.0",
+    "react-router-dom": ">= 6.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "@types/react": {
+      "optional": true
+    },
+    "@angular/core": {
+      "optional": true
+    },
+    "@angular/router": {
+      "optional": true
+    },
+    "react-router-dom": {
+      "optional": true
+    },
+    "next": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@firebase/component": "0.7.5",
+    "@firebase/installations": "0.6.24",
+    "@firebase/util": "1.15.3",
+    "@opentelemetry/api": "1.9.1",
+    "@opentelemetry/api-logs": "0.220.0",
+    "@opentelemetry/browser-instrumentation": "0.6.0",
+    "@opentelemetry/core": "2.10.0",
+    "@opentelemetry/exporter-logs-otlp-http": "0.220.0",
+    "@opentelemetry/exporter-trace-otlp-proto": "0.220.0",
+    "@opentelemetry/instrumentation": "0.220.0",
+    "@opentelemetry/instrumentation-document-load": "0.65.0",
+    "@opentelemetry/instrumentation-fetch": "0.220.0",
+    "@opentelemetry/instrumentation-xml-http-request": "0.220.0",
+    "@opentelemetry/otlp-exporter-base": "0.220.0",
+    "@opentelemetry/otlp-transformer": "0.220.0",
+    "@opentelemetry/resources": "2.10.0",
+    "@opentelemetry/sdk-logs": "0.220.0",
+    "@opentelemetry/sdk-trace-base": "2.10.0",
+    "@opentelemetry/sdk-trace-web": "2.10.0",
+    "@opentelemetry/semantic-conventions": "1.43.0",
+    "tslib": "^2.1.0"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@angular/common": "19.2.15",
+    "@angular/compiler": "19.2.15",
+    "@angular/core": "19.2.15",
+    "@angular/platform-browser": "19.2.15",
+    "@angular/router": "19.2.15",
+    "@firebase/app": "0.16.4",
+    "@opentelemetry/sdk-trace-web": "2.10.0",
+    "@rollup/plugin-json": "6.1.0",
+    "@rollup/plugin-replace": "6.0.2",
+    "@testing-library/dom": "10.4.1",
+    "@testing-library/react": "16.3.0",
+    "@types/react": "19.1.13",
+    "next": "16.3.8",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "react-router-dom": "7.9.6",
+    "rollup": "4.62.2",
+    "rollup-plugin-copy": "3.5.0",
+    "rollup-plugin-replace": "2.2.0",
+    "rollup-plugin-typescript2": "0.37.0",
+    "rxjs": "7.8.2",
+    "typescript": "5.5.4"
+  },
+  "repository": {
+    "directory": "packages/crashlytics",
+    "type": "git",
+    "url": "git+https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "typings": "./dist/index.d.ts"
+}

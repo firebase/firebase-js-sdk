@@ -95,6 +95,66 @@
       },
       "default": "./auth/web-extension/dist/esm/index.esm.js"
     },
+    "./crashlytics": {
+      "types": "./crashlytics/dist/crashlytics/index.d.ts",
+      "node": {
+        "require": "./crashlytics/dist/index.cjs.js",
+        "import": "./crashlytics/dist/index.mjs"
+      },
+      "browser": {
+        "require": "./crashlytics/dist/index.cjs.js",
+        "import": "./crashlytics/dist/esm/index.esm.js"
+      },
+      "default": "./crashlytics/dist/esm/index.esm.js"
+    },
+    "./crashlytics/angular": {
+      "types": "./crashlytics/angular/dist/crashlytics/angular/index.d.ts",
+      "node": {
+        "require": "./crashlytics/angular/dist/index.cjs.js",
+        "import": "./crashlytics/angular/dist/index.mjs"
+      },
+      "browser": {
+        "require": "./crashlytics/angular/dist/index.cjs.js",
+        "import": "./crashlytics/angular/dist/esm/index.esm.js"
+      },
+      "default": "./crashlytics/angular/dist/esm/index.esm.js"
+    },
+    "./crashlytics/next-navigation": {
+      "types": "./crashlytics/next-navigation/dist/crashlytics/next-navigation/index.d.ts",
+      "node": {
+        "require": "./crashlytics/next-navigation/dist/index.cjs.js",
+        "import": "./crashlytics/next-navigation/dist/index.mjs"
+      },
+      "browser": {
+        "require": "./crashlytics/next-navigation/dist/index.cjs.js",
+        "import": "./crashlytics/next-navigation/dist/esm/index.esm.js"
+      },
+      "default": "./crashlytics/next-navigation/dist/esm/index.esm.js"
+    },
+    "./crashlytics/react": {
+      "types": "./crashlytics/react/dist/crashlytics/react/index.d.ts",
+      "node": {
+        "require": "./crashlytics/react/dist/index.cjs.js",
+        "import": "./crashlytics/react/dist/index.mjs"
+      },
+      "browser": {
+        "require": "./crashlytics/react/dist/index.cjs.js",
+        "import": "./crashlytics/react/dist/esm/index.esm.js"
+      },
+      "default": "./crashlytics/react/dist/esm/index.esm.js"
+    },
+    "./crashlytics/react-router": {
+      "types": "./crashlytics/react-router/dist/crashlytics/react-router/index.d.ts",
+      "node": {
+        "require": "./crashlytics/react-router/dist/index.cjs.js",
+        "import": "./crashlytics/react-router/dist/index.mjs"
+      },
+      "browser": {
+        "require": "./crashlytics/react-router/dist/index.cjs.js",
+        "import": "./crashlytics/react-router/dist/esm/index.esm.js"
+      },
+      "default": "./crashlytics/react-router/dist/esm/index.esm.js"
+    },
     "./database": {
       "types": "./database/dist/database/index.d.ts",
       "node": {
@@ -429,6 +489,7 @@
     "@firebase/app-types": "0.9.6",
     "@firebase/auth": "1.13.8",
     "@firebase/auth-compat": "0.6.13",
+    "@firebase/crashlytics": "0.0.1",
     "@firebase/data-connect": "0.7.4",
     "@firebase/database": "1.1.5",
     "@firebase/database-compat": "2.1.7",
@@ -473,6 +534,7 @@
     "auth",
     "auth/cordova",
     "auth/web-extension",
+    "crashlytics",
     "functions",
     "firestore",
     "firestore/lite",
@@ -486,6 +548,12 @@
     "messaging/sw",
     "database",
     "data-connect"
+  ],
+  "nonCdnComponents": [
+    "crashlytics/angular",
+    "crashlytics/next-navigation",
+    "crashlytics/react",
+    "crashlytics/react-router"
   ],
   "typings": "empty.d.ts"
 }

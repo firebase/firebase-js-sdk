@@ -1,0 +1,392 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import json from '@rollup/plugin-json';
+import copy from 'rollup-plugin-copy';
+import replacePlugin from '@rollup/plugin-replace';
+import typescriptPlugin from 'rollup-plugin-typescript2';
+import typescript from 'typescript';
+import pkg from './package.json';
+import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
+import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
+
+const deps = [
+  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
+  './auto-constants',
+  './breadcrumbs',
+  './breadcrumbs.mjs',
+  './breadcrumbs.js',
+  '../breadcrumbs.mjs'
+];
+
+function replaceSource(autoConstantsPath, breadcrumbsPath) {
+  const autoConstantsPlugin = replacePlugin({
+    './src/auto-constants': `'${autoConstantsPath}'`,
+    '../auto-constants': `'${autoConstantsPath}'`,
+    './auto-constants': `'${autoConstantsPath}'`,
+    delimiters: ["'", "'"],
+    preventAssignment: true
+  });
+  const breadcrumbsPlugin = breadcrumbsPath
+    ? replacePlugin({
+        './src/breadcrumbs': `'${breadcrumbsPath}'`,
+        '../breadcrumbs': `'${breadcrumbsPath}'`,
+        delimiters: ["'", "'"],
+        preventAssignment: true
+      })
+    : null;
+
+  return {
+    name: 'replace-source',
+    transform: breadcrumbsPlugin ? breadcrumbsPlugin.transform : undefined,
+    renderChunk: autoConstantsPlugin.renderChunk
+  };
+}
+
+function replaceBuildTarget(format, target = 2020) {
+  return replacePlugin({
+    ...generateBuildTargetReplaceConfig(format, target)
+  });
+}
+
+const buildPlugins = [typescriptPlugin({ typescript }), json()];
+
+const browserBuilds = [
+  {
+    input: 'index.ts',
+    output: {
+      file: pkg.module,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      ...buildPlugins,
+      replaceSource('./auto-constants.mjs', './breadcrumbs.mjs'),
+      replaceBuildTarget('esm')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'index.ts',
+    output: {
+      file: pkg.exports['.'].browser.require,
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: [
+      ...buildPlugins,
+      replaceSource('./auto-constants.js', './breadcrumbs.js'),
+      replaceBuildTarget('cjs')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+const nodeBuilds = [
+  {
+    input: 'index.node.ts',
+    output: {
+      file: pkg.main,
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: [
+      ...buildPlugins,
+      replaceSource('./auto-constants.js', './breadcrumbs.js'),
+      replaceBuildTarget('cjs')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'index.node.ts',
+    output: {
+      file: pkg.exports['.'].node.import,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      ...buildPlugins,
+      emitModulePackageFile(),
+      replaceSource('../auto-constants.mjs', '../breadcrumbs.mjs'),
+      replaceBuildTarget('esm')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+const reactBuilds = [
+  {
+    input: 'src/react/index.ts',
+    output: {
+      file: pkg.exports['./react'].browser.import,
+      format: 'es',
+      sourcemap: true,
+      banner: `'use client';`
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.react.json'
+      }),
+      json(),
+      copy({
+        targets: [
+          {
+            src: 'dist/src/react/index.d.ts',
+            dest: 'dist/react'
+          },
+          {
+            src: 'dist/src/public-types.d.ts',
+            dest: 'dist'
+          }
+        ]
+      }),
+      replaceSource('../auto-constants.mjs'),
+      replaceBuildTarget('esm')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'src/react/index.ts',
+    output: {
+      file: pkg.exports['./react'].browser.require,
+      format: 'cjs',
+      sourcemap: true,
+      banner: `'use client';`
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.react.json'
+      }),
+      json(),
+      replaceSource('../auto-constants.js'),
+      replaceBuildTarget('cjs')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+const reactRouterBuilds = [
+  {
+    input: 'src/react-router/index.ts',
+    output: {
+      file: pkg.exports['./react-router'].browser.import,
+      format: 'es',
+      sourcemap: true,
+      banner: `'use client';`
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.react.json'
+      }),
+      json(),
+      copy({
+        targets: [
+          {
+            src: 'dist/src/react-router/index.d.ts',
+            dest: 'dist/react-router'
+          },
+          {
+            src: 'dist/src/public-types.d.ts',
+            dest: 'dist'
+          }
+        ]
+      }),
+      replaceSource('../auto-constants.mjs'),
+      replaceBuildTarget('esm')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'src/react-router/index.ts',
+    output: {
+      file: pkg.exports['./react-router'].browser.require,
+      format: 'cjs',
+      sourcemap: true,
+      banner: `'use client';`
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.react.json'
+      }),
+      json(),
+      replaceSource('../auto-constants.js'),
+      replaceBuildTarget('cjs')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+const angularBuilds = [
+  {
+    input: 'src/angular/index.ts',
+    output: {
+      file: pkg.exports['./angular'].browser.import,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.angular.json'
+      }),
+      json(),
+      copy({
+        targets: [
+          {
+            src: 'dist/src/angular/index.d.ts',
+            dest: 'dist/angular'
+          },
+          {
+            src: 'dist/src/public-types.d.ts',
+            dest: 'dist'
+          }
+        ]
+      }),
+      replaceSource('../auto-constants.mjs'),
+      replaceBuildTarget('esm')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'src/angular/index.ts',
+    output: {
+      file: pkg.exports['./angular'].browser.require,
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.angular.json'
+      }),
+      json(),
+      replaceSource('../auto-constants.js'),
+      replaceBuildTarget('cjs')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+const nextNavigationBuilds = [
+  {
+    input: 'src/next-navigation/index.ts',
+    output: {
+      file: pkg.exports['./next-navigation'].browser.import,
+      format: 'es',
+      sourcemap: true,
+      banner: `'use client';`
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.next-navigation.json'
+      }),
+      json(),
+      copy({
+        targets: [
+          {
+            src: 'dist/src/next-navigation/index.d.ts',
+            dest: 'dist/next-navigation'
+          },
+          {
+            src: 'dist/src/public-types.d.ts',
+            dest: 'dist'
+          }
+        ]
+      }),
+      replaceSource('../auto-constants.mjs'),
+      replaceBuildTarget('esm')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'src/next-navigation/index.ts',
+    output: {
+      file: pkg.exports['./next-navigation'].browser.require,
+      format: 'cjs',
+      sourcemap: true,
+      banner: `'use client';`
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.next-navigation.json'
+      }),
+      json(),
+      replaceSource('../auto-constants.js'),
+      replaceBuildTarget('cjs')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+const breadcrumbsBuild = [
+  {
+    input: './src/breadcrumbs.ts',
+    output: {
+      file: './dist/breadcrumbs.js',
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: [...buildPlugins, replaceSource('./auto-constants.js')],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: './src/breadcrumbs.ts',
+    output: {
+      file: './dist/breadcrumbs.mjs',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [...buildPlugins, replaceSource('./auto-constants.mjs')],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+const autoinitBuild = [
+  {
+    input: './src/auto-constants.ts',
+    output: {
+      file: './dist/auto-constants.js',
+      format: 'cjs'
+    },
+    plugins: buildPlugins
+  },
+  {
+    input: './src/auto-constants.ts',
+    output: {
+      file: './dist/auto-constants.mjs',
+      format: 'es'
+    },
+    plugins: buildPlugins
+  }
+];
+
+export default [
+  ...browserBuilds,
+  ...nodeBuilds,
+  ...reactBuilds,
+  ...reactRouterBuilds,
+  ...angularBuilds,
+  ...nextNavigationBuilds,
+  ...breadcrumbsBuild,
+  ...autoinitBuild
+];
