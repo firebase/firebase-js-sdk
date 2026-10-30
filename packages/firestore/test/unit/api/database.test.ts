@@ -42,13 +42,7 @@ import {
   querySnapshotWithQuery
 } from '../../util/api_helpers';
 import { keys, query as internalQuery, orderBy } from '../../util/helpers';
-
-/** Strings whose UTF-8 byte length differs from their UTF-16 length. */
-const MULTI_BYTE_VALUES: { [name: string]: string } = {
-  'em-dash': '\u2014',
-  'emoji (surrogate pair)': '\ud83d\ude00 \ud83d\udd25',
-  'accented characters': 'caf\u00e9 na\u00efve \u00c5ngstr\u00f6m'
-};
+import { MULTI_BYTE_VALUES } from '../util/bundle_data';
 
 describe('Bundle', () => {
   it('loadBundle does not throw with an empty bundle string)', async () => {
@@ -383,21 +377,25 @@ describe('DocumentSnapshot', () => {
 
   // Regression test for https://github.com/firebase/firebase-js-sdk/issues/10557
   for (const [name, value] of Object.entries(MULTI_BYTE_VALUES)) {
-    it(`fromJSON round-trips toJSON result containing ${name}`, () => {
-      if (isNode()) {
+    // toJSON() only produces a bundle in Node.
+    it.skipIf(!isNode())(
+      `fromJSON round-trips toJSON result containing ${name}`,
+      () => {
+        const path = `coll${value}/doc${value}`;
         const docSnap = documentSnapshot(
-          'foo/bar',
-          { v: value, nested: { [value]: [value] } },
+          path,
+          { v: value, nested: { [`k${value}`]: [value] } },
           /*fromCache=*/ true
         );
         const db = firestore();
         const docSnapFromJSON = documentSnapshotFromJSON(db, docSnap.toJSON());
+        expect(docSnapFromJSON.ref.path).toBe(path);
         expect(docSnapFromJSON.data()).toEqual({
           v: value,
-          nested: { [value]: [value] }
+          nested: { [`k${value}`]: [value] }
         });
       }
-    });
+    );
   }
 });
 
@@ -776,14 +774,17 @@ describe('QuerySnapshot', () => {
 
   // Regression test for https://github.com/firebase/firebase-js-sdk/issues/10557
   for (const [name, value] of Object.entries(MULTI_BYTE_VALUES)) {
-    it(`fromJSON round-trips toJSON result containing ${name}`, () => {
-      if (isNode()) {
+    // toJSON() only produces a bundle in Node.
+    it.skipIf(!isNode())(
+      `fromJSON round-trips toJSON result containing ${name}`,
+      () => {
+        const collectionPath = `coll${value}`;
         const snapshot = querySnapshot(
-          'foo',
+          collectionPath,
           {},
           {
-            a: { v: value, [value]: 'key' },
-            b: { v: `${value}-${value}`, n: 2 }
+            [`a${value}`]: { v: value, [`k${value}`]: 'key' },
+            [`b${value}`]: { v: `${value}-${value}`, n: 2 }
           },
           keys(), // An empty set of mutated document keys signifies that there are no pending writes.
           false,
@@ -791,17 +792,20 @@ describe('QuerySnapshot', () => {
         );
         const db = firestore();
         const querySnap = querySnapshotFromJSON(db, snapshot.toJSON());
-        expect(querySnap.docs.length).toBe(2);
+        expect(querySnap.docs.map(d => d.ref.path)).toEqual([
+          `${collectionPath}/a${value}`,
+          `${collectionPath}/b${value}`
+        ]);
         expect(querySnap.docs[0].data()).toEqual({
           v: value,
-          [value]: 'key'
+          [`k${value}`]: 'key'
         });
         expect(querySnap.docs[1].data()).toEqual({
           v: `${value}-${value}`,
           n: 2
         });
       }
-    });
+    );
   }
 
   it('fromJSON throws when parsing client-side toJSON result', () => {

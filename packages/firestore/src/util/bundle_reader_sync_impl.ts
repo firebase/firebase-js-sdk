@@ -26,7 +26,7 @@ import { BundleReaderSync, SizedBundleElement } from './bundle_reader';
 const OPEN_BRACE = 0x7b;
 
 /**
- * A class that can parse a bundle form the string serialization of a bundle.
+ * A class that can parse a bundle from the string serialization of a bundle.
  *
  * Bundle element length prefixes are specified as UTF-8 byte counts, so the
  * bundle string is UTF-8 encoded and parsed as bytes rather than as UTF-16
@@ -48,10 +48,13 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
 
     let element = this.nextElement();
     if (element && element.isBundleMetadata()) {
-      this.metadata = element as BundleMetadata;
+      this.metadata = element.payload.metadata!;
     } else {
-      throw new Error(`The first element of the bundle is not a metadata object, it is
-         ${JSON.stringify(element?.payload)}`);
+      throw new FirestoreError(
+        Code.INTERNAL,
+        `The first element of the bundle is not a metadata object, it is
+         ${JSON.stringify(element?.payload)}`
+      );
     }
 
     do {
@@ -82,9 +85,14 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
     if (this.cursor === this.bundleData.length) {
       return null;
     }
+    const prefixStart = this.cursor;
     const length: number = this.readLength();
+    const prefixLength = this.cursor - prefixStart;
     const jsonString = this.readJsonString(length);
-    return new SizedBundleElement(JSON.parse(jsonString), length);
+    return new SizedBundleElement(
+      JSON.parse(jsonString),
+      prefixLength + length
+    );
   }
 
   /**
@@ -101,18 +109,19 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
         'Reached the end of bundle when more is expected.'
       );
     }
-    const result = this.textDecoder.decode(
+    return this.textDecoder.decode(
       this.bundleData.subarray(this.cursor, (this.cursor += length))
     );
-    return result;
   }
 
   /**
-   * Reads from the current cursor until the first '{'.
+   * Reads from the current cursor until the first '{', and advances the cursor
+   * to it.
    *
-   * @returns  A string to integer represention of the parsed value.
-   * @throws An {@link Error} if the cursor has reached the end of the stream, since lengths
-   * prefix bundle objects.
+   * @returns The parsed length of the next element, in bytes.
+   * @throws A {@link FirestoreError} if the cursor has reached the end of the
+   * bundle data, since lengths prefix bundle objects, or if the length prefix
+   * is not a valid number.
    */
   private readLength(): number {
     const startIndex = this.cursor;
@@ -120,18 +129,30 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
     while (curIndex < this.bundleData.length) {
       if (this.bundleData[curIndex] === OPEN_BRACE) {
         if (curIndex === startIndex) {
-          throw new Error('First character is a bracket and not a number');
+          throw new FirestoreError(
+            Code.INTERNAL,
+            'First character is a bracket and not a number'
+          );
+        }
+        const lengthString = this.textDecoder.decode(
+          this.bundleData.subarray(startIndex, curIndex)
+        );
+        const length = Number(lengthString);
+        if (isNaN(length)) {
+          throw new FirestoreError(
+            Code.INTERNAL,
+            `length string (${lengthString}) is not valid number`
+          );
         }
         this.cursor = curIndex;
-        return Number(
-          this.textDecoder.decode(
-            this.bundleData.subarray(startIndex, curIndex)
-          )
-        );
+        return length;
       }
       curIndex++;
     }
-    throw new Error('Reached the end of bundle when more is expected.');
+    throw new FirestoreError(
+      Code.INTERNAL,
+      'Reached the end of bundle when more is expected.'
+    );
   }
 }
 

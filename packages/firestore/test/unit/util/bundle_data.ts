@@ -38,6 +38,19 @@ import {
 
 export const encoder = newTextEncoder();
 
+/**
+ * Test strings whose UTF-8 byte length differs from their UTF-16 length, plus
+ * an empty-string control. See
+ * https://github.com/firebase/firebase-js-sdk/issues/10557.
+ */
+export const MULTI_BYTE_VALUES: { [name: string]: string } = {
+  'empty string (control)': '',
+  'em-dash': '\u2014',
+  'emoji (surrogate pairs)': '\ud83d\ude00 \ud83d\udd25',
+  'single 4-byte emoji': '\ud83d\ude00',
+  'accented characters': 'caf\u00e9 na\u00efve \u00c5ngstr\u00f6m'
+};
+
 export function lengthPrefixedString(o: {}): string {
   const str = JSON.stringify(o);
   const l = encoder.encode(str).byteLength;
