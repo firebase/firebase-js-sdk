@@ -181,7 +181,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@angular/common": "19.2.15",
-    "@angular/compiler": "19.2.15",
+    "@angular/compiler": "19.2.22",
     "@angular/core": "19.2.15",
     "@angular/platform-browser": "19.2.15",
     "@angular/router": "19.2.15",
