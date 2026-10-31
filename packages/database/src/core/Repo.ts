@@ -1527,7 +1527,8 @@ function repoAbortTransactionsOnNode(
     let lastSent = -1;
     for (let i = 0; i < queue.length; i++) {
       if (queue[i].status === TransactionStatus.SENT_NEEDS_ABORT) {
-        // Already marked.  No action needed.
+        // Keep waiting for the outstanding response to clean up this transaction.
+        lastSent = i;
       } else if (queue[i].status === TransactionStatus.SENT) {
         assert(
           lastSent === i - 1,
