@@ -193,6 +193,36 @@ describe('core/user/token_manager', () => {
       const tokens = (await stsTokenManager.getToken(auth))!;
       expect(tokens).toEqual('token');
     });
+
+    context('with cookie persistence', () => {
+      let mock: fetch.Route;
+      beforeEach(() => {
+        sinon.stub(auth, '_getPersistenceType').returns('COOKIE');
+        const { apiKey, tokenApiHost, apiScheme } = auth.config;
+        const endpoint = `${apiScheme}://${tokenApiHost}${Endpoint.TOKEN}?key=${apiKey}`;
+        sinon.stub(auth, '_getPersistence').returns({
+          _getFinalTarget: () => endpoint
+        } as any);
+        mock = fetch.mock(endpoint, {
+          'access_token': 'cookie-access-token',
+          'expires_in': '3600'
+        });
+      });
+
+      it('refreshes the token even if refresh token is null', async () => {
+        Object.assign(stsTokenManager, {
+          accessToken: 'old-access-token',
+          refreshToken: null,
+          expirationTime: now - 1
+        });
+
+        const tokens = await stsTokenManager.getToken(auth, false);
+        expect(mock.calls[0].request).to.contain('grant_type=refresh_token');
+        expect(stsTokenManager.accessToken).to.eq('cookie-access-token');
+        expect(stsTokenManager.refreshToken).to.be.null;
+        expect(tokens).to.eql('cookie-access-token');
+      });
+    });
   });
 
   describe('#_clone', () => {
@@ -272,6 +302,17 @@ describe('core/user/token_manager', () => {
       expect(manager.accessToken).toBe('a');
       expect(manager.refreshToken).toBe('r');
       expect(manager.expirationTime).toBe(45);
+    });
+
+    it('sets refreshToken to null if passed REDACTED', () => {
+      const manager = StsTokenManager.fromJSON('app', {
+        refreshToken: 'REDACTED',
+        accessToken: 'a',
+        expirationTime: 45
+      });
+      expect(manager.accessToken).to.eq('a');
+      expect(manager.refreshToken).to.be.null;
+      expect(manager.expirationTime).to.eq(45);
     });
   });
 });

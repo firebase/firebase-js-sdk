@@ -20,7 +20,7 @@ import { requestStsToken } from '../../api/authentication/token';
 import { AuthInternal } from '../../model/auth';
 import { IdTokenResponse } from '../../model/id_token';
 import { AuthErrorCode } from '../errors';
-import { PersistedBlob } from '../persistence';
+import { PersistedBlob, PersistenceType } from '../persistence';
 import { _assert, debugFail } from '../util/assert';
 import { _tokenExpiresIn } from './id_token_result';
 
@@ -59,7 +59,8 @@ export class StsTokenManager {
       AuthErrorCode.INTERNAL_ERROR
     );
     _assert(
-      typeof response.refreshToken !== 'undefined',
+      response.refreshToken === undefined ||
+        typeof response.refreshToken === 'string',
       AuthErrorCode.INTERNAL_ERROR
     );
     const expiresIn =
@@ -87,10 +88,16 @@ export class StsTokenManager {
       return this.accessToken;
     }
 
-    _assert(this.refreshToken, auth, AuthErrorCode.TOKEN_EXPIRED);
+    const isCookieAuth =
+      auth._getPersistenceType() === PersistenceType.COOKIE;
+    _assert(
+      isCookieAuth || this.refreshToken,
+      auth,
+      AuthErrorCode.TOKEN_EXPIRED
+    );
 
-    if (this.refreshToken) {
-      await this.refresh(auth, this.refreshToken!);
+    if (isCookieAuth || this.refreshToken) {
+      await this.refresh(auth, this.refreshToken || '');
       return this.accessToken;
     }
 
@@ -115,10 +122,11 @@ export class StsTokenManager {
 
   private updateTokensAndExpiration(
     accessToken: string,
-    refreshToken: string | null,
-    expiresInSec: number
+    refreshToken?: string | null,
+    expiresInSec: number = 0
   ): void {
-    this.refreshToken = refreshToken || null;
+    this.refreshToken =
+      refreshToken && refreshToken !== 'REDACTED' ? refreshToken : null;
     this.accessToken = accessToken || null;
     this.expirationTime = Date.now() + expiresInSec * 1000;
   }
@@ -127,7 +135,7 @@ export class StsTokenManager {
     const { refreshToken, accessToken, expirationTime } = object;
 
     const manager = new StsTokenManager();
-    if (refreshToken) {
+    if (refreshToken && refreshToken !== 'REDACTED') {
       _assert(typeof refreshToken === 'string', AuthErrorCode.INTERNAL_ERROR, {
         appName
       });
