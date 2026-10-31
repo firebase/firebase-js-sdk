@@ -220,23 +220,68 @@ export abstract class Storage {
 }
 
 export class IndexedDbStorage extends Storage {
+  private dbPromise: Promise<IDBDatabase> | undefined;
+
   /**
    * @param appId enables storage segmentation by app (ID + name).
    * @param appName enables storage segmentation by app (ID + name).
    * @param namespace enables storage segmentation by namespace.
+   * @param openDbPromise the initial connection. Replaced by a new one if it fails to open or
+   * gets closed, e.g. when the browser drops connections of a suspended page.
    */
   constructor(
     private readonly appId: string,
     private readonly appName: string,
     private readonly namespace: string,
-    private readonly openDbPromise = openDatabase()
+    openDbPromise = openDatabase()
   ) {
     super();
+    this.dbPromise = this.trackConnection(openDbPromise);
+  }
+
+  private getDb(): Promise<IDBDatabase> {
+    if (!this.dbPromise) {
+      this.dbPromise = this.trackConnection(openDatabase());
+    }
+    return this.dbPromise;
+  }
+
+  private trackConnection(
+    dbPromise: Promise<IDBDatabase>
+  ): Promise<IDBDatabase> {
+    dbPromise.then(
+      db =>
+        db.addEventListener('close', () => this.discardConnection(dbPromise)),
+      () => this.discardConnection(dbPromise)
+    );
+    return dbPromise;
+  }
+
+  private discardConnection(dbPromise: Promise<IDBDatabase>): void {
+    if (this.dbPromise === dbPromise) {
+      this.dbPromise = undefined;
+    }
+  }
+
+  private async createTransaction(
+    mode: IDBTransactionMode
+  ): Promise<IDBTransaction> {
+    const dbPromise = this.getDb();
+    const db = await dbPromise;
+    try {
+      return db.transaction([APP_NAMESPACE_STORE], mode);
+    } catch (e) {
+      if ((e as Error)?.name !== 'InvalidStateError') {
+        throw e;
+      }
+      this.discardConnection(dbPromise);
+      const reopenedDb = await this.getDb();
+      return reopenedDb.transaction([APP_NAMESPACE_STORE], mode);
+    }
   }
 
   async setCustomSignals(customSignals: CustomSignals): Promise<CustomSignals> {
-    const db = await this.openDbPromise;
-    const transaction = db.transaction([APP_NAMESPACE_STORE], 'readwrite');
+    const transaction = await this.createTransaction('readwrite');
     const storedSignals = await this.getWithTransaction<CustomSignals>(
       'custom_signals',
       transaction
@@ -328,21 +373,18 @@ export class IndexedDbStorage extends Storage {
   }
 
   async get<T>(key: ProjectNamespaceKeyFieldValue): Promise<T | undefined> {
-    const db = await this.openDbPromise;
-    const transaction = db.transaction([APP_NAMESPACE_STORE], 'readonly');
+    const transaction = await this.createTransaction('readonly');
     return this.getWithTransaction<T>(key, transaction);
   }
 
   async set<T>(key: ProjectNamespaceKeyFieldValue, value: T): Promise<void> {
-    const db = await this.openDbPromise;
-    const transaction = db.transaction([APP_NAMESPACE_STORE], 'readwrite');
+    const transaction = await this.createTransaction('readwrite');
     return this.setWithTransaction<T>(key, value, transaction);
   }
 
   async delete(key: ProjectNamespaceKeyFieldValue): Promise<void> {
-    const db = await this.openDbPromise;
+    const transaction = await this.createTransaction('readwrite');
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction([APP_NAMESPACE_STORE], 'readwrite');
       const objectStore = transaction.objectStore(APP_NAMESPACE_STORE);
       const compositeKey = this.createCompositeKey(key);
       try {
