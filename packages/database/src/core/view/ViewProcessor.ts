@@ -93,7 +93,8 @@ export function viewProcessorApplyOperation(
   oldViewCache: ViewCache,
   operation: Operation,
   writesCache: WriteTreeRef,
-  completeCache: Node | null
+  completeCache: Node | null,
+  filter = false
 ): ProcessorResult {
   const accumulator = new ChildChangeAccumulator();
   let newViewCache, filterServerNode;
@@ -184,7 +185,8 @@ export function viewProcessorApplyOperation(
       oldViewCache,
       operation.path,
       writesCache,
-      accumulator
+      accumulator,
+      filter
     );
   } else {
     throw assertionError('Unknown operation type: ' + operation.type);
@@ -752,14 +754,15 @@ function viewProcessorListenComplete(
   viewCache: ViewCache,
   path: Path,
   writesCache: WriteTreeRef,
-  accumulator: ChildChangeAccumulator
+  accumulator: ChildChangeAccumulator,
+  filter = false
 ): ViewCache {
   const oldServerNode = viewCache.serverCache;
   const newViewCache = viewCacheUpdateServerSnap(
     viewCache,
     oldServerNode.getNode(),
     oldServerNode.isFullyInitialized() || pathIsEmpty(path),
-    oldServerNode.isFiltered()
+    oldServerNode.isFiltered() || filter
   );
   return viewProcessorGenerateEventCacheAfterServerEvent(
     viewProcessor,
