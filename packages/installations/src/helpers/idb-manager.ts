@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { DBSchema, IDBPDatabase, openDB } from 'idb';
+import { DBSchema, IDBPDatabase, IDBPTransaction, openDB } from 'idb';
 import { AppConfig } from '../interfaces/installation-impl';
 import { InstallationEntry } from '../interfaces/installation-entry';
 import { getKey } from '../util/get-key';
@@ -35,21 +35,53 @@ interface InstallationsDB extends DBSchema {
 let dbPromise: Promise<IDBPDatabase<InstallationsDB>> | null = null;
 function getDbPromise(): Promise<IDBPDatabase<InstallationsDB>> {
   if (!dbPromise) {
-    dbPromise = openDB(DATABASE_NAME, DATABASE_VERSION, {
-      upgrade: (db, oldVersion) => {
-        // We don't use 'break' in this switch statement, the fall-through
-        // behavior is what we want, because if there are multiple versions between
-        // the old version and the current version, we want ALL the migrations
-        // that correspond to those versions to run, not only the last one.
-        // eslint-disable-next-line default-case
-        switch (oldVersion) {
-          case 0:
-            db.createObjectStore(OBJECT_STORE_NAME);
-        }
+    const openPromise = openDB<InstallationsDB>(
+      DATABASE_NAME,
+      DATABASE_VERSION,
+      {
+        upgrade: (db, oldVersion) => {
+          // We don't use 'break' in this switch statement, the fall-through
+          // behavior is what we want, because if there are multiple versions between
+          // the old version and the current version, we want ALL the migrations
+          // that correspond to those versions to run, not only the last one.
+          // eslint-disable-next-line default-case
+          switch (oldVersion) {
+            case 0:
+              db.createObjectStore(OBJECT_STORE_NAME);
+          }
+        },
+        terminated: () => discardDbPromise(openPromise)
       }
-    });
+    );
+    openPromise.catch(() => discardDbPromise(openPromise));
+    dbPromise = openPromise;
   }
   return dbPromise;
+}
+
+function discardDbPromise(
+  openPromise: Promise<IDBPDatabase<InstallationsDB>>
+): void {
+  if (dbPromise === openPromise) {
+    dbPromise = null;
+  }
+}
+
+async function createTransaction<Mode extends IDBTransactionMode = 'readonly'>(
+  mode?: Mode
+): Promise<IDBPTransaction<InstallationsDB, [typeof OBJECT_STORE_NAME], Mode>> {
+  const openPromise = getDbPromise();
+  const db = await openPromise;
+  try {
+    return db.transaction(OBJECT_STORE_NAME, mode);
+  } catch (e) {
+    if ((e as Error)?.name !== 'InvalidStateError') {
+      throw e;
+    }
+    discardDbPromise(openPromise);
+    const reopenedDb = await getDbPromise();
+    return reopenedDb.transaction(OBJECT_STORE_NAME, mode);
+  }
 }
 
 /** Gets record(s) from the objectStore that match the given key. */
@@ -57,9 +89,8 @@ export async function get(
   appConfig: AppConfig
 ): Promise<InstallationEntry | undefined> {
   const key = getKey(appConfig);
-  const db = await getDbPromise();
-  return db
-    .transaction(OBJECT_STORE_NAME)
+  const tx = await createTransaction();
+  return tx
     .objectStore(OBJECT_STORE_NAME)
     .get(key) as Promise<InstallationEntry>;
 }
@@ -70,8 +101,7 @@ export async function set<ValueType extends InstallationEntry>(
   value: ValueType
 ): Promise<ValueType> {
   const key = getKey(appConfig);
-  const db = await getDbPromise();
-  const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
+  const tx = await createTransaction('readwrite');
   const objectStore = tx.objectStore(OBJECT_STORE_NAME);
   const oldValue = (await objectStore.get(key)) as InstallationEntry;
   await objectStore.put(value, key);
@@ -87,8 +117,7 @@ export async function set<ValueType extends InstallationEntry>(
 /** Removes record(s) from the objectStore that match the given key. */
 export async function remove(appConfig: AppConfig): Promise<void> {
   const key = getKey(appConfig);
-  const db = await getDbPromise();
-  const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
+  const tx = await createTransaction('readwrite');
   await tx.objectStore(OBJECT_STORE_NAME).delete(key);
   await tx.done;
 }
@@ -104,8 +133,7 @@ export async function update<ValueType extends InstallationEntry | undefined>(
   updateFn: (previousValue: InstallationEntry | undefined) => ValueType
 ): Promise<ValueType> {
   const key = getKey(appConfig);
-  const db = await getDbPromise();
-  const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
+  const tx = await createTransaction('readwrite');
   const store = tx.objectStore(OBJECT_STORE_NAME);
   const oldValue: InstallationEntry | undefined = (await store.get(
     key
@@ -127,8 +155,7 @@ export async function update<ValueType extends InstallationEntry | undefined>(
 }
 
 export async function clear(): Promise<void> {
-  const db = await getDbPromise();
-  const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
+  const tx = await createTransaction('readwrite');
   await tx.objectStore(OBJECT_STORE_NAME).clear();
   await tx.done;
 }
