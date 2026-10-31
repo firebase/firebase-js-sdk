@@ -23,6 +23,9 @@ This package coordinates the communication between the different Firebase compon
 |  <b>function()</b> |
 |  [getApps()](./app.md#getapps) | A (read-only) array of all initialized apps. |
 |  [initializeApp()](./app.md#initializeapp) | Creates and initializes a FirebaseApp instance. |
+|  <b>function(callback, ...)</b> |
+|  [offAppInit(callback)](./app.md#offappinit_b762c8b) |  |
+|  [onAppInit(callback)](./app.md#onappinit_b762c8b) |  |
 |  <b>function(config, ...)</b> |
 |  [initializeServerApp(config)](./app.md#initializeserverapp_e7d0728) | Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance. |
 |  <b>function(libraryKeyOrName, ...)</b> |
@@ -117,6 +120,44 @@ export declare function initializeApp(): FirebaseApp;
 <b>Returns:</b>
 
 [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)
+
+## function(callback, ...)
+
+### offAppInit(callback) {:#offappinit_b762c8b}
+
+<b>Signature:</b>
+
+```typescript
+export declare function offAppInit(callback: (app: FirebaseApp) => void): void;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  callback | (app: [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->) =&gt; void |  |
+
+<b>Returns:</b>
+
+void
+
+### onAppInit(callback) {:#onappinit_b762c8b}
+
+<b>Signature:</b>
+
+```typescript
+export declare function onAppInit(callback: (app: FirebaseApp) => void): void;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  callback | (app: [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->) =&gt; void |  |
+
+<b>Returns:</b>
+
+void
 
 ## function(config, ...)
 
