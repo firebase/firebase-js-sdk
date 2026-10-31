@@ -56,6 +56,7 @@ export const ERROR_FACTORY = new ErrorFactory<ErrorCode, ErrorParams>(
 );
 
 export interface ServerErrorData {
+  requestName: string;
   serverCode: number;
   serverMessage: string;
   serverStatus: string;
