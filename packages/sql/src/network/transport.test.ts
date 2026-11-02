@@ -817,6 +817,104 @@ describe('FirebaseSqlTransport', () => {
         forceRefresh: false
       });
     });
+
+    it('cancels response body, skips forceRefresh and retry, and rejects with AbortError if signal is already aborted on 401 response', async () => {
+      const initialToken = createMockJwt('user-1', '-initial');
+      const freshToken = createMockJwt('user-1', '-fresh');
+      const authProvider = new MockAuthProvider(initialToken, freshToken);
+
+      const controller = new AbortController();
+      let cancelCalled = false;
+      const mockResponseBody = {
+        cancel: vi.fn(async () => {
+          cancelCalled = true;
+        })
+      } as unknown as ReadableStream;
+
+      const unauthorizedRes = new Response('Unauthorized', { status: 401 });
+      Object.defineProperty(unauthorizedRes, 'body', {
+        value: mockResponseBody,
+        configurable: true
+      });
+
+      mockFetch.mockImplementation(async () => {
+        controller.abort();
+        return unauthorizedRes;
+      });
+
+      const transport = new FirebaseSqlTransport({
+        settings: BASE_SETTINGS,
+        authTokenProvider: authProvider
+      });
+
+      const promise = transport.invokePostgrestOperation(TEST_URL, {
+        signal: controller.signal
+      });
+
+      await expect(promise).rejects.toMatchObject({
+        name: 'AbortError'
+      });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(cancelCalled).toBe(true);
+      expect(authProvider.getToken).not.toHaveBeenCalledWith({
+        forceRefresh: true
+      });
+    });
+
+    it('cancels response body and rejects with AbortError if signal is aborted while awaiting token refresh', async () => {
+      const initialToken = createMockJwt('user-1', '-initial');
+      const controller = new AbortController();
+
+      let cancelCalled = false;
+      const mockResponseBody = {
+        cancel: vi.fn(async () => {
+          cancelCalled = true;
+        })
+      } as unknown as ReadableStream;
+
+      const unauthorizedRes = new Response('Unauthorized', { status: 401 });
+      Object.defineProperty(unauthorizedRes, 'body', {
+        value: mockResponseBody,
+        configurable: true
+      });
+
+      let resolveForceRefresh!: (data: FirebaseAuthTokenData | null) => void;
+      const authProvider = new MockAuthProvider(initialToken);
+      authProvider.getToken = vi.fn(async (options?: TokenOptions) => {
+        if (options?.forceRefresh) {
+          return new Promise<FirebaseAuthTokenData | null>(resolve => {
+            resolveForceRefresh = resolve;
+          });
+        }
+        return { accessToken: initialToken };
+      });
+
+      mockFetch.mockResolvedValueOnce(unauthorizedRes);
+
+      const transport = new FirebaseSqlTransport({
+        settings: BASE_SETTINGS,
+        authTokenProvider: authProvider
+      });
+
+      const operationPromise = transport.invokePostgrestOperation(TEST_URL, {
+        signal: controller.signal
+      });
+
+      await vi.waitFor(() => {
+        expect(authProvider.getToken).toHaveBeenCalledWith({
+          forceRefresh: true
+        });
+      });
+
+      controller.abort();
+      resolveForceRefresh({ accessToken: createMockJwt('user-1', '-fresh') });
+
+      await expect(operationPromise).rejects.toMatchObject({
+        name: 'AbortError'
+      });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(cancelCalled).toBe(true);
+    });
   });
 
   describe('getAuthUidFromToken', () => {

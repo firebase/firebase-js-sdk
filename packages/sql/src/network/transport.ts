@@ -54,6 +54,28 @@ export function getAuthUidFromToken(
 }
 
 /**
+ * Normalizes an AbortSignal abort reason or thrown error into a standard AbortError.
+ */
+function toAbortError(signal: AbortSignal, thrown?: unknown): Error {
+  const reason: unknown = thrown !== undefined ? thrown : signal.reason;
+  if (
+    reason instanceof Error &&
+    (reason.name === 'AbortError' || reason.name === 'TimeoutError')
+  ) {
+    return reason;
+  }
+  const message =
+    reason instanceof Error
+      ? reason.message
+      : typeof reason === 'string'
+        ? reason
+        : 'This operation was aborted';
+  const error = new Error(message);
+  error.name = 'AbortError';
+  return error;
+}
+
+/**
  * Interface defining the external API of the transport layer.
  * @internal
  */
@@ -186,21 +208,54 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
       return originalResponse;
     }
 
+    const signal = requestInit.signal;
+    if (signal?.aborted) {
+      if (typeof originalResponse.body?.cancel === 'function') {
+        await originalResponse.body.cancel().catch(() => {});
+      }
+      throw toAbortError(signal);
+    }
+
     // Check cached token first to avoid redundant Auth network trips if another
     // concurrent request already refreshed the token in the background.
-    let refreshedToken = await this.authProvider
-      .getToken({ forceRefresh: false })
-      .then(data => data ?? null)
-      .catch(() => null);
-
-    if (
-      !refreshedToken?.accessToken ||
-      refreshedToken.accessToken === currentToken.accessToken
-    ) {
+    let refreshedToken: FirebaseAuthTokenData | null = null;
+    try {
       refreshedToken = await this.authProvider
-        .getToken({ forceRefresh: true })
+        .getToken({ forceRefresh: false })
         .then(data => data ?? null)
         .catch(() => null);
+
+      if (signal?.aborted) {
+        if (typeof originalResponse.body?.cancel === 'function') {
+          await originalResponse.body.cancel().catch(() => {});
+        }
+        throw toAbortError(signal);
+      }
+
+      if (
+        !refreshedToken?.accessToken ||
+        refreshedToken.accessToken === currentToken.accessToken
+      ) {
+        refreshedToken = await this.authProvider
+          .getToken({ forceRefresh: true })
+          .then(data => data ?? null)
+          .catch(() => null);
+      }
+    } catch (err) {
+      if (signal?.aborted) {
+        if (typeof originalResponse.body?.cancel === 'function') {
+          await originalResponse.body.cancel().catch(() => {});
+        }
+        throw toAbortError(signal, err);
+      }
+      throw err;
+    }
+
+    if (signal?.aborted) {
+      if (typeof originalResponse.body?.cancel === 'function') {
+        await originalResponse.body.cancel().catch(() => {});
+      }
+      throw toAbortError(signal);
     }
 
     if (
