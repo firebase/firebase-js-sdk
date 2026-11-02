@@ -36,14 +36,26 @@ import {
 import { expect, vi } from 'vitest';
 
 import { MockAppCheckProvider, MockAuthProvider } from '../../test/mocks';
+import {
+  Code,
+  FirebaseSqlError,
+  FirebaseSqlErrorCategory
+} from '../core/error';
 import { SqlServiceSettings } from '../core/settings';
+import type { BuilderExecutionTracker, SqlClientState } from '../core/state';
 import { TokenOptions } from '../core/tokenProviders/AbstractTokenProvider';
 import { FirebaseAuthProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
 import { SDK_VERSION, setSDKVersion } from '../core/version';
 
 import { Fetch, getFetch, initializeFetch } from './fetch';
 import { FirebaseHeaders, getGoogApiClientValue } from './headers';
-import { FirebaseSqlTransport } from './transport';
+import {
+  FirebaseSqlTransport,
+  composeSignals,
+  createBuilderFetch,
+  getAuthUidFromToken,
+  toAbortError
+} from './transport';
 
 const TEST_URL =
   'https://firebasedataconnect.googleapis.com/v1/projects/p/locations/l/services/s/postgrest/todos';
@@ -52,6 +64,23 @@ const BASE_SETTINGS: SqlServiceSettings = { serviceId: 's', location: 'l' };
 type FirebaseSqlTransportWithInternalProperties = FirebaseSqlTransport & {
   _isUsingEmulator: boolean;
 };
+
+/**
+ * Creates a mock base64url-encoded JWT with a specified sub claim.
+ */
+function createMockJwt(uid: string, suffix = ''): string {
+  const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+  const payload = btoa(
+    JSON.stringify({ sub: uid, aud: 'test-project', exp: 9999999999 })
+  )
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+  return `${header}.${payload}.sig${suffix}`;
+}
 
 /**
  * Extracts the `Headers` sent on a specific call to the mock `fetch` function.
@@ -398,7 +427,9 @@ describe('FirebaseSqlTransport', () => {
         getToken: vi.fn((forceRefresh?: boolean) =>
           forceRefresh
             ? mockForceRefresh()
-            : Promise.resolve({ accessToken: 'initial-concurrent-token' })
+            : Promise.resolve({
+                accessToken: createMockJwt('uid-1', '-initial-concurrent')
+              })
         ),
         getUid: vi.fn(() => 'uid-1'),
         addAuthTokenListener: vi.fn(),
@@ -421,7 +452,9 @@ describe('FirebaseSqlTransport', () => {
     }
 
     it('retries once with getToken({ forceRefresh: true }) on 401 when an auth token was attached and does not loop on persistent 401', async () => {
-      const authProvider = new MockAuthProvider('stale-token', 'fresh-token');
+      const staleToken = createMockJwt('test-user', '-stale');
+      const freshToken = createMockJwt('test-user', '-fresh');
+      const authProvider = new MockAuthProvider(staleToken, freshToken);
       const requestOneResponse = new Response('Unauthorized', { status: 401 });
       const retryOneResponse = new Response(JSON.stringify([{ id: 1 }]), {
         status: 200
@@ -452,23 +485,82 @@ describe('FirebaseSqlTransport', () => {
         forceRefresh: false
       });
       expect(authProvider.getToken).toHaveBeenNthCalledWith(2, {
+        forceRefresh: false
+      });
+      expect(authProvider.getToken).toHaveBeenNthCalledWith(3, {
         forceRefresh: true
       });
       expect(
         getHeadersFromCall(mockFetch, 0).get(
           FirebaseHeaders.FIREBASE_AUTH_TOKEN
         )
-      ).toBe('stale-token');
+      ).toBe(staleToken);
       expect(
         getHeadersFromCall(mockFetch, 1).get(
           FirebaseHeaders.FIREBASE_AUTH_TOKEN
         )
-      ).toBe('fresh-token');
+      ).toBe(freshToken);
 
       const failedRetryResponse =
         await transport.invokePostgrestOperation(TEST_URL);
       expect(failedRetryResponse).toBe(retryTwoResponse);
       expect(mockFetch).toHaveBeenCalledTimes(4);
+    });
+
+    it('retries with cached token on 401 if getToken({ forceRefresh: false }) returns a new token without calling forceRefresh', async () => {
+      const staleToken = createMockJwt('test-user', '-stale');
+      const cachedFreshToken = createMockJwt('test-user', '-cached-fresh');
+      let callCount = 0;
+      const authProvider = new MockAuthProvider();
+      authProvider.getToken = vi.fn(
+        async (
+          options?: TokenOptions
+        ): Promise<FirebaseAuthTokenData | null> => {
+          callCount++;
+          if (options?.forceRefresh) {
+            return { accessToken: createMockJwt('test-user', '-forced') };
+          }
+          return callCount === 1
+            ? { accessToken: staleToken }
+            : { accessToken: cachedFreshToken };
+        }
+      );
+
+      const requestOneResponse = new Response('Unauthorized', { status: 401 });
+      const retryResponse = new Response(JSON.stringify([{ id: 1 }]), {
+        status: 200
+      });
+
+      mockFetch
+        .mockResolvedValueOnce(requestOneResponse)
+        .mockResolvedValueOnce(retryResponse);
+
+      const transport = new FirebaseSqlTransport({
+        settings: BASE_SETTINGS,
+        authTokenProvider: authProvider
+      });
+
+      const response = await transport.invokePostgrestOperation(TEST_URL);
+      expect(response).toBe(retryResponse);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(
+        getHeadersFromCall(mockFetch, 0).get(
+          FirebaseHeaders.FIREBASE_AUTH_TOKEN
+        )
+      ).toBe(staleToken);
+      expect(
+        getHeadersFromCall(mockFetch, 1).get(
+          FirebaseHeaders.FIREBASE_AUTH_TOKEN
+        )
+      ).toBe(cachedFreshToken);
+
+      expect(authProvider.getToken).toHaveBeenCalledTimes(2);
+      expect(authProvider.getToken).toHaveBeenNthCalledWith(1, {
+        forceRefresh: false
+      });
+      expect(authProvider.getToken).toHaveBeenNthCalledWith(2, {
+        forceRefresh: false
+      });
     });
 
     it('deduplicates concurrent 401 responses into a single getToken(true) call with a real FirebaseAuthProvider', async () => {
@@ -508,7 +600,8 @@ describe('FirebaseSqlTransport', () => {
       await vi.waitFor(() => {
         expect(mockForceRefresh).toHaveBeenCalledTimes(1);
       });
-      resolveFirstRefresh({ accessToken: 'shared-refreshed-token' });
+      const sharedRefreshedToken = createMockJwt('uid-1', '-shared-refreshed');
+      resolveFirstRefresh({ accessToken: sharedRefreshedToken });
 
       const [r1, r2, r3] = await batch;
       expect([r1, r2, r3]).toEqual([retryRes1, retryRes2, retryRes3]);
@@ -517,24 +610,26 @@ describe('FirebaseSqlTransport', () => {
         getHeadersFromCall(mockFetch, 3).get(
           FirebaseHeaders.FIREBASE_AUTH_TOKEN
         )
-      ).toBe('shared-refreshed-token');
+      ).toBe(sharedRefreshedToken);
       expect(
         getHeadersFromCall(mockFetch, 4).get(
           FirebaseHeaders.FIREBASE_AUTH_TOKEN
         )
-      ).toBe('shared-refreshed-token');
+      ).toBe(sharedRefreshedToken);
       expect(
         getHeadersFromCall(mockFetch, 5).get(
           FirebaseHeaders.FIREBASE_AUTH_TOKEN
         )
-      ).toBe('shared-refreshed-token');
+      ).toBe(sharedRefreshedToken);
     });
 
     it('triggers a fresh getToken(true) refresh on a subsequent 401 after a concurrent batch settles', async () => {
+      const sharedToken = createMockJwt('uid-1', '-shared-refreshed');
+      const refreshedToken2 = createMockJwt('uid-1', '-refreshed-2');
       const mockForceRefresh = vi
         .fn<() => Promise<FirebaseAuthTokenData | null>>()
-        .mockResolvedValueOnce({ accessToken: 'shared-refreshed-token' })
-        .mockResolvedValueOnce({ accessToken: 'refreshed-token-2' });
+        .mockResolvedValueOnce({ accessToken: sharedToken })
+        .mockResolvedValueOnce({ accessToken: refreshedToken2 });
       const realAuthProvider = createRealAuthProvider(mockForceRefresh);
 
       const subsequentRetryRes = new Response('OK 3', { status: 200 });
@@ -571,7 +666,7 @@ describe('FirebaseSqlTransport', () => {
         getHeadersFromCall(mockFetch, 5).get(
           FirebaseHeaders.FIREBASE_AUTH_TOKEN
         )
-      ).toBe('refreshed-token-2');
+      ).toBe(refreshedToken2);
     });
 
     it('does not retry on 401 when authTokenProvider is omitted', async () => {
@@ -611,10 +706,8 @@ describe('FirebaseSqlTransport', () => {
       const unauthorizedRes = new Response('Unauthorized', { status: 401 });
       mockFetch.mockResolvedValueOnce(unauthorizedRes);
 
-      const sameTokenProvider = new MockAuthProvider(
-        'same-token',
-        'same-token'
-      );
+      const sameToken = createMockJwt('user-1', '-same');
+      const sameTokenProvider = new MockAuthProvider(sameToken, sameToken);
       const res = await new FirebaseSqlTransport({
         settings: BASE_SETTINGS,
         authTokenProvider: sameTokenProvider
@@ -622,22 +715,26 @@ describe('FirebaseSqlTransport', () => {
 
       expect(res).toBe(unauthorizedRes);
       expect(mockFetch).toHaveBeenCalledTimes(1);
-      expect(sameTokenProvider.getToken).toHaveBeenCalledTimes(2);
+      expect(sameTokenProvider.getToken).toHaveBeenCalledTimes(3);
       expect(sameTokenProvider.getToken).toHaveBeenNthCalledWith(1, {
         forceRefresh: false
       });
       expect(sameTokenProvider.getToken).toHaveBeenNthCalledWith(2, {
+        forceRefresh: false
+      });
+      expect(sameTokenProvider.getToken).toHaveBeenNthCalledWith(3, {
         forceRefresh: true
       });
     });
 
     it('returns the original 401 response if getToken({ forceRefresh: true }) rejects', async () => {
-      const authProvider = new MockAuthProvider('initial-token');
+      const initialToken = createMockJwt('user-1', '-initial');
+      const authProvider = new MockAuthProvider(initialToken);
       authProvider.getToken.mockImplementation(
         async (options?: TokenOptions) =>
           options?.forceRefresh
             ? Promise.reject(new Error('auth-refresh-network-error'))
-            : { accessToken: 'initial-token' }
+            : { accessToken: initialToken }
       );
 
       const unauthorizedRes = new Response('Unauthorized', { status: 401 });
@@ -655,7 +752,8 @@ describe('FirebaseSqlTransport', () => {
     });
 
     it('returns the original 401 response if getToken({ forceRefresh: true }) resolves null', async () => {
-      const authProvider = new MockAuthProvider('initial-token', null);
+      const initialToken = createMockJwt('user-1', '-initial');
+      const authProvider = new MockAuthProvider(initialToken, null);
       const unauthorizedRes = new Response('Unauthorized', { status: 401 });
       mockFetch.mockResolvedValueOnce(unauthorizedRes);
 
@@ -668,6 +766,504 @@ describe('FirebaseSqlTransport', () => {
         unauthorizedRes
       );
       expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('aborts 401 retry and returns original response if refreshed token has a different sub claim (user switched accounts)', async () => {
+      const initialToken = createMockJwt('user-alice', '-initial');
+      const switchedUserToken = createMockJwt('user-bob', '-switched');
+      const authProvider = new MockAuthProvider(
+        initialToken,
+        switchedUserToken
+      );
+
+      const unauthorizedRes = new Response('Unauthorized', { status: 401 });
+      mockFetch.mockResolvedValueOnce(unauthorizedRes);
+
+      const transport = new FirebaseSqlTransport({
+        settings: BASE_SETTINGS,
+        authTokenProvider: authProvider
+      });
+
+      const res = await transport.invokePostgrestOperation(TEST_URL);
+
+      expect(res).toBe(unauthorizedRes);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(
+        getHeadersFromCall(mockFetch, 0).get(
+          FirebaseHeaders.FIREBASE_AUTH_TOKEN
+        )
+      ).toBe(initialToken);
+    });
+
+    it('does not retry on 401 if request body is a ReadableStream', async () => {
+      const initialToken = createMockJwt('user-1', '-initial');
+      const freshToken = createMockJwt('user-1', '-fresh');
+      const authProvider = new MockAuthProvider(initialToken, freshToken);
+
+      const unauthorizedRes = new Response('Unauthorized', { status: 401 });
+      mockFetch.mockResolvedValueOnce(unauthorizedRes);
+
+      const transport = new FirebaseSqlTransport({
+        settings: BASE_SETTINGS,
+        authTokenProvider: authProvider
+      });
+
+      const streamBody = new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode('stream content'));
+          controller.close();
+        }
+      });
+
+      const res = await transport.invokePostgrestOperation(TEST_URL, {
+        method: 'POST',
+        body: streamBody
+      });
+
+      expect(res).toBe(unauthorizedRes);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(authProvider.getToken).not.toHaveBeenCalledWith({
+        forceRefresh: true
+      });
+      expect(authProvider.getToken).toHaveBeenCalledExactlyOnceWith({
+        forceRefresh: false
+      });
+    });
+
+    it('cancels response body, skips forceRefresh and retry, and rejects with AbortError if signal is already aborted on 401 response', async () => {
+      const initialToken = createMockJwt('user-1', '-initial');
+      const freshToken = createMockJwt('user-1', '-fresh');
+      const authProvider = new MockAuthProvider(initialToken, freshToken);
+
+      const controller = new AbortController();
+      let cancelCalled = false;
+      const mockResponseBody = {
+        cancel: vi.fn(async () => {
+          cancelCalled = true;
+        })
+      } as unknown as ReadableStream;
+
+      const unauthorizedRes = new Response('Unauthorized', { status: 401 });
+      Object.defineProperty(unauthorizedRes, 'body', {
+        value: mockResponseBody,
+        configurable: true
+      });
+
+      mockFetch.mockImplementation(async () => {
+        controller.abort();
+        return unauthorizedRes;
+      });
+
+      const transport = new FirebaseSqlTransport({
+        settings: BASE_SETTINGS,
+        authTokenProvider: authProvider
+      });
+
+      const promise = transport.invokePostgrestOperation(TEST_URL, {
+        signal: controller.signal
+      });
+
+      await expect(promise).rejects.toMatchObject({
+        name: 'AbortError'
+      });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(cancelCalled).toBe(true);
+      expect(authProvider.getToken).not.toHaveBeenCalledWith({
+        forceRefresh: true
+      });
+    });
+
+    it('cancels response body and rejects with AbortError if signal is aborted while awaiting token refresh', async () => {
+      const initialToken = createMockJwt('user-1', '-initial');
+      const controller = new AbortController();
+
+      let cancelCalled = false;
+      const mockResponseBody = {
+        cancel: vi.fn(async () => {
+          cancelCalled = true;
+        })
+      } as unknown as ReadableStream;
+
+      const unauthorizedRes = new Response('Unauthorized', { status: 401 });
+      Object.defineProperty(unauthorizedRes, 'body', {
+        value: mockResponseBody,
+        configurable: true
+      });
+
+      let resolveForceRefresh!: (data: FirebaseAuthTokenData | null) => void;
+      const authProvider = new MockAuthProvider(initialToken);
+      authProvider.getToken = vi.fn(async (options?: TokenOptions) => {
+        if (options?.forceRefresh) {
+          return new Promise<FirebaseAuthTokenData | null>(resolve => {
+            resolveForceRefresh = resolve;
+          });
+        }
+        return { accessToken: initialToken };
+      });
+
+      mockFetch.mockResolvedValueOnce(unauthorizedRes);
+
+      const transport = new FirebaseSqlTransport({
+        settings: BASE_SETTINGS,
+        authTokenProvider: authProvider
+      });
+
+      const operationPromise = transport.invokePostgrestOperation(TEST_URL, {
+        signal: controller.signal
+      });
+
+      await vi.waitFor(() => {
+        expect(authProvider.getToken).toHaveBeenCalledWith({
+          forceRefresh: true
+        });
+      });
+
+      controller.abort();
+      resolveForceRefresh({ accessToken: createMockJwt('user-1', '-fresh') });
+
+      await expect(operationPromise).rejects.toMatchObject({
+        name: 'AbortError'
+      });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(cancelCalled).toBe(true);
+    });
+  });
+
+  describe('terminationSignal integration', () => {
+    it('throws immediately and makes no fetch calls when terminationSignal is already aborted', async () => {
+      const terminationController = new AbortController();
+      const terminationError = new FirebaseSqlError(
+        Code.NOT_INITIALIZED,
+        'The Firebase SQL client has been terminated.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+      terminationController.abort(terminationError);
+
+      const transport = new FirebaseSqlTransport({
+        settings: BASE_SETTINGS,
+        terminationSignal: terminationController.signal
+      });
+
+      await expect(transport.invokePostgrestOperation(TEST_URL)).rejects.toBe(
+        terminationError
+      );
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('aborts the combined signal and rejects the operation when terminationSignal aborts in flight', async () => {
+      const terminationController = new AbortController();
+      let fetchSignal: AbortSignal | undefined;
+      mockFetch.mockImplementation(async (_url: string, init?: RequestInit) => {
+        fetchSignal = init?.signal;
+        return new Promise<Response>((_resolve, reject) => {
+          fetchSignal?.addEventListener('abort', () => {
+            reject(toAbortError(fetchSignal!));
+          });
+        });
+      });
+
+      const transport = new FirebaseSqlTransport({
+        settings: BASE_SETTINGS,
+        terminationSignal: terminationController.signal
+      });
+
+      const userController = new AbortController();
+      const operationPromise = transport.invokePostgrestOperation(TEST_URL, {
+        signal: userController.signal
+      });
+
+      await vi.waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+      });
+
+      const terminationError = new FirebaseSqlError(
+        Code.NOT_INITIALIZED,
+        'The Firebase SQL client has been terminated.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+      terminationController.abort(terminationError);
+
+      await expect(operationPromise).rejects.toBe(terminationError);
+      expect(fetchSignal?.aborted).toBe(true);
+    });
+
+    describe('URL and Request input handling', () => {
+      it('accepts a URL object as input', async () => {
+        const transport = new FirebaseSqlTransport({ settings: BASE_SETTINGS });
+        const urlObj = new URL(TEST_URL);
+        await transport.invokePostgrestOperation(urlObj);
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(mockFetch.mock.calls[0]?.[0]).toBe(TEST_URL);
+      });
+
+      it('accepts a Request object as input, preserving its headers and method', async () => {
+        const transport = new FirebaseSqlTransport({ settings: BASE_SETTINGS });
+        const requestObj = new Request(TEST_URL, {
+          method: 'POST',
+          headers: {
+            'x-request-header': 'from-request',
+            accept: 'application/json'
+          },
+          body: JSON.stringify({ item: 'test' })
+        });
+        await transport.invokePostgrestOperation(requestObj, {
+          headers: { 'x-override-header': 'from-init' }
+        });
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(mockFetch.mock.calls[0]?.[0]).toBe(TEST_URL);
+        const callInit = mockFetch.mock.calls[0]?.[1] as RequestInit;
+        expect(callInit.method).toBe('POST');
+        const headers = callInit.headers as Record<string, string>;
+        expect(headers['x-request-header']).toBe('from-request');
+        expect(headers['x-override-header']).toBe('from-init');
+      });
+
+      it('fails fast when state.active is null', async () => {
+        const state: SqlClientState = { active: null };
+        const transport = new FirebaseSqlTransport({ state });
+        await expect(
+          transport.invokePostgrestOperation(TEST_URL)
+        ).rejects.toMatchObject({
+          code: Code.NOT_INITIALIZED
+        });
+        expect(mockFetch).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('toFetch', () => {
+      it('populates tracker.clientError and throws AbortError when invokePostgrestOperation fails with FirebaseSqlError', async () => {
+        const state: SqlClientState = { active: null };
+        const tracker: BuilderExecutionTracker = { clientError: null };
+        const transport = new FirebaseSqlTransport({ state });
+        const boundFetch = transport.toFetch(tracker);
+
+        await expect(boundFetch(TEST_URL)).rejects.toMatchObject({
+          name: 'AbortError',
+          message: expect.stringContaining('terminated')
+        });
+
+        expect(tracker.clientError).toBeInstanceOf(FirebaseSqlError);
+        expect(tracker.clientError?.code).toBe(Code.NOT_INITIALIZED);
+      });
+
+      it('throws original error without AbortError wrapping when no tracker is provided', async () => {
+        const state: SqlClientState = { active: null };
+        const transport = new FirebaseSqlTransport({ state });
+        const boundFetch = transport.toFetch();
+
+        await expect(boundFetch(TEST_URL)).rejects.toBeInstanceOf(
+          FirebaseSqlError
+        );
+      });
+    });
+  });
+
+  describe('getAuthUidFromToken', () => {
+    it('returns null for null, undefined, or empty token', () => {
+      expect(getAuthUidFromToken(null)).toBeNull();
+      expect(getAuthUidFromToken(undefined)).toBeNull();
+      expect(getAuthUidFromToken('')).toBeNull();
+    });
+
+    it('returns null for tokens that do not have 3 parts', () => {
+      expect(getAuthUidFromToken('singlepart')).toBeNull();
+      expect(getAuthUidFromToken('part1.part2')).toBeNull();
+      expect(getAuthUidFromToken('part1.part2.part3.part4')).toBeNull();
+    });
+
+    it('returns null for malformed base64 or invalid JSON payload', () => {
+      expect(getAuthUidFromToken('invalid.payload.sig')).toBeNull();
+      expect(getAuthUidFromToken(`header.${btoa('not json')}.sig`)).toBeNull();
+    });
+
+    it('returns null when sub claim is missing, empty, or not a string', () => {
+      const noSubToken = `h.${btoa(JSON.stringify({ aud: 'test' }))}.s`;
+      expect(getAuthUidFromToken(noSubToken)).toBeNull();
+
+      const emptySubToken = `h.${btoa(JSON.stringify({ sub: '' }))}.s`;
+      expect(getAuthUidFromToken(emptySubToken)).toBeNull();
+
+      const numericSubToken = `h.${btoa(JSON.stringify({ sub: 12345 }))}.s`;
+      expect(getAuthUidFromToken(numericSubToken)).toBeNull();
+    });
+
+    it('extracts uid from a valid JWT with sub claim', () => {
+      const jwt = createMockJwt('uid-12345');
+      expect(getAuthUidFromToken(jwt)).toBe('uid-12345');
+    });
+  });
+
+  describe('toAbortError', () => {
+    it('preserves a FirebaseSqlError attached as abort reason', () => {
+      const controller = new AbortController();
+      const sqlError = new FirebaseSqlError(
+        Code.NOT_INITIALIZED,
+        'The Firebase SQL client has been terminated.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+      controller.abort(sqlError);
+
+      const result = toAbortError(controller.signal);
+      expect(result).toBe(sqlError);
+    });
+
+    it('preserves existing AbortError and TimeoutError', () => {
+      const controller = new AbortController();
+      const abortError = new Error('aborted');
+      abortError.name = 'AbortError';
+      controller.abort(abortError);
+      expect(toAbortError(controller.signal)).toBe(abortError);
+
+      const timeoutController = new AbortController();
+      const timeoutError = new Error('timed out');
+      timeoutError.name = 'TimeoutError';
+      timeoutController.abort(timeoutError);
+      expect(toAbortError(timeoutController.signal)).toBe(timeoutError);
+    });
+
+    it('creates an AbortError with the string reason message', () => {
+      const controller = new AbortController();
+      controller.abort('custom reason');
+      const err = toAbortError(controller.signal);
+      expect(err.name).toBe('AbortError');
+      expect(err.message).toBe('custom reason');
+    });
+  });
+
+  describe('composeSignals', () => {
+    it('returns signal2 when signal1 is undefined', () => {
+      const controller = new AbortController();
+      const { signal, cleanup } = composeSignals(undefined, controller.signal);
+      expect(signal).toBe(controller.signal);
+      cleanup();
+    });
+
+    it('returns signal1 when signal2 is undefined', () => {
+      const controller = new AbortController();
+      const { signal, cleanup } = composeSignals(controller.signal, undefined);
+      expect(signal).toBe(controller.signal);
+      cleanup();
+    });
+
+    it('returns undefined when both signals are undefined', () => {
+      const { signal, cleanup } = composeSignals(undefined, undefined);
+      expect(signal).toBeUndefined();
+      cleanup();
+    });
+
+    it('returns signal1 immediately if signal1 is already aborted', () => {
+      const c1 = new AbortController();
+      c1.abort('reason1');
+      const c2 = new AbortController();
+      const { signal, cleanup } = composeSignals(c1.signal, c2.signal);
+      expect(signal).toBe(c1.signal);
+      expect(signal?.aborted).toBe(true);
+      expect(signal?.reason).toBe('reason1');
+      cleanup();
+    });
+
+    it('returns signal2 immediately if signal2 is already aborted', () => {
+      const c1 = new AbortController();
+      const c2 = new AbortController();
+      c2.abort('reason2');
+      const { signal, cleanup } = composeSignals(c1.signal, c2.signal);
+      expect(signal).toBe(c2.signal);
+      expect(signal?.aborted).toBe(true);
+      expect(signal?.reason).toBe('reason2');
+      cleanup();
+    });
+
+    it('aborts composed signal when signal1 aborts', () => {
+      const c1 = new AbortController();
+      const c2 = new AbortController();
+      const { signal, cleanup } = composeSignals(c1.signal, c2.signal);
+      expect(signal?.aborted).toBe(false);
+
+      c1.abort('abort-from-1');
+      expect(signal?.aborted).toBe(true);
+      expect(signal?.reason).toBe('abort-from-1');
+      cleanup();
+    });
+
+    it('aborts composed signal when signal2 aborts', () => {
+      const c1 = new AbortController();
+      const c2 = new AbortController();
+      const { signal, cleanup } = composeSignals(c1.signal, c2.signal);
+      expect(signal?.aborted).toBe(false);
+
+      c2.abort('abort-from-2');
+      expect(signal?.aborted).toBe(true);
+      expect(signal?.reason).toBe('abort-from-2');
+      cleanup();
+    });
+
+    it('cleanup unregisters event listeners when fallback AbortController is used', () => {
+      const c1 = new AbortController();
+      const c2 = new AbortController();
+      const abortSignalWithAny = AbortSignal as unknown as Record<
+        string,
+        unknown
+      >;
+      const originalAny = abortSignalWithAny['any'];
+      try {
+        abortSignalWithAny['any'] = undefined;
+        const { signal, cleanup } = composeSignals(c1.signal, c2.signal);
+        cleanup();
+        c1.abort();
+        expect(signal?.aborted).toBe(false);
+      } finally {
+        abortSignalWithAny['any'] = originalAny;
+      }
+    });
+  });
+
+  describe('createBuilderFetch', () => {
+    it('returns a functional fetch function that executes requests with state resources', async () => {
+      const authProvider = new MockAuthProvider('builder-auth-token');
+      const appCheckProvider = new MockAppCheckProvider(
+        'builder-appcheck-token'
+      );
+
+      const state: SqlClientState = {
+        active: {
+          appId: '1:123456:web:builder-app',
+          authTokenProvider:
+            authProvider as unknown as FirebaseAuthTokenProvider,
+          appCheckTokenProvider: appCheckProvider
+        }
+      };
+      const tracker: BuilderExecutionTracker = { clientError: null };
+
+      const builderFetch = createBuilderFetch(state, tracker);
+      const response = await builderFetch(TEST_URL, {
+        headers: { 'x-caller-header': 'val' }
+      });
+
+      expect(response.status).toBe(200);
+      expect(tracker.clientError).toBeNull();
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      const callInit = mockFetch.mock.calls[0]?.[1] as RequestInit;
+      const headers = callInit.headers as Record<string, string>;
+      expect(headers['x-caller-header']).toBe('val');
+      expect(headers['x-firebase-auth-token']).toBe('builder-auth-token');
+      expect(headers['x-firebase-appcheck']).toBe('builder-appcheck-token');
+      expect(headers['x-firebase-gmpid']).toBe('1:123456:web:builder-app');
+    });
+
+    it('populates tracker.clientError and throws AbortError if client is terminated', async () => {
+      const state: SqlClientState = { active: null };
+      const tracker: BuilderExecutionTracker = { clientError: null };
+
+      const builderFetch = createBuilderFetch(state, tracker);
+      await expect(builderFetch(TEST_URL)).rejects.toMatchObject({
+        name: 'AbortError',
+        message: expect.stringContaining('terminated')
+      });
+
+      expect(tracker.clientError?.code).toBe(Code.NOT_INITIALIZED);
+      expect(mockFetch).not.toHaveBeenCalled();
     });
   });
 });

@@ -75,8 +75,34 @@ export function getGoogApiClientValue(): string {
 }
 
 /**
+ * Validates that the given header name is not a protected header key (case-insensitive).
+ * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and
+ * `FirebaseSqlErrorCategory.SQL_CLIENT` if the header name is a protected
+ * header key.
+ * @internal
+ */
+export function validateHeaderName(name: string): string {
+  // Coerce to a string exactly once. Header validation is a security boundary
+  // guarding protected wire headers (e.g. auth and telemetry). Single coercion
+  // prevents untyped JS callers from bypassing validation with stateful
+  // toString() / [Symbol.toPrimitive] objects that return an allowed name
+  // during validation and a forbidden name when applied downstream.
+  const headerName = String(name);
+  if (LOWERCASE_DISALLOWED_HEADER_KEYS.has(headerName.trim().toLowerCase())) {
+    throw new FirebaseSqlError(
+      Code.INVALID_ARGUMENT,
+      `Cannot set protected header ${headerName}.`,
+      FirebaseSqlErrorCategory.SQL_CLIENT
+    );
+  }
+  return headerName;
+}
+
+/**
  * Validates that the given headers do not contain any protected header keys (case-insensitive).
- * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if the headers contain any protected header keys.
+ * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and
+ * `FirebaseSqlErrorCategory.SQL_CLIENT` if the headers contain any protected
+ * header keys.
  * @internal
  */
 export function validateHeaders(
@@ -86,13 +112,7 @@ export function validateHeaders(
     return;
   }
   for (const key of Object.keys(headers)) {
-    if (LOWERCASE_DISALLOWED_HEADER_KEYS.has(key.toLowerCase())) {
-      throw new FirebaseSqlError(
-        Code.INVALID_ARGUMENT,
-        `Cannot set protected header ${key}.`,
-        FirebaseSqlErrorCategory.SQL_CLIENT
-      );
-    }
+    validateHeaderName(key);
   }
 }
 
@@ -153,6 +173,7 @@ export function resolveRequestHeaders(
 
   // Telemetry headers
   headers.set(FirebaseHeaders.GOOG_API_CLIENT, getGoogApiClientValue());
+  headers.set(FirebaseHeaders.CLIENT_VERSION, 'web/' + SDK_VERSION);
   if (_appId !== undefined) {
     headers.set(FirebaseHeaders.FIREBASE_GMPID, _appId);
   } else {

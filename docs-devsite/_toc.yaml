@@ -804,14 +804,54 @@ toc:
 - title: sql
   path: /docs/reference/js/sql.md
   section:
+  - title: Builder
+    path: /docs/reference/js/sql.builder.md
+  - title: FilterBuilder
+    path: /docs/reference/js/sql.filterbuilder.md
+  - title: FilterOrOptions
+    path: /docs/reference/js/sql.filteroroptions.md
+  - title: FilterTextSearchOptions
+    path: /docs/reference/js/sql.filtertextsearchoptions.md
   - title: FirebaseSql
     path: /docs/reference/js/sql.firebasesql.md
   - title: FirebaseSqlError
     path: /docs/reference/js/sql.firebasesqlerror.md
+  - title: FirebaseSqlRpcOptions
+    path: /docs/reference/js/sql.firebasesqlrpcoptions.md
+  - title: InvalidMethodError
+    path: /docs/reference/js/sql.invalidmethoderror.md
+  - title: OperationBase
+    path: /docs/reference/js/sql.operationbase.md
+  - title: OperationFailure
+    path: /docs/reference/js/sql.operationfailure.md
+  - title: OperationSuccess
+    path: /docs/reference/js/sql.operationsuccess.md
+  - title: QueryBuilder
+    path: /docs/reference/js/sql.querybuilder.md
+  - title: QueryDeleteOptions
+    path: /docs/reference/js/sql.querydeleteoptions.md
+  - title: QueryInsertOptions
+    path: /docs/reference/js/sql.queryinsertoptions.md
+  - title: QuerySelectOptions
+    path: /docs/reference/js/sql.queryselectoptions.md
+  - title: QueryUpdateOptions
+    path: /docs/reference/js/sql.queryupdateoptions.md
+  - title: QueryUpsertOptions
+    path: /docs/reference/js/sql.queryupsertoptions.md
   - title: SerializedFirebaseSqlError
     path: /docs/reference/js/sql.serializedfirebasesqlerror.md
   - title: SqlServiceSettings
     path: /docs/reference/js/sql.sqlservicesettings.md
+  - title: TransformBuilder
+    path: /docs/reference/js/sql.transformbuilder.md
+  - title: TransformExplainOptions
+    path: /docs/reference/js/sql.transformexplainoptions.md
+  - title: TransformLimitOptions
+    path: /docs/reference/js/sql.transformlimitoptions.md
+  - title: TransformOrderOptions
+    path: /docs/reference/js/sql.transformorderoptions.md
+  - title: TransformRangeOptions
+    path: /docs/reference/js/sql.transformrangeoptions.md
 - title: storage
   path: /docs/reference/js/storage.md
   section:
