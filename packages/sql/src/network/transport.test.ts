@@ -43,7 +43,7 @@ import { SDK_VERSION, setSDKVersion } from '../core/version';
 
 import { Fetch, getFetch, initializeFetch } from './fetch';
 import { FirebaseHeaders, getGoogApiClientValue } from './headers';
-import { FirebaseSqlTransport } from './transport';
+import { FirebaseSqlTransport, getAuthUidFromToken } from './transport';
 
 const TEST_URL =
   'https://firebasedataconnect.googleapis.com/v1/projects/p/locations/l/services/s/postgrest/todos';
@@ -52,6 +52,23 @@ const BASE_SETTINGS: SqlServiceSettings = { serviceId: 's', location: 'l' };
 type FirebaseSqlTransportWithInternalProperties = FirebaseSqlTransport & {
   _isUsingEmulator: boolean;
 };
+
+/**
+ * Creates a mock base64url-encoded JWT with a specified sub claim.
+ */
+function createMockJwt(uid: string, suffix = ''): string {
+  const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+  const payload = btoa(
+    JSON.stringify({ sub: uid, aud: 'test-project', exp: 9999999999 })
+  )
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+  return `${header}.${payload}.sig${suffix}`;
+}
 
 /**
  * Extracts the `Headers` sent on a specific call to the mock `fetch` function.
@@ -398,7 +415,9 @@ describe('FirebaseSqlTransport', () => {
         getToken: vi.fn((forceRefresh?: boolean) =>
           forceRefresh
             ? mockForceRefresh()
-            : Promise.resolve({ accessToken: 'initial-concurrent-token' })
+            : Promise.resolve({
+                accessToken: createMockJwt('uid-1', '-initial-concurrent')
+              })
         ),
         getUid: vi.fn(() => 'uid-1'),
         addAuthTokenListener: vi.fn(),
@@ -421,7 +440,9 @@ describe('FirebaseSqlTransport', () => {
     }
 
     it('retries once with getToken({ forceRefresh: true }) on 401 when an auth token was attached and does not loop on persistent 401', async () => {
-      const authProvider = new MockAuthProvider('stale-token', 'fresh-token');
+      const staleToken = createMockJwt('test-user', '-stale');
+      const freshToken = createMockJwt('test-user', '-fresh');
+      const authProvider = new MockAuthProvider(staleToken, freshToken);
       const requestOneResponse = new Response('Unauthorized', { status: 401 });
       const retryOneResponse = new Response(JSON.stringify([{ id: 1 }]), {
         status: 200
@@ -461,12 +482,12 @@ describe('FirebaseSqlTransport', () => {
         getHeadersFromCall(mockFetch, 0).get(
           FirebaseHeaders.FIREBASE_AUTH_TOKEN
         )
-      ).toBe('stale-token');
+      ).toBe(staleToken);
       expect(
         getHeadersFromCall(mockFetch, 1).get(
           FirebaseHeaders.FIREBASE_AUTH_TOKEN
         )
-      ).toBe('fresh-token');
+      ).toBe(freshToken);
 
       const failedRetryResponse =
         await transport.invokePostgrestOperation(TEST_URL);
@@ -475,6 +496,8 @@ describe('FirebaseSqlTransport', () => {
     });
 
     it('retries with cached token on 401 if getToken({ forceRefresh: false }) returns a new token without calling forceRefresh', async () => {
+      const staleToken = createMockJwt('test-user', '-stale');
+      const cachedFreshToken = createMockJwt('test-user', '-cached-fresh');
       let callCount = 0;
       const authProvider = new MockAuthProvider();
       authProvider.getToken = vi.fn(
@@ -483,11 +506,11 @@ describe('FirebaseSqlTransport', () => {
         ): Promise<FirebaseAuthTokenData | null> => {
           callCount++;
           if (options?.forceRefresh) {
-            return { accessToken: 'forced-token' };
+            return { accessToken: createMockJwt('test-user', '-forced') };
           }
           return callCount === 1
-            ? { accessToken: 'stale-token' }
-            : { accessToken: 'cached-fresh-token' };
+            ? { accessToken: staleToken }
+            : { accessToken: cachedFreshToken };
         }
       );
 
@@ -512,12 +535,12 @@ describe('FirebaseSqlTransport', () => {
         getHeadersFromCall(mockFetch, 0).get(
           FirebaseHeaders.FIREBASE_AUTH_TOKEN
         )
-      ).toBe('stale-token');
+      ).toBe(staleToken);
       expect(
         getHeadersFromCall(mockFetch, 1).get(
           FirebaseHeaders.FIREBASE_AUTH_TOKEN
         )
-      ).toBe('cached-fresh-token');
+      ).toBe(cachedFreshToken);
 
       expect(authProvider.getToken).toHaveBeenCalledTimes(2);
       expect(authProvider.getToken).toHaveBeenNthCalledWith(1, {
@@ -565,7 +588,8 @@ describe('FirebaseSqlTransport', () => {
       await vi.waitFor(() => {
         expect(mockForceRefresh).toHaveBeenCalledTimes(1);
       });
-      resolveFirstRefresh({ accessToken: 'shared-refreshed-token' });
+      const sharedRefreshedToken = createMockJwt('uid-1', '-shared-refreshed');
+      resolveFirstRefresh({ accessToken: sharedRefreshedToken });
 
       const [r1, r2, r3] = await batch;
       expect([r1, r2, r3]).toEqual([retryRes1, retryRes2, retryRes3]);
@@ -574,24 +598,26 @@ describe('FirebaseSqlTransport', () => {
         getHeadersFromCall(mockFetch, 3).get(
           FirebaseHeaders.FIREBASE_AUTH_TOKEN
         )
-      ).toBe('shared-refreshed-token');
+      ).toBe(sharedRefreshedToken);
       expect(
         getHeadersFromCall(mockFetch, 4).get(
           FirebaseHeaders.FIREBASE_AUTH_TOKEN
         )
-      ).toBe('shared-refreshed-token');
+      ).toBe(sharedRefreshedToken);
       expect(
         getHeadersFromCall(mockFetch, 5).get(
           FirebaseHeaders.FIREBASE_AUTH_TOKEN
         )
-      ).toBe('shared-refreshed-token');
+      ).toBe(sharedRefreshedToken);
     });
 
     it('triggers a fresh getToken(true) refresh on a subsequent 401 after a concurrent batch settles', async () => {
+      const sharedToken = createMockJwt('uid-1', '-shared-refreshed');
+      const refreshedToken2 = createMockJwt('uid-1', '-refreshed-2');
       const mockForceRefresh = vi
         .fn<() => Promise<FirebaseAuthTokenData | null>>()
-        .mockResolvedValueOnce({ accessToken: 'shared-refreshed-token' })
-        .mockResolvedValueOnce({ accessToken: 'refreshed-token-2' });
+        .mockResolvedValueOnce({ accessToken: sharedToken })
+        .mockResolvedValueOnce({ accessToken: refreshedToken2 });
       const realAuthProvider = createRealAuthProvider(mockForceRefresh);
 
       const subsequentRetryRes = new Response('OK 3', { status: 200 });
@@ -628,7 +654,7 @@ describe('FirebaseSqlTransport', () => {
         getHeadersFromCall(mockFetch, 5).get(
           FirebaseHeaders.FIREBASE_AUTH_TOKEN
         )
-      ).toBe('refreshed-token-2');
+      ).toBe(refreshedToken2);
     });
 
     it('does not retry on 401 when authTokenProvider is omitted', async () => {
@@ -668,10 +694,8 @@ describe('FirebaseSqlTransport', () => {
       const unauthorizedRes = new Response('Unauthorized', { status: 401 });
       mockFetch.mockResolvedValueOnce(unauthorizedRes);
 
-      const sameTokenProvider = new MockAuthProvider(
-        'same-token',
-        'same-token'
-      );
+      const sameToken = createMockJwt('user-1', '-same');
+      const sameTokenProvider = new MockAuthProvider(sameToken, sameToken);
       const res = await new FirebaseSqlTransport({
         settings: BASE_SETTINGS,
         authTokenProvider: sameTokenProvider
@@ -692,12 +716,13 @@ describe('FirebaseSqlTransport', () => {
     });
 
     it('returns the original 401 response if getToken({ forceRefresh: true }) rejects', async () => {
-      const authProvider = new MockAuthProvider('initial-token');
+      const initialToken = createMockJwt('user-1', '-initial');
+      const authProvider = new MockAuthProvider(initialToken);
       authProvider.getToken.mockImplementation(
         async (options?: TokenOptions) =>
           options?.forceRefresh
             ? Promise.reject(new Error('auth-refresh-network-error'))
-            : { accessToken: 'initial-token' }
+            : { accessToken: initialToken }
       );
 
       const unauthorizedRes = new Response('Unauthorized', { status: 401 });
@@ -715,7 +740,8 @@ describe('FirebaseSqlTransport', () => {
     });
 
     it('returns the original 401 response if getToken({ forceRefresh: true }) resolves null', async () => {
-      const authProvider = new MockAuthProvider('initial-token', null);
+      const initialToken = createMockJwt('user-1', '-initial');
+      const authProvider = new MockAuthProvider(initialToken, null);
       const unauthorizedRes = new Response('Unauthorized', { status: 401 });
       mockFetch.mockResolvedValueOnce(unauthorizedRes);
 
@@ -728,6 +754,68 @@ describe('FirebaseSqlTransport', () => {
         unauthorizedRes
       );
       expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('aborts 401 retry and returns original response if refreshed token has a different sub claim (user switched accounts)', async () => {
+      const initialToken = createMockJwt('user-alice', '-initial');
+      const switchedUserToken = createMockJwt('user-bob', '-switched');
+      const authProvider = new MockAuthProvider(
+        initialToken,
+        switchedUserToken
+      );
+
+      const unauthorizedRes = new Response('Unauthorized', { status: 401 });
+      mockFetch.mockResolvedValueOnce(unauthorizedRes);
+
+      const transport = new FirebaseSqlTransport({
+        settings: BASE_SETTINGS,
+        authTokenProvider: authProvider
+      });
+
+      const res = await transport.invokePostgrestOperation(TEST_URL);
+
+      expect(res).toBe(unauthorizedRes);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(
+        getHeadersFromCall(mockFetch, 0).get(
+          FirebaseHeaders.FIREBASE_AUTH_TOKEN
+        )
+      ).toBe(initialToken);
+    });
+  });
+
+  describe('getAuthUidFromToken', () => {
+    it('returns null for null, undefined, or empty token', () => {
+      expect(getAuthUidFromToken(null)).toBeNull();
+      expect(getAuthUidFromToken(undefined)).toBeNull();
+      expect(getAuthUidFromToken('')).toBeNull();
+    });
+
+    it('returns null for tokens that do not have 3 parts', () => {
+      expect(getAuthUidFromToken('singlepart')).toBeNull();
+      expect(getAuthUidFromToken('part1.part2')).toBeNull();
+      expect(getAuthUidFromToken('part1.part2.part3.part4')).toBeNull();
+    });
+
+    it('returns null for malformed base64 or invalid JSON payload', () => {
+      expect(getAuthUidFromToken('invalid.payload.sig')).toBeNull();
+      expect(getAuthUidFromToken(`header.${btoa('not json')}.sig`)).toBeNull();
+    });
+
+    it('returns null when sub claim is missing, empty, or not a string', () => {
+      const noSubToken = `h.${btoa(JSON.stringify({ aud: 'test' }))}.s`;
+      expect(getAuthUidFromToken(noSubToken)).toBeNull();
+
+      const emptySubToken = `h.${btoa(JSON.stringify({ sub: '' }))}.s`;
+      expect(getAuthUidFromToken(emptySubToken)).toBeNull();
+
+      const numericSubToken = `h.${btoa(JSON.stringify({ sub: 12345 }))}.s`;
+      expect(getAuthUidFromToken(numericSubToken)).toBeNull();
+    });
+
+    it('extracts uid from a valid JWT with sub claim', () => {
+      const jwt = createMockJwt('uid-12345');
+      expect(getAuthUidFromToken(jwt)).toBe('uid-12345');
     });
   });
 });

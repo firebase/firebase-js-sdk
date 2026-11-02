@@ -91,6 +91,7 @@ Thoughts and observations recorded during code review of PR #10551.
 - Difference 21.2: Retained Cloud Workstations cookie credentials handling (isCloudWorkstation check and _isUsingEmulator) in transport.ts for future emulator compatibility.
 - Difference 21.3: Changed body stream cancellation in transport.ts from void to await to ensure complete socket release before retry, and fixed comment to refer to response body.
 - Difference 21.4: Added cached token pre-check in transport.ts before forceRefresh on 401 responses to avoid redundant Auth network roundtrips under concurrency.
+- Difference 21.5: Added race-free auth UID verification via JWT sub claim in transport.ts to guard against cross-account request replay on 401 retry, with mock JWT testing in transport.test.ts.
 
 ## Investigate how `FirebaseSql` uses custom `fetch()` implementation
 

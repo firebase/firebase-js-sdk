@@ -16,7 +16,7 @@
  */
 
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
-import { isCloudWorkstation } from '@firebase/util';
+import { decode, isCloudWorkstation } from '@firebase/util';
 
 import { SqlServiceSettings } from '../core/settings';
 import { AppCheckTokenProvider } from '../core/tokenProviders/AppCheckTokenProvider';
@@ -24,6 +24,34 @@ import { FirebaseAuthTokenProvider } from '../core/tokenProviders/FirebaseAuthTo
 
 import { Fetch, getFetch } from './fetch';
 import { FirebaseHeaders, resolveRequestHeaders } from './headers';
+
+/**
+ * Extracts the user UID from an Auth ID token's `sub` claim.
+ *
+ * The "sub" claim is documented to be "a non-empty string and must be the uid of the user or device"
+ * (see http://goo.gle/4oGjEQt). Extracting the UID directly from the cryptographic token avoids race
+ * conditions where the auth manager's current UID may have changed since the token was issued.
+ *
+ * @internal
+ */
+export function getAuthUidFromToken(
+  token: string | null | undefined
+): string | null {
+  if (!token) {
+    return null;
+  }
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return null;
+    }
+    const claims = decode(token).claims;
+    const sub = claims?.sub;
+    return typeof sub === 'string' && sub.length > 0 ? sub : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Interface defining the external API of the transport layer.
@@ -95,6 +123,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
       this._appId
     );
     const requestInit = this.buildRequestInit(init, headers, url);
+    const initialUid = getAuthUidFromToken(authToken?.accessToken);
 
     return fetchImpl(url, requestInit).then(response => {
       if (response.status === 401 && authToken) {
@@ -104,7 +133,8 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
           requestInit,
           headers,
           authToken,
-          response
+          response,
+          initialUid
         );
       }
       return response;
@@ -145,7 +175,8 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
     requestInit: RequestInit,
     headers: Record<string, string>,
     currentToken: FirebaseAuthTokenData,
-    originalResponse: Response
+    originalResponse: Response,
+    initialUid: string | null
   ): Promise<Response> {
     if (!this.authProvider) {
       return originalResponse;
@@ -172,6 +203,11 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
       refreshedToken?.accessToken &&
       refreshedToken.accessToken !== currentToken.accessToken
     ) {
+      const refreshedUid = getAuthUidFromToken(refreshedToken.accessToken);
+      if (initialUid !== null && refreshedUid !== initialUid) {
+        return originalResponse;
+      }
+
       // Cancel original response body ReadableStream if it exists
       if (typeof originalResponse.body?.cancel === 'function') {
         await originalResponse.body.cancel().catch(() => {});
