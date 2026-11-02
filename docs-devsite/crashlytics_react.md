@@ -83,7 +83,7 @@ export default function MyApp() {
       {app && (
         <FirebaseCrashlytics
           firebaseApp={app}
-          crashlyticsOptions={{...}}
+          crashlyticsOptions={ {...} }
         />
       )}
       ...
