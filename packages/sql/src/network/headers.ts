@@ -76,7 +76,9 @@ export function getGoogApiClientValue(): string {
 
 /**
  * Validates that the given header name is not a protected header key (case-insensitive).
- * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if the header name is a protected header key.
+ * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and
+ * `FirebaseSqlErrorCategory.SQL_CLIENT` if the header name is a protected
+ * header key.
  * @internal
  */
 export function validateHeaderName(name: string): string {
@@ -93,7 +95,9 @@ export function validateHeaderName(name: string): string {
 
 /**
  * Validates that the given headers do not contain any protected header keys (case-insensitive).
- * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if the headers contain any protected header keys.
+ * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and
+ * `FirebaseSqlErrorCategory.SQL_CLIENT` if the headers contain any protected
+ * header keys.
  * @internal
  */
 export function validateHeaders(

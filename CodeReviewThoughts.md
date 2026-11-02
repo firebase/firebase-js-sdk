@@ -67,9 +67,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Fix JSDoc line length in `headers.ts`
 
+- Status: Resolved
 - File: `packages/sql/src/network/headers.ts`
-- JSDoc `@throws` tags on `validateHeaders` and `validateHeaderName` exceed line length limits.
-- Wrap long comment lines to comply with repository formatting standards.
+- Resolution: Wrapped the long `@throws` tags on `validateHeaderName` and `validateHeaders` across multiple indented lines to adhere to the 80-character line length limit.
 
 ## Document rationale for `Object.keys()` iteration in `validateHeaders`
 
