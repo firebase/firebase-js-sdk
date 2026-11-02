@@ -73,7 +73,25 @@ function mapPlatformStatusToCode(
   return Code.OTHER;
 }
 
-/** @internal */
+/**
+ * Maps low-level transport and PostgREST HTTP failures into canonical `FirebaseSqlError` instances.
+ *
+ * Cross-Platform Architecture Note (see go/fsql-postgrest-sdk):
+ * All Firebase SQL client platforms (Web/JS, Android/Kotlin, Apple/Swift, Flutter/Dart) communicate
+ * with the same Google Cloud PostgREST backend behind Google's ESF gateway and encounter three
+ * identical tiers of error responses:
+ *
+ * 1. `SQL_CLIENT`: Local client or network transport failures (offline, network drops, client termination
+ *    via `NOT_INITIALIZED`, or invalid client configuration).
+ * 2. `SQL_PLATFORM`: Google OnePlatform / ESF pre-adapter JSON envelopes (`{ error: { code, message, status, details } }`)
+ *    emitted by Google Cloud infrastructure before reaching PostgREST (e.g. invalid App Check token,
+ *    IAM authentication/permission rejections, quota limits).
+ * 3. `POSTGREST`: PostgREST JSON envelopes (`{ code, message, details, hint }`) containing PostgREST
+ *    error codes or PostgreSQL SQLSTATE codes (`23505` uniqueness violation, `42P01` undefined table, etc.)
+ *    mapped to canonical `Code.*` values.
+ *
+ * @internal
+ */
 export const mapPostgrestFailureToFirebaseSqlError: MapPostgrestError = (
   rawError,
   status,

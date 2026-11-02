@@ -52,9 +52,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Cross-platform consistency of error mapping logic
 
+- Status: Resolved
 - File: `packages/sql/src/core/errorMapper.ts`
-- Investigate whether `mapPostgrestFailureToFirebaseSqlError` logic applies to other Firebase SQL platforms (e.g., Flutter, Android).
-- All platforms consume HTTP REST / PostgREST endpoints and likely require identical error envelope parsing and category mappings.
+- Resolution: Investigated and confirmed that all Firebase SQL platforms (JS, Android/Kotlin, iOS/Swift, Flutter) consume the same HTTP REST/PostgREST backend behind the Google ESF gateway and receive the exact same three error envelope tiers (SQL_CLIENT, SQL_PLATFORM, POSTGREST). Documented the three-tier error mapping specification in `errorMapper.ts` referencing go/fsql-postgrest-sdk for cross-platform alignment.
 
 ## Document rationale for `String(name)` in `validateHeaderName`
 
