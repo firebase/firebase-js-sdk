@@ -60,10 +60,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Document rationale for `String(name)` in `validateHeaderName`
 
+- Status: Resolved
 - File: `packages/sql/src/network/headers.ts`
-- Line: `const headerName = String(name);`
-- Appears to be a no-op given `name: string` parameter typing.
-- Add a comment explaining rationale (e.g., defensive coercion for untyped JS callers) or remove if redundant.
+- Resolution: Retained `String(name)` and documented the rationale in an inline comment, explaining that header validation serves as a security boundary against overriding protected wire headers and single coercion prevents untyped JS callers from bypassing checks via stateful `toString()` / `[Symbol.toPrimitive]` objects.
 
 ## Fix JSDoc line length in `headers.ts`
 

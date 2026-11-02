@@ -82,6 +82,11 @@ export function getGoogApiClientValue(): string {
  * @internal
  */
 export function validateHeaderName(name: string): string {
+  // Coerce to a string exactly once. Header validation is a security boundary
+  // guarding protected wire headers (e.g. auth and telemetry). Single coercion
+  // prevents untyped JS callers from bypassing validation with stateful
+  // toString() / [Symbol.toPrimitive] objects that return an allowed name
+  // during validation and a forbidden name when applied downstream.
   const headerName = String(name);
   if (LOWERCASE_DISALLOWED_HEADER_KEYS.has(headerName.trim().toLowerCase())) {
     throw new FirebaseSqlError(
