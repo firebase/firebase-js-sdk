@@ -155,9 +155,9 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
       refreshedToken?.accessToken &&
       refreshedToken.accessToken !== currentToken.accessToken
     ) {
-      // cancel original request body ReadableStream if it exists
+      // Cancel original response body ReadableStream if it exists
       if (typeof originalResponse.body?.cancel === 'function') {
-        void originalResponse.body.cancel().catch(() => {});
+        await originalResponse.body.cancel().catch(() => {});
       }
       const retryHeaders: Record<string, string> = Object.assign({}, headers);
       retryHeaders[FirebaseHeaders.FIREBASE_AUTH_TOKEN] =

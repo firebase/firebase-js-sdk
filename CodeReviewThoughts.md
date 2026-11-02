@@ -89,6 +89,7 @@ Thoughts and observations recorded during code review of PR #10551.
 - See detailed audit report in [audit_postgrest_fetch_vs_commit_a091cc65.md](file:///usr/local/google/home/dconeybe/work/js/tree/audit_postgrest_fetch_vs_commit_a091cc65.md) for quantitative duplication analysis and structural comparison.
 - Difference 21.1: Injected x-client-version inline in resolveRequestHeaders() in headers.ts as 'web/' + SDK_VERSION and verified in headers.test.ts.
 - Difference 21.2: Retained Cloud Workstations cookie credentials handling (isCloudWorkstation check and _isUsingEmulator) in transport.ts for future emulator compatibility.
+- Difference 21.3: Changed body stream cancellation in transport.ts from void to await to ensure complete socket release before retry, and fixed comment to refer to response body.
 
 ## Investigate how `FirebaseSql` uses custom `fetch()` implementation
 
