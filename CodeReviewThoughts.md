@@ -41,9 +41,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Strengthen `isPlainRecord` check
 
+- Status: Resolved
 - File: `packages/sql/src/core/errorMapper.ts`
-- `isPlainRecord` only checks `typeof value === 'object' && value !== null && !Array.isArray(value)`.
-- Look into more robust validation: checking for `Object.prototype` or null prototype, ensuring it is non-iterable (not `Symbol.iterator`), and verifying string property keys.
+- Resolution: Strengthened `isPlainRecord` to check that `Object.getPrototypeOf(value)` is `null` or `Object.prototype`, and explicitly handled `rawError instanceof Error` in `status === 0` mapping to preserve Error message and stack.
 
 ## Deduplicate string normalization in `normalizeHint` and `normalizeDetails`
 

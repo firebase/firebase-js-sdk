@@ -80,6 +80,19 @@ describe('mapPostgrestFailureToFirebaseSqlError', () => {
       expect(empty.message).toBe('Network request failed.');
       expect(empty.status).toBeUndefined();
     });
+
+    it('extracts message and stack details from native Error instances on status 0', () => {
+      const typeError = new TypeError('fetch failed');
+      const mapped = mapPostgrestFailureToFirebaseSqlError(typeError, 0, '');
+
+      expect(mapped).toBeInstanceOf(FirebaseSqlError);
+      expect(mapped.code).toBe(Code.OTHER);
+      expect(mapped.category).toBe(FirebaseSqlErrorCategory.SQL_CLIENT);
+      expect(mapped.message).toBe('fetch failed');
+      expect(mapped.details).toBe(typeError.stack);
+      expect(mapped.hint).toBeUndefined();
+      expect(mapped.status).toBeUndefined();
+    });
   });
 
   describe('Google OnePlatform nested error envelopes (SQL_PLATFORM)', () => {
@@ -438,6 +451,33 @@ describe('mapPostgrestFailureToFirebaseSqlError', () => {
       expect(jsonArray400.message).toBe('HTTP Error 400');
       expect(jsonArray400.details).toBe(JSON.stringify(arrayPayload));
       expect(jsonArray400.status).toBe(400);
+    });
+
+    it('rejects non-plain objects (e.g. Date, Set) from envelope detection and maps as unrecognized fallback', () => {
+      const dateWithCode = Object.assign(new Date(), {
+        code: 'PGRST205',
+        message: 'fake postgrest error'
+      });
+      const mappedDate = mapPostgrestFailureToFirebaseSqlError(
+        dateWithCode,
+        500,
+        'Internal Server Error'
+      );
+      expect(mappedDate.code).toBe(Code.OTHER);
+      expect(mappedDate.category).toBe(FirebaseSqlErrorCategory.SQL_PLATFORM);
+      expect(mappedDate.message).toBe('Internal Server Error');
+      expect(mappedDate.details).toBeUndefined();
+
+      const setPayload = new Set(['item']);
+      const mappedSet = mapPostgrestFailureToFirebaseSqlError(
+        setPayload,
+        400,
+        'Bad Request'
+      );
+      expect(mappedSet.code).toBe(Code.INVALID_ARGUMENT);
+      expect(mappedSet.category).toBe(FirebaseSqlErrorCategory.SQL_PLATFORM);
+      expect(mappedSet.message).toBe('Bad Request');
+      expect(mappedSet.details).toBeUndefined();
     });
   });
 });

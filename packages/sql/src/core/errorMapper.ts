@@ -24,7 +24,11 @@ import {
 import type { MapPostgrestError } from './state';
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return false;
+  }
+  const proto = Object.getPrototypeOf(value);
+  return proto === null || proto === Object.prototype;
 }
 
 function normalizeNonEmptyString(value: unknown): string | undefined {
@@ -87,12 +91,16 @@ export const mapPostgrestFailureToFirebaseSqlError: MapPostgrestError = (
       typeof rawError.message === 'string' &&
       rawError.message.length > 0
         ? rawError.message
-        : typeof rawError === 'string' && rawError.length > 0
-          ? rawError
-          : 'Network request failed.';
+        : rawError instanceof Error && rawError.message.length > 0
+          ? rawError.message
+          : typeof rawError === 'string' && rawError.length > 0
+            ? rawError
+            : 'Network request failed.';
     const details = isPlainRecord(rawError)
       ? normalizeDetails(rawError.details)
-      : undefined;
+      : rawError instanceof Error
+        ? normalizeDetails(rawError.stack)
+        : undefined;
     const hint = isPlainRecord(rawError)
       ? normalizeHint(rawError.hint)
       : undefined;
