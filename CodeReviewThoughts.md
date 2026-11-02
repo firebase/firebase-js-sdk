@@ -28,9 +28,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Add `extends` or compile-time assignability checks to PostgREST untyped schemas
 
+- Status: Resolved
 - File: `packages/sql/src/core/untypedSchema.ts`
-- Consider having untyped schema types explicitly extend PostgREST types where appropriate (e.g., `UntypedClientOptions extends ClientServerOptions`) to clarify purpose.
-- Alternatively, add compile-time type assertions verifying assignability of `Untyped*` types to PostgREST types.
+- Resolution: Added compile-time assignability type assertions in `packages/sql/src/core/untypedSchema.test.ts` verifying that `UntypedClientOptions` satisfies `PostgrestClientOptions` and the untyped schema types satisfy `PostgrestClient`'s generic constraints.
 
 ## Evaluate `any` vs `unknown` divergence from API proposal
 
