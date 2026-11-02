@@ -94,6 +94,7 @@ Thoughts and observations recorded during code review of PR #10551.
 - Difference 21.5: Added race-free auth UID verification via JWT sub claim in transport.ts to guard against cross-account request replay on 401 retry, with mock JWT testing in transport.test.ts.
 - Difference 21.6: Added check to skip 401 retry if request body is a non-replayable ReadableStream to prevent runtime TypeError.
 - Difference 21.7: Added AbortSignal cancellation checks and prompt response body cancellation during 401 retry in transport.ts.
+- Difference 21.8: Added AbortSignal termination to SqlClientState, FirebaseSql._delete(), and FirebaseSqlTransport to provide socket-level in-flight HTTP request cancellation upon SDK termination.
 
 ## Investigate how `FirebaseSql` uses custom `fetch()` implementation
 

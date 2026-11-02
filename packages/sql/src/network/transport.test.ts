@@ -36,6 +36,11 @@ import {
 import { expect, vi } from 'vitest';
 
 import { MockAppCheckProvider, MockAuthProvider } from '../../test/mocks';
+import {
+  Code,
+  FirebaseSqlError,
+  FirebaseSqlErrorCategory
+} from '../core/error';
 import { SqlServiceSettings } from '../core/settings';
 import { TokenOptions } from '../core/tokenProviders/AbstractTokenProvider';
 import { FirebaseAuthProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
@@ -43,7 +48,12 @@ import { SDK_VERSION, setSDKVersion } from '../core/version';
 
 import { Fetch, getFetch, initializeFetch } from './fetch';
 import { FirebaseHeaders, getGoogApiClientValue } from './headers';
-import { FirebaseSqlTransport, getAuthUidFromToken } from './transport';
+import {
+  FirebaseSqlTransport,
+  composeSignals,
+  getAuthUidFromToken,
+  toAbortError
+} from './transport';
 
 const TEST_URL =
   'https://firebasedataconnect.googleapis.com/v1/projects/p/locations/l/services/s/postgrest/todos';
@@ -917,6 +927,66 @@ describe('FirebaseSqlTransport', () => {
     });
   });
 
+  describe('terminationSignal integration', () => {
+    it('throws immediately and makes no fetch calls when terminationSignal is already aborted', async () => {
+      const terminationController = new AbortController();
+      const terminationError = new FirebaseSqlError(
+        Code.NOT_INITIALIZED,
+        'The Firebase SQL client has been terminated.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+      terminationController.abort(terminationError);
+
+      const transport = new FirebaseSqlTransport({
+        settings: BASE_SETTINGS,
+        terminationSignal: terminationController.signal
+      });
+
+      await expect(transport.invokePostgrestOperation(TEST_URL)).rejects.toBe(
+        terminationError
+      );
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('aborts the combined signal and rejects the operation when terminationSignal aborts in flight', async () => {
+      const terminationController = new AbortController();
+      let fetchSignal: AbortSignal | undefined;
+      mockFetch.mockImplementation(async (_url: string, init?: RequestInit) => {
+        fetchSignal = init?.signal;
+        return new Promise<Response>((_resolve, reject) => {
+          fetchSignal?.addEventListener('abort', () => {
+            reject(toAbortError(fetchSignal!));
+          });
+        });
+      });
+
+      const transport = new FirebaseSqlTransport({
+        settings: BASE_SETTINGS,
+        terminationSignal: terminationController.signal
+      });
+
+      const userController = new AbortController();
+      const operationPromise = transport.invokePostgrestOperation(TEST_URL, {
+        signal: userController.signal
+      });
+
+      await vi.waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+      });
+
+      const terminationError = new FirebaseSqlError(
+        Code.NOT_INITIALIZED,
+        'The Firebase SQL client has been terminated.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+      terminationController.abort(terminationError);
+
+      await expect(operationPromise).rejects.toBe(terminationError);
+      expect(fetchSignal?.aborted).toBe(true);
+    });
+  });
+
   describe('getAuthUidFromToken', () => {
     it('returns null for null, undefined, or empty token', () => {
       expect(getAuthUidFromToken(null)).toBeNull();
@@ -949,6 +1019,126 @@ describe('FirebaseSqlTransport', () => {
     it('extracts uid from a valid JWT with sub claim', () => {
       const jwt = createMockJwt('uid-12345');
       expect(getAuthUidFromToken(jwt)).toBe('uid-12345');
+    });
+  });
+
+  describe('toAbortError', () => {
+    it('preserves a FirebaseSqlError attached as abort reason', () => {
+      const controller = new AbortController();
+      const sqlError = new FirebaseSqlError(
+        Code.NOT_INITIALIZED,
+        'The Firebase SQL client has been terminated.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+      controller.abort(sqlError);
+
+      const result = toAbortError(controller.signal);
+      expect(result).toBe(sqlError);
+    });
+
+    it('preserves existing AbortError and TimeoutError', () => {
+      const controller = new AbortController();
+      const abortError = new Error('aborted');
+      abortError.name = 'AbortError';
+      controller.abort(abortError);
+      expect(toAbortError(controller.signal)).toBe(abortError);
+
+      const timeoutController = new AbortController();
+      const timeoutError = new Error('timed out');
+      timeoutError.name = 'TimeoutError';
+      timeoutController.abort(timeoutError);
+      expect(toAbortError(timeoutController.signal)).toBe(timeoutError);
+    });
+
+    it('creates an AbortError with the string reason message', () => {
+      const controller = new AbortController();
+      controller.abort('custom reason');
+      const err = toAbortError(controller.signal);
+      expect(err.name).toBe('AbortError');
+      expect(err.message).toBe('custom reason');
+    });
+  });
+
+  describe('composeSignals', () => {
+    it('returns signal2 when signal1 is undefined', () => {
+      const controller = new AbortController();
+      const { signal, cleanup } = composeSignals(undefined, controller.signal);
+      expect(signal).toBe(controller.signal);
+      cleanup();
+    });
+
+    it('returns signal1 when signal2 is undefined', () => {
+      const controller = new AbortController();
+      const { signal, cleanup } = composeSignals(controller.signal, undefined);
+      expect(signal).toBe(controller.signal);
+      cleanup();
+    });
+
+    it('returns undefined when both signals are undefined', () => {
+      const { signal, cleanup } = composeSignals(undefined, undefined);
+      expect(signal).toBeUndefined();
+      cleanup();
+    });
+
+    it('returns signal1 immediately if signal1 is already aborted', () => {
+      const c1 = new AbortController();
+      c1.abort('reason1');
+      const c2 = new AbortController();
+      const { signal, cleanup } = composeSignals(c1.signal, c2.signal);
+      expect(signal).toBe(c1.signal);
+      expect(signal?.aborted).toBe(true);
+      expect(signal?.reason).toBe('reason1');
+      cleanup();
+    });
+
+    it('returns signal2 immediately if signal2 is already aborted', () => {
+      const c1 = new AbortController();
+      const c2 = new AbortController();
+      c2.abort('reason2');
+      const { signal, cleanup } = composeSignals(c1.signal, c2.signal);
+      expect(signal).toBe(c2.signal);
+      expect(signal?.aborted).toBe(true);
+      expect(signal?.reason).toBe('reason2');
+      cleanup();
+    });
+
+    it('aborts composed signal when signal1 aborts', () => {
+      const c1 = new AbortController();
+      const c2 = new AbortController();
+      const { signal, cleanup } = composeSignals(c1.signal, c2.signal);
+      expect(signal?.aborted).toBe(false);
+
+      c1.abort('abort-from-1');
+      expect(signal?.aborted).toBe(true);
+      expect(signal?.reason).toBe('abort-from-1');
+      cleanup();
+    });
+
+    it('aborts composed signal when signal2 aborts', () => {
+      const c1 = new AbortController();
+      const c2 = new AbortController();
+      const { signal, cleanup } = composeSignals(c1.signal, c2.signal);
+      expect(signal?.aborted).toBe(false);
+
+      c2.abort('abort-from-2');
+      expect(signal?.aborted).toBe(true);
+      expect(signal?.reason).toBe('abort-from-2');
+      cleanup();
+    });
+
+    it('cleanup unregisters event listeners when fallback AbortController is used', () => {
+      const c1 = new AbortController();
+      const c2 = new AbortController();
+      const originalAny = AbortSignal.any;
+      try {
+        (AbortSignal as unknown as { any?: unknown }).any = undefined;
+        const { signal, cleanup } = composeSignals(c1.signal, c2.signal);
+        cleanup();
+        c1.abort();
+        expect(signal?.aborted).toBe(false);
+      } finally {
+        (AbortSignal as unknown as { any?: unknown }).any = originalAny;
+      }
     });
   });
 });

@@ -18,6 +18,7 @@
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { decode, isCloudWorkstation } from '@firebase/util';
 
+import { FirebaseSqlError } from '../core/error';
 import { SqlServiceSettings } from '../core/settings';
 import { AppCheckTokenProvider } from '../core/tokenProviders/AppCheckTokenProvider';
 import { FirebaseAuthTokenProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
@@ -54,13 +55,18 @@ export function getAuthUidFromToken(
 }
 
 /**
- * Normalizes an AbortSignal abort reason or thrown error into a standard AbortError.
+ * Normalizes an AbortSignal abort reason or thrown error into a standard AbortError,
+ * preserving any existing FirebaseSqlError, AbortError, or TimeoutError.
+ *
+ * @internal
  */
-function toAbortError(signal: AbortSignal, thrown?: unknown): Error {
+export function toAbortError(signal: AbortSignal, thrown?: unknown): Error {
   const reason: unknown = thrown !== undefined ? thrown : signal.reason;
   if (
     reason instanceof Error &&
-    (reason.name === 'AbortError' || reason.name === 'TimeoutError')
+    (reason.name === 'AbortError' ||
+      reason.name === 'TimeoutError' ||
+      reason instanceof FirebaseSqlError)
   ) {
     return reason;
   }
@@ -73,6 +79,48 @@ function toAbortError(signal: AbortSignal, thrown?: unknown): Error {
   const error = new Error(message);
   error.name = 'AbortError';
   return error;
+}
+
+/**
+ * Composes two AbortSignals into a single effective AbortSignal.
+ *
+ * @internal
+ */
+export function composeSignals(
+  signal1: AbortSignal | undefined,
+  signal2: AbortSignal | undefined
+): { signal: AbortSignal | undefined; cleanup: () => void } {
+  if (!signal1) {
+    return { signal: signal2, cleanup: () => {} };
+  }
+  if (!signal2) {
+    return { signal: signal1, cleanup: () => {} };
+  }
+  if (signal1.aborted) {
+    return { signal: signal1, cleanup: () => {} };
+  }
+  if (signal2.aborted) {
+    return { signal: signal2, cleanup: () => {} };
+  }
+
+  if (typeof AbortSignal.any === 'function') {
+    return {
+      signal: AbortSignal.any([signal1, signal2]),
+      cleanup: () => {}
+    };
+  }
+
+  const controller = new AbortController();
+  const onAbort1 = () => controller.abort(signal1.reason);
+  const onAbort2 = () => controller.abort(signal2.reason);
+  signal1.addEventListener('abort', onAbort1, { once: true });
+  signal2.addEventListener('abort', onAbort2, { once: true });
+
+  const cleanup = () => {
+    signal1.removeEventListener('abort', onAbort1);
+    signal2.removeEventListener('abort', onAbort2);
+  };
+  return { signal: controller.signal, cleanup };
 }
 
 /**
@@ -97,6 +145,7 @@ export interface FirebaseSqlTransportOptions {
   appId?: string | undefined;
   authTokenProvider?: FirebaseAuthTokenProvider | undefined;
   appCheckTokenProvider?: AppCheckTokenProvider | undefined;
+  terminationSignal?: AbortSignal | undefined;
 }
 
 /**
@@ -110,12 +159,14 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
   protected _isUsingEmulator = false;
   protected authProvider?: FirebaseAuthTokenProvider;
   protected appCheckProvider?: AppCheckTokenProvider;
+  protected _terminationSignal?: AbortSignal;
 
   constructor(options: FirebaseSqlTransportOptions = {}) {
     this.settings = options.settings;
     this._appId = options.appId;
     this.authProvider = options.authTokenProvider;
     this.appCheckProvider = options.appCheckTokenProvider;
+    this._terminationSignal = options.terminationSignal;
   }
 
   /**
@@ -125,46 +176,64 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
     url: string,
     init?: RequestInit
   ): Promise<Response> {
-    const fetchImpl = getFetch();
+    if (this._terminationSignal?.aborted) {
+      throw toAbortError(this._terminationSignal);
+    }
 
-    const [authToken, appCheckToken] = await Promise.all([
-      this.authProvider
-        ? this.authProvider.getToken({ forceRefresh: false })
-        : Promise.resolve(null),
-      this.appCheckProvider
-        ? this.appCheckProvider
-            .getToken({ forceRefresh: false })
-            .catch(() => null)
-        : Promise.resolve(null)
-    ]);
-
-    const headers = resolveRequestHeaders(
-      authToken,
-      appCheckToken,
-      init,
-      this._appId
-    );
-    const requestInit = this.buildRequestInit(init, headers, url);
-    const initialUid = getAuthUidFromToken(authToken?.accessToken);
-    const canReplayBody = !(
-      typeof ReadableStream !== 'undefined' &&
-      init?.body instanceof ReadableStream
+    const { signal: effectiveSignal, cleanup } = composeSignals(
+      init?.signal,
+      this._terminationSignal
     );
 
-    return fetchImpl(url, requestInit).then(response => {
-      if (response.status === 401 && authToken && canReplayBody) {
-        return this.refreshAuthAndRefetch(
-          fetchImpl,
-          url,
-          requestInit,
-          headers,
-          authToken,
-          response,
-          initialUid
-        );
-      }
-      return response;
-    });
+    try {
+      const fetchImpl = getFetch();
+
+      const [authToken, appCheckToken] = await Promise.all([
+        this.authProvider
+          ? this.authProvider.getToken({ forceRefresh: false })
+          : Promise.resolve(null),
+        this.appCheckProvider
+          ? this.appCheckProvider
+              .getToken({ forceRefresh: false })
+              .catch(() => null)
+          : Promise.resolve(null)
+      ]);
+
+      const headers = resolveRequestHeaders(
+        authToken,
+        appCheckToken,
+        init,
+        this._appId
+      );
+      const requestInit = this.buildRequestInit(
+        init,
+        headers,
+        url,
+        effectiveSignal
+      );
+      const initialUid = getAuthUidFromToken(authToken?.accessToken);
+      const canReplayBody = !(
+        typeof ReadableStream !== 'undefined' &&
+        init?.body instanceof ReadableStream
+      );
+
+      return await fetchImpl(url, requestInit).then(response => {
+        if (response.status === 401 && authToken && canReplayBody) {
+          return this.refreshAuthAndRefetch(
+            fetchImpl,
+            url,
+            requestInit,
+            headers,
+            authToken,
+            response,
+            initialUid
+          );
+        }
+        return response;
+      });
+    } finally {
+      cleanup();
+    }
   }
 
   /**
@@ -174,9 +243,13 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
   private buildRequestInit(
     init: RequestInit | undefined,
     headers: Record<string, string>,
-    requestUrl: string
+    requestUrl: string,
+    signal?: AbortSignal | undefined
   ): RequestInit {
     const requestInit: RequestInit = Object.assign({}, init, { headers });
+    if (signal !== undefined) {
+      requestInit.signal = signal;
+    }
 
     // Forward workstation auth cookies when targeting an emulator host in
     // Cloud Workstations, where forwarded ports require cookie auth.

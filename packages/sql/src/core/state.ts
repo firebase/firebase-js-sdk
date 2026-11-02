@@ -34,6 +34,7 @@ export interface SqlClientResources {
 /** @internal */
 export interface SqlClientState {
   active: SqlClientResources | null;
+  readonly terminationSignal?: AbortSignal;
 }
 
 /** @internal */

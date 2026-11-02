@@ -77,6 +77,8 @@ export class FirebaseSql {
   /** @internal */
   private readonly _state: SqlClientState;
 
+  private readonly _terminationController = new AbortController();
+
   private readonly _postgrestClient: PostgrestClient<
     UntypedDatabase,
     UntypedClientOptions,
@@ -110,7 +112,8 @@ export class FirebaseSql {
           app,
           appCheckInternalProvider
         )
-      }
+      },
+      terminationSignal: this._terminationController.signal
     };
 
     // PostgrestClient is deliberately instantiated without a static `fetch` option.
@@ -129,6 +132,13 @@ export class FirebaseSql {
     if (this._state.active !== null) {
       const active = this._state.active;
       this._state.active = null;
+      this._terminationController.abort(
+        new FirebaseSqlError(
+          Code.NOT_INITIALIZED,
+          'The Firebase SQL client has been terminated.',
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        )
+      );
       active.appCheckTokenProvider.terminate();
       active.authTokenProvider.terminate();
       _removeServiceInstance(
