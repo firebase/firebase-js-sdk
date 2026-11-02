@@ -27,9 +27,14 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function normalizeNonEmptyString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.length > 0 ? value : undefined;
+}
+
 function normalizeDetails(details: unknown): string | undefined {
-  if (typeof details === 'string') {
-    return details.length > 0 ? details : undefined;
+  const stringDetails = normalizeNonEmptyString(details);
+  if (stringDetails !== undefined) {
+    return stringDetails;
   }
   // PostgREST PGRST201 (ambiguous embedding) and Google OnePlatform RPC errors
   // emit structured object/array details rather than strings.
@@ -40,10 +45,7 @@ function normalizeDetails(details: unknown): string | undefined {
 }
 
 function normalizeHint(hint: unknown): string | undefined {
-  if (typeof hint === 'string' && hint.length > 0) {
-    return hint;
-  }
-  return undefined;
+  return normalizeNonEmptyString(hint);
 }
 
 function mapPlatformStatusToCode(

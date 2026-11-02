@@ -48,9 +48,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Deduplicate string normalization in `normalizeHint` and `normalizeDetails`
 
+- Status: Resolved
 - File: `packages/sql/src/core/errorMapper.ts`
-- Non-empty string check (`typeof x === 'string' && x.length > 0 ? x : undefined`) is duplicated in `normalizeDetails` and `normalizeHint`.
-- Factor out into a shared helper function.
+- Resolution: Extracted `normalizeNonEmptyString(value: unknown): string | undefined` helper and reused it in `normalizeDetails` and `normalizeHint`.
 
 ## Cross-platform consistency of error mapping logic
 
