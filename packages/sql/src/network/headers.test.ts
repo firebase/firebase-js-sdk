@@ -102,6 +102,7 @@ describe('resolveRequestHeaders()', () => {
   it('attaches default telemetry', () => {
     const result = resolveRequestHeaders(null, null, undefined, 'app-123');
     expect(result[FirebaseHeaders.GOOG_API_CLIENT]).toBe('gl-js/ fire/1.2.3');
+    expect(result[FirebaseHeaders.CLIENT_VERSION]).toBe('web/1.2.3');
     expect(result[FirebaseHeaders.FIREBASE_GMPID]).toBe('app-123');
   });
 
@@ -112,12 +113,14 @@ describe('resolveRequestHeaders()', () => {
       {
         headers: {
           [FirebaseHeaders.GOOG_API_CLIENT]: 'custom-client/9.9',
+          [FirebaseHeaders.CLIENT_VERSION]: 'custom-client-version',
           [FirebaseHeaders.FIREBASE_GMPID]: 'custom-gmpid'
         }
       },
       'app-123'
     );
     expect(result[FirebaseHeaders.GOOG_API_CLIENT]).toBe('gl-js/ fire/1.2.3');
+    expect(result[FirebaseHeaders.CLIENT_VERSION]).toBe('web/1.2.3');
     expect(result[FirebaseHeaders.FIREBASE_GMPID]).toBe('app-123');
   });
 });

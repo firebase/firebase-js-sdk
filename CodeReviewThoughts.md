@@ -82,10 +82,12 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Duplication between `postgrestFetch.ts` and earlier commit `a091cc6518a5`
 
+- Status: In Progress
 - File: `packages/sql/src/network/postgrestFetch.ts`
 - Compare with: commit `a091cc6518a5d0fb3138b8bba6aacff41c6213c9` (`packages/sql/src/network/transport.ts` and `packages/sql/src/network/headers.ts`).
 - `postgrestFetch.ts` largely duplicates token retrieval, wire header injection, and 401 token-refresh retry logic from `transport.ts` and `headers.ts`, leaving `FirebaseSqlTransport` as dead code.
 - See detailed audit report in [audit_postgrest_fetch_vs_commit_a091cc65.md](file:///usr/local/google/home/dconeybe/work/js/tree/audit_postgrest_fetch_vs_commit_a091cc65.md) for quantitative duplication analysis and structural comparison.
+- Difference 21.1: Injected x-client-version inline in resolveRequestHeaders() in headers.ts as 'web/' + SDK_VERSION and verified in headers.test.ts.
 
 ## Investigate how `FirebaseSql` uses custom `fetch()` implementation
 

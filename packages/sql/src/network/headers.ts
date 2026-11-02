@@ -173,6 +173,7 @@ export function resolveRequestHeaders(
 
   // Telemetry headers
   headers.set(FirebaseHeaders.GOOG_API_CLIENT, getGoogApiClientValue());
+  headers.set(FirebaseHeaders.CLIENT_VERSION, 'web/' + SDK_VERSION);
   if (_appId !== undefined) {
     headers.set(FirebaseHeaders.FIREBASE_GMPID, _appId);
   } else {
