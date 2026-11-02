@@ -47,6 +47,12 @@ export interface QueryDeleteOptions {
   count?: QueryCountStrategy | undefined;
 }
 
+/**
+ * Constrains a type to ensure it is not iterable (e.g. not an Array).
+ * @public
+ */
+export type NonIterable<T> = T & { readonly [Symbol.iterator]?: never };
+
 export interface QueryBuilder {
   select(
     columns?: string | undefined,
@@ -54,33 +60,33 @@ export interface QueryBuilder {
   ): FilterBuilder<Array<Record<string, unknown>>, 'GET'>;
 
   insert<
-    Row extends object & {
-      readonly [K in keyof Row]: unknown;
-    } & {
-      readonly [Symbol.iterator]?: never;
-    } = Record<string, unknown>
+    Row extends NonIterable<
+      object & {
+        readonly [K in keyof Row]: unknown;
+      }
+    > = Record<string, unknown>
   >(
     values: Row | readonly Row[],
     options?: Readonly<QueryInsertOptions> | undefined
   ): FilterBuilder<null, 'POST'>;
 
   upsert<
-    Row extends object & {
-      readonly [K in keyof Row]: unknown;
-    } & {
-      readonly [Symbol.iterator]?: never;
-    } = Record<string, unknown>
+    Row extends NonIterable<
+      object & {
+        readonly [K in keyof Row]: unknown;
+      }
+    > = Record<string, unknown>
   >(
     values: Row | readonly Row[],
     options?: Readonly<QueryUpsertOptions> | undefined
   ): FilterBuilder<null, 'POST'>;
 
   update<
-    Row extends object & {
-      readonly [K in keyof Row]: unknown;
-    } & {
-      readonly [Symbol.iterator]?: never;
-    } = Record<string, unknown>
+    Row extends NonIterable<
+      object & {
+        readonly [K in keyof Row]: unknown;
+      }
+    > = Record<string, unknown>
   >(
     values: Row,
     options?: Readonly<QueryUpdateOptions> | undefined

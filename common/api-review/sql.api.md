@@ -271,6 +271,11 @@ export type NarrowResultColumn<T, Col extends string> = T extends Array<infer It
     [K in keyof T]: K extends Col ? NonNullable<T[K]> : T[K];
 } : T : T;
 
+// @public
+export type NonIterable<T> = T & {
+    readonly [Symbol.iterator]?: never;
+};
+
 // @public (undocumented)
 export interface OperationBase {
     // (undocumented)
@@ -311,25 +316,19 @@ export interface QueryBuilder {
     // (undocumented)
     delete(options?: Readonly<QueryDeleteOptions> | undefined): FilterBuilder<null, 'DELETE'>;
     // (undocumented)
-    insert<Row extends object & {
+    insert<Row extends NonIterable<object & {
         readonly [K in keyof Row]: unknown;
-    } & {
-        readonly [Symbol.iterator]?: never;
-    } = Record<string, unknown>>(values: Row | readonly Row[], options?: Readonly<QueryInsertOptions> | undefined): FilterBuilder<null, 'POST'>;
+    }> = Record<string, unknown>>(values: Row | readonly Row[], options?: Readonly<QueryInsertOptions> | undefined): FilterBuilder<null, 'POST'>;
     // (undocumented)
     select(columns?: string | undefined, options?: Readonly<QuerySelectOptions> | undefined): FilterBuilder<Array<Record<string, unknown>>, 'GET'>;
     // (undocumented)
-    update<Row extends object & {
+    update<Row extends NonIterable<object & {
         readonly [K in keyof Row]: unknown;
-    } & {
-        readonly [Symbol.iterator]?: never;
-    } = Record<string, unknown>>(values: Row, options?: Readonly<QueryUpdateOptions> | undefined): FilterBuilder<null, 'PATCH'>;
+    }> = Record<string, unknown>>(values: Row, options?: Readonly<QueryUpdateOptions> | undefined): FilterBuilder<null, 'PATCH'>;
     // (undocumented)
-    upsert<Row extends object & {
+    upsert<Row extends NonIterable<object & {
         readonly [K in keyof Row]: unknown;
-    } & {
-        readonly [Symbol.iterator]?: never;
-    } = Record<string, unknown>>(values: Row | readonly Row[], options?: Readonly<QueryUpsertOptions> | undefined): FilterBuilder<null, 'POST'>;
+    }> = Record<string, unknown>>(values: Row | readonly Row[], options?: Readonly<QueryUpsertOptions> | undefined): FilterBuilder<null, 'POST'>;
 }
 
 // @public (undocumented)

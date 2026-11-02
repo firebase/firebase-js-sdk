@@ -63,6 +63,7 @@ export {
 } from './FirebaseSql';
 
 export type {
+  NonIterable,
   QueryBuilder,
   QueryCountStrategy,
   QueryDeleteOptions,

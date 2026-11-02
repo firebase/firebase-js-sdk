@@ -49,11 +49,9 @@ delete(options?: Readonly<QueryDeleteOptions> | undefined): FilterBuilder<null, 
 <b>Signature:</b>
 
 ```typescript
-insert<Row extends object & {
+insert<Row extends NonIterable<object & {
         readonly [K in keyof Row]: unknown;
-    } & {
-        readonly [Symbol.iterator]?: never;
-    } = Record<string, unknown>>(values: Row | readonly Row[], options?: Readonly<QueryInsertOptions> | undefined): FilterBuilder<null, 'POST'>;
+    }> = Record<string, unknown>>(values: Row | readonly Row[], options?: Readonly<QueryInsertOptions> | undefined): FilterBuilder<null, 'POST'>;
 ```
 
 #### Parameters
@@ -91,11 +89,9 @@ select(columns?: string | undefined, options?: Readonly<QuerySelectOptions> | un
 <b>Signature:</b>
 
 ```typescript
-update<Row extends object & {
+update<Row extends NonIterable<object & {
         readonly [K in keyof Row]: unknown;
-    } & {
-        readonly [Symbol.iterator]?: never;
-    } = Record<string, unknown>>(values: Row, options?: Readonly<QueryUpdateOptions> | undefined): FilterBuilder<null, 'PATCH'>;
+    }> = Record<string, unknown>>(values: Row, options?: Readonly<QueryUpdateOptions> | undefined): FilterBuilder<null, 'PATCH'>;
 ```
 
 #### Parameters
@@ -114,11 +110,9 @@ update<Row extends object & {
 <b>Signature:</b>
 
 ```typescript
-upsert<Row extends object & {
+upsert<Row extends NonIterable<object & {
         readonly [K in keyof Row]: unknown;
-    } & {
-        readonly [Symbol.iterator]?: never;
-    } = Record<string, unknown>>(values: Row | readonly Row[], options?: Readonly<QueryUpsertOptions> | undefined): FilterBuilder<null, 'POST'>;
+    }> = Record<string, unknown>>(values: Row | readonly Row[], options?: Readonly<QueryUpsertOptions> | undefined): FilterBuilder<null, 'POST'>;
 ```
 
 #### Parameters

@@ -102,9 +102,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Create `NonIterable` utility type for row type narrowing
 
-- Scope: `packages/sql/src/api/impl/QueryBuilderImpl.ts`
-- Extract `{ readonly [Symbol.iterator]?: never }` into a named utility type (e.g., `type NonIterable<T> = T & { readonly [Symbol.iterator]?: never }`).
-- Improves readability and avoids noisy inline intersection (`&`) syntax at mutation method signatures (`insert`, `upsert`, `update`).
+- Status: Resolved
+- Scope: `packages/sql/src/api/QueryBuilder.ts`, `packages/sql/src/api/impl/QueryBuilderImpl.ts`, `packages/sql/src/api/index.ts`
+- Resolution: Defined and exported `NonIterable<T>` in `QueryBuilder.ts`, re-exported it in `packages/sql/src/api/index.ts`, and updated `insert`, `upsert`, and `update` signatures across `QueryBuilder` and `QueryBuilderImpl`.
 
 ## Remove redundant pre-emptive `state.active` check in `FilterBuilderImpl.#execute()`
 

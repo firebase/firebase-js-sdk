@@ -22,6 +22,7 @@ import type {
 } from '../../core/state';
 import type { FilterBuilder } from '../FilterBuilder';
 import type {
+  NonIterable,
   QueryBuilder,
   QueryDeleteOptions,
   QueryInsertOptions,
@@ -94,11 +95,11 @@ export class QueryBuilderImpl implements QueryBuilder {
   }
 
   insert<
-    Row extends object & {
-      readonly [K in keyof Row]: unknown;
-    } & {
-      readonly [Symbol.iterator]?: never;
-    } = Record<string, unknown>
+    Row extends NonIterable<
+      object & {
+        readonly [K in keyof Row]: unknown;
+      }
+    > = Record<string, unknown>
   >(
     values: Row | readonly Row[],
     options?: Readonly<QueryInsertOptions> | undefined
@@ -112,11 +113,11 @@ export class QueryBuilderImpl implements QueryBuilder {
   }
 
   upsert<
-    Row extends object & {
-      readonly [K in keyof Row]: unknown;
-    } & {
-      readonly [Symbol.iterator]?: never;
-    } = Record<string, unknown>
+    Row extends NonIterable<
+      object & {
+        readonly [K in keyof Row]: unknown;
+      }
+    > = Record<string, unknown>
   >(
     values: Row | readonly Row[],
     options?: Readonly<QueryUpsertOptions> | undefined
@@ -130,11 +131,11 @@ export class QueryBuilderImpl implements QueryBuilder {
   }
 
   update<
-    Row extends object & {
-      readonly [K in keyof Row]: unknown;
-    } & {
-      readonly [Symbol.iterator]?: never;
-    } = Record<string, unknown>
+    Row extends NonIterable<
+      object & {
+        readonly [K in keyof Row]: unknown;
+      }
+    > = Record<string, unknown>
   >(
     values: Row,
     options?: Readonly<QueryUpdateOptions> | undefined

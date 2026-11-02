@@ -82,6 +82,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [MergeExplicit](./sql.md#mergeexplicit) |  |
 |  [MergePartialResult](./sql.md#mergepartialresult) |  |
 |  [NarrowResultColumn](./sql.md#narrowresultcolumn) |  |
+|  [NonIterable](./sql.md#noniterable) | Constrains a type to ensure it is not iterable (e.g. not an Array). |
 |  [OperationResult](./sql.md#operationresult) |  |
 |  [QueryCountStrategy](./sql.md#querycountstrategy) |  |
 |  [SelectQueryError](./sql.md#selectqueryerror) |  |
@@ -339,6 +340,18 @@ export type NarrowResultColumn<T, Col extends string> = T extends Array<infer It
 }> : T : T : T extends object ? Col extends keyof T ? {
     [K in keyof T]: K extends Col ? NonNullable<T[K]> : T[K];
 } : T : T;
+```
+
+## NonIterable
+
+Constrains a type to ensure it is not iterable (e.g. not an Array).
+
+<b>Signature:</b>
+
+```typescript
+export type NonIterable<T> = T & {
+    readonly [Symbol.iterator]?: never;
+};
 ```
 
 ## OperationResult
