@@ -122,9 +122,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Omit redundant generic type arguments in `new PostgrestClient(...)` call
 
+- Status: Resolved
 - File: `packages/sql/src/api/FirebaseSql.ts`
-- Line 116 repeats `<UntypedDatabase, UntypedClientOptions, string, UntypedSchema>` already declared on `#postgrestClient` (lines 80–85).
-- Evaluate omitting the explicit generic parameters in `new PostgrestClient(...)` to reduce visual noise.
+- Resolution: Omitted the redundant generic type arguments from `new PostgrestClient(...)` call, relying on the type already explicitly declared on `#postgrestClient`.
 
 ## Audit public exports in `packages/sql/src/api/index.ts`
 
