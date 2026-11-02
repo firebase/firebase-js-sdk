@@ -517,9 +517,11 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
   }
 
   private _execute(): PromiseLike<OperationResult<T>> {
-    // Bind a fresh per-execution tracker synchronously before invoking `this._delegate.then(...)`,
-    // which snapshots `this.fetch` synchronously on entry before yielding, then clear
-    // `this._delegate.fetch` so long-lived builders do not retain the execution's tracker closure.
+    // Bind a fresh per-execution tracker synchronously before invoking `this._delegate.then(...)`.
+    // PostgrestFilterBuilder snapshots `this.fetch` synchronously on entry before yielding microtasks.
+    // Dynamic per-execution binding ensures concurrent executions of the same builder instance
+    // (e.g. `Promise.all([query, query])`) each receive an isolated `BuilderExecutionTracker`
+    // closure, preventing cross-talk between concurrent error/success attributions.
     const tracker: BuilderExecutionTracker = { clientError: null };
     Reflect.set(
       this._delegate,

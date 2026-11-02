@@ -90,9 +90,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Investigate how `FirebaseSql` uses custom `fetch()` implementation
 
+- Status: Resolved
 - Files: `packages/sql/src/api/FirebaseSql.ts`, `packages/sql/src/api/impl/FilterBuilderImpl.ts`, `packages/sql/src/network/postgrestFetch.ts`
-- Investigate if and how `FirebaseSql` wires the custom `fetch` implementation.
-- Note: `FirebaseSql` does not pass `fetch` into the `PostgrestClient` constructor; instead, `createBuilderFetch` is passed to `FilterBuilderImpl`, which dynamically mutates and clears `this.#delegate.fetch` via `Reflect.set` during `#execute()`.
+- Resolution: Investigated and documented the architectural rationale: `PostgrestClient` is initialized without a static `fetch` because builders require an execution-isolated `BuilderExecutionTracker` closure. `FilterBuilderImpl` dynamically binds `fetch` synchronously right before `then()` so concurrent executions of the same builder instance do not share or corrupt error attribution. Documented in `FirebaseSql.ts` and `FilterBuilderImpl.ts`.
 
 ## Use concrete PostgREST class typing instead of custom delegate handles
 

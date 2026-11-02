@@ -113,6 +113,11 @@ export class FirebaseSql {
       }
     };
 
+    // PostgrestClient is deliberately instantiated without a static `fetch` option.
+    // Instead, `createBuilderFetch` is passed down to query/filter builders, which
+    // bind an execution-isolated `fetch` dynamically on each query execution to ensure
+    // concurrent executions of the same builder instance do not share a single
+    // `BuilderExecutionTracker` closure.
     this._postgrestClient = new PostgrestClient(this._postgrestUrl, {
       headers: this.settings.headers,
       schema: this.settings.schemaName
