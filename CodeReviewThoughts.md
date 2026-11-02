@@ -90,6 +90,7 @@ Thoughts and observations recorded during code review of PR #10551.
 - Difference 21.1: Injected x-client-version inline in resolveRequestHeaders() in headers.ts as 'web/' + SDK_VERSION and verified in headers.test.ts.
 - Difference 21.2: Retained Cloud Workstations cookie credentials handling (isCloudWorkstation check and _isUsingEmulator) in transport.ts for future emulator compatibility.
 - Difference 21.3: Changed body stream cancellation in transport.ts from void to await to ensure complete socket release before retry, and fixed comment to refer to response body.
+- Difference 21.4: Added cached token pre-check in transport.ts before forceRefresh on 401 responses to avoid redundant Auth network roundtrips under concurrency.
 
 ## Investigate how `FirebaseSql` uses custom `fetch()` implementation
 

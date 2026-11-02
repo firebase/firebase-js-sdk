@@ -452,6 +452,9 @@ describe('FirebaseSqlTransport', () => {
         forceRefresh: false
       });
       expect(authProvider.getToken).toHaveBeenNthCalledWith(2, {
+        forceRefresh: false
+      });
+      expect(authProvider.getToken).toHaveBeenNthCalledWith(3, {
         forceRefresh: true
       });
       expect(
@@ -469,6 +472,60 @@ describe('FirebaseSqlTransport', () => {
         await transport.invokePostgrestOperation(TEST_URL);
       expect(failedRetryResponse).toBe(retryTwoResponse);
       expect(mockFetch).toHaveBeenCalledTimes(4);
+    });
+
+    it('retries with cached token on 401 if getToken({ forceRefresh: false }) returns a new token without calling forceRefresh', async () => {
+      let callCount = 0;
+      const authProvider = new MockAuthProvider();
+      authProvider.getToken = vi.fn(
+        async (
+          options?: TokenOptions
+        ): Promise<FirebaseAuthTokenData | null> => {
+          callCount++;
+          if (options?.forceRefresh) {
+            return { accessToken: 'forced-token' };
+          }
+          return callCount === 1
+            ? { accessToken: 'stale-token' }
+            : { accessToken: 'cached-fresh-token' };
+        }
+      );
+
+      const requestOneResponse = new Response('Unauthorized', { status: 401 });
+      const retryResponse = new Response(JSON.stringify([{ id: 1 }]), {
+        status: 200
+      });
+
+      mockFetch
+        .mockResolvedValueOnce(requestOneResponse)
+        .mockResolvedValueOnce(retryResponse);
+
+      const transport = new FirebaseSqlTransport({
+        settings: BASE_SETTINGS,
+        authTokenProvider: authProvider
+      });
+
+      const response = await transport.invokePostgrestOperation(TEST_URL);
+      expect(response).toBe(retryResponse);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(
+        getHeadersFromCall(mockFetch, 0).get(
+          FirebaseHeaders.FIREBASE_AUTH_TOKEN
+        )
+      ).toBe('stale-token');
+      expect(
+        getHeadersFromCall(mockFetch, 1).get(
+          FirebaseHeaders.FIREBASE_AUTH_TOKEN
+        )
+      ).toBe('cached-fresh-token');
+
+      expect(authProvider.getToken).toHaveBeenCalledTimes(2);
+      expect(authProvider.getToken).toHaveBeenNthCalledWith(1, {
+        forceRefresh: false
+      });
+      expect(authProvider.getToken).toHaveBeenNthCalledWith(2, {
+        forceRefresh: false
+      });
     });
 
     it('deduplicates concurrent 401 responses into a single getToken(true) call with a real FirebaseAuthProvider', async () => {
@@ -622,11 +679,14 @@ describe('FirebaseSqlTransport', () => {
 
       expect(res).toBe(unauthorizedRes);
       expect(mockFetch).toHaveBeenCalledTimes(1);
-      expect(sameTokenProvider.getToken).toHaveBeenCalledTimes(2);
+      expect(sameTokenProvider.getToken).toHaveBeenCalledTimes(3);
       expect(sameTokenProvider.getToken).toHaveBeenNthCalledWith(1, {
         forceRefresh: false
       });
       expect(sameTokenProvider.getToken).toHaveBeenNthCalledWith(2, {
+        forceRefresh: false
+      });
+      expect(sameTokenProvider.getToken).toHaveBeenNthCalledWith(3, {
         forceRefresh: true
       });
     });

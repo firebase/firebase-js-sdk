@@ -147,10 +147,27 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
     currentToken: FirebaseAuthTokenData,
     originalResponse: Response
   ): Promise<Response> {
-    const refreshedToken = await this.authProvider
-      ?.getToken({ forceRefresh: true })
+    if (!this.authProvider) {
+      return originalResponse;
+    }
+
+    // Check cached token first to avoid redundant Auth network trips if another
+    // concurrent request already refreshed the token in the background.
+    let refreshedToken = await this.authProvider
+      .getToken({ forceRefresh: false })
       .then(data => data ?? null)
       .catch(() => null);
+
+    if (
+      !refreshedToken?.accessToken ||
+      refreshedToken.accessToken === currentToken.accessToken
+    ) {
+      refreshedToken = await this.authProvider
+        .getToken({ forceRefresh: true })
+        .then(data => data ?? null)
+        .catch(() => null);
+    }
+
     if (
       refreshedToken?.accessToken &&
       refreshedToken.accessToken !== currentToken.accessToken
