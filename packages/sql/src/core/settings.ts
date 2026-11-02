@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { validateHeaders } from '../network/headers';
+import { LOWERCASE_DISALLOWED_HEADER_KEYS } from '../util/constants';
 
 import { FirebaseSqlErrorCategory, Code, FirebaseSqlError } from './error';
 
@@ -67,6 +67,30 @@ export function freezeSqlServiceSettings(
 }
 
 /**
+ * Validates that the given headers do not contain any protected header keys (case-insensitive).
+ * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if the headers contain any protected header keys.
+ * @internal
+ */
+export function validateInitializationHeaders(
+  headers?: Record<string, string> | undefined
+): void {
+  if (!headers) {
+    return;
+  }
+  for (const key of Object.keys(headers)) {
+    if (
+      LOWERCASE_DISALLOWED_HEADER_KEYS.has(String(key).trim().toLowerCase())
+    ) {
+      throw new FirebaseSqlError(
+        Code.INVALID_ARGUMENT,
+        `Cannot set protected header ${key}.`,
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+    }
+  }
+}
+
+/**
  * Validates required `SqlServiceSettings` fields.
  *
  * @returns a deep, frozen copy of the settings.
@@ -97,6 +121,6 @@ export function validateSqlServiceSettings(
       FirebaseSqlErrorCategory.SQL_CLIENT
     );
   }
-  validateHeaders(settings.headers);
+  validateInitializationHeaders(settings.headers);
   return freezeSqlServiceSettings(settings);
 }
