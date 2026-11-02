@@ -19,25 +19,30 @@ import type { FirebaseSqlError } from './error';
 import type { AppCheckTokenProvider } from './tokenProviders/AppCheckTokenProvider';
 import type { FirebaseAuthTokenProvider } from './tokenProviders/FirebaseAuthTokenProvider';
 
+/** @internal */
 export interface BuilderExecutionTracker {
   clientError: FirebaseSqlError | null;
 }
 
+/** @internal */
 export interface SqlClientResources {
   readonly appId: string | undefined;
   readonly authTokenProvider: FirebaseAuthTokenProvider;
   readonly appCheckTokenProvider: AppCheckTokenProvider;
 }
 
+/** @internal */
 export interface SqlClientState {
   active: SqlClientResources | null;
 }
 
+/** @internal */
 export type CreateBuilderFetch = (
   state: Readonly<SqlClientState>,
   tracker: BuilderExecutionTracker
 ) => typeof fetch;
 
+/** @internal */
 export type MapPostgrestError = (
   rawError: unknown,
   status: number,

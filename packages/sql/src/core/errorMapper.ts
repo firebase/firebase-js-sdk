@@ -69,6 +69,7 @@ function mapPlatformStatusToCode(
   return Code.OTHER;
 }
 
+/** @internal */
 export const mapPostgrestFailureToFirebaseSqlError: MapPostgrestError = (
   rawError,
   status,

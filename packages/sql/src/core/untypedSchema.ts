@@ -15,10 +15,12 @@
  * limitations under the License.
  */
 
+/** @internal */
 export interface UntypedClientOptions {
   PostgrestVersion: '13';
 }
 
+/** @internal */
 export interface UntypedRelationship {
   foreignKeyName: string;
   columns: string[];
@@ -30,8 +32,10 @@ export interface UntypedRelationship {
 // Express `unknown` as `NonNullable<unknown> | null | undefined` so `@supabase/postgrest-js`'s
 // `JsonPathToType` (`ContainsNull<T> ? JsonPathToType<Exclude<T, null>, Path> : ...`) strips
 // `null` in one step instead of tail-recursing infinitely on `Exclude<unknown, null> = unknown`.
+/** @internal */
 export type UntypedRowValue = NonNullable<unknown> | null | undefined;
 
+/** @internal */
 export interface UntypedTable {
   Row: Record<string, UntypedRowValue>;
   Insert: Record<string, unknown>;
@@ -39,17 +43,20 @@ export interface UntypedTable {
   Relationships: UntypedRelationship[];
 }
 
+/** @internal */
 export interface UntypedFunction {
   Args: Record<string, unknown>;
   Returns: unknown;
 }
 
+/** @internal */
 export interface UntypedSchema {
   Tables: Record<string, UntypedTable>;
   Views: Record<string, UntypedTable>;
   Functions: Record<string, UntypedFunction>;
 }
 
+/** @internal */
 export interface UntypedDatabase {
   [schema: string]: UntypedSchema;
 }

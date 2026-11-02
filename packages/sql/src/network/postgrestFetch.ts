@@ -163,6 +163,7 @@ function buildRequestHeaders(
   return merged;
 }
 
+/** @internal */
 export const createBuilderFetch: CreateBuilderFetch =
   (state, tracker) => async (input, init) => {
     const active = state.active;
