@@ -77,7 +77,7 @@ export class FirebaseSql {
   /** @internal */
   private readonly _state: SqlClientState;
 
-  readonly #postgrestClient: PostgrestClient<
+  private readonly _postgrestClient: PostgrestClient<
     UntypedDatabase,
     UntypedClientOptions,
     string,
@@ -113,7 +113,7 @@ export class FirebaseSql {
       }
     };
 
-    this.#postgrestClient = new PostgrestClient(this._postgrestUrl, {
+    this._postgrestClient = new PostgrestClient(this._postgrestUrl, {
       headers: this.settings.headers,
       schema: this.settings.schemaName
     });
@@ -139,7 +139,10 @@ export class FirebaseSql {
   // `/postgrest` or inject query parameters on the shared `firebasedataconnect.googleapis.com`
   // origin (deviating from `PostgrestClient`'s raw URL interpolation while leaving blank
   // `from('')` inputs untouched so `@supabase/postgrest-js`'s raw `Error` still propagates).
-  #encodeResourceSegment(segment: string, preserveBlank: boolean): string {
+  private _encodeResourceSegment(
+    segment: string,
+    preserveBlank: boolean
+  ): string {
     if (segment === '.' || segment === '..') {
       throw new FirebaseSqlError(
         Code.INVALID_ARGUMENT,
@@ -165,8 +168,8 @@ export class FirebaseSql {
         FirebaseSqlErrorCategory.SQL_CLIENT
       );
     }
-    const delegate = this.#postgrestClient.from(
-      this.#encodeResourceSegment(table, true)
+    const delegate = this._postgrestClient.from(
+      this._encodeResourceSegment(table, true)
     );
     return new QueryBuilderImpl(
       delegate,
@@ -194,8 +197,8 @@ export class FirebaseSql {
         FirebaseSqlErrorCategory.SQL_CLIENT
       );
     }
-    const delegate = this.#postgrestClient.rpc(
-      this.#encodeResourceSegment(fn, false),
+    const delegate = this._postgrestClient.rpc(
+      this._encodeResourceSegment(fn, false),
       params as Record<string, unknown> | undefined,
       options
     );

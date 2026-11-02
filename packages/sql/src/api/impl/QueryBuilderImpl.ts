@@ -61,10 +61,10 @@ export interface QueryDelegateHandle {
 }
 
 export class QueryBuilderImpl implements QueryBuilder {
-  readonly #delegate: QueryDelegateHandle;
-  readonly #state: Readonly<SqlClientState>;
-  readonly #createFetch: CreateBuilderFetch;
-  readonly #mapError: MapPostgrestError;
+  private readonly _delegate: QueryDelegateHandle;
+  private readonly _state: Readonly<SqlClientState>;
+  private readonly _createFetch: CreateBuilderFetch;
+  private readonly _mapError: MapPostgrestError;
 
   constructor(
     delegate: QueryDelegateHandle,
@@ -72,18 +72,20 @@ export class QueryBuilderImpl implements QueryBuilder {
     createFetch: CreateBuilderFetch,
     mapError: MapPostgrestError
   ) {
-    this.#delegate = delegate;
-    this.#state = state;
-    this.#createFetch = createFetch;
-    this.#mapError = mapError;
+    this._delegate = delegate;
+    this._state = state;
+    this._createFetch = createFetch;
+    this._mapError = mapError;
   }
 
-  #wrap<T, Method>(delegate: FilterDelegateHandle): FilterBuilder<T, Method> {
+  private _wrap<T, Method>(
+    delegate: FilterDelegateHandle
+  ): FilterBuilder<T, Method> {
     return new FilterBuilderImpl<T, Method>(
       delegate,
-      this.#state,
-      this.#createFetch,
-      this.#mapError
+      this._state,
+      this._createFetch,
+      this._mapError
     );
   }
 
@@ -91,7 +93,7 @@ export class QueryBuilderImpl implements QueryBuilder {
     columns?: string | undefined,
     options?: Readonly<QuerySelectOptions> | undefined
   ): FilterBuilder<Array<Record<string, unknown>>, 'GET'> {
-    return this.#wrap(this.#delegate.select(columns, options));
+    return this._wrap(this._delegate.select(columns, options));
   }
 
   insert<
@@ -104,8 +106,8 @@ export class QueryBuilderImpl implements QueryBuilder {
     values: Row | readonly Row[],
     options?: Readonly<QueryInsertOptions> | undefined
   ): FilterBuilder<null, 'POST'> {
-    return this.#wrap(
-      this.#delegate.insert(
+    return this._wrap(
+      this._delegate.insert(
         values as Record<string, unknown> | Array<Record<string, unknown>>,
         options
       )
@@ -122,8 +124,8 @@ export class QueryBuilderImpl implements QueryBuilder {
     values: Row | readonly Row[],
     options?: Readonly<QueryUpsertOptions> | undefined
   ): FilterBuilder<null, 'POST'> {
-    return this.#wrap(
-      this.#delegate.upsert(
+    return this._wrap(
+      this._delegate.upsert(
         values as Record<string, unknown> | Array<Record<string, unknown>>,
         options
       )
@@ -140,14 +142,14 @@ export class QueryBuilderImpl implements QueryBuilder {
     values: Row,
     options?: Readonly<QueryUpdateOptions> | undefined
   ): FilterBuilder<null, 'PATCH'> {
-    return this.#wrap(
-      this.#delegate.update(values as Record<string, unknown>, options)
+    return this._wrap(
+      this._delegate.update(values as Record<string, unknown>, options)
     );
   }
 
   delete(
     options?: Readonly<QueryDeleteOptions> | undefined
   ): FilterBuilder<null, 'DELETE'> {
-    return this.#wrap(this.#delegate.delete(options));
+    return this._wrap(this._delegate.delete(options));
   }
 }

@@ -10,9 +10,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Eliminate JavaScript private `#` property syntax
 
+- Status: Resolved
 - Scope: `packages/sql/src/api/FirebaseSql.ts`, `packages/sql/src/api/impl/FilterBuilderImpl.ts`, `packages/sql/src/api/impl/QueryBuilderImpl.ts`
-- Replace all private `#` fields/methods with standard TypeScript `private` properties (e.g., `private readonly _delegate` instead of `#delegate`).
-- JS `#` private elements cause issues for downstream dependers (bundling, downleveling, prototyping).
+- Resolution: Replaced all JavaScript private `#` fields and methods with standard TypeScript `private readonly _property` and `private _method` members across `FirebaseSql.ts`, `QueryBuilderImpl.ts`, and `FilterBuilderImpl.ts`.
 
 ## Export `UntypedRowValue`
 
