@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # @firebase/crashlytics
-The Firebase Crashlytics Web SDK.
+The Firebase Crashlytics Web SDK. This product is currently in public preview.
 
 ## Functions
 

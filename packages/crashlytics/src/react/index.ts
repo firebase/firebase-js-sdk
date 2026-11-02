@@ -54,7 +54,7 @@ export * from '../public-types';
  *       {app && (
  *         <FirebaseCrashlytics
  *           firebaseApp={app}
- *           crashlyticsOptions={{...}}
+ *           crashlyticsOptions={ {...} }
  *         />
  *       )}
  *       ...
