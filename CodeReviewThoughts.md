@@ -17,9 +17,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Export `UntypedRowValue`
 
+- Status: Resolved
 - File: `packages/sql/src/core/untypedSchema.ts`
-- `type UntypedRowValue` is referenced in exported `UntypedTable.Row` (`Record<string, UntypedRowValue>`), but `UntypedRowValue` itself is unexported.
-- Export `UntypedRowValue`.
+- Resolution: Exported `UntypedRowValue` (`export type UntypedRowValue = ...`), allowing consumers and tests to import the row value type directly and matching other exported types in `untypedSchema.ts`.
 
 ## Verify `UntypedClientOptions.PostgrestVersion` value
 

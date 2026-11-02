@@ -30,7 +30,7 @@ export interface UntypedRelationship {
 // Express `unknown` as `NonNullable<unknown> | null | undefined` so `@supabase/postgrest-js`'s
 // `JsonPathToType` (`ContainsNull<T> ? JsonPathToType<Exclude<T, null>, Path> : ...`) strips
 // `null` in one step instead of tail-recursing infinitely on `Exclude<unknown, null> = unknown`.
-type UntypedRowValue = NonNullable<unknown> | null | undefined;
+export type UntypedRowValue = NonNullable<unknown> | null | undefined;
 
 export interface UntypedTable {
   Row: Record<string, UntypedRowValue>;
