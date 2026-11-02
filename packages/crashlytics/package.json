@@ -1,6 +1,6 @@
 {
   "name": "@firebase/crashlytics",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "The Firebase Web Telemetry package of the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -185,7 +185,7 @@
     "@angular/core": "19.2.15",
     "@angular/platform-browser": "19.2.15",
     "@angular/router": "19.2.15",
-    "@firebase/app": "0.16.4",
+    "@firebase/app": "0.16.5",
     "@opentelemetry/sdk-trace-web": "2.10.0",
     "@rollup/plugin-json": "6.1.0",
     "@rollup/plugin-replace": "6.0.2",
