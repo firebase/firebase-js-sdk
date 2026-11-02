@@ -52,112 +52,39 @@ import type {
   TransformOrderOptions,
   TransformRangeOptions
 } from '../TransformBuilder';
+import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 
-export type PostgrestDelegateResponse =
-  | {
-      readonly success: true;
-      readonly error: null;
-      readonly data: unknown;
-      readonly count: number | null;
-      readonly status: number;
-      readonly statusText: string;
-    }
-  | {
-      readonly success: false;
-      readonly error: unknown;
-      readonly data: null;
-      readonly count: null;
-      readonly status: number;
-      readonly statusText: string;
-    };
+import type {
+  UntypedClientOptions,
+  UntypedSchema
+} from '../../core/untypedSchema';
 
-export interface FilterDelegateHandle extends PromiseLike<PostgrestDelegateResponse> {
-  stripNulls(): unknown;
-  setHeader(name: string, value: string): unknown;
-  retry(enabled: boolean): unknown;
-  returns<_NewResult>(): unknown;
-  overrideTypes<
-    _NewResult,
-    _Options extends { merge?: boolean | undefined } = { merge: true }
-  >(): unknown;
-  select(columns?: string | undefined): unknown;
-  order(
-    column: string,
-    options?: Readonly<TransformOrderOptions> | undefined
-  ): unknown;
-  limit(
-    rows: number,
-    options?: Readonly<TransformLimitOptions> | undefined
-  ): unknown;
-  range(
-    from: number,
-    to: number,
-    options?: Readonly<TransformRangeOptions> | undefined
-  ): unknown;
-  abortSignal(signal: AbortSignal): unknown;
-  single(): unknown;
-  maybeSingle(): unknown;
-  csv(): unknown;
-  geojson(): unknown;
-  explain(options?: Readonly<TransformExplainOptions> | undefined): unknown;
-  rollback(): unknown;
-  maxAffected(rows: number): unknown;
-  eq(column: string, value: NonNullable<unknown>): unknown;
-  neq(column: string, value: unknown): unknown;
-  gt(column: string, value: unknown): unknown;
-  gte(column: string, value: unknown): unknown;
-  lt(column: string, value: unknown): unknown;
-  lte(column: string, value: unknown): unknown;
-  like(column: string, pattern: string): unknown;
-  likeAllOf(column: string, patterns: readonly string[]): unknown;
-  likeAnyOf(column: string, patterns: readonly string[]): unknown;
-  ilike(column: string, pattern: string): unknown;
-  ilikeAllOf(column: string, patterns: readonly string[]): unknown;
-  ilikeAnyOf(column: string, patterns: readonly string[]): unknown;
-  regexMatch(column: string, pattern: string): unknown;
-  regexIMatch(column: string, pattern: string): unknown;
-  is(column: string, value: boolean | null): unknown;
-  isDistinct(column: string, value: unknown): unknown;
-  in(column: string, values: readonly unknown[]): unknown;
-  notIn(column: string, values: readonly unknown[]): unknown;
-  contains(
-    column: string,
-    value: string | readonly unknown[] | Record<string, unknown>
-  ): unknown;
-  containedBy(
-    column: string,
-    value: string | readonly unknown[] | Record<string, unknown>
-  ): unknown;
-  rangeGt(column: string, range: string): unknown;
-  rangeGte(column: string, range: string): unknown;
-  rangeLt(column: string, range: string): unknown;
-  rangeLte(column: string, range: string): unknown;
-  rangeAdjacent(column: string, range: string): unknown;
-  overlaps(column: string, value: string | readonly unknown[]): unknown;
-  textSearch(
-    column: string,
-    query: string,
-    options?: Readonly<FilterTextSearchOptions> | undefined
-  ): unknown;
-  match(query: Record<string, unknown>): unknown;
-  not(column: string, operator: string, value: unknown): unknown;
-  or(filters: string, options?: Readonly<FilterOrOptions> | undefined): unknown;
-  filter(column: string, operator: string, value: unknown): unknown;
-}
+export type AnyPostgrestFilterBuilder =
+  | PostgrestFilterBuilder<any, any, any, any, any>
+  | PostgrestFilterBuilder<
+      UntypedClientOptions,
+      UntypedSchema,
+      never,
+      any,
+      any,
+      any,
+      any,
+      any
+    >;
 
 export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
   T,
   Method,
   false
 > {
-  private readonly _delegate: FilterDelegateHandle;
+  private readonly _delegate: AnyPostgrestFilterBuilder;
   private readonly _state: Readonly<SqlClientState>;
   private readonly _createFetch: CreateBuilderFetch;
   private readonly _mapError: MapPostgrestError;
   private _shouldThrowOnError = false;
 
   constructor(
-    delegate: FilterDelegateHandle,
+    delegate: AnyPostgrestFilterBuilder,
     state: Readonly<SqlClientState>,
     createFetch: CreateBuilderFetch,
     mapError: MapPostgrestError

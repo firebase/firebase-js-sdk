@@ -20,6 +20,7 @@ import type {
   MapPostgrestError,
   SqlClientState
 } from '../../core/state';
+import type { UntypedClientOptions } from '../../core/untypedSchema';
 import type { FilterBuilder } from '../FilterBuilder';
 import type {
   NonIterable,
@@ -31,43 +32,21 @@ import type {
   QueryUpsertOptions
 } from '../QueryBuilder';
 
-import { FilterBuilderImpl, FilterDelegateHandle } from './FilterBuilderImpl';
+import type {
+  PostgrestFilterBuilder,
+  PostgrestQueryBuilder
+} from '@supabase/postgrest-js';
 
-export interface QueryDelegateHandle {
-  url: URL;
-  headers: Headers;
-  schema?: string | undefined;
-  fetch?: typeof fetch | undefined;
-  urlLengthLimit: number;
-  select(
-    columns?: string | undefined,
-    options?: Readonly<QuerySelectOptions> | undefined
-  ): FilterDelegateHandle;
-  insert(
-    values: Record<string, unknown> | Array<Record<string, unknown>>,
-    options?: Readonly<QueryInsertOptions> | undefined
-  ): FilterDelegateHandle;
-  upsert(
-    values: Record<string, unknown> | Array<Record<string, unknown>>,
-    options?: Readonly<QueryUpsertOptions> | undefined
-  ): FilterDelegateHandle;
-  update(
-    values: Record<string, unknown>,
-    options?: Readonly<QueryUpdateOptions> | undefined
-  ): FilterDelegateHandle;
-  delete(
-    options?: Readonly<QueryDeleteOptions> | undefined
-  ): FilterDelegateHandle;
-}
+import { FilterBuilderImpl } from './FilterBuilderImpl';
 
 export class QueryBuilderImpl implements QueryBuilder {
-  private readonly _delegate: QueryDelegateHandle;
+  private readonly _delegate: PostgrestQueryBuilder<any, any, any>;
   private readonly _state: Readonly<SqlClientState>;
   private readonly _createFetch: CreateBuilderFetch;
   private readonly _mapError: MapPostgrestError;
 
   constructor(
-    delegate: QueryDelegateHandle,
+    delegate: PostgrestQueryBuilder<any, any, any>,
     state: Readonly<SqlClientState>,
     createFetch: CreateBuilderFetch,
     mapError: MapPostgrestError
@@ -79,7 +58,7 @@ export class QueryBuilderImpl implements QueryBuilder {
   }
 
   private _wrap<T, Method>(
-    delegate: FilterDelegateHandle
+    delegate: PostgrestFilterBuilder<any, any, any, any, any, any, any, any>
   ): FilterBuilder<T, Method> {
     return new FilterBuilderImpl<T, Method>(
       delegate,

@@ -96,9 +96,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Use concrete PostgREST class typing instead of custom delegate handles
 
+- Status: Resolved
 - Scope: `packages/sql/src/api/impl/QueryBuilderImpl.ts`, `packages/sql/src/api/impl/FilterBuilderImpl.ts`
-- Replace `QueryDelegateHandle` and `FilterDelegateHandle` with concrete PostgREST class types (e.g., `PostgrestQueryBuilder`, `PostgrestFilterBuilder`).
-- Maintaining structural interfaces manually is fragile: if upstream PostgREST signatures drift, compile-time checks will not catch discrepancies, causing confusing runtime errors.
+- Resolution: Replaced manual structural `QueryDelegateHandle` and `FilterDelegateHandle` interfaces with concrete `PostgrestQueryBuilder` and `PostgrestFilterBuilder` class types from `@supabase/postgrest-js`, eliminating fragile manual signatures and ensuring compile-time check fidelity.
 
 ## Create `NonIterable` utility type for row type narrowing
 
