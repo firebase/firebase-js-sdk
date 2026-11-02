@@ -15,12 +15,18 @@
  * limitations under the License.
  */
 
+import type { PostgrestQueryBuilder } from '@supabase/postgrest-js';
+
 import type {
   CreateBuilderFetch,
   MapPostgrestError,
   SqlClientState
 } from '../../core/state';
-import type { UntypedClientOptions } from '../../core/untypedSchema';
+import type {
+  UntypedClientOptions,
+  UntypedSchema,
+  UntypedTable
+} from '../../core/untypedSchema';
 import type { FilterBuilder } from '../FilterBuilder';
 import type {
   NonIterable,
@@ -32,21 +38,27 @@ import type {
   QueryUpsertOptions
 } from '../QueryBuilder';
 
-import type {
-  PostgrestFilterBuilder,
-  PostgrestQueryBuilder
-} from '@supabase/postgrest-js';
-
-import { FilterBuilderImpl } from './FilterBuilderImpl';
+import {
+  type AnyPostgrestFilterBuilder,
+  FilterBuilderImpl
+} from './FilterBuilderImpl';
 
 export class QueryBuilderImpl implements QueryBuilder {
-  private readonly _delegate: PostgrestQueryBuilder<any, any, any>;
+  private readonly _delegate: PostgrestQueryBuilder<
+    UntypedClientOptions,
+    UntypedSchema,
+    UntypedTable
+  >;
   private readonly _state: Readonly<SqlClientState>;
   private readonly _createFetch: CreateBuilderFetch;
   private readonly _mapError: MapPostgrestError;
 
   constructor(
-    delegate: PostgrestQueryBuilder<any, any, any>,
+    delegate: PostgrestQueryBuilder<
+      UntypedClientOptions,
+      UntypedSchema,
+      UntypedTable
+    >,
     state: Readonly<SqlClientState>,
     createFetch: CreateBuilderFetch,
     mapError: MapPostgrestError
@@ -58,7 +70,7 @@ export class QueryBuilderImpl implements QueryBuilder {
   }
 
   private _wrap<T, Method>(
-    delegate: PostgrestFilterBuilder<any, any, any, any, any, any, any, any>
+    delegate: AnyPostgrestFilterBuilder
   ): FilterBuilder<T, Method> {
     return new FilterBuilderImpl<T, Method>(
       delegate,

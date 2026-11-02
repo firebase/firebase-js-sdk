@@ -1201,15 +1201,19 @@ describe('FirebaseSqlTransport', () => {
     it('cleanup unregisters event listeners when fallback AbortController is used', () => {
       const c1 = new AbortController();
       const c2 = new AbortController();
-      const originalAny = AbortSignal.any;
+      const abortSignalWithAny = AbortSignal as unknown as Record<
+        string,
+        unknown
+      >;
+      const originalAny = abortSignalWithAny['any'];
       try {
-        (AbortSignal as unknown as { any?: unknown }).any = undefined;
+        abortSignalWithAny['any'] = undefined;
         const { signal, cleanup } = composeSignals(c1.signal, c2.signal);
         cleanup();
         c1.abort();
         expect(signal?.aborted).toBe(false);
       } finally {
-        (AbortSignal as unknown as { any?: unknown }).any = originalAny;
+        abortSignalWithAny['any'] = originalAny;
       }
     });
   });

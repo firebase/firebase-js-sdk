@@ -120,12 +120,12 @@ export function composeSignals(
   }
 
   const controller = new AbortController();
-  const onAbort1 = () => controller.abort(signal1.reason);
-  const onAbort2 = () => controller.abort(signal2.reason);
+  const onAbort1 = (): void => controller.abort(signal1.reason);
+  const onAbort2 = (): void => controller.abort(signal2.reason);
   signal1.addEventListener('abort', onAbort1, { once: true });
   signal2.addEventListener('abort', onAbort2, { once: true });
 
-  const cleanup = () => {
+  const cleanup = (): void => {
     signal1.removeEventListener('abort', onAbort1);
     signal2.removeEventListener('abort', onAbort2);
   };
@@ -350,7 +350,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
             canReplayBody &&
             authProvider
           ) {
-            return await this.refreshAuthAndRefetch(
+            return this.refreshAuthAndRefetch(
               fetchImpl,
               url,
               requestInit,

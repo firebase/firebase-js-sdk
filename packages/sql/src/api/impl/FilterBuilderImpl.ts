@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
+
 import {
   Code,
   FirebaseSqlError,
@@ -26,6 +28,10 @@ import type {
   MapPostgrestError,
   SqlClientState
 } from '../../core/state';
+import type {
+  UntypedClientOptions,
+  UntypedSchema
+} from '../../core/untypedSchema';
 import { validateHeaderName } from '../../network/headers';
 import type {
   Builder,
@@ -52,13 +58,8 @@ import type {
   TransformOrderOptions,
   TransformRangeOptions
 } from '../TransformBuilder';
-import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 
-import type {
-  UntypedClientOptions,
-  UntypedSchema
-} from '../../core/untypedSchema';
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type AnyPostgrestFilterBuilder =
   | PostgrestFilterBuilder<any, any, any, any, any>
   | PostgrestFilterBuilder<
@@ -71,6 +72,7 @@ export type AnyPostgrestFilterBuilder =
       any,
       any
     >;
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
   T,
