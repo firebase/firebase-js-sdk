@@ -41,7 +41,7 @@ import type {
   UntypedTable
 } from '../core/untypedSchema';
 import { getFetch, initializeFetch } from '../network/fetch';
-import { createBuilderFetch } from '../network/postgrestFetch';
+import { createBuilderFetch } from '../network/transport';
 
 import { FilterBuilderImpl } from './impl/FilterBuilderImpl';
 import { QueryBuilderImpl } from './impl/QueryBuilderImpl';

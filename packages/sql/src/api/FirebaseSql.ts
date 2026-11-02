@@ -45,7 +45,7 @@ import type {
   UntypedSchema
 } from '../core/untypedSchema';
 import { logDebug } from '../logger';
-import { createBuilderFetch } from '../network/postgrestFetch';
+import { createBuilderFetch } from '../network/transport';
 import { FIREBASE_SQL_COMPONENT_NAME } from '../util/constants';
 import { deepSortKeysForObj } from '../util/encoder';
 import { resolvePostgrestUrl } from '../util/url';

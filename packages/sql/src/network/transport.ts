@@ -18,8 +18,17 @@
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { decode, isCloudWorkstation } from '@firebase/util';
 
-import { FirebaseSqlError } from '../core/error';
+import {
+  Code,
+  FirebaseSqlError,
+  FirebaseSqlErrorCategory
+} from '../core/error';
 import { SqlServiceSettings } from '../core/settings';
+import type {
+  BuilderExecutionTracker,
+  CreateBuilderFetch,
+  SqlClientState
+} from '../core/state';
 import { AppCheckTokenProvider } from '../core/tokenProviders/AppCheckTokenProvider';
 import { FirebaseAuthTokenProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
 
@@ -133,7 +142,17 @@ export interface FirebaseSqlTransportInterface {
   /**
    * Constructs and executes an FSQL HTTP request, and returns the response.
    */
-  invokePostgrestOperation(url: string, init?: RequestInit): Promise<Response>;
+  invokePostgrestOperation(
+    input: RequestInfo | URL,
+    init?: RequestInit
+  ): Promise<Response>;
+
+  /**
+   * Returns a standard `fetch` implementation bound to this transport instance,
+   * optionally tracking `FirebaseSqlError` instances on `tracker.clientError` and
+   * throwing `AbortError` to immediately short-circuit PostgREST retries.
+   */
+  toFetch(tracker?: BuilderExecutionTracker): typeof fetch;
 }
 
 /**
@@ -146,6 +165,7 @@ export interface FirebaseSqlTransportOptions {
   authTokenProvider?: FirebaseAuthTokenProvider | undefined;
   appCheckTokenProvider?: AppCheckTokenProvider | undefined;
   terminationSignal?: AbortSignal | undefined;
+  state?: SqlClientState | undefined;
 }
 
 /**
@@ -160,6 +180,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
   protected authProvider?: FirebaseAuthTokenProvider;
   protected appCheckProvider?: AppCheckTokenProvider;
   protected _terminationSignal?: AbortSignal;
+  protected _state?: SqlClientState;
 
   constructor(options: FirebaseSqlTransportOptions = {}) {
     this.settings = options.settings;
@@ -167,46 +188,139 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
     this.authProvider = options.authTokenProvider;
     this.appCheckProvider = options.appCheckTokenProvider;
     this._terminationSignal = options.terminationSignal;
+    this._state = options.state;
   }
 
   /**
    * Constructs and executes an FSQL HTTP request, and returns the response.
    */
   async invokePostgrestOperation(
-    url: string,
+    input: RequestInfo | URL,
     init?: RequestInit
   ): Promise<Response> {
-    if (this._terminationSignal?.aborted) {
-      throw toAbortError(this._terminationSignal);
+    if (this._state && this._state.active === null) {
+      throw new FirebaseSqlError(
+        Code.NOT_INITIALIZED,
+        'The Firebase SQL client has been terminated.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
     }
 
+    const url =
+      typeof input === 'string'
+        ? input
+        : input instanceof URL
+          ? input.toString()
+          : input.url;
+
+    const authProvider =
+      this._state?.active?.authTokenProvider ?? this.authProvider;
+    const appCheckProvider =
+      this._state?.active?.appCheckTokenProvider ?? this.appCheckProvider;
+    const appId = this._state?.active?.appId ?? this._appId;
+    const terminationSignal =
+      this._state?.terminationSignal ?? this._terminationSignal;
+
+    if (terminationSignal?.aborted) {
+      throw toAbortError(terminationSignal);
+    }
+
+    const inputSignal =
+      init?.signal !== undefined
+        ? (init.signal ?? undefined)
+        : typeof Request !== 'undefined' && input instanceof Request
+          ? input.signal
+          : undefined;
+
     const { signal: effectiveSignal, cleanup } = composeSignals(
-      init?.signal,
-      this._terminationSignal
+      inputSignal,
+      terminationSignal
     );
+
+    const isRequest =
+      typeof Request !== 'undefined' && input instanceof Request;
+    let mergedHeadersInit: HeadersInit | undefined = init?.headers;
+    if (isRequest) {
+      if (init?.headers === undefined) {
+        mergedHeadersInit = input.headers;
+      } else {
+        const combined = new Headers(input.headers);
+        new Headers(init.headers).forEach((value, key) => {
+          combined.set(key, value);
+        });
+        mergedHeadersInit = combined;
+      }
+    }
+
+    const mergedInit: RequestInit = {
+      ...(isRequest
+        ? {
+            method: input.method,
+            body: input.body,
+            mode: input.mode,
+            credentials: input.credentials,
+            cache: input.cache,
+            redirect: input.redirect,
+            referrer: input.referrer,
+            integrity: input.integrity
+          }
+        : undefined),
+      ...init,
+      headers: mergedHeadersInit
+    };
 
     try {
       const fetchImpl = getFetch();
 
-      const [authToken, appCheckToken] = await Promise.all([
-        this.authProvider
-          ? this.authProvider.getToken({ forceRefresh: false })
-          : Promise.resolve(null),
-        this.appCheckProvider
-          ? this.appCheckProvider
-              .getToken({ forceRefresh: false })
-              .catch(() => null)
-          : Promise.resolve(null)
-      ]);
+      let authToken: FirebaseAuthTokenData | null = null;
+      let appCheckToken: { token: string } | null = null;
+
+      try {
+        const [authData, appCheckData] = await Promise.all([
+          authProvider
+            ? authProvider.getToken({ forceRefresh: false })
+            : Promise.resolve(null),
+          appCheckProvider
+            ? appCheckProvider
+                .getToken({ forceRefresh: false })
+                .catch(() => null)
+            : Promise.resolve(null)
+        ]);
+        authToken = authData;
+        appCheckToken = appCheckData;
+      } catch (err) {
+        if (this._state && this._state.active === null) {
+          throw new FirebaseSqlError(
+            Code.NOT_INITIALIZED,
+            'The Firebase SQL client has been terminated.',
+            FirebaseSqlErrorCategory.SQL_CLIENT
+          );
+        }
+        if (effectiveSignal?.aborted) {
+          throw toAbortError(effectiveSignal, err);
+        }
+        throw err;
+      }
+
+      if (this._state && this._state.active === null) {
+        throw new FirebaseSqlError(
+          Code.NOT_INITIALIZED,
+          'The Firebase SQL client has been terminated.',
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        );
+      }
+      if (effectiveSignal?.aborted) {
+        throw toAbortError(effectiveSignal);
+      }
 
       const headers = resolveRequestHeaders(
         authToken,
         appCheckToken,
-        init,
-        this._appId
+        mergedInit,
+        appId
       );
       const requestInit = this.buildRequestInit(
-        init,
+        mergedInit,
         headers,
         url,
         effectiveSignal
@@ -214,23 +328,54 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
       const initialUid = getAuthUidFromToken(authToken?.accessToken);
       const canReplayBody = !(
         typeof ReadableStream !== 'undefined' &&
-        init?.body instanceof ReadableStream
+        (requestInit.body instanceof ReadableStream ||
+          (isRequest && init?.body === undefined && input.bodyUsed))
       );
 
-      return await fetchImpl(url, requestInit).then(response => {
-        if (response.status === 401 && authToken && canReplayBody) {
-          return this.refreshAuthAndRefetch(
-            fetchImpl,
-            url,
-            requestInit,
-            headers,
-            authToken,
-            response,
-            initialUid
-          );
-        }
-        return response;
-      });
+      return await fetchImpl(url, requestInit)
+        .then(async response => {
+          if (this._state && this._state.active === null) {
+            if (typeof response.body?.cancel === 'function') {
+              await response.body.cancel().catch(() => {});
+            }
+            throw new FirebaseSqlError(
+              Code.NOT_INITIALIZED,
+              'The Firebase SQL client has been terminated.',
+              FirebaseSqlErrorCategory.SQL_CLIENT
+            );
+          }
+          if (
+            response.status === 401 &&
+            authToken &&
+            canReplayBody &&
+            authProvider
+          ) {
+            return await this.refreshAuthAndRefetch(
+              fetchImpl,
+              url,
+              requestInit,
+              headers,
+              authToken,
+              response,
+              initialUid,
+              authProvider
+            );
+          }
+          return response;
+        })
+        .catch(async err => {
+          if (this._state && this._state.active === null) {
+            throw new FirebaseSqlError(
+              Code.NOT_INITIALIZED,
+              'The Firebase SQL client has been terminated.',
+              FirebaseSqlErrorCategory.SQL_CLIENT
+            );
+          }
+          if (effectiveSignal?.aborted) {
+            throw toAbortError(effectiveSignal, err);
+          }
+          throw err;
+        });
     } finally {
       cleanup();
     }
@@ -275,9 +420,10 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
     headers: Record<string, string>,
     currentToken: FirebaseAuthTokenData,
     originalResponse: Response,
-    initialUid: string | null
+    initialUid: string | null,
+    authProvider: FirebaseAuthTokenProvider
   ): Promise<Response> {
-    if (!this.authProvider) {
+    if (!authProvider) {
       return originalResponse;
     }
 
@@ -289,11 +435,22 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
       throw toAbortError(signal);
     }
 
+    if (this._state && this._state.active === null) {
+      if (typeof originalResponse.body?.cancel === 'function') {
+        await originalResponse.body.cancel().catch(() => {});
+      }
+      throw new FirebaseSqlError(
+        Code.NOT_INITIALIZED,
+        'The Firebase SQL client has been terminated.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+    }
+
     // Check cached token first to avoid redundant Auth network trips if another
     // concurrent request already refreshed the token in the background.
     let refreshedToken: FirebaseAuthTokenData | null = null;
     try {
-      refreshedToken = await this.authProvider
+      refreshedToken = await authProvider
         .getToken({ forceRefresh: false })
         .then(data => data ?? null)
         .catch(() => null);
@@ -305,20 +462,38 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
         throw toAbortError(signal);
       }
 
+      if (this._state && this._state.active === null) {
+        if (typeof originalResponse.body?.cancel === 'function') {
+          await originalResponse.body.cancel().catch(() => {});
+        }
+        throw new FirebaseSqlError(
+          Code.NOT_INITIALIZED,
+          'The Firebase SQL client has been terminated.',
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        );
+      }
+
       if (
         !refreshedToken?.accessToken ||
         refreshedToken.accessToken === currentToken.accessToken
       ) {
-        refreshedToken = await this.authProvider
+        refreshedToken = await authProvider
           .getToken({ forceRefresh: true })
           .then(data => data ?? null)
           .catch(() => null);
       }
     } catch (err) {
+      if (typeof originalResponse.body?.cancel === 'function') {
+        await originalResponse.body.cancel().catch(() => {});
+      }
+      if (this._state && this._state.active === null) {
+        throw new FirebaseSqlError(
+          Code.NOT_INITIALIZED,
+          'The Firebase SQL client has been terminated.',
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        );
+      }
       if (signal?.aborted) {
-        if (typeof originalResponse.body?.cancel === 'function') {
-          await originalResponse.body.cancel().catch(() => {});
-        }
         throw toAbortError(signal, err);
       }
       throw err;
@@ -329,6 +504,17 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
         await originalResponse.body.cancel().catch(() => {});
       }
       throw toAbortError(signal);
+    }
+
+    if (this._state && this._state.active === null) {
+      if (typeof originalResponse.body?.cancel === 'function') {
+        await originalResponse.body.cancel().catch(() => {});
+      }
+      throw new FirebaseSqlError(
+        Code.NOT_INITIALIZED,
+        'The Firebase SQL client has been terminated.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
     }
 
     if (
@@ -354,4 +540,45 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
     }
     return originalResponse;
   }
+
+  /**
+   * Returns a standard `fetch` implementation bound to this transport instance,
+   * optionally tracking `FirebaseSqlError` instances on `tracker.clientError` and
+   * throwing `AbortError` to immediately short-circuit PostgREST retries.
+   */
+  toFetch(tracker?: BuilderExecutionTracker): typeof fetch {
+    return async (
+      input: RequestInfo | URL,
+      init?: RequestInit
+    ): Promise<Response> => {
+      try {
+        return await this.invokePostgrestOperation(input, init);
+      } catch (err) {
+        const errorToTrack =
+          this._state && this._state.active === null
+            ? new FirebaseSqlError(
+                Code.NOT_INITIALIZED,
+                'The Firebase SQL client has been terminated.',
+                FirebaseSqlErrorCategory.SQL_CLIENT
+              )
+            : err instanceof FirebaseSqlError
+              ? err
+              : null;
+
+        if (tracker && errorToTrack) {
+          tracker.clientError = errorToTrack;
+          const abortError = new Error(errorToTrack.message);
+          abortError.name = 'AbortError';
+          throw abortError;
+        }
+        throw err;
+      }
+    };
+  }
 }
+
+/** @internal */
+export const createBuilderFetch: CreateBuilderFetch = (state, tracker) => {
+  const transport = new FirebaseSqlTransport({ state });
+  return transport.toFetch(tracker);
+};

@@ -82,10 +82,10 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Duplication between `postgrestFetch.ts` and earlier commit `a091cc6518a5`
 
-- Status: In Progress
-- File: `packages/sql/src/network/postgrestFetch.ts`
+- Status: Resolved
+- File: `packages/sql/src/network/transport.ts` (formerly `packages/sql/src/network/postgrestFetch.ts`)
 - Compare with: commit `a091cc6518a5d0fb3138b8bba6aacff41c6213c9` (`packages/sql/src/network/transport.ts` and `packages/sql/src/network/headers.ts`).
-- `postgrestFetch.ts` largely duplicates token retrieval, wire header injection, and 401 token-refresh retry logic from `transport.ts` and `headers.ts`, leaving `FirebaseSqlTransport` as dead code.
+- `postgrestFetch.ts` largely duplicated token retrieval, wire header injection, and 401 token-refresh retry logic from `transport.ts` and `headers.ts`. All transport capabilities have been unified directly into `FirebaseSqlTransport` in `transport.ts`.
 - See detailed audit report in [audit_postgrest_fetch_vs_commit_a091cc65.md](file:///usr/local/google/home/dconeybe/work/js/tree/audit_postgrest_fetch_vs_commit_a091cc65.md) for quantitative duplication analysis and structural comparison.
 - Difference 21.1: Injected x-client-version inline in resolveRequestHeaders() in headers.ts as 'web/' + SDK_VERSION and verified in headers.test.ts.
 - Difference 21.2: Retained Cloud Workstations cookie credentials handling (isCloudWorkstation check and _isUsingEmulator) in transport.ts for future emulator compatibility.
@@ -95,6 +95,7 @@ Thoughts and observations recorded during code review of PR #10551.
 - Difference 21.6: Added check to skip 401 retry if request body is a non-replayable ReadableStream to prevent runtime TypeError.
 - Difference 21.7: Added AbortSignal cancellation checks and prompt response body cancellation during 401 retry in transport.ts.
 - Difference 21.8: Added AbortSignal termination to SqlClientState, FirebaseSql._delete(), and FirebaseSqlTransport to provide socket-level in-flight HTTP request cancellation upon SDK termination.
+- Difference 21.9: Added `toFetch(tracker)` and `createBuilderFetch` to `FirebaseSqlTransport` in `transport.ts`, wired `createBuilderFetch` into `FirebaseSql.ts` and `Builders.test.ts`, and deleted redundant files `packages/sql/src/network/postgrestFetch.ts` and `packages/sql/src/network/postgrestFetch.test.ts`. All transport logic, header injection, token management, and builder fetch binding are now unified in `transport.ts`.
 
 ## Investigate how `FirebaseSql` uses custom `fetch()` implementation
 

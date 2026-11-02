@@ -42,6 +42,7 @@ import {
   FirebaseSqlErrorCategory
 } from '../core/error';
 import { SqlServiceSettings } from '../core/settings';
+import type { BuilderExecutionTracker, SqlClientState } from '../core/state';
 import { TokenOptions } from '../core/tokenProviders/AbstractTokenProvider';
 import { FirebaseAuthProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
 import { SDK_VERSION, setSDKVersion } from '../core/version';
@@ -51,6 +52,7 @@ import { FirebaseHeaders, getGoogApiClientValue } from './headers';
 import {
   FirebaseSqlTransport,
   composeSignals,
+  createBuilderFetch,
   getAuthUidFromToken,
   toAbortError
 } from './transport';
@@ -985,6 +987,76 @@ describe('FirebaseSqlTransport', () => {
       await expect(operationPromise).rejects.toBe(terminationError);
       expect(fetchSignal?.aborted).toBe(true);
     });
+
+    describe('URL and Request input handling', () => {
+      it('accepts a URL object as input', async () => {
+        const transport = new FirebaseSqlTransport({ settings: BASE_SETTINGS });
+        const urlObj = new URL(TEST_URL);
+        await transport.invokePostgrestOperation(urlObj);
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(mockFetch.mock.calls[0]?.[0]).toBe(TEST_URL);
+      });
+
+      it('accepts a Request object as input, preserving its headers and method', async () => {
+        const transport = new FirebaseSqlTransport({ settings: BASE_SETTINGS });
+        const requestObj = new Request(TEST_URL, {
+          method: 'POST',
+          headers: {
+            'x-request-header': 'from-request',
+            accept: 'application/json'
+          },
+          body: JSON.stringify({ item: 'test' })
+        });
+        await transport.invokePostgrestOperation(requestObj, {
+          headers: { 'x-override-header': 'from-init' }
+        });
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(mockFetch.mock.calls[0]?.[0]).toBe(TEST_URL);
+        const callInit = mockFetch.mock.calls[0]?.[1] as RequestInit;
+        expect(callInit.method).toBe('POST');
+        const headers = callInit.headers as Record<string, string>;
+        expect(headers['x-request-header']).toBe('from-request');
+        expect(headers['x-override-header']).toBe('from-init');
+      });
+
+      it('fails fast when state.active is null', async () => {
+        const state: SqlClientState = { active: null };
+        const transport = new FirebaseSqlTransport({ state });
+        await expect(
+          transport.invokePostgrestOperation(TEST_URL)
+        ).rejects.toMatchObject({
+          code: Code.NOT_INITIALIZED
+        });
+        expect(mockFetch).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('toFetch', () => {
+      it('populates tracker.clientError and throws AbortError when invokePostgrestOperation fails with FirebaseSqlError', async () => {
+        const state: SqlClientState = { active: null };
+        const tracker: BuilderExecutionTracker = { clientError: null };
+        const transport = new FirebaseSqlTransport({ state });
+        const boundFetch = transport.toFetch(tracker);
+
+        await expect(boundFetch(TEST_URL)).rejects.toMatchObject({
+          name: 'AbortError',
+          message: expect.stringContaining('terminated')
+        });
+
+        expect(tracker.clientError).toBeInstanceOf(FirebaseSqlError);
+        expect(tracker.clientError?.code).toBe(Code.NOT_INITIALIZED);
+      });
+
+      it('throws original error without AbortError wrapping when no tracker is provided', async () => {
+        const state: SqlClientState = { active: null };
+        const transport = new FirebaseSqlTransport({ state });
+        const boundFetch = transport.toFetch();
+
+        await expect(boundFetch(TEST_URL)).rejects.toBeInstanceOf(
+          FirebaseSqlError
+        );
+      });
+    });
   });
 
   describe('getAuthUidFromToken', () => {
@@ -1139,6 +1211,55 @@ describe('FirebaseSqlTransport', () => {
       } finally {
         (AbortSignal as unknown as { any?: unknown }).any = originalAny;
       }
+    });
+  });
+
+  describe('createBuilderFetch', () => {
+    it('returns a functional fetch function that executes requests with state resources', async () => {
+      const authProvider = new MockAuthProvider('builder-auth-token');
+      const appCheckProvider = new MockAppCheckProvider(
+        'builder-appcheck-token'
+      );
+
+      const state: SqlClientState = {
+        active: {
+          appId: '1:123456:web:builder-app',
+          authTokenProvider:
+            authProvider as unknown as FirebaseAuthTokenProvider,
+          appCheckTokenProvider: appCheckProvider
+        }
+      };
+      const tracker: BuilderExecutionTracker = { clientError: null };
+
+      const builderFetch = createBuilderFetch(state, tracker);
+      const response = await builderFetch(TEST_URL, {
+        headers: { 'x-caller-header': 'val' }
+      });
+
+      expect(response.status).toBe(200);
+      expect(tracker.clientError).toBeNull();
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      const callInit = mockFetch.mock.calls[0]?.[1] as RequestInit;
+      const headers = callInit.headers as Record<string, string>;
+      expect(headers['x-caller-header']).toBe('val');
+      expect(headers['x-firebase-auth-token']).toBe('builder-auth-token');
+      expect(headers['x-firebase-appcheck']).toBe('builder-appcheck-token');
+      expect(headers['x-firebase-gmpid']).toBe('1:123456:web:builder-app');
+    });
+
+    it('populates tracker.clientError and throws AbortError if client is terminated', async () => {
+      const state: SqlClientState = { active: null };
+      const tracker: BuilderExecutionTracker = { clientError: null };
+
+      const builderFetch = createBuilderFetch(state, tracker);
+      await expect(builderFetch(TEST_URL)).rejects.toMatchObject({
+        name: 'AbortError',
+        message: expect.stringContaining('terminated')
+      });
+
+      expect(tracker.clientError?.code).toBe(Code.NOT_INITIALIZED);
+      expect(mockFetch).not.toHaveBeenCalled();
     });
   });
 });
