@@ -590,18 +590,6 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
   }
 
   #execute(): PromiseLike<OperationResult<T>> {
-    if (this.#state.active === null) {
-      const terminatedError = new FirebaseSqlError(
-        Code.NOT_INITIALIZED,
-        'FirebaseSql instance has been terminated.',
-        FirebaseSqlErrorCategory.SQL_CLIENT
-      );
-      if (this.#shouldThrowOnError) {
-        return Promise.reject(terminatedError);
-      }
-      return Promise.resolve(this.#fail(terminatedError, 0, ''));
-    }
-
     // Bind a fresh per-execution tracker synchronously before invoking `#delegate.then(...)`,
     // which snapshots `this.fetch` synchronously on entry before yielding, then clear
     // `#delegate.fetch` so long-lived builders do not retain the execution's tracker closure.

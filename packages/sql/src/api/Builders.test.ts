@@ -133,8 +133,18 @@ function createHarness(): TestHarness {
   ) => Promise<Response> | Response = () => jsonResponse([]);
 
   const createFetch: CreateBuilderFetch =
-    (_state, tracker) =>
+    (state, tracker) =>
     async (input, init): Promise<Response> => {
+      if (state.active === null) {
+        tracker.clientError = new FirebaseSqlError(
+          Code.NOT_INITIALIZED,
+          'FirebaseSql instance has been terminated.',
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        );
+        const abortError = new Error(tracker.clientError.message);
+        abortError.name = 'AbortError';
+        throw abortError;
+      }
       const rawUrl =
         typeof input === 'string'
           ? input

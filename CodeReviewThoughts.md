@@ -108,10 +108,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Remove redundant pre-emptive `state.active` check in `FilterBuilderImpl.#execute()`
 
+- Status: Resolved
 - File: `packages/sql/src/api/impl/FilterBuilderImpl.ts`
-- Lines 593–603 pre-emptively check `this.#state.active === null` before executing `#delegate`.
-- Transport (`postgrestFetch.ts`) already checks `state.active === null` and records the termination error in `tracker.clientError`.
-- Evaluate removing this pre-emptive check to eliminate duplicated termination error construction and branching without impacting correctness.
+- Resolution: Removed pre-emptive `this.#state.active === null` check from `#execute()`, allowing the custom transport in `postgrestFetch.ts` to uniformly handle termination and populate `tracker.clientError`.
 
 ## Remove unused `private` property modifiers from `FirebaseSql` constructor parameters
 
