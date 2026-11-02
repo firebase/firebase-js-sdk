@@ -782,6 +782,41 @@ describe('FirebaseSqlTransport', () => {
         )
       ).toBe(initialToken);
     });
+
+    it('does not retry on 401 if request body is a ReadableStream', async () => {
+      const initialToken = createMockJwt('user-1', '-initial');
+      const freshToken = createMockJwt('user-1', '-fresh');
+      const authProvider = new MockAuthProvider(initialToken, freshToken);
+
+      const unauthorizedRes = new Response('Unauthorized', { status: 401 });
+      mockFetch.mockResolvedValueOnce(unauthorizedRes);
+
+      const transport = new FirebaseSqlTransport({
+        settings: BASE_SETTINGS,
+        authTokenProvider: authProvider
+      });
+
+      const streamBody = new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode('stream content'));
+          controller.close();
+        }
+      });
+
+      const res = await transport.invokePostgrestOperation(TEST_URL, {
+        method: 'POST',
+        body: streamBody
+      });
+
+      expect(res).toBe(unauthorizedRes);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(authProvider.getToken).not.toHaveBeenCalledWith({
+        forceRefresh: true
+      });
+      expect(authProvider.getToken).toHaveBeenCalledExactlyOnceWith({
+        forceRefresh: false
+      });
+    });
   });
 
   describe('getAuthUidFromToken', () => {

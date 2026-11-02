@@ -124,9 +124,13 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
     );
     const requestInit = this.buildRequestInit(init, headers, url);
     const initialUid = getAuthUidFromToken(authToken?.accessToken);
+    const canReplayBody = !(
+      typeof ReadableStream !== 'undefined' &&
+      init?.body instanceof ReadableStream
+    );
 
     return fetchImpl(url, requestInit).then(response => {
-      if (response.status === 401 && authToken) {
+      if (response.status === 401 && authToken && canReplayBody) {
         return this.refreshAuthAndRefetch(
           fetchImpl,
           url,
