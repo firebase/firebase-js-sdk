@@ -77,9 +77,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Evaluate `@internal` JSDoc annotations on internal module exports
 
+- Status: Resolved
 - File: `packages/sql/src/network/headers.ts`
-- Multiple functions and constants are tagged with `@internal` despite being in an internal network module not exposed via public entry points.
-- Determine if `@internal` is required (e.g., API Extractor tooling) or superfluous.
+- Resolution: Decided to retain `@internal` annotations in `headers.ts` per general Firebase SDK conventions signaling non-public scope to IDEs and developers.
 
 ## Duplication between `postgrestFetch.ts` and earlier commit `a091cc6518a5`
 
