@@ -72,9 +72,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Document rationale for `Object.keys()` iteration in `validateHeaders`
 
+- Status: Resolved
 - File: `packages/sql/src/network/headers.ts`
-- Line: `for (const key of Object.keys(headers))`
-- Add an inline comment explaining why `Object.keys()` is used instead of `for (const key in headers)` (e.g., ignoring prototype-inherited properties or linter constraints).
+- Resolution: Considered adding an explanatory comment, but decided to omit it. `Object.keys()` is universal idiomatic TypeScript for dictionary records, aligns with downstream `Object.assign({}, settings.headers)` copying behavior, and does not warrant extra commentary.
 
 ## Evaluate `@internal` JSDoc annotations on internal module exports
 
