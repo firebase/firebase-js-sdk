@@ -22,9 +22,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Verify `UntypedClientOptions.PostgrestVersion` value
 
+- Status: Resolved
 - File: `packages/sql/src/core/untypedSchema.ts`
-- `UntypedClientOptions` sets `PostgrestVersion: '13'`.
-- Confirm whether `'13'` is the correct version for Firebase SQL, which only supports newer versions.
+- Resolution: Updated `PostgrestVersion` from `'13'` to `'14'`. Documented that setting it to `'14'` satisfies `@supabase/postgrest-js`'s `IsPostgrestVersionGreaterThan12` type-level feature gate, enabling `.maxAffected()` and spread relations across builders.
 
 ## Add `extends` or compile-time assignability checks to PostgREST untyped schemas
 

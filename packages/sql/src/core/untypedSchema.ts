@@ -15,9 +15,17 @@
  * limitations under the License.
  */
 
-/** @internal */
+/**
+ * PostgREST client configuration options for untyped databases.
+ *
+ * `PostgrestVersion: '14'` satisfies `@supabase/postgrest-js`'s `IsPostgrestVersionGreaterThan12`
+ * type-level feature gate, enabling modern PostgREST capabilities such as `.maxAffected()`
+ * and spread on many relationships.
+ *
+ * @internal
+ */
 export interface UntypedClientOptions {
-  PostgrestVersion: '13';
+  PostgrestVersion: '14';
 }
 
 /** @internal */
