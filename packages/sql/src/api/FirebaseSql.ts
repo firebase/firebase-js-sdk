@@ -30,6 +30,7 @@ import {
   Code,
   FirebaseSqlError
 } from '../core/error';
+import { OperationManager } from '../core/OperationManager';
 import {
   SqlServiceSettings,
   validateSqlServiceSettings
@@ -65,7 +66,10 @@ export class FirebaseSql {
   readonly _postgrestUrl: string;
 
   /** @internal */
-  private _isDeleted = false;
+  private isDeleted = false;
+
+  /** @internal */
+  private _operationManager: OperationManager;
 
   /** @internal */
   private _authTokenProvider: FirebaseAuthTokenProvider;
@@ -116,12 +120,13 @@ export class FirebaseSql {
       authTokenProvider: this._authTokenProvider,
       appCheckTokenProvider: this._appCheckTokenProvider
     });
+    this._operationManager = new OperationManager(this._transport);
   }
 
   /** @internal */
   _delete(): Promise<void> {
-    if (!this._isDeleted) {
-      this._isDeleted = true;
+    if (!this.isDeleted) {
+      this.isDeleted = true;
       this._appCheckTokenProvider.terminate();
       this._authTokenProvider.terminate();
       _removeServiceInstance(
