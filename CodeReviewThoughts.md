@@ -116,9 +116,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Remove unused `private` property modifiers from `FirebaseSql` constructor parameters
 
+- Status: Resolved
 - File: `packages/sql/src/api/FirebaseSql.ts`
-- Constructor parameters `private authInternalProvider` and `private appCheckInternalProvider` (lines 95–98) are only referenced during constructor initialization.
-- Remove the `private` modifier so they remain regular constructor parameters rather than unused instance properties.
+- Resolution: Removed `private` modifier from `authInternalProvider` and `appCheckInternalProvider` constructor parameters, keeping them as standard constructor arguments and avoiding unused instance fields on `FirebaseSql`.
 
 ## Omit redundant generic type arguments in `new PostgrestClient(...)` call
 

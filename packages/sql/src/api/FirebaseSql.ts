@@ -93,9 +93,9 @@ export class FirebaseSql {
     /** @internal */
     readonly _instanceIdentifier: string,
     /** @internal */
-    private authInternalProvider: Provider<FirebaseAuthInternalName>,
+    authInternalProvider: Provider<FirebaseAuthInternalName>,
     /** @internal */
-    private appCheckInternalProvider: Provider<AppCheckInternalComponentName>
+    appCheckInternalProvider: Provider<AppCheckInternalComponentName>
   ) {
     this._postgrestUrl = resolvePostgrestUrl(
       this.settings,
