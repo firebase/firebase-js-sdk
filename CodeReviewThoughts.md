@@ -126,5 +126,6 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Audit public exports in `packages/sql/src/api/index.ts`
 
+- Status: Resolved
 - File: `packages/sql/src/api/index.ts`
-- Perform an audit of all exported types and symbols to ensure the public export surface is correct, complete, and does not unintentionally expose internal utilities or omit desired types.
+- Resolution: Performed an audit of the public export surface; confirmed all exports are necessary for API Extractor rollup and consumer usability, and no internal transport or state implementations are leaked. Preserved all current exports as-is.
