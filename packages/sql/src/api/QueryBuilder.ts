@@ -54,6 +54,16 @@ export interface QueryDeleteOptions {
 export type NonIterable<T> = T & { readonly [Symbol.iterator]?: never };
 
 export interface QueryBuilder {
+  /**
+   * Performs a SELECT query on the table.
+   *
+   * Untyped queries default to returning `Array<Record<string, unknown>>` for type safety.
+   * Call `.returns<T[]>()` or `.overrideTypes<T[]>()` on the returned builder to cast rows
+   * to a strongly-typed schema.
+   *
+   * @param columns - The columns to select, separated by commas. Defaults to `'*'`.
+   * @param options - Additional query options.
+   */
   select(
     columns?: string | undefined,
     options?: Readonly<QuerySelectOptions> | undefined

@@ -184,7 +184,6 @@ export class FirebaseSql {
     readonly _instanceIdentifier: string;
     // @internal (undocumented)
     readonly _postgrestUrl: string;
-    // (undocumented)
     rpc<Args extends object & {
         readonly [K in keyof Args]: unknown;
     } & {
@@ -319,7 +318,6 @@ export interface QueryBuilder {
     insert<Row extends NonIterable<object & {
         readonly [K in keyof Row]: unknown;
     }> = Record<string, unknown>>(values: Row | readonly Row[], options?: Readonly<QueryInsertOptions> | undefined): FilterBuilder<null, 'POST'>;
-    // (undocumented)
     select(columns?: string | undefined, options?: Readonly<QuerySelectOptions> | undefined): FilterBuilder<Array<Record<string, unknown>>, 'GET'>;
     // (undocumented)
     update<Row extends NonIterable<object & {

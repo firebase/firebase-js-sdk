@@ -22,7 +22,7 @@ export interface QueryBuilder
 |  --- | --- |
 |  [delete(options)](./sql.querybuilder.md#querybuilderdelete) |  |
 |  [insert(values, options)](./sql.querybuilder.md#querybuilderinsert) |  |
-|  [select(columns, options)](./sql.querybuilder.md#querybuilderselect) |  |
+|  [select(columns, options)](./sql.querybuilder.md#querybuilderselect) | Performs a SELECT query on the table.<!-- -->Untyped queries default to returning <code>Array&lt;Record&lt;string, unknown&gt;&gt;</code> for type safety. Call <code>.returns&lt;T[]&gt;()</code> or <code>.overrideTypes&lt;T[]&gt;()</code> on the returned builder to cast rows to a strongly-typed schema. |
 |  [update(values, options)](./sql.querybuilder.md#querybuilderupdate) |  |
 |  [upsert(values, options)](./sql.querybuilder.md#querybuilderupsert) |  |
 
@@ -67,6 +67,10 @@ insert<Row extends NonIterable<object & {
 
 ## QueryBuilder.select()
 
+Performs a SELECT query on the table.
+
+Untyped queries default to returning `Array<Record<string, unknown>>` for type safety. Call `.returns<T[]>()` or `.overrideTypes<T[]>()` on the returned builder to cast rows to a strongly-typed schema.
+
 <b>Signature:</b>
 
 ```typescript
@@ -77,8 +81,8 @@ select(columns?: string | undefined, options?: Readonly<QuerySelectOptions> | un
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  columns | string \| undefined |  |
-|  options | Readonly&lt;[QuerySelectOptions](./sql.queryselectoptions.md#queryselectoptions_interface)<!-- -->&gt; \| undefined |  |
+|  columns | string \| undefined | The columns to select, separated by commas. Defaults to <code>'*'</code>. |
+|  options | Readonly&lt;[QuerySelectOptions](./sql.queryselectoptions.md#queryselectoptions_interface)<!-- -->&gt; \| undefined | Additional query options. |
 
 <b>Returns:</b>
 

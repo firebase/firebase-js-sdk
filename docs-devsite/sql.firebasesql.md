@@ -32,7 +32,7 @@ export declare class FirebaseSql
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [from(table)](./sql.firebasesql.md#firebasesqlfrom) |  |  |
-|  [rpc(fn, params, options)](./sql.firebasesql.md#firebasesqlrpc) |  |  |
+|  [rpc(fn, params, options)](./sql.firebasesql.md#firebasesqlrpc) |  | Calls a Postgres stored procedure or function (RPC).<!-- -->Untyped RPC results default to <code>unknown</code> for type safety. Call <code>.returns&lt;T&gt;()</code> or <code>.overrideTypes&lt;T&gt;()</code> on the returned builder to specify the expected return type. |
 
 ## FirebaseSql.app
 
@@ -74,6 +74,10 @@ from(table: string): QueryBuilder;
 
 ## FirebaseSql.rpc()
 
+Calls a Postgres stored procedure or function (RPC).
+
+Untyped RPC results default to `unknown` for type safety. Call `.returns<T>()` or `.overrideTypes<T>()` on the returned builder to specify the expected return type.
+
 <b>Signature:</b>
 
 ```typescript
@@ -88,9 +92,9 @@ rpc<Args extends object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fn | string |  |
-|  params | Args \| undefined |  |
-|  options | Readonly&lt;[FirebaseSqlRpcOptions](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptions_interface)<!-- -->&gt; \| undefined |  |
+|  fn | string | The function name to call. |
+|  params | Args \| undefined | Named arguments to pass to the function. |
+|  options | Readonly&lt;[FirebaseSqlRpcOptions](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptions_interface)<!-- -->&gt; \| undefined | Execution options. |
 
 <b>Returns:</b>
 

@@ -34,10 +34,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## Evaluate `any` vs `unknown` divergence from API proposal
 
-- Scope: `packages/sql/src/core/untypedSchema.ts` and builder types
-- Reference: go/fsql-postgrest-js-sdk
-- API proposal uses `any` in several places where the implementation substitutes `unknown`.
-- Evaluate impacts of `unknown` on source compatibility and developer ergonomics with `@supabase/postgrest-js`.
+- Status: Resolved
+- Scope: `packages/sql/src/core/untypedSchema.ts`, `packages/sql/src/api/QueryBuilder.ts`, `packages/sql/src/api/FirebaseSql.ts`
+- Resolution: Decided to retain `unknown` / `Record<string, unknown>` to uphold Google TypeScript type-safety standards over implicit `any`. Documented the rationale in JSDoc on `select()` and `rpc()`, guiding developers to `.returns<T>()` / `.overrideTypes<T>()` for strongly-typed results.
 
 ## Strengthen `isPlainRecord` check
 

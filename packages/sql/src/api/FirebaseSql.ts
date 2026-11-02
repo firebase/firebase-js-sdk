@@ -184,6 +184,16 @@ export class FirebaseSql {
     );
   }
 
+  /**
+   * Calls a Postgres stored procedure or function (RPC).
+   *
+   * Untyped RPC results default to `unknown` for type safety. Call `.returns<T>()` or
+   * `.overrideTypes<T>()` on the returned builder to specify the expected return type.
+   *
+   * @param fn - The function name to call.
+   * @param params - Named arguments to pass to the function.
+   * @param options - Execution options.
+   */
   rpc<
     Args extends object & {
       readonly [K in keyof Args]: unknown;
