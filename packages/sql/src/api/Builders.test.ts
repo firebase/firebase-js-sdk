@@ -32,7 +32,7 @@ import type {
   BuilderExecutionTracker,
   CreateBuilderFetch,
   MapPostgrestError,
-  MutableSqlClientState
+  SqlClientState
 } from '../core/state';
 import type {
   UntypedClientOptions,
@@ -63,7 +63,7 @@ interface CapturedRequest {
 }
 
 interface TestHarness {
-  state: MutableSqlClientState;
+  state: SqlClientState;
   requests: CapturedRequest[];
   mapErrorCalls: Array<{
     rawError: unknown;
@@ -86,7 +86,7 @@ interface TestHarness {
   rpcBuilder: (fnName?: string) => FilterBuilder<unknown, 'RPC'>;
 }
 
-function createActiveState(): MutableSqlClientState {
+function createActiveState(): SqlClientState {
   return {
     active: {
       appId: '1:123:web:abc',

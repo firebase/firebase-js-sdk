@@ -38,7 +38,7 @@ import {
   FirebaseSqlErrorCategory
 } from '../core/error';
 import { SqlServiceSettings } from '../core/settings';
-import type { MutableSqlClientState } from '../core/state';
+import type { SqlClientState } from '../core/state';
 import { SDK_VERSION, setSDKVersion } from '../core/version';
 import { getFetch, initializeFetch } from '../network';
 import { LOWERCASE_DISALLOWED_HEADER_KEYS } from '../network/headers';
@@ -54,7 +54,7 @@ const defaultSettings: SqlServiceSettings = {
 };
 
 interface FirebaseSqlWithInternals {
-  _state: MutableSqlClientState;
+  _state: SqlClientState;
 }
 
 describe('FirebaseSql', () => {

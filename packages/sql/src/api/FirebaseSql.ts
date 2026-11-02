@@ -36,7 +36,7 @@ import {
   SqlServiceSettings,
   validateSqlServiceSettings
 } from '../core/settings';
-import type { MutableSqlClientState } from '../core/state';
+import type { SqlClientState } from '../core/state';
 import { AppCheckProvider } from '../core/tokenProviders/AppCheckTokenProvider';
 import { FirebaseAuthProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
 import type {
@@ -75,7 +75,7 @@ export class FirebaseSql {
   readonly _postgrestUrl: string;
 
   /** @internal */
-  private readonly _state: MutableSqlClientState;
+  private readonly _state: SqlClientState;
 
   readonly #postgrestClient: PostgrestClient<
     UntypedDatabase,

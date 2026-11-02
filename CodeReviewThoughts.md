@@ -4,10 +4,9 @@ Thoughts and observations recorded during code review of PR #10551.
 
 ## `ReadonlySqlClientState` and `MutableSqlClientState` simplification
 
+- Status: Resolved
 - File: `packages/sql/src/core/state.ts`
-- Consider renaming `MutableSqlClientState` to `SqlClientState`.
-- Consider replacing all usages of `ReadonlySqlClientState` with `Readonly<SqlClientState>`.
-- Consider deleting `ReadonlySqlClientState`.
+- Resolution: Renamed `MutableSqlClientState` to `SqlClientState`, deleted `ReadonlySqlClientState`, and replaced all usages of `ReadonlySqlClientState` with `Readonly<SqlClientState>`.
 
 ## Eliminate JavaScript private `#` property syntax
 

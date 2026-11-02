@@ -24,7 +24,7 @@ import type {
   BuilderExecutionTracker,
   CreateBuilderFetch,
   MapPostgrestError,
-  ReadonlySqlClientState
+  SqlClientState
 } from '../../core/state';
 import { validateHeaderName } from '../../network/headers';
 import type {
@@ -151,14 +151,14 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
   false
 > {
   readonly #delegate: FilterDelegateHandle;
-  readonly #state: ReadonlySqlClientState;
+  readonly #state: Readonly<SqlClientState>;
   readonly #createFetch: CreateBuilderFetch;
   readonly #mapError: MapPostgrestError;
   #shouldThrowOnError = false;
 
   constructor(
     delegate: FilterDelegateHandle,
-    state: ReadonlySqlClientState,
+    state: Readonly<SqlClientState>,
     createFetch: CreateBuilderFetch,
     mapError: MapPostgrestError
   ) {

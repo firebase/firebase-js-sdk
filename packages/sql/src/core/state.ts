@@ -29,16 +29,12 @@ export interface SqlClientResources {
   readonly appCheckTokenProvider: AppCheckTokenProvider;
 }
 
-export interface MutableSqlClientState {
+export interface SqlClientState {
   active: SqlClientResources | null;
 }
 
-export interface ReadonlySqlClientState {
-  readonly active: SqlClientResources | null;
-}
-
 export type CreateBuilderFetch = (
-  state: ReadonlySqlClientState,
+  state: Readonly<SqlClientState>,
   tracker: BuilderExecutionTracker
 ) => typeof fetch;
 

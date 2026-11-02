@@ -30,10 +30,7 @@ import {
   FirebaseSqlErrorCategory
 } from '../core/error';
 import { mapPostgrestFailureToFirebaseSqlError } from '../core/errorMapper';
-import type {
-  BuilderExecutionTracker,
-  MutableSqlClientState
-} from '../core/state';
+import type { BuilderExecutionTracker, SqlClientState } from '../core/state';
 import type { AppCheckTokenProvider } from '../core/tokenProviders/AppCheckTokenProvider';
 import type { FirebaseAuthTokenProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
 import type {
@@ -132,7 +129,7 @@ describe('createBuilderFetch', () => {
 
   it('injects all required Firebase SQL headers and omits apiKey and forbidden headers', async () => {
     const providers = createMockProviders('jwt-abc', 'appcheck-xyz');
-    const state: MutableSqlClientState = {
+    const state: SqlClientState = {
       active: {
         appId: '1:123456:web:abcdef',
         authTokenProvider: providers.authProvider,
@@ -187,7 +184,7 @@ describe('createBuilderFetch', () => {
 
   it('omits optional appId, auth, and appcheck headers when absent and supports Headers and tuple arrays', async () => {
     const providers = createMockProviders(null, null);
-    const state: MutableSqlClientState = {
+    const state: SqlClientState = {
       active: {
         appId: undefined,
         authTokenProvider: providers.authProvider,
@@ -240,7 +237,7 @@ describe('createBuilderFetch', () => {
 
     // Authenticated client state
     const authProviders = createMockProviders('real-jwt', 'real-appcheck');
-    const state: MutableSqlClientState = {
+    const state: SqlClientState = {
       active: {
         appId: 'app-1',
         authTokenProvider: authProviders.authProvider,
@@ -355,7 +352,7 @@ describe('createBuilderFetch', () => {
       .mockResolvedValueOnce({ accessToken: 'stale-jwt' })
       .mockResolvedValueOnce({ accessToken: 'fresh-jwt' });
 
-    const state: MutableSqlClientState = {
+    const state: SqlClientState = {
       active: {
         appId: 'app-1',
         authTokenProvider: providers.authProvider,
@@ -440,7 +437,7 @@ describe('createBuilderFetch', () => {
   });
 
   it('records NOT_INITIALIZED and throws AbortError when state is already terminated', async () => {
-    const state: MutableSqlClientState = { active: null };
+    const state: SqlClientState = { active: null };
     const tracker: BuilderExecutionTracker = { clientError: null };
     const mockFetch = vi.fn<typeof fetch>();
     initializeFetch(mockFetch);
@@ -467,7 +464,7 @@ describe('createBuilderFetch', () => {
 
   it('records NOT_SUPPORTED and throws AbortError when no fetch implementation is available', async () => {
     const providers = createMockProviders();
-    const state: MutableSqlClientState = {
+    const state: SqlClientState = {
       active: {
         appId: 'app-id',
         authTokenProvider: providers.authProvider,
@@ -493,7 +490,7 @@ describe('createBuilderFetch', () => {
     const providers = createMockProviders();
     providers.authGetToken.mockRejectedValueOnce(new Error('auth token boom'));
 
-    const state: MutableSqlClientState = {
+    const state: SqlClientState = {
       active: {
         appId: 'app-id',
         authTokenProvider: providers.authProvider,
@@ -532,7 +529,7 @@ describe('createBuilderFetch', () => {
 
   it('propagates genuine baseFetch network errors untouched without setting tracker.clientError', async () => {
     const providers = createMockProviders();
-    const state: MutableSqlClientState = {
+    const state: SqlClientState = {
       active: {
         appId: 'app-id',
         authTokenProvider: providers.authProvider,
@@ -559,7 +556,7 @@ describe('createBuilderFetch', () => {
         .mockResolvedValueOnce({ accessToken: 'stale-jwt' })
         .mockResolvedValueOnce({ accessToken: 'fresh-jwt' });
 
-      const state: MutableSqlClientState = {
+      const state: SqlClientState = {
         active: {
           appId: 'app-id',
           authTokenProvider: providers.authProvider,
@@ -626,7 +623,7 @@ describe('createBuilderFetch', () => {
         .mockResolvedValueOnce({ accessToken: 'jwt-1' })
         .mockResolvedValueOnce({ accessToken: 'jwt-2' });
 
-      const state: MutableSqlClientState = {
+      const state: SqlClientState = {
         active: {
           appId: 'app-id',
           authTokenProvider: providers.authProvider,
@@ -656,7 +653,7 @@ describe('createBuilderFetch', () => {
     it('does not retry when forceRefresh returns null or the same auth token', async () => {
       // Anonymous request receiving 401 (e.g., anon RLS 42501) where forceRefresh is still null
       const anonProviders = createMockProviders(null, null);
-      const state: MutableSqlClientState = {
+      const state: SqlClientState = {
         active: {
           appId: 'app-id',
           authTokenProvider: anonProviders.authProvider,
@@ -705,7 +702,7 @@ describe('createBuilderFetch', () => {
         .mockResolvedValueOnce({ accessToken: 'jwt-1' })
         .mockRejectedValueOnce(customSqlErr);
 
-      const state: MutableSqlClientState = {
+      const state: SqlClientState = {
         active: {
           appId: 'app-id',
           authTokenProvider: providers.authProvider,
@@ -753,7 +750,7 @@ describe('createBuilderFetch', () => {
 
     it('does not forceRefresh or replay an anonymous 401 request when a user signs in mid-flight', async () => {
       const providers = createMockProviders(null, null, null);
-      const state: MutableSqlClientState = {
+      const state: SqlClientState = {
         active: {
           appId: 'app-id',
           authTokenProvider: providers.authProvider,
@@ -795,7 +792,7 @@ describe('createBuilderFetch', () => {
         'appcheck-1',
         'uid-a'
       );
-      const state: MutableSqlClientState = {
+      const state: SqlClientState = {
         active: {
           appId: 'app-id',
           authTokenProvider: providers.authProvider,
@@ -851,7 +848,7 @@ describe('createBuilderFetch', () => {
         .mockResolvedValueOnce({ accessToken: 'user-a-stale-jwt' })
         .mockResolvedValueOnce({ accessToken: 'user-a-fresh-jwt' });
 
-      const state: MutableSqlClientState = {
+      const state: SqlClientState = {
         active: {
           appId: 'app-id',
           authTokenProvider: providers.authProvider,
@@ -911,7 +908,7 @@ describe('createBuilderFetch', () => {
         return { accessToken: cachedToken };
       });
 
-      const state: MutableSqlClientState = {
+      const state: SqlClientState = {
         active: {
           appId: 'app-id',
           authTokenProvider: providers.authProvider,
@@ -1000,7 +997,7 @@ describe('createBuilderFetch', () => {
         .mockResolvedValueOnce({ accessToken: 'jwt-1' })
         .mockRejectedValueOnce(new Error('Refresh failed'));
 
-      const state: MutableSqlClientState = {
+      const state: SqlClientState = {
         active: {
           appId: 'app-id',
           authTokenProvider: failProviders.authProvider,
@@ -1082,7 +1079,7 @@ describe('createBuilderFetch', () => {
 
     it('fails immediately on pre-aborted init.signal or Request.signal without calling getToken()', async () => {
       const providers = createMockProviders('jwt-1', 'ac-1', 'uid-a');
-      const state: MutableSqlClientState = {
+      const state: SqlClientState = {
         active: {
           appId: 'app-id',
           authTokenProvider: providers.authProvider,
@@ -1143,7 +1140,7 @@ describe('createBuilderFetch', () => {
         initResolveController.abort('aborted during getToken');
         return { accessToken: 'jwt-1' };
       });
-      const state: MutableSqlClientState = {
+      const state: SqlClientState = {
         active: {
           appId: 'app-id',
           authTokenProvider: initResolveProviders.authProvider,
@@ -1236,7 +1233,7 @@ describe('createBuilderFetch', () => {
 
     it('normalizes custom string and Error abort reasons to AbortError without triggering 3x fetchWithRetry GET retries', async () => {
       const providers = createMockProviders('jwt-1', null, 'uid-a');
-      const state: MutableSqlClientState = {
+      const state: SqlClientState = {
         active: {
           appId: 'app-id',
           authTokenProvider: providers.authProvider,
@@ -1331,7 +1328,7 @@ describe('createBuilderFetch', () => {
 
     it('aborts immediately with Code.NOT_INITIALIZED and cancels response body when terminated during baseFetch without fetchWithRetry backoff', async () => {
       const providers = createMockProviders('jwt-1', null, 'uid-a');
-      const state: MutableSqlClientState = {
+      const state: SqlClientState = {
         active: {
           appId: 'app-id',
           authTokenProvider: providers.authProvider,
@@ -1427,7 +1424,7 @@ describe('createBuilderFetch', () => {
         .mockResolvedValueOnce({ accessToken: 'jwt-1' })
         .mockResolvedValueOnce({ accessToken: 'jwt-2' });
 
-      const state: MutableSqlClientState = {
+      const state: SqlClientState = {
         active: {
           appId: 'app-id',
           authTokenProvider: providers.authProvider,
@@ -1471,7 +1468,7 @@ describe('createBuilderFetch', () => {
         .mockResolvedValueOnce({ accessToken: 'jwt-1' })
         .mockResolvedValueOnce({ accessToken: 'jwt-2' });
 
-      const state: MutableSqlClientState = {
+      const state: SqlClientState = {
         active: {
           appId: 'app-id',
           authTokenProvider: providers.authProvider,
@@ -1514,7 +1511,7 @@ describe('createBuilderFetch', () => {
 
     it('skips 401 retry and returns the original 401 response for ReadableStream init.body or bodyUsed Request inputs', async () => {
       const providers = createMockProviders('jwt-1', null, 'uid-a');
-      const state: MutableSqlClientState = {
+      const state: SqlClientState = {
         active: {
           appId: 'app-id',
           authTokenProvider: providers.authProvider,

@@ -18,7 +18,7 @@
 import type {
   CreateBuilderFetch,
   MapPostgrestError,
-  ReadonlySqlClientState
+  SqlClientState
 } from '../../core/state';
 import type { FilterBuilder } from '../FilterBuilder';
 import type {
@@ -61,13 +61,13 @@ export interface QueryDelegateHandle {
 
 export class QueryBuilderImpl implements QueryBuilder {
   readonly #delegate: QueryDelegateHandle;
-  readonly #state: ReadonlySqlClientState;
+  readonly #state: Readonly<SqlClientState>;
   readonly #createFetch: CreateBuilderFetch;
   readonly #mapError: MapPostgrestError;
 
   constructor(
     delegate: QueryDelegateHandle,
-    state: ReadonlySqlClientState,
+    state: Readonly<SqlClientState>,
     createFetch: CreateBuilderFetch,
     mapError: MapPostgrestError
   ) {

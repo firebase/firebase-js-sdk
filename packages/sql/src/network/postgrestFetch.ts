@@ -23,7 +23,7 @@ import {
 import type {
   BuilderExecutionTracker,
   CreateBuilderFetch,
-  ReadonlySqlClientState
+  SqlClientState
 } from '../core/state';
 import { SDK_VERSION } from '../core/version';
 
@@ -54,7 +54,7 @@ function throwTrackedClientError(
 }
 
 function resolveClientError(
-  state: ReadonlySqlClientState,
+  state: Readonly<SqlClientState>,
   err: unknown
 ): FirebaseSqlError {
   if (state.active === null) {
