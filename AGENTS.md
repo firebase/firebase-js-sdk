@@ -9,6 +9,9 @@
   Node tests, even if the Node tests seem like they would be faster. Ensure
   Node test setups load the Node entry point (`src/index.node.ts`) and
   Browser test setups load the Browser entry point.
+- Do not add `vi.restoreAllMocks()` or `vi.useRealTimers()` in individual
+  `.test.ts` files if the package's `test/setup.ts` already performs global
+  restoration in `afterEach`.
 - In Vitest tests, `vi.spyOn()` executes the original function by default
   (unlike `sinon.stub()`). Always chain `.mockImplementation(() => {})` or
   `.mockResolvedValue(...)` when spying on network calls (`fetch`, `open`,
@@ -46,6 +49,14 @@
     the umbrella package by a patch for any dependency bump.
 
 ## Public API, JSDoc, and build conventions
+- We rely on TypeScript's type system and intentionally omit redundant
+  runtime null, undefined, or type validation to keep client bundle sizes
+  small. Only add runtime validation at true untrusted input boundaries
+  (such as `JSON.parse` of external strings).
+- Do not add runtime `console.warn` or `logger.warn` calls for deprecated
+  options when `@deprecated` JSDoc annotations are sufficient, as runtime
+  warnings increase client bundle size and pollute end-users' browser
+  consoles.
 - Every parameter and return type referenced by a publicly exported method
   or function must also be exported from the public entry point (to avoid
   `ae-forgotten-export` warnings). Mark internal helper types `@internal`
