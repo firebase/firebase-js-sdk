@@ -497,7 +497,9 @@ describe('createTracingProvider', () => {
       expect(dynamicAttr.value.stringValue).toBe('installation_id_value');
     });
 
-    function createSampler(decision: Partial<SamplingDecision>): SessionSampler {
+    function createSampler(
+      decision: Partial<SamplingDecision>
+    ): SessionSampler {
       const fullDecision: SamplingDecision = {
         sessionId: 'session-1',
         sampled: true,

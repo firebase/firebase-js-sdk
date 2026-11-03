@@ -41,7 +41,9 @@ describe('murmurHash3', () => {
   });
 
   it('covers every tail length (0-3 trailing bytes)', () => {
-    const hashes = new Set(['a', 'ab', 'abc', 'abcd', 'abcde'].map(murmurHash3));
+    const hashes = new Set(
+      ['a', 'ab', 'abc', 'abcd', 'abcde'].map(murmurHash3)
+    );
     expect(hashes.size).toBe(5);
   });
 

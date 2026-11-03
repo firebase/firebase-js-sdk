@@ -65,7 +65,11 @@ describe('parseClientConfigResponse', () => {
       },
       123
     );
-    expect(config).toEqual({ enabled: true, samplingRate: 0.25, fetchTime: 123 });
+    expect(config).toEqual({
+      enabled: true,
+      samplingRate: 0.25,
+      fetchTime: 123
+    });
   });
 
   it('parses a disabled config', () => {

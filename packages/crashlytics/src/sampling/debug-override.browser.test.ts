@@ -43,9 +43,11 @@ describe('isTelemetryDebugEnabled', () => {
   });
 
   it('ignores falsy or unrelated global values', () => {
-    (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] = false;
+    (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
+      false;
     expect(isTelemetryDebugEnabled('')).toBe(false);
-    (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] = 'yes';
+    (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
+      'yes';
     expect(isTelemetryDebugEnabled('')).toBe(false);
   });
 
@@ -55,9 +57,9 @@ describe('isTelemetryDebugEnabled', () => {
   });
 
   it('is enabled by the query parameter and persists it for the session', () => {
-    expect(isTelemetryDebugEnabled('?foo=1&firebase_telemetry_debug=true')).toBe(
-      true
-    );
+    expect(
+      isTelemetryDebugEnabled('?foo=1&firebase_telemetry_debug=true')
+    ).toBe(true);
     expect(sessionStorage.getItem(SESSION_STORAGE_DEBUG_KEY)).toBe('true');
 
     // Still enabled once the query parameter is gone (e.g. after an in-app navigation).

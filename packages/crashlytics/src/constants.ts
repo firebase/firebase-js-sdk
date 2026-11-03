@@ -65,7 +65,7 @@ export const SESSION_STORAGE_SAMPLING_DECISION_KEY =
 /** sessionStorage key marking that the telemetry debug override is active for this session. */
 export const SESSION_STORAGE_DEBUG_KEY = 'firebasecrashlytics.debug';
 
-/** Global flag developers can set to force 100% telemetry collection on a device. */
+/** Global flag developers can set to force 100% on-device telemetry collection. */
 export const TELEMETRY_DEBUG_GLOBAL_FLAG = 'FIREBASE_TELEMETRY_DEBUG';
 
 /** URL query parameter that enables the telemetry debug override for the browser session. */

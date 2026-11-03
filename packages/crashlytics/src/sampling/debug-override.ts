@@ -22,8 +22,9 @@ import {
 } from '../constants';
 
 /**
- * Returns whether the telemetry debug override is active, forcing 100% telemetry collection for
- * this device regardless of the configured sampling rate.
+ * Returns whether the telemetry debug override is active, forcing 100% on-device telemetry
+ * collection (with `session.sampling.rate = 1.0`) for this browser session regardless of the
+ * configured sampling rate.
  *
  * The override is enabled by any of:
  * - `self.FIREBASE_TELEMETRY_DEBUG = true` (set by a developer in code or the dev console),

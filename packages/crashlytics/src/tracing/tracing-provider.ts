@@ -49,7 +49,10 @@ import {
   RESOURCE_ATTRIBUTE_KEYS
 } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
-import { getClientConfigEndpointUrl, getTelemetryEndpointUrl } from '../helpers';
+import {
+  getClientConfigEndpointUrl,
+  getTelemetryEndpointUrl
+} from '../helpers';
 import type { SessionSampler } from '../sampling/session-sampler';
 
 let unregisterInstrumentations: (() => void) | undefined;

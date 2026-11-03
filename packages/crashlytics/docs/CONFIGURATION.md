@@ -138,7 +138,7 @@ self.FIREBASE_TELEMETRY_DEBUG = true;
 If an end user is experiencing an issue, you can instead ask them to open your web app with the `firebase_telemetry_debug=true` query parameter (for example `https://example.com/?firebase_telemetry_debug=true`). The SDK persists the override in `sessionStorage`, so it stays active for the lifetime of that browser session even after in-app navigation.
 
 > [!NOTE]
-> The override only affects the on-device decision. The server still enforces the configured sampling rate: if the configured rate is `0.0` (collection paused) or telemetry collection is disabled, the data is dropped on ingestion.
+> The override only affects the on-device decision and stamps `session.sampling.rate` as `1.0` (so debug sessions are not extrapolated as `1 / sampling_rate` sessions in dashboard metrics). The server still enforces the configured sampling rate on ingestion: when the configured rate is below `1.0`, the server re-samples incoming sessions at the configured rate, and if the configured rate is `0.0` (collection paused) or telemetry collection is disabled, the data is dropped on ingestion.
 
 ---
 

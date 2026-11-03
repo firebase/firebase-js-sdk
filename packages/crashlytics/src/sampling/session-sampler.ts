@@ -77,7 +77,7 @@ function isPageHidden(): boolean {
  *   so page reloads within the session do not flip it. Rate changes apply to new sessions only;
  *   downward changes are additionally enforced immediately by the backend.
  * - The telemetry debug override (see {@link isTelemetryDebugEnabled}) forces the session to be
- *   sampled.
+ *   sampled on the device with a stamped rate of `1.0`.
  *
  * @internal
  */
@@ -97,6 +97,7 @@ export class SessionSampler {
    * On first use this may wait (bounded by `initialWaitMs`) for the initial config fetch so a fresh
    * rate is used when it arrives quickly; otherwise the cached or default configuration is used.
    * It does not wait when:
+   * - the telemetry debug override is active
    * - the cached configuration is younger than the server's `max-age` (see
    *   {@link ClientConfigStore.isFresh}), since the fetch would most likely return the same value;
    * - the page is hidden. Exports issued while the page is hidden are typically the unload flush
@@ -109,7 +110,11 @@ export class SessionSampler {
     if (cached) {
       return cached;
     }
-    if (!this._configStore.isFresh() && !isPageHidden()) {
+    if (
+      !isTelemetryDebugEnabled() &&
+      !this._configStore.isFresh() &&
+      !isPageHidden()
+    ) {
       await this._waitForInitialConfig();
     }
     return this.decide();
@@ -151,7 +156,6 @@ export class SessionSampler {
     }
     const wait = new Promise<void>(resolve => {
       let settled = false;
-      let timer: ReturnType<typeof setTimeout> | undefined;
       const hasDom =
         typeof window !== 'undefined' && typeof document !== 'undefined';
       const onVisibilityChange = (): void => {
@@ -174,7 +178,7 @@ export class SessionSampler {
         }
         resolve();
       };
-      timer = setTimeout(settle, this._initialWaitMs);
+      const timer = setTimeout(settle, this._initialWaitMs);
       if (hasDom) {
         document.addEventListener('visibilitychange', onVisibilityChange);
         window.addEventListener('pagehide', settle);
@@ -190,36 +194,39 @@ export class SessionSampler {
     config: ClientConfig
   ): SamplingDecision {
     if (isTelemetryDebugEnabled()) {
-      // Force collection. Stamp the configured rate (when valid) rather than 1.0: the backend
-      // re-samples sessions whose stamped rate is above the configured rate, which would defeat
-      // the override for most sessions.
       return {
         sessionId,
         sampled: true,
-        samplingRate: config.samplingRate > 0 ? config.samplingRate : 1.0
+        samplingRate: 1.0
       };
     }
     if (!config.enabled || config.samplingRate <= 0) {
       return { sessionId, sampled: false, samplingRate: config.samplingRate };
     }
-    const sampled = sessionId
-      ? isSessionSampled(sessionId, config.samplingRate)
-      : // Without a session ID (e.g. sessionStorage unavailable) there is nothing to hash and no
-        // session to keep consistent, so fall back to an independent random draw at the same rate.
-        Math.random() < config.samplingRate;
-    return { sessionId, sampled, samplingRate: config.samplingRate };
+    if (!sessionId) {
+      return { sessionId, sampled: false, samplingRate: config.samplingRate };
+    }
+    return {
+      sessionId,
+      sampled: isSessionSampled(sessionId, config.samplingRate),
+      samplingRate: config.samplingRate
+    };
   }
 
   private _cachedDecision(): SamplingDecision | undefined {
     const sessionId = this._attributesStore.sessionId;
     if (this._decision && this._decision.sessionId === sessionId) {
-      return this._decision;
+      if (this._decision.sampled || !isTelemetryDebugEnabled()) {
+        return this._decision;
+      }
     }
     // A new session (or first use after a reload): try the persisted decision.
     const persisted = this._loadPersistedDecision();
     if (persisted && persisted.sessionId === sessionId && sessionId) {
-      this._decision = persisted;
-      return persisted;
+      if (persisted.sampled || !isTelemetryDebugEnabled()) {
+        this._decision = persisted;
+        return persisted;
+      }
     }
     this._decision = undefined;
     return undefined;

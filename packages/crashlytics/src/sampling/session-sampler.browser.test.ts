@@ -84,7 +84,12 @@ describe('isSessionSampled', () => {
     const total = 20000;
     let kept = 0;
     for (let i = 0; i < total; i++) {
-      if (isSessionSampled(`00000000-0000-4000-8000-${String(i).padStart(12, '0')}`, 0.25)) {
+      if (
+        isSessionSampled(
+          `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
+          0.25
+        )
+      ) {
         kept++;
       }
     }
@@ -140,23 +145,36 @@ describe('SessionSampler', () => {
     expect((await sampler.getDecision()).sampled).toBe(false);
   });
 
-  it('falls back to a random draw when there is no session id', async () => {
-    const randomSpy = vi.spyOn(Math, 'random');
-    randomSpy.mockReturnValue(0.1);
-    let { sampler } = createSampler({ samplingRate: 0.5 }, undefined);
+  it('drops the session when there is no session id, even at a 100% rate', async () => {
+    const { sampler } = createSampler({ samplingRate: 1 }, undefined);
     expect(await sampler.getDecision()).toEqual({
       sessionId: undefined,
-      sampled: true,
-      samplingRate: 0.5
+      sampled: false,
+      samplingRate: 1
     });
+    // Nothing is persisted without a session id.
+    expect(
+      sessionStorage.getItem(SESSION_STORAGE_SAMPLING_DECISION_KEY)
+    ).toBeNull();
+  });
 
-    randomSpy.mockReturnValue(0.9);
-    ({ sampler } = createSampler({ samplingRate: 0.5 }, undefined));
+  it('makes a new decision once a session id becomes available', async () => {
+    const { sampler, attrs } = createSampler({ samplingRate: 1 }, undefined);
     expect((await sampler.getDecision()).sampled).toBe(false);
+
+    attrs.setSessionId(SESSION_HIGH);
+    expect(await sampler.getDecision()).toEqual({
+      sessionId: SESSION_HIGH,
+      sampled: true,
+      samplingRate: 1
+    });
   });
 
   it('makes the decision once per session and keeps it across config changes', async () => {
-    const { sampler, store } = createSampler({ samplingRate: 0.5 }, SESSION_LOW);
+    const { sampler, store } = createSampler(
+      { samplingRate: 0.5 },
+      SESSION_LOW
+    );
     const first = await sampler.getDecision();
     expect(first.sampled).toBe(true);
 
@@ -212,7 +230,11 @@ describe('SessionSampler', () => {
   });
 
   it('waits for the initial config fetch before the first decision', async () => {
-    const { sampler, store } = createSampler({ samplingRate: 1 }, SESSION_HIGH, 1000);
+    const { sampler, store } = createSampler(
+      { samplingRate: 1 },
+      SESSION_HIGH,
+      1000
+    );
     let resolveFetch!: () => void;
     store.ready = new Promise<void>(resolve => {
       resolveFetch = resolve;
@@ -226,7 +248,11 @@ describe('SessionSampler', () => {
   });
 
   it('does not wait longer than the initial wait for a slow fetch', async () => {
-    const { sampler, store } = createSampler({ samplingRate: 1 }, SESSION_HIGH, 5);
+    const { sampler, store } = createSampler(
+      { samplingRate: 1 },
+      SESSION_HIGH,
+      5
+    );
     store.ready = new Promise<void>(() => {});
     expect(await sampler.getDecision()).toMatchObject({
       sampled: true,
@@ -294,7 +320,10 @@ describe('SessionSampler', () => {
       mockVisibility('hidden');
       document.dispatchEvent(new Event('visibilitychange'));
 
-      expect(await pending).toMatchObject({ sampled: false, samplingRate: 0.5 });
+      expect(await pending).toMatchObject({
+        sampled: false,
+        samplingRate: 0.5
+      });
       expect(vi.getTimerCount()).toBe(0);
     });
 
@@ -309,7 +338,10 @@ describe('SessionSampler', () => {
       const pending = sampler.getDecision();
       window.dispatchEvent(new Event('pagehide'));
 
-      expect(await pending).toMatchObject({ sampled: false, samplingRate: 0.5 });
+      expect(await pending).toMatchObject({
+        sampled: false,
+        samplingRate: 0.5
+      });
       expect(vi.getTimerCount()).toBe(0);
     });
 
@@ -332,7 +364,10 @@ describe('SessionSampler', () => {
       expect(settled).toBe(false);
 
       await vi.advanceTimersByTimeAsync(1);
-      expect(await pending).toMatchObject({ sampled: false, samplingRate: 0.5 });
+      expect(await pending).toMatchObject({
+        sampled: false,
+        samplingRate: 0.5
+      });
     });
 
     it('clears the timer once the fetch settles and shares one wait between callers', async () => {
@@ -361,26 +396,76 @@ describe('SessionSampler', () => {
   });
 
   describe('debug override', () => {
-    it('forces sampling via the global flag and stamps the configured rate', async () => {
-      (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] = true;
-      const { sampler } = createSampler({ samplingRate: 0.5 }, SESSION_HIGH);
+    it('forces sampling even when there is no session id', async () => {
+      (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
+        true;
+      const { sampler } = createSampler({ samplingRate: 0.5 }, undefined);
       expect(await sampler.getDecision()).toEqual({
-        sessionId: SESSION_HIGH,
+        sessionId: undefined,
         sampled: true,
-        samplingRate: 0.5
+        samplingRate: 1
       });
     });
 
-    it('forces sampling via the sessionStorage marker', async () => {
+    it('forces sampling via the global flag and stamps 1.0 instead of the configured rate', async () => {
+      (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
+        true;
+      const { sampler } = createSampler({ samplingRate: 0.01 }, SESSION_HIGH);
+      expect(await sampler.getDecision()).toEqual({
+        sessionId: SESSION_HIGH,
+        sampled: true,
+        samplingRate: 1
+      });
+    });
+
+    it('forces sampling via the sessionStorage marker and stamps 1.0', async () => {
       sessionStorage.setItem(SESSION_STORAGE_DEBUG_KEY, 'true');
-      const { sampler } = createSampler({ enabled: false }, SESSION_HIGH);
-      expect((await sampler.getDecision()).sampled).toBe(true);
+      const { sampler } = createSampler(
+        { enabled: false, samplingRate: 0.25 },
+        SESSION_HIGH
+      );
+      expect(await sampler.getDecision()).toEqual({
+        sessionId: SESSION_HIGH,
+        sampled: true,
+        samplingRate: 1
+      });
     });
 
     it('stamps 1.0 when collection is paused', async () => {
-      (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] = true;
+      (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
+        true;
       const { sampler } = createSampler({ samplingRate: 0 }, SESSION_HIGH);
       expect(await sampler.getDecision()).toMatchObject({
+        sampled: true,
+        samplingRate: 1
+      });
+    });
+
+    it('does not wait for the initial config fetch when the debug override is active', async () => {
+      (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
+        true;
+      const { sampler, store } = createSampler(
+        { samplingRate: 0.5 },
+        SESSION_HIGH,
+        60_000
+      );
+      store.ready = new Promise<void>(() => {});
+
+      expect(await sampler.getDecision()).toEqual({
+        sessionId: SESSION_HIGH,
+        sampled: true,
+        samplingRate: 1
+      });
+    });
+
+    it('overrides a previously cached unsampled decision when enabled mid-session', async () => {
+      const { sampler } = createSampler({ samplingRate: 0.5 }, SESSION_HIGH);
+      expect((await sampler.getDecision()).sampled).toBe(false);
+
+      (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
+        true;
+      expect(await sampler.getDecision()).toEqual({
+        sessionId: SESSION_HIGH,
         sampled: true,
         samplingRate: 1
       });

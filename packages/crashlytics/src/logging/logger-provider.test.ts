@@ -250,7 +250,9 @@ describe('createLoggerProvider', () => {
   });
 
   describe('session sampling', () => {
-    function createSampler(decision: Partial<SamplingDecision>): SessionSampler {
+    function createSampler(
+      decision: Partial<SamplingDecision>
+    ): SessionSampler {
       const fullDecision: SamplingDecision = {
         sessionId: 'session-1',
         sampled: true,
@@ -269,7 +271,8 @@ describe('createLoggerProvider', () => {
     function exportedLogRecords(
       fetchStub: ReturnType<typeof vi.spyOn>
     ): Array<{ attributes: Array<{ key: string; value: unknown }> }> {
-      const body = (fetchStub.mock.calls[0][1] as RequestInit).body as Uint8Array;
+      const body = (fetchStub.mock.calls[0][1] as RequestInit)
+        .body as Uint8Array;
       const payload = JSON.parse(new TextDecoder().decode(body));
       return payload.resourceLogs.flatMap((rl: any) =>
         rl.scopeLogs.flatMap((sl: any) => sl.logRecords)
