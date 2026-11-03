@@ -68,6 +68,7 @@
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "6.1.0",
     "@rollup/plugin-node-resolve": "16.0.0",
+    "@rollup/plugin-replace": "6.0.2",
     "@rollup/plugin-terser": "0.4.4",
     "@types/child-process-promise": "2.2.6",
     "@types/clone": "2.1.4",
