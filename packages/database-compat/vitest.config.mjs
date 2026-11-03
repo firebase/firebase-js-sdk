@@ -17,8 +17,33 @@
 
 import createBaseConfig from '../../config/vitest.base.mjs';
 
-export default createBaseConfig(import.meta.url, {
-  test: {
-    testTimeout: 10000
+const config = createBaseConfig(import.meta.url);
+
+for (const project of config.test.projects) {
+  project.test.testTimeout = 30000;
+  project.test.hookTimeout = 30000;
+  project.define = {
+    ...(project.define || {}),
+    'process.env.TEST_ENV': JSON.stringify(project.test.name)
+  };
+  if (project.test.name === 'node') {
+    project.test.setupFiles = [
+      ...(project.test.setupFiles || []),
+      'src/index.node.ts'
+    ];
+  } else if (project.test.name === 'browser') {
+    project.test.retry = 3;
+    project.test.fileParallelism = false;
+    project.define = {
+      ...(project.define || {}),
+      'process.env.RTDB_EMULATOR_PORT': JSON.stringify(
+        process.env.RTDB_EMULATOR_PORT
+      ),
+      'process.env.RTDB_EMULATOR_NAMESPACE': JSON.stringify(
+        process.env.RTDB_EMULATOR_NAMESPACE
+      )
+    };
   }
-});
+}
+
+export default config;

@@ -44,7 +44,7 @@ const buildPlugins = [
     typescript,
     abortOnError: false,
     tsconfigOverride: {
-      exclude: [...tsconfig.exclude, '**/*.test.ts']
+      exclude: [...(tsconfig.exclude || []), 'test/**', '**/*.test.ts']
     }
   }),
   json({ preferConst: true })
