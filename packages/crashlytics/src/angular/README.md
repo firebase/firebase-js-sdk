@@ -1,0 +1,124 @@
+# Angular Setup Guide - Firebase Crashlytics
+
+This guide details how to integrate Firebase Crashlytics into an Angular application for automatic error reporting, manual error tracking, and stack trace de-obfuscation.
+
+---
+
+> [!NOTE]
+> For core package installation and Firebase App singleton configuration, see [Core SDK Installation & Initialization](../../README.md#step-2-core-sdk-installation--initialization).
+
+---
+
+## Automatic Error Capturing
+
+Integrate with Angular's global error-catching runtime and automatic route tracking by adding `provideCrashlytics(() => app)` to your application's providers in `src/app/app.config.ts`:
+
+```typescript
+// src/app/app.config.ts
+import { ApplicationConfig } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { provideCrashlytics } from 'firebase/crashlytics/angular';
+import { app } from '../lib/firebase'; // Shared initialization script
+import { routes } from './app.routes';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(routes),
+    provideCrashlytics(() => app)
+  ]
+};
+```
+
+> [!NOTE]
+> `provideCrashlytics()` registers a custom `ErrorHandler` to track uncaught zone crashes and uses internal `Router` instances to build dynamic routes (like `/dashboard/user/:id`) rather than logging literal URLs, keeping telemetry free of personally identifiable information (PII).
+
+---
+
+<!-- #include "../../docs/ADVANCED_USAGE.md#programmatic-error-capturing" -->
+> [!NOTE]
+> For manually capturing handled exceptions with custom metadata, see [Advanced Usage: Programmatic Error Capturing](../../docs/ADVANCED_USAGE.md#programmatic-error-capturing).
+
+---
+
+<!-- #include "../../docs/ADVANCED_USAGE.md#force-flushing-telemetry-records-flush" -->
+> [!NOTE]
+> For force-flushing buffered telemetry records before unloads, see [Advanced Usage: Force Flushing Telemetry Records](../../docs/ADVANCED_USAGE.md#force-flushing-telemetry-records-flush).
+
+---
+
+## Stack Trace De-obfuscation (Source Map Uploading)
+
+<!-- #include "../../docs/_sourcemap_cli_setup.md" -->
+> [!NOTE]
+> For Firebase CLI prerequisites and authentication steps, see [_sourcemap_cli_setup.md](../../docs/_sourcemap_cli_setup.md).
+
+### Configure Angular Workspace for Source Maps
+
+To enable source maps in Angular, configure the `sourceMap` option inside your `angular.json` workspace file:
+
+#### [Option 1] Modify `angular.json` (Recommended)
+
+Open your `angular.json` file and locate the specific build configuration you want to target (such as development or production). Set the `sourceMap` parameter under the `options` or `configurations` block:
+
+```json
+{
+  "projects": {
+    "your-app-name": {
+      "architect": {
+        "build": {
+          "options": {
+            "sourceMap": true
+          },
+          "configurations": {
+            "production": {
+              "sourceMap": {
+                "scripts": true,
+                "vendor": false
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+#### [Option 2] Command Line Override
+
+If you only need source maps for a one-off build or session, append the `--source-map` flag to your Angular CLI commands:
+
+```bash
+ng build --configuration production --source-map
+```
+
+### Upload Source Maps
+
+Angular stores generated source maps within the `dist` folder in the project root directory. Run the upload command:
+
+```bash
+firebase crashlytics:sourcemap:upload --project <YOUR_FIREBASE_PROJECT_ID> --app <YOUR_FIREBASE_APP_ID> --debug dist
+```
+
+### Automate in Build Pipeline
+
+Update your `build` script in `package.json` to upload and delete source maps automatically using the `--clean` flag:
+
+```json
+{
+  "name": "enterprise-web-app",
+  "scripts": {
+    "build": "ng build && firebase crashlytics:sourcemap:upload --project <YOUR_FIREBASE_PROJECT_ID> --app <YOUR_FIREBASE_APP_ID> --clean --debug dist"
+  }
+}
+```
+
+---
+
+## Framework-Specific Best Practices & Gotchas
+
+To ensure smooth integration during the private preview, review these essential best practices:
+
+<!-- #include "../../docs/ADVANCED_USAGE.md#custom-attributes" -->
+> [!NOTE]
+> For logging custom attributes without a `log()` method, see [Advanced Usage: Custom Attributes](../../docs/ADVANCED_USAGE.md#custom-attributes).

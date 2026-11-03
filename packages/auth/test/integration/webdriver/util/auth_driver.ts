@@ -53,6 +53,9 @@ export class AuthDriver {
 
   async stop(): Promise<void> {
     authTestServer.stop();
+    if (!this.webDriver) {
+      return;
+    }
     if (process.env.WEBDRIVER_BROWSER_LOGS) {
       await this.webDriver
         .manage()

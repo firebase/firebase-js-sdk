@@ -409,6 +409,6 @@ export async function _initializeRecaptchaConfig(auth: Auth): Promise<void> {
 
   if (config.isAnyProviderEnabled()) {
     const verifier = new RecaptchaEnterpriseVerifier(authInternal);
-    void verifier.verify();
+    void verifier.verify().catch(() => {});
   }
 }

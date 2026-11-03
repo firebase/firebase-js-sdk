@@ -70,10 +70,28 @@ if (argv.integration || argv.webdriver) {
 
 args = args.concat(argv._ as string[]);
 
-const spawned = spawn(nyc, args, {
-  stdio: 'inherit',
-  cwd: process.cwd()
-});
+const vitest = resolve(__dirname, '../../../node_modules/.bin/vitest');
+
+const spawned = argv.webdriver
+  ? spawn(
+      vitest,
+      [
+        'run',
+        '--config',
+        resolve(__dirname, '../../auth/vitest.config.mjs'),
+        '--project=node',
+        resolve(__dirname, '../../auth/test/integration/webdriver'),
+        ...(argv._ as string[])
+      ],
+      {
+        stdio: 'inherit',
+        cwd: resolve(__dirname, '../../auth')
+      }
+    )
+  : spawn(nyc, args, {
+      stdio: 'inherit',
+      cwd: process.cwd()
+    });
 
 const childProcess = spawned.childProcess;
 spawned.catch(() => {

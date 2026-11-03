@@ -1,5 +1,22 @@
 # firebase
 
+## 13.2.0
+
+### Minor Changes
+
+- [`fe5dd06`](https://github.com/firebase/firebase-js-sdk/commit/fe5dd06c03ad6d5393b01590ec61bdd9be5e2839) [#10548](https://github.com/firebase/firebase-js-sdk/pull/10548) - First release of Crashlytics for public preview
+
+### Patch Changes
+
+- Updated dependencies [[`3da3c2b`](https://github.com/firebase/firebase-js-sdk/commit/3da3c2baff8303e80424eeaf8ee0b555362cca8d), [`fe5dd06`](https://github.com/firebase/firebase-js-sdk/commit/fe5dd06c03ad6d5393b01590ec61bdd9be5e2839), [`3a5d6a0`](https://github.com/firebase/firebase-js-sdk/commit/3a5d6a04eb68f8534222cf41dd34ec2ea113a21e), [`0079975`](https://github.com/firebase/firebase-js-sdk/commit/0079975f661d9158ebbf22055b3903b00bd4a48a)]:
+  - @firebase/auth@1.13.9
+  - @firebase/app@0.16.5
+  - @firebase/crashlytics@0.1.0
+  - @firebase/firestore@4.19.1
+  - @firebase/auth-compat@0.6.14
+  - @firebase/app-compat@0.5.21
+  - @firebase/firestore-compat@0.4.17
+
 ## 13.1.0
 
 ### Minor Changes

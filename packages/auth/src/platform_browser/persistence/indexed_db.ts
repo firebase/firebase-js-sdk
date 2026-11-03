@@ -488,7 +488,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
     if (!this.listeners[key]) {
       this.listeners[key] = new Set();
       // Populate the cache to avoid spuriously triggering on first poll.
-      void this._get(key); // This can happen in the background async and we can return immediately.
+      void this._get(key).catch(() => {}); // This can happen in the background async and we can return immediately.
     }
     this.listeners[key].add(listener);
   }
