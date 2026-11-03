@@ -20,10 +20,6 @@ import createBaseConfig from '../../config/vitest.base.mjs';
 const config = createBaseConfig(import.meta.url);
 
 for (const project of config.test.projects) {
-  project.define = {
-    ...(project.define || {}),
-    'process.env.TEST_ENV': JSON.stringify(project.test.name)
-  };
   if (project.test.name === 'node') {
     project.test.setupFiles = [
       ...(project.test.setupFiles || []),
