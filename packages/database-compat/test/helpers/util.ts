@@ -39,7 +39,7 @@ const EMULATOR_NAMESPACE =
     ? process.env?.RTDB_EMULATOR_NAMESPACE
     : undefined;
 
-const USE_EMULATOR = !!EMULATOR_PORT;
+const USE_EMULATOR = !!EMULATOR_PORT && EMULATOR_PORT !== 'undefined';
 
 /*
  * When running against the emulator, the hostname will be "localhost" rather

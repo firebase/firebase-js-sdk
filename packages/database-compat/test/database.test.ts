@@ -18,7 +18,6 @@
 import firebase from '@firebase/app-compat';
 
 import { DATABASE_ADDRESS, createTestApp } from './helpers/util';
-import '../src/index';
 
 describe('Database Tests', () => {
   let defaultApp;

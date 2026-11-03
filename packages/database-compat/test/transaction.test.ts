@@ -33,8 +33,6 @@ import {
   getVal
 } from './helpers/util';
 
-import '../src/index';
-
 describe('Transaction Tests', () => {
   // Tests that use hijackHash() should set restoreHash to the restore function
   // and be sure to call it (and set restoreHash back to null) before the test
