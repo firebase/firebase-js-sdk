@@ -55,6 +55,5 @@
     "@firebase/analytics-types": "0.8.5",
     "@firebase/util": "1.15.3",
     "tslib": "^2.1.0"
-  },
-  "nyc": {}
+  }
 }

@@ -64,8 +64,5 @@
   },
   "engines": {
     "node": ">=24.12.0"
-  },
-  "devDependencies": {
-    "@rollup/plugin-replace": "6.0.2"
   }
 }
