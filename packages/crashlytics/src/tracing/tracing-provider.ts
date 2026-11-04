@@ -19,7 +19,8 @@ import { resourceFromAttributes } from '@opentelemetry/resources';
 import {
   CompositePropagator,
   W3CTraceContextPropagator,
-  ExportResult
+  ExportResult,
+  ExportResultCode
 } from '@opentelemetry/core';
 import { TracerProvider, trace } from '@opentelemetry/api';
 import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
@@ -48,7 +49,11 @@ import {
   RESOURCE_ATTRIBUTE_KEYS
 } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
-import { getTelemetryEndpointUrl } from '../helpers';
+import {
+  getClientConfigEndpointUrl,
+  getTelemetryEndpointUrl
+} from '../helpers';
+import type { SessionSampler } from '../sampling/session-sampler';
 
 let unregisterInstrumentations: (() => void) | undefined;
 
@@ -72,7 +77,8 @@ export function createTracingProvider(
   crashlyticsOptions: CrashlyticsOptions,
   attributesStore: AttributesStore,
   telemetryStore: TelemetryStore,
-  dynamicHeaderProviders: DynamicHeaderProvider[] = []
+  dynamicHeaderProviders: DynamicHeaderProvider[] = [],
+  sessionSampler?: SessionSampler
 ): TracingProviderResult {
   if (typeof window === 'undefined') {
     return { tracingProvider: trace.getTracerProvider() };
@@ -116,7 +122,8 @@ export function createTracingProvider(
         }
       },
       dynamicHeaderProviders,
-      attributesStore
+      attributesStore,
+      sessionSampler
     );
   }
 
@@ -145,13 +152,19 @@ export function createTracingProvider(
      `?` -> makes the `s` optional so https://api.example.com/traceversion=1 will be ignored too
      Anchor with `^` so only requests actually targeting the endpoint are ignored.
   */
-  const cleanedRegexEndpointUrl = `^${endpointUrl.replace(
-    /[.*+?^${}()|[\]\\]/g,
-    '\\$&'
+  const escapeRegExp = (value: string): string =>
+    value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const cleanedRegexEndpointUrl = `^${escapeRegExp(endpointUrl)}`;
+  // Also ignore the GetClientConfig endpoint so the config poll never produces a span.
+  const cleanedRegexClientConfigUrl = `^${escapeRegExp(
+    getClientConfigEndpointUrl(crashlyticsOptions)
   )}`;
 
   const networkInstrumentationConfig = {
-    ignoreUrls: [new RegExp(cleanedRegexEndpointUrl)],
+    ignoreUrls: [
+      new RegExp(cleanedRegexEndpointUrl),
+      new RegExp(cleanedRegexClientConfigUrl)
+    ],
     semconvStabilityOptIn: 'http'
   };
 
@@ -180,7 +193,8 @@ export class OTLPTraceExporter
   constructor(
     config: OTLPExporterConfigBase = {},
     dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-    private attributesStore?: AttributesStore
+    private attributesStore?: AttributesStore,
+    private sessionSampler?: SessionSampler
   ) {
     super(
       createOtlpNetworkExportDelegate(
@@ -207,6 +221,16 @@ export class OTLPTraceExporter
     spans: ReadableSpan[],
     resultCallback: (result: ExportResult) => void
   ): Promise<void> {
+    // Session sampling: drop spans of unsampled sessions before transmission and stamp the
+    // session sampling rate on spans of sampled sessions.
+    if (
+      this.sessionSampler &&
+      !(await this.sessionSampler.applySampling(spans))
+    ) {
+      resultCallback({ code: ExportResultCode.SUCCESS });
+      return;
+    }
+
     const installationIdAttribute =
       await this.attributesStore?.getInstallationIdAttribute();
 
