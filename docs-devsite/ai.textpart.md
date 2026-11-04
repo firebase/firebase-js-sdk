@@ -22,9 +22,23 @@ export interface TextPart
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [speechMetadata](./ai.textpart.md#textpartspeechmetadata) | [SpeechMetadata](./ai.speechmetadata.md#speechmetadata_interface) | <b><i>(Public Preview)</i></b> Structured speech metadata used to guide speech generation for this text. |
 |  [text](./ai.textpart.md#textparttext) | string |  |
 |  [thought](./ai.textpart.md#textpartthought) | boolean |  |
 |  [type](./ai.textpart.md#textparttype) | 'text' |  |
+
+## TextPart.speechMetadata
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Structured speech metadata used to guide speech generation for this text.
+
+<b>Signature:</b>
+
+```typescript
+speechMetadata?: SpeechMetadata;
+```
 
 ## TextPart.text
 

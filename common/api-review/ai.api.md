@@ -1293,6 +1293,12 @@ export interface SpeakerVoiceConfig {
 export type SpeechConfig = SingleSpeakerSpeechConfig | MultiSpeakerSpeechConfig;
 
 // @beta
+export interface SpeechMetadata {
+    speaker?: string;
+    style?: string;
+}
+
+// @beta
 export function startAudioConversation(liveSession: LiveSession, options?: StartAudioConversationOptions): Promise<AudioConversationController>;
 
 // @beta
@@ -1420,6 +1426,8 @@ export interface TemplateToolConfig {
 
 // @public
 export interface TextPart {
+    // @beta
+    speechMetadata?: SpeechMetadata;
     // (undocumented)
     text: string;
     // (undocumented)
@@ -1483,6 +1491,7 @@ export interface UnknownPart {
     functionResponse?: FunctionResponse;
     // (undocumented)
     inlineData?: GenerativeContentBlob;
+    speechMetadata?: SpeechMetadata;
     // (undocumented)
     text?: string;
     // (undocumented)
