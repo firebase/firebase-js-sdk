@@ -40,7 +40,6 @@ import {
 import { SqlServiceSettings } from '../core/settings';
 import type { SqlClientState } from '../core/state';
 import { SDK_VERSION, setSDKVersion } from '../core/version';
-import { getFetch, initializeFetch } from '../network';
 import { LOWERCASE_DISALLOWED_HEADER_KEYS } from '../network/headers';
 import { registerSql } from '../register';
 
@@ -465,7 +464,6 @@ function registerAppCheckMock(
 }
 
 describe('FirebaseSql end-to-end operations', () => {
-  const originalFetch = getFetch();
   const originalSdkVersion = SDK_VERSION;
 
   beforeEach(() => {
@@ -473,7 +471,7 @@ describe('FirebaseSql end-to-end operations', () => {
   });
 
   afterEach(async () => {
-    initializeFetch(originalFetch);
+    vi.unstubAllGlobals();
     setSDKVersion(originalSdkVersion);
     await Promise.all(getApps().map(existingApp => deleteApp(existingApp)));
   });
@@ -510,7 +508,7 @@ describe('FirebaseSql end-to-end operations', () => {
           })
         )
         .mockResolvedValueOnce(new Response(null, { status: 204 }));
-      initializeFetch(mockFetch);
+      vi.stubGlobal('fetch', mockFetch);
 
       const selectRes = await sql
         .from('users')
@@ -572,7 +570,7 @@ describe('FirebaseSql end-to-end operations', () => {
         .fn<typeof fetch>()
         .mockResolvedValueOnce(new Response('[]', { status: 200 }))
         .mockResolvedValueOnce(new Response('', { status: 201 }));
-      initializeFetch(mockFetch);
+      vi.stubGlobal('fetch', mockFetch);
 
       await sql.from('events').select();
       await sql.from('events').insert({ kind: 'click' });
@@ -620,7 +618,7 @@ describe('FirebaseSql end-to-end operations', () => {
             headers: { 'content-range': '*/12' }
           })
         );
-      initializeFetch(mockFetch);
+      vi.stubGlobal('fetch', mockFetch);
 
       const postRes = await sql
         .rpc('top_users', { minScore: 50 })
@@ -708,7 +706,7 @@ describe('FirebaseSql end-to-end operations', () => {
       const mockFetch = vi
         .fn<typeof fetch>()
         .mockImplementation(async () => new Response('[]', { status: 200 }));
-      initializeFetch(mockFetch);
+      vi.stubGlobal('fetch', mockFetch);
 
       await sql.from('a/b').select();
       await sql.from('../other').select();
@@ -769,7 +767,7 @@ describe('FirebaseSql end-to-end operations', () => {
         .fn<typeof fetch>()
         .mockResolvedValueOnce(new Response('[]', { status: 200 }))
         .mockResolvedValueOnce(new Response('[]', { status: 200 }));
-      initializeFetch(mockFetch);
+      vi.stubGlobal('fetch', mockFetch);
 
       await FirebaseSql.getSql(appWithIds, defaultSettings)
         .from('users')
@@ -863,7 +861,7 @@ describe('FirebaseSql end-to-end operations', () => {
         .mockResolvedValueOnce(
           new Response(JSON.stringify([{ id: 9 }]), { status: 200 })
         );
-      initializeFetch(mockFetch);
+      vi.stubGlobal('fetch', mockFetch);
 
       const res = await sql.from('users').select();
       expect(res.success).toBe(true);
@@ -929,7 +927,7 @@ describe('FirebaseSql end-to-end operations', () => {
             { status: 409, statusText: 'Conflict' }
           )
         );
-      initializeFetch(mockFetch);
+      vi.stubGlobal('fetch', mockFetch);
 
       const pgRes = await sql.from('missing').select().retry(false);
       expect(pgRes.success).toBe(false);
@@ -1010,7 +1008,7 @@ describe('FirebaseSql end-to-end operations', () => {
       const sql = FirebaseSql.getSql(app, defaultSettings);
 
       const mockFetch = vi.fn<typeof fetch>();
-      initializeFetch(mockFetch);
+      vi.stubGlobal('fetch', mockFetch);
 
       // Create builders BEFORE terminate(sql)
       const activeQueryBuilder = sql.from('users');

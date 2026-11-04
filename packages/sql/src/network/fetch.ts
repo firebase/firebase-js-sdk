@@ -24,32 +24,26 @@ import {
 /** @internal */
 export type Fetch = typeof fetch;
 
-let sqlFetch: Fetch | null = globalThis.fetch;
-
 /**
- * Sets the fetch implementation used for Firebase SQL network requests.
+ * Retrieves the fetch implementation to use for a Firebase SQL network request.
  *
- * @param fetchImpl - The fetch function to set as active, or null to clear it.
- * @internal
- */
-export function initializeFetch(fetchImpl: Fetch | null): void {
-  sqlFetch = fetchImpl;
-}
-
-/**
- * Retrieves the active fetch implementation.
+ * `globalThis.fetch` is read on every call (rather than captured once when this
+ * module is loaded) so that replacing or stubbing the global, for example with
+ * `vi.stubGlobal('fetch', ...)` in tests, takes effect regardless of module load
+ * order.
  *
- * @returns The active fetch function.
+ * @returns The current `globalThis.fetch` function.
  * @throws `FirebaseSqlError` if no fetch implementation is available.
  * @internal
  */
 export function getFetch(): Fetch {
-  if (!sqlFetch) {
+  const fetchImpl: Fetch | undefined = globalThis.fetch;
+  if (!fetchImpl) {
     throw new FirebaseSqlError(
       Code.NOT_SUPPORTED,
       'No Fetch implementation detected in the current environment.',
       FirebaseSqlErrorCategory.SQL_CLIENT
     );
   }
-  return sqlFetch;
+  return fetchImpl;
 }

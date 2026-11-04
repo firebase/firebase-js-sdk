@@ -40,7 +40,6 @@ import type {
   UntypedSchema,
   UntypedTable
 } from '../core/untypedSchema';
-import { getFetch, initializeFetch } from '../network/fetch';
 import { createBuilderFetch } from '../network/transport';
 
 import { FilterBuilderImpl } from './impl/FilterBuilderImpl';
@@ -234,19 +233,8 @@ function createHarness(): TestHarness {
 }
 
 describe('QueryBuilderImpl and FilterBuilderImpl', () => {
-  let originalFetch: typeof fetch | null = null;
-
-  beforeEach(() => {
-    try {
-      originalFetch = getFetch();
-    } catch {
-      originalFetch = globalThis.fetch;
-    }
-    initializeFetch(globalThis.fetch);
-  });
-
   afterEach(() => {
-    initializeFetch(originalFetch);
+    vi.unstubAllGlobals();
   });
 
   describe('QueryBuilder operations and reuse', () => {
@@ -991,9 +979,9 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
         .single();
       expect(chainedThrowingSingle.data).toEqual({ id: 7, name: 'Ada' });
 
-      initializeFetch(null);
+      vi.stubGlobal('fetch', undefined);
 
-      // Injected CreateBuilderFetch stubs must remain decoupled from global initializeFetch state
+      // Injected CreateBuilderFetch stubs must remain decoupled from global fetch state
       h.setResponder(() => jsonResponse([{ id: 8 }]));
       const injectedWithNullGlobalFetch = await qb.select();
       expect(injectedWithNullGlobalFetch.success).toBe(true);
@@ -1001,7 +989,7 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
         expect(injectedWithNullGlobalFetch.data).toEqual([{ id: 8 }]);
       }
 
-      // Real createBuilderFetch transport still surfaces Code.NOT_SUPPORTED when fetch is uninitialized
+      // Real createBuilderFetch transport still surfaces Code.NOT_SUPPORTED when globalThis.fetch is absent
       const realTransportQb = new QueryBuilderImpl(
         new PostgrestQueryBuilder<
           UntypedClientOptions,
