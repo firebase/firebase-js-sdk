@@ -495,6 +495,7 @@ describe('Top level API', () => {
         ...fakeCrashlytics,
         options: { features: [] }
       };
+      logViewBoundary(fakeCrashlytics, urlTemplate);
       logViewBoundary(crashlyticsWithoutTracing, urlTemplate);
 
       expect(emittedLogs.length).toBe(0);
