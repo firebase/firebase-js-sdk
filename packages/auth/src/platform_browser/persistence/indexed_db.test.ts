@@ -211,12 +211,15 @@ describe('platform_browser/persistence/indexed_db', () => {
       try {
         // 1. Tab A signs in and persists the user in real IndexedDB
         await persistence._set(userKey, user.toJSON());
+        delete (persistence as any).localCache[userKey];
 
         // 2. Simulate Tab A suspended mid-poll (holding a frozen readonly transaction):
-        //    - readonly transactions ('readonly') succeed concurrently in Tab B
-        //    - readwrite transactions ('readwrite') in Tab B queue behind Tab A and hang forever
+        //    - readonly transactions ('readonly') succeed BEFORE any 'readwrite' transaction is queued
+        //    - once a 'readwrite' transaction is queued in the browser's FIFO lock manager, both
+        //      'readwrite' AND subsequent 'readonly' transactions queue behind it and hang!
         const originalTransaction = IDBDatabase.prototype.transaction;
         const abortSpy = vi.fn();
+        let readWriteQueuedInBrowser = false;
 
         vi.spyOn(IDBDatabase.prototype, 'transaction').mockImplementation(
           function (
@@ -225,12 +228,17 @@ describe('platform_browser/persistence/indexed_db', () => {
             mode?: IDBTransactionMode
           ) {
             if (mode === 'readwrite') {
+              readWriteQueuedInBrowser = true;
+            }
+            if (mode === 'readwrite' || readWriteQueuedInBrowser) {
               const hungRequest = {
                 transaction: { abort: abortSpy },
                 addEventListener: () => {}
               };
               return {
                 objectStore: () => ({
+                  get: () => hungRequest,
+                  getAll: () => hungRequest,
                   put: () => hungRequest,
                   delete: () => hungRequest,
                   clear: () => hungRequest
@@ -246,24 +254,104 @@ describe('platform_browser/persistence/indexed_db', () => {
           persistence
         ]);
         expect(abortSpy).toHaveBeenCalledTimes(1);
-        // Keeps indexedDBLocalPersistence (does not downgrade to inMemoryPersistence) and reads user via readonly _get
+        // Stop background polling before testing getCurrentUser() so in-flight 800ms _poll()
+        // timers from step 3 don't fire during step 4's abortSpy assertions
+        singleManager.delete();
+        // Keeps indexedDBLocalPersistence and returns the user (cached in localCache during initial _get
+        // before _isAvailable queued a readwrite lock) even when subsequent getCurrentUser() times out!
         expect(singleManager.persistence).toBe(persistence);
         expect((await singleManager.getCurrentUser())?.uid).toBe(
           'tab-a-signed-in-uid'
         );
 
-        // 4. Tab B initializes PersistenceUserManager with [indexedDBLocalPersistence, browserLocalPersistence]
+        // 4. Reset simulated lock queue for fresh Tab B2 with [indexedDBLocalPersistence, browserLocalPersistence]
+        abortSpy.mockClear();
+        readWriteQueuedInBrowser = false;
+        delete (persistence as any).localCache[userKey];
         const multiManager = await PersistenceUserManager.create(auth, [
           persistence,
           fallbackLocal
         ]);
 
-        // Verify Tab B did not hang, aborted the blocked readwrite probe and migration delete,
-        // migrated to browserLocalPersistence, and preserved the signed-in user read via readonly _get!
-        expect(abortSpy).toHaveBeenCalledTimes(3);
+        // Verify Tab B2 read the user via readonly _get before _isAvailable queued a readwrite lock,
+        // migrated the user to browserLocalPersistence, and preserved the signed-in user!
+        expect(abortSpy).toHaveBeenCalledTimes(2);
         expect(multiManager.persistence).toBe(fallbackLocal);
         expect((await multiManager.getCurrentUser())?.uid).toBe(
           'tab-a-signed-in-uid'
+        );
+        multiManager.delete();
+      } finally {
+        vi.restoreAllMocks();
+        await persistence._remove(userKey);
+        await fallbackLocal._remove(userKey);
+      }
+    });
+
+    it('should retain indexedDBLocalPersistence and preserve user when cold indexedDB.open takes 1.2s (> _DB_PROBE_TIMEOUT_MS)', async () => {
+      const auth = await testAuth();
+      const user = testUser(auth, 'cold-device-uid');
+      const userKey = _persistenceKeyName(
+        KeyName.AUTH_USER,
+        auth.config.apiKey,
+        auth.name
+      );
+      const fallbackLocal = _getInstance<PersistenceInternal>(
+        browserLocalPersistence
+      );
+
+      try {
+        await persistence._set(userKey, user.toJSON());
+
+        // Close cached connection to simulate a cold browser startup
+        const existingDb = await (persistence as any)._openDb();
+        existingDb.close();
+        (persistence as any).dbPromise = null;
+
+        const originalOpen = indexedDB.open.bind(indexedDB);
+        let openCalls = 0;
+
+        vi.spyOn(indexedDB, 'open').mockImplementation(((
+          name: string,
+          version?: number
+        ) => {
+          openCalls++;
+          const realReq = originalOpen(name, version);
+          if (openCalls <= 2) {
+            // Delay the `success` event by 1.2s (> 800ms probe timeout, < 2.5s open timeout)
+            const delayedReq: any = {
+              get result() {
+                return realReq.result;
+              },
+              get error() {
+                return realReq.error;
+              },
+              addEventListener(type: string, listener: EventListener) {
+                if (type === 'success') {
+                  realReq.addEventListener('success', evt => {
+                    setTimeout(() => listener(evt), 1200);
+                  });
+                } else {
+                  realReq.addEventListener(type, listener);
+                }
+              }
+            };
+            return delayedReq;
+          }
+          return realReq;
+        }) as typeof indexedDB.open);
+
+        const manager = await PersistenceUserManager.create(auth, [
+          persistence,
+          fallbackLocal
+        ]);
+
+        // Cold open succeeds on the first attempt without timing out or deleting the user
+        expect(openCalls).toBe(1);
+        expect(manager.persistence).toBe(persistence);
+        expect((await manager.getCurrentUser())?.uid).toBe('cold-device-uid');
+        expect((await persistence._get<any>(userKey))?.uid).toBe(
+          'cold-device-uid'
         );
       } finally {
         vi.restoreAllMocks();
@@ -848,50 +936,21 @@ describe('platform_browser/persistence/indexed_db', () => {
       expect((persistence as any).localCache[key]).toBe(value);
     });
 
-    it('should skip background IndexedDB polling while document.visibilityState is hidden and resume polling when visible', async () => {
+    it('should continue polling while document.visibilityState is hidden so cross-tab sign-out is observed', async () => {
       persistence._addListener(key, callback);
       await persistence._set(key, value);
       callback.mockClear();
 
-      const visibilitySpy = vi
-        .spyOn(Document.prototype, 'visibilityState', 'get')
-        .mockReturnValue('hidden');
-      const withRetriesSpy = vi.spyOn(persistence as any, '_withRetries');
-
-      // Modify DB directly while tab is hidden
-      await _putObject(db, key, 'updated-while-hidden');
-
-      // Advance poll timer while hidden: _poll() must not open any IndexedDB transactions
-      await waitUntilPoll();
-      expect(withRetriesSpy).not.toHaveBeenCalled();
-      expect(callback).not.toHaveBeenCalled();
-
-      // Restore visibility to 'visible': next poll tick should read IndexedDB and notify listener
-      visibilitySpy.mockReturnValue('visible');
-      await waitUntilPoll();
-      expect(withRetriesSpy).toHaveBeenCalled();
-      expect(callback).toHaveBeenCalledWith('updated-while-hidden');
-    });
-
-    it('should discard in-flight poll results if document becomes hidden before poll completes', async () => {
-      await persistence._set(key, value);
-      persistence._addListener(key, callback);
-      callback.mockClear();
-
-      vi.spyOn(persistence as any, '_withRetries').mockImplementationOnce(
-        async () => {
-          vi.spyOn(
-            Document.prototype,
-            'visibilityState',
-            'get'
-          ).mockReturnValue('hidden');
-          return [];
-        }
+      vi.spyOn(Document.prototype, 'visibilityState', 'get').mockReturnValue(
+        'hidden'
       );
 
-      await (persistence as any)._poll();
-      expect(callback).not.toHaveBeenCalled();
-      expect((persistence as any).localCache[key]).toBe(value);
+      // Simulate another tab signing out (deleting the key from IndexedDB) while this tab is hidden
+      await _deleteObject(db, key);
+
+      await waitUntilPoll();
+      expect(callback).toHaveBeenCalledWith(null);
+      expect((persistence as any).localCache[key]).toBeNull();
     });
   });
 });

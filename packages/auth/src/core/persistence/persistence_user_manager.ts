@@ -137,6 +137,49 @@ export class PersistenceUserManager {
       );
     }
 
+    const key = _persistenceKeyName(userKey, auth.config.apiKey, auth.name);
+
+    // Search for an existing user across all persistences before running `_isAvailable()`.
+    // `_get` only opens a `readonly` transaction in IndexedDB, whereas `_isAvailable()` opens
+    // a `readwrite` transaction; if another tab is suspended holding a `readonly` transaction
+    // (#10540), queuing a `readwrite` transaction first blocks subsequent `readonly` transactions
+    // in the browser's IndexedDB lock manager.
+    let foundUser: UserInternal | null = null;
+    let foundPersistence: PersistenceInternal | null = null;
+    const unreadablePersistences = new Set<PersistenceInternal>();
+    for (const persistence of persistenceHierarchy) {
+      let blob: PersistedBlob | string | null = null;
+      try {
+        blob = await persistence._get<PersistedBlob | string>(key);
+      } catch {
+        unreadablePersistences.add(persistence);
+        continue;
+      }
+      try {
+        if (blob) {
+          let user: UserInternal;
+          if (typeof blob === 'string') {
+            const response = await getAccountInfo(auth, {
+              idToken: blob
+            }).catch(() => undefined);
+            if (!response) {
+              break;
+            }
+            user = await UserImpl._fromGetAccountInfoResponse(
+              auth,
+              response,
+              blob
+            );
+          } else {
+            user = UserImpl._fromJSON(auth, blob); // throws for unparsable blob (wrong format)
+          }
+          foundUser = user;
+          foundPersistence = persistence;
+          break;
+        }
+      } catch {}
+    }
+
     // Eliminate any persistences that are not available
     const availablePersistences = (
       await Promise.all(
@@ -158,41 +201,12 @@ export class PersistenceUserManager {
       availablePersistences[0] ||
       _getInstance<PersistenceInternal>(inMemoryPersistence);
 
-    const key = _persistenceKeyName(userKey, auth.config.apiKey, auth.name);
-
-    // Pull out the existing user, setting the chosen persistence to that
-    // persistence if the user exists.
     let userToMigrate: UserInternal | null = null;
-    // Note, here we check for a user in _all_ persistences, not just the
-    // ones deemed available. If we can migrate a user out of a broken
-    // persistence, we will (but only if that persistence supports migration).
-    for (const persistence of persistenceHierarchy) {
-      try {
-        const blob = await persistence._get<PersistedBlob | string>(key);
-        if (blob) {
-          let user: UserInternal;
-          if (typeof blob === 'string') {
-            const response = await getAccountInfo(auth, {
-              idToken: blob
-            }).catch(() => undefined);
-            if (!response) {
-              break;
-            }
-            user = await UserImpl._fromGetAccountInfoResponse(
-              auth,
-              response,
-              blob
-            );
-          } else {
-            user = UserImpl._fromJSON(auth, blob); // throws for unparsable blob (wrong format)
-          }
-          if (persistence !== selectedPersistence) {
-            userToMigrate = user;
-          }
-          selectedPersistence = persistence;
-          break;
-        }
-      } catch {}
+    if (foundPersistence && foundUser) {
+      if (foundPersistence !== selectedPersistence) {
+        userToMigrate = foundUser;
+      }
+      selectedPersistence = foundPersistence;
     }
 
     // If we find the user in a persistence that does support migration, use
@@ -216,11 +230,15 @@ export class PersistenceUserManager {
       await selectedPersistence._set(key, userToMigrate.toJSON());
     }
 
-    // Attempt to clear the key in other persistences but ignore errors. This helps prevent issues
+    // Attempt to clear the key in other persistences (except those whose _get threw, so we never
+    // delete from a store we couldn't read) and ignore errors. This helps prevent issues
     // such as users getting stuck with a previous account after signing out and refreshing the tab.
     await Promise.all(
       persistenceHierarchy.map(async persistence => {
-        if (persistence !== selectedPersistence) {
+        if (
+          persistence !== selectedPersistence &&
+          !unreadablePersistences.has(persistence)
+        ) {
           try {
             await persistence._remove(key);
           } catch {}

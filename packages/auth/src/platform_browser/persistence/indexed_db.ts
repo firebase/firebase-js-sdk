@@ -49,7 +49,20 @@ const DB_DATA_KEYPATH = 'fbase_key';
 
 export const _POLLING_INTERVAL_MS = 800;
 export const _TRANSACTION_RETRY_COUNT = 3;
-export const _DB_TIMEOUT_MS = 800;
+/**
+ * Short timeout scoped to the `readwrite` availability probe in `_isAvailable()`.
+ * Matches `_POLLING_INTERVAL_MS` so that if a background tab is suspended while
+ * holding a `readonly` poll transaction that blocks `readwrite` transactions
+ * (#10540), the startup probe fails fast and aborts its queued transaction in
+ * under a second without blocking fallback or user loading.
+ */
+export const _DB_PROBE_TIMEOUT_MS = 800;
+/**
+ * Timeout for opening the database and regular IndexedDB read/write requests.
+ * Kept at multiple seconds to accommodate cold `indexedDB.open()` or slow disk
+ * I/O on low-end devices without premature timeouts.
+ */
+export const _DB_TIMEOUT_MS = 2500;
 const DB_TIMEOUT_ERROR = 'DB_TIMEOUT';
 
 interface DBObject {
@@ -66,7 +79,7 @@ interface DBObject {
 class DBPromise<T> {
   constructor(private readonly request: IDBRequest) {}
 
-  toPromise(): Promise<T> {
+  toPromise(timeoutMs = _DB_TIMEOUT_MS): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       let settled = false;
       const timer = setTimeout(() => {
@@ -77,7 +90,7 @@ class DBPromise<T> {
           } catch {}
           reject(new Error(DB_TIMEOUT_ERROR));
         }
-      }, _DB_TIMEOUT_MS);
+      }, timeoutMs);
 
       this.request.addEventListener('success', () => {
         if (!settled) {
@@ -162,12 +175,11 @@ export function _openDatabase(): Promise<IDBDatabase> {
         // Need to close the database or else you get a `blocked` event
         db.close();
         try {
+          // Note: if `deleteDatabase` is `blocked` by another tab's open connection and
+          // times out (`DB_TIMEOUT_ERROR`), `request.transaction` is null so the browser
+          // keeps the delete request queued until all blocking connections close.
           await _deleteDatabase();
           const reopenedDb = await _openDatabase();
-          if (settled) {
-            reopenedDb.close();
-            return;
-          }
           settled = true;
           resolve(reopenedDb);
         } catch (e) {
@@ -187,13 +199,14 @@ export function _openDatabase(): Promise<IDBDatabase> {
 export async function _putObject(
   db: IDBDatabase,
   key: string,
-  value: PersistenceValue | string
+  value: PersistenceValue | string,
+  timeoutMs = _DB_TIMEOUT_MS
 ): Promise<void> {
   const request = getObjectStore(db, true).put({
     [DB_DATA_KEYPATH]: key,
     value
   });
-  return new DBPromise<void>(request).toPromise();
+  return new DBPromise<void>(request).toPromise(timeoutMs);
 }
 
 async function getObject(
@@ -205,9 +218,13 @@ async function getObject(
   return data === undefined ? null : data.value;
 }
 
-export function _deleteObject(db: IDBDatabase, key: string): Promise<void> {
+export function _deleteObject(
+  db: IDBDatabase,
+  key: string,
+  timeoutMs = _DB_TIMEOUT_MS
+): Promise<void> {
   const request = getObjectStore(db, true).delete(key);
-  return new DBPromise<void>(request).toPromise();
+  return new DBPromise<void>(request).toPromise(timeoutMs);
 }
 
 class IndexedDBLocalPersistence implements InternalPersistence {
@@ -427,8 +444,13 @@ class IndexedDBLocalPersistence implements InternalPersistence {
         return false;
       }
       await this._withRetries(async (db: IDBDatabase) => {
-        await _putObject(db, STORAGE_AVAILABLE_KEY, '1');
-        await _deleteObject(db, STORAGE_AVAILABLE_KEY);
+        await _putObject(
+          db,
+          STORAGE_AVAILABLE_KEY,
+          '1',
+          _DB_PROBE_TIMEOUT_MS
+        );
+        await _deleteObject(db, STORAGE_AVAILABLE_KEY, _DB_PROBE_TIMEOUT_MS);
       });
       return true;
     } catch {}
@@ -453,11 +475,22 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   }
 
   async _get<T extends PersistenceValue>(key: string): Promise<T | null> {
-    const obj = (await this._withRetries((db: IDBDatabase) =>
-      getObject(db, key)
-    )) as T;
-    this.localCache[key] = obj;
-    return obj;
+    try {
+      const obj = (await this._withRetries((db: IDBDatabase) =>
+        getObject(db, key)
+      )) as T;
+      this.localCache[key] = obj;
+      return obj;
+    } catch (e) {
+      if (
+        e instanceof Error &&
+        e.message === DB_TIMEOUT_ERROR &&
+        key in this.localCache
+      ) {
+        return (this.localCache[key] as T) ?? null;
+      }
+      throw e;
+    }
   }
 
   async _remove(key: string): Promise<void> {
@@ -468,16 +501,8 @@ class IndexedDBLocalPersistence implements InternalPersistence {
     });
   }
 
-  private isDocumentHidden(): boolean {
-    return (
-      !_isWorker() &&
-      typeof document !== 'undefined' &&
-      document.visibilityState === 'hidden'
-    );
-  }
-
   private async _poll(): Promise<string[]> {
-    if (this.isClosing || this.isDocumentHidden()) {
+    if (this.isClosing) {
       return [];
     }
     try {
@@ -487,7 +512,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
         return new DBPromise<DBObject[] | null>(getAllRequest).toPromise();
       });
 
-      if (this.isClosing || this.isDocumentHidden()) {
+      if (this.isClosing) {
         return [];
       }
 
@@ -521,7 +546,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
       }
       return keys;
     } catch (e) {
-      if (!this.isClosing && !this.isDocumentHidden()) {
+      if (!this.isClosing) {
         _logWarn(`Firebase Auth cross-tab polling failed with error: ${e}`);
       }
       return [];
@@ -564,8 +589,10 @@ class IndexedDBLocalPersistence implements InternalPersistence {
     }
     if (!this.listeners[key]) {
       this.listeners[key] = new Set();
-      // Populate the cache to avoid spuriously triggering on first poll.
-      void this._get(key).catch(() => {}); // This can happen in the background async and we can return immediately.
+      if (!(key in this.localCache)) {
+        // Populate the cache to avoid spuriously triggering on first poll.
+        void this._get(key).catch(() => {}); // This can happen in the background async and we can return immediately.
+      }
     }
     this.listeners[key].add(listener);
   }
