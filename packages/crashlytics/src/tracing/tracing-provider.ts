@@ -221,18 +221,13 @@ export class OTLPTraceExporter
     resultCallback: (result: ExportResult) => void
   ): Promise<void> {
     // Session sampling: drop spans of unsampled sessions before transmission and stamp the
-    // session sampling rate on spans of sampled sessions (see OTLPLogExporter).
-    if (this.sessionSampler) {
-      const decision = await this.sessionSampler.getDecision();
-      if (!decision.sampled) {
-        resultCallback({ code: ExportResultCode.SUCCESS });
-        return;
-      }
-      const samplingAttribute =
-        this.sessionSampler.getSamplingAttribute(decision);
-      spans.forEach(span => {
-        Object.assign(span.attributes, samplingAttribute);
-      });
+    // session sampling rate on spans of sampled sessions.
+    if (
+      this.sessionSampler &&
+      !(await this.sessionSampler.applySampling(spans))
+    ) {
+      resultCallback({ code: ExportResultCode.SUCCESS });
+      return;
     }
 
     const installationIdAttribute =

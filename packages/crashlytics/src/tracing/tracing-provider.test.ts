@@ -34,10 +34,7 @@ import { Provider } from '@firebase/component';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import type { MockInstance } from 'vitest';
 import { ATTR_KEY_SESSION_SAMPLING_RATE } from '../constants';
-import type {
-  SamplingDecision,
-  SessionSampler
-} from '../sampling/session-sampler';
+import { SamplingDecision, SessionSampler } from '../sampling/session-sampler';
 
 describe('createTracingProvider', () => {
   let mockApp: FirebaseApp;
@@ -511,7 +508,9 @@ describe('createTracingProvider', () => {
         decide: vi.fn().mockReturnValue(fullDecision),
         getSamplingAttribute: (d: SamplingDecision) => ({
           [ATTR_KEY_SESSION_SAMPLING_RATE]: d.samplingRate
-        })
+        }),
+        // The real implementation, run against the fake decision above.
+        applySampling: SessionSampler.prototype.applySampling
       } as unknown as SessionSampler;
     }
 

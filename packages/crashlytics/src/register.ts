@@ -28,7 +28,8 @@ import { AppCheckProvider } from './logging/appcheck-provider';
 import {
   CRASHLYTICS_TYPE,
   DEFAULT_TELEMETRY_REGION,
-  LOCAL_STORAGE_CLIENT_CONFIG_KEY_PREFIX
+  LOCAL_STORAGE_CLIENT_CONFIG_KEY_PREFIX,
+  SESSION_STORAGE_SAMPLING_DECISION_KEY_PREFIX
 } from './constants';
 import {
   getBreadcrumbsFeature,
@@ -69,17 +70,19 @@ export function registerCrashlytics(): void {
         const telemetryStore = breadcrumbsFeature?.createTelemetryStore();
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
 
-        // Client-side session sampling: the configuration (enablement + sampling rate) is loaded
-        // from the local cache now and refreshed in the background; the per-session decision is
-        // made lazily at the first export attempt.
+        // Client-side session sampling: the configuration is loaded from the local cache now and refreshed in the background; the per-session decision is
+        // made lazily at the first export attempt, right after refreshing the configuration again.
+        // Both are stored under app- and region-specific keys.
         const region = crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
+        const storageKeySuffix = `${app.options.appId ?? ''}:${region}`;
         const clientConfigStore = new ClientConfigStore(
           getClientConfigUrl(app.options, crashlyticsOptions),
-          `${LOCAL_STORAGE_CLIENT_CONFIG_KEY_PREFIX}:${app.options.appId ?? ''}:${region}`
+          `${LOCAL_STORAGE_CLIENT_CONFIG_KEY_PREFIX}:${storageKeySuffix}`
         );
         const sessionSampler = new SessionSampler(
           clientConfigStore,
-          attributesStore
+          attributesStore,
+          `${SESSION_STORAGE_SAMPLING_DECISION_KEY_PREFIX}:${storageKeySuffix}`
         );
         // Evaluate the debug override early so a `?firebase_telemetry_debug=true` query parameter
         // is persisted for the rest of the browser session.

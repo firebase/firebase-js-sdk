@@ -39,18 +39,35 @@ export const DEFAULT_CLIENT_CONFIG_ENDPOINT =
 export const CLIENT_CONFIG_API_VERSION = 'v1alpha';
 
 /**
- * How often long-running apps re-fetch the client telemetry configuration to pick up sampling
- * rate changes. Matches the `Cache-Control: max-age` the server sets on `GetClientConfig`.
+ * Refresh period for long-running pages when a `GetClientConfig` response does not say how long it
+ * may be cached (e.g. `Cache-Control: no-store`, a missing header, or a failed fetch). Otherwise
+ * the period is the response's `max-age` + `stale-while-revalidate`, which the server controls.
  */
-export const CLIENT_CONFIG_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
+export const CLIENT_CONFIG_FALLBACK_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
+
+/** Lower bound on the refresh period derived from a `GetClientConfig` response's `Cache-Control`. */
+export const CLIENT_CONFIG_MIN_REFRESH_INTERVAL_MS = 60 * 1000;
+
+/**
+ * Upper bound on the refresh period derived from a `GetClientConfig` response's `Cache-Control`.
+ * Also keeps the timer delay far below `setTimeout`'s 2^31 - 1 ms limit.
+ */
+export const CLIENT_CONFIG_MAX_REFRESH_INTERVAL_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * A config refresh started less than this long ago is reused, instead of fetching again, when a
+ * session is about to make its sampling decision (e.g. the startup fetch, for a decision made right
+ * after page load).
+ */
+export const CLIENT_CONFIG_REUSE_WINDOW_MS = 60 * 1000;
 
 /** Timeout for a single `GetClientConfig` fetch (matches the RPC deadline). */
 export const CLIENT_CONFIG_FETCH_TIMEOUT_MS = 5000;
 
 /**
- * Maximum time the first telemetry export waits for the initial `GetClientConfig` fetch before
- * making the session sampling decision with the cached (or default) configuration. No wait happens
- * when the cached configuration is still fresh or the page is hidden (e.g. the unload flush).
+ * Maximum time a session's sampling decision (made at its first telemetry export) waits for a
+ * `GetClientConfig` refresh before using the configuration already in memory. No wait happens when
+ * the page is hidden or the telemetry debug override is active.
  */
 export const CLIENT_CONFIG_INITIAL_WAIT_MS = 2000;
 
@@ -58,8 +75,11 @@ export const CLIENT_CONFIG_INITIAL_WAIT_MS = 2000;
 export const LOCAL_STORAGE_CLIENT_CONFIG_KEY_PREFIX =
   'firebasecrashlytics.clientconfig';
 
-/** sessionStorage key for the persisted session sampling decision. */
-export const SESSION_STORAGE_SAMPLING_DECISION_KEY =
+/**
+ * sessionStorage key prefix for the persisted session sampling decision. The session ID is shared by every app on
+ * the page, but each app samples it with its own configuration.
+ */
+export const SESSION_STORAGE_SAMPLING_DECISION_KEY_PREFIX =
   'firebasecrashlytics.sampling';
 
 /** sessionStorage key marking that the telemetry debug override is active for this session. */

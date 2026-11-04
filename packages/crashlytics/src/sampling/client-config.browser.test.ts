@@ -16,21 +16,40 @@
  */
 
 import {
+  CLIENT_CONFIG_FALLBACK_REFRESH_INTERVAL_MS,
+  CLIENT_CONFIG_MAX_REFRESH_INTERVAL_MS,
+  CLIENT_CONFIG_MIN_REFRESH_INTERVAL_MS,
+  CLIENT_CONFIG_REUSE_WINDOW_MS
+} from '../constants';
+import {
   ClientConfigStore,
   DEFAULT_CLIENT_CONFIG,
+  getRefreshIntervalMs,
   normalizeSamplingRate,
   parseClientConfigResponse
 } from './client-config';
 
 const URL =
-  'https://firebasetelemetry.googleapis.com/v1alpha/projects/p/locations/global/apps/a/clientConfig';
+  'https://firebasetelemetry.googleapis.com/v1alpha/projects/123/locations/global/apps/1%3A123%3Aweb%3Aabc/clientConfig';
 const STORAGE_KEY = 'firebasecrashlytics.clientconfig:test';
 
-function jsonResponse(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json' }
-  });
+/** The `Cache-Control` header the server sends by default. */
+const DEFAULT_CACHE_CONTROL = 'public, max-age=900, stale-while-revalidate=60';
+/** `max-age` + `stale-while-revalidate` of {@link DEFAULT_CACHE_CONTROL}. */
+const DEFAULT_REFRESH_INTERVAL_MS = 960 * 1000;
+
+function jsonResponse(
+  body: unknown,
+  status = 200,
+  cacheControl?: string
+): Response {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  };
+  if (cacheControl) {
+    headers['Cache-Control'] = cacheControl;
+  }
+  return new Response(JSON.stringify(body), { status, headers });
 }
 
 describe('normalizeSamplingRate', () => {
@@ -58,18 +77,12 @@ describe('normalizeSamplingRate', () => {
 
 describe('parseClientConfigResponse', () => {
   it('parses an enabled config with a sampling rate', () => {
-    const config = parseClientConfigResponse(
-      {
+    expect(
+      parseClientConfigResponse({
         enablementState: 'TELEMETRY_ENABLEMENT_STATE_ENABLED',
         samplingRate: 0.25
-      },
-      123
-    );
-    expect(config).toEqual({
-      enabled: true,
-      samplingRate: 0.25,
-      fetchTime: 123
-    });
+      })
+    ).toEqual({ enabled: true, samplingRate: 0.25 });
   });
 
   it('parses a disabled config', () => {
@@ -107,8 +120,65 @@ describe('parseClientConfigResponse', () => {
   });
 });
 
+describe('getRefreshIntervalMs', () => {
+  it('waits for max-age plus stale-while-revalidate', () => {
+    expect(getRefreshIntervalMs(DEFAULT_CACHE_CONTROL)).toBe(
+      DEFAULT_REFRESH_INTERVAL_MS
+    );
+    expect(getRefreshIntervalMs('max-age=300')).toBe(300 * 1000);
+    expect(
+      getRefreshIntervalMs(
+        ' Public , MAX-AGE="120", Stale-While-Revalidate=30 '
+      )
+    ).toBe(150 * 1000);
+  });
+
+  it('falls back to the default interval when the response may not be cached', () => {
+    for (const cacheControl of [
+      null,
+      '',
+      'no-store',
+      'public, max-age=0',
+      'max-age=900, no-cache',
+      's-maxage=900',
+      'max-age=abc'
+    ]) {
+      expect(getRefreshIntervalMs(cacheControl)).toBe(
+        CLIENT_CONFIG_FALLBACK_REFRESH_INTERVAL_MS
+      );
+    }
+  });
+
+  it('clamps the interval', () => {
+    expect(getRefreshIntervalMs('max-age=1')).toBe(
+      CLIENT_CONFIG_MIN_REFRESH_INTERVAL_MS
+    );
+    expect(getRefreshIntervalMs('max-age=31536000')).toBe(
+      CLIENT_CONFIG_MAX_REFRESH_INTERVAL_MS
+    );
+  });
+});
+
 describe('ClientConfigStore', () => {
   let fetchStub: ReturnType<typeof vi.fn>;
+  const stores: ClientConfigStore[] = [];
+
+  /** Creates a store for {@link URL} that is stopped after the test. */
+  function createStore(): ClientConfigStore {
+    const store = new ClientConfigStore(URL, STORAGE_KEY);
+    stores.push(store);
+    return store;
+  }
+
+  /** Answers every fetch with a fresh copy of the given response. */
+  function respondWith(
+    body: unknown,
+    cacheControl: string = DEFAULT_CACHE_CONTROL
+  ): void {
+    fetchStub.mockImplementation(() =>
+      Promise.resolve(jsonResponse(body, 200, cacheControl))
+    );
+  }
 
   beforeEach(() => {
     localStorage.clear();
@@ -117,88 +187,47 @@ describe('ClientConfigStore', () => {
   });
 
   afterEach(() => {
+    stores.splice(0).forEach(store => store.stop());
+    vi.useRealTimers();
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
     localStorage.clear();
   });
 
   it('starts with the default config when nothing is cached', () => {
-    const store = new ClientConfigStore(URL, STORAGE_KEY);
-    expect(store.config).toEqual(DEFAULT_CLIENT_CONFIG);
+    expect(createStore().config).toEqual(DEFAULT_CLIENT_CONFIG);
   });
 
   it('loads a cached config from localStorage synchronously', () => {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ enabled: false, samplingRate: 0.3, fetchTime: 42 })
+      JSON.stringify({ enabled: false, samplingRate: 0.3 })
     );
-    const store = new ClientConfigStore(URL, STORAGE_KEY);
-    expect(store.config).toEqual({
-      enabled: false,
-      samplingRate: 0.3,
-      fetchTime: 42
-    });
+    expect(createStore().config).toEqual({ enabled: false, samplingRate: 0.3 });
   });
 
   it('ignores corrupt or out-of-range cached configs', () => {
     localStorage.setItem(STORAGE_KEY, '{not json');
-    expect(new ClientConfigStore(URL, STORAGE_KEY).config).toEqual(
-      DEFAULT_CLIENT_CONFIG
-    );
+    expect(createStore().config).toEqual(DEFAULT_CLIENT_CONFIG);
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ samplingRate: 0.5 }));
-    expect(new ClientConfigStore(URL, STORAGE_KEY).config).toEqual(
-      DEFAULT_CLIENT_CONFIG
-    );
+    expect(createStore().config).toEqual(DEFAULT_CLIENT_CONFIG);
 
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({ enabled: true, samplingRate: 5 })
     );
-    expect(new ClientConfigStore(URL, STORAGE_KEY).config.samplingRate).toBe(1);
+    expect(createStore().config.samplingRate).toBe(1);
   });
 
-  it('reports a cached config as fresh only within the refresh interval', () => {
-    const interval = 15 * 60 * 1000;
-    const now = 1_000_000_000;
-    const storeWithFetchTime = (fetchTime?: number): ClientConfigStore => {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ enabled: true, samplingRate: 0.3, fetchTime })
-      );
-      return new ClientConfigStore(URL, STORAGE_KEY, interval);
-    };
-
-    expect(storeWithFetchTime(now - 1000).isFresh(now)).toBe(true);
-    expect(storeWithFetchTime(now - interval + 1).isFresh(now)).toBe(true);
-    expect(storeWithFetchTime(now - interval).isFresh(now)).toBe(false);
-    // Unknown fetch time, or a fetch time in the future (clock skew), is not fresh.
-    expect(storeWithFetchTime(undefined).isFresh(now)).toBe(false);
-    expect(storeWithFetchTime(now + 1000).isFresh(now)).toBe(false);
-    // The default config was never fetched.
-    localStorage.clear();
-    expect(new ClientConfigStore(URL, STORAGE_KEY).isFresh()).toBe(false);
-  });
-
-  it('is fresh right after a successful fetch', async () => {
-    fetchStub.mockResolvedValue(jsonResponse({ samplingRate: 0.2 }));
-    const store = new ClientConfigStore(URL, STORAGE_KEY);
-    expect(store.isFresh()).toBe(false);
+  it('fetches the config with an unauthenticated GET through the HTTP cache and caches the result', async () => {
+    respondWith({
+      enablementState: 'TELEMETRY_ENABLEMENT_STATE_ENABLED',
+      samplingRate: 0.2
+    });
+    const store = createStore();
     store.start();
-    await store.whenReady();
-    expect(store.isFresh()).toBe(true);
-    store.stop();
-  });
-
-  it('fetches the config with an unauthenticated GET and caches the result', async () => {
-    fetchStub.mockResolvedValue(
-      jsonResponse({
-        enablementState: 'TELEMETRY_ENABLEMENT_STATE_ENABLED',
-        samplingRate: 0.2
-      })
-    );
-    const store = new ClientConfigStore(URL, STORAGE_KEY);
-    store.start();
-    await store.whenReady();
+    await store.refreshIfStale();
 
     expect(fetchStub).toHaveBeenCalledTimes(1);
     expect(fetchStub.mock.calls[0][0]).toBe(URL);
@@ -206,20 +235,19 @@ describe('ClientConfigStore', () => {
     expect(init.method).toBe('GET');
     expect(init.credentials).toBe('omit');
     expect(init.mode).toBe('cors');
+    // The default cache mode lets the browser's HTTP cache honor the server's Cache-Control.
+    expect(init.cache).toBeUndefined();
     expect(init.signal).toBeInstanceOf(AbortSignal);
     expect((init.headers as Record<string, string>)['Accept']).toBe(
       'application/json'
     );
     expect(init.body).toBeUndefined();
 
-    expect(store.config.enabled).toBe(true);
-    expect(store.config.samplingRate).toBe(0.2);
-    expect(store.config.fetchTime).toEqual(expect.any(Number));
-    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toMatchObject({
+    expect(store.config).toEqual({ enabled: true, samplingRate: 0.2 });
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual({
       enabled: true,
       samplingRate: 0.2
     });
-    store.stop();
   });
 
   it('keeps the previous config when the fetch fails', async () => {
@@ -228,61 +256,36 @@ describe('ClientConfigStore', () => {
       JSON.stringify({ enabled: true, samplingRate: 0.4 })
     );
     fetchStub.mockRejectedValue(new TypeError('network down'));
-    const store = new ClientConfigStore(URL, STORAGE_KEY);
+    const store = createStore();
     store.start();
-    await expect(store.whenReady()).resolves.toBeUndefined();
+    await expect(store.refreshIfStale()).resolves.toBeUndefined();
     expect(store.config.samplingRate).toBe(0.4);
-    store.stop();
   });
 
   it('keeps the previous config on a non-2xx response', async () => {
     fetchStub.mockResolvedValue(jsonResponse({ error: {} }, 404));
-    const store = new ClientConfigStore(URL, STORAGE_KEY);
+    const store = createStore();
     store.start();
-    await store.whenReady();
+    await store.refreshIfStale();
     expect(store.config).toEqual(DEFAULT_CLIENT_CONFIG);
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
-    store.stop();
   });
 
   it('keeps the previous config on a malformed body', async () => {
     fetchStub.mockResolvedValue(new Response('not json', { status: 200 }));
-    const store = new ClientConfigStore(URL, STORAGE_KEY);
+    const store = createStore();
     store.start();
-    await store.whenReady();
+    await store.refreshIfStale();
     expect(store.config).toEqual(DEFAULT_CLIENT_CONFIG);
-    store.stop();
   });
 
   it('does not fetch when no URL is configured', async () => {
     const store = new ClientConfigStore(undefined, STORAGE_KEY);
+    stores.push(store);
     store.start();
-    await store.whenReady();
+    await store.refreshIfStale();
     expect(fetchStub).not.toHaveBeenCalled();
     expect(store.config).toEqual(DEFAULT_CLIENT_CONFIG);
-  });
-
-  it('is idempotent on start() and refreshes periodically until stopped', async () => {
-    vi.useFakeTimers();
-    fetchStub.mockResolvedValue(
-      jsonResponse({
-        enablementState: 'TELEMETRY_ENABLEMENT_STATE_ENABLED',
-        samplingRate: 0.5
-      })
-    );
-    const store = new ClientConfigStore(URL, STORAGE_KEY, 1000);
-    store.start();
-    store.start();
-    expect(fetchStub).toHaveBeenCalledTimes(1);
-
-    await vi.advanceTimersByTimeAsync(1000);
-    expect(fetchStub).toHaveBeenCalledTimes(2);
-    await vi.advanceTimersByTimeAsync(1000);
-    expect(fetchStub).toHaveBeenCalledTimes(3);
-
-    store.stop();
-    await vi.advanceTimersByTimeAsync(5000);
-    expect(fetchStub).toHaveBeenCalledTimes(3);
   });
 
   it('aborts a fetch that exceeds the timeout', async () => {
@@ -295,11 +298,147 @@ describe('ClientConfigStore', () => {
           );
         })
     );
-    const store = new ClientConfigStore(URL, STORAGE_KEY);
+    const store = createStore();
     store.start();
+    const refresh = store.refreshIfStale();
     await vi.advanceTimersByTimeAsync(5000);
-    await expect(store.whenReady()).resolves.toBeUndefined();
+    await expect(refresh).resolves.toBeUndefined();
     expect(store.config).toEqual(DEFAULT_CLIENT_CONFIG);
-    store.stop();
+  });
+
+  describe('refreshIfStale', () => {
+    it('reuses a refresh started within the reuse window, then fetches again', async () => {
+      vi.useFakeTimers();
+      respondWith({ samplingRate: 0.5 });
+      const store = createStore();
+      store.start();
+      const startupRefresh = store.refreshIfStale();
+      await startupRefresh;
+      expect(store.refreshIfStale()).toBe(startupRefresh);
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(CLIENT_CONFIG_REUSE_WINDOW_MS);
+      await store.refreshIfStale();
+      expect(fetchStub).toHaveBeenCalledTimes(2);
+    });
+
+    it('reuses a failed refresh instead of retrying it', async () => {
+      fetchStub.mockRejectedValue(new TypeError('network down'));
+      const store = createStore();
+      store.start();
+      await store.refreshIfStale();
+      await store.refreshIfStale();
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+    });
+
+    it('fetches even if the store was not started', async () => {
+      respondWith({ samplingRate: 0.3 });
+      const store = createStore();
+      await store.refreshIfStale();
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+      expect(store.config.samplingRate).toBe(0.3);
+    });
+  });
+
+  describe('periodic refresh', () => {
+    it("is idempotent on start() and refreshes after each response's cache lifetime", async () => {
+      vi.useFakeTimers();
+      respondWith({ samplingRate: 0.5 });
+      const store = createStore();
+      store.start();
+      store.start();
+      await store.refreshIfStale();
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+
+      // Later responses ask for a shorter cache lifetime; each refresh follows the latest one.
+      respondWith({ samplingRate: 0.5 }, 'public, max-age=120');
+      await vi.advanceTimersByTimeAsync(DEFAULT_REFRESH_INTERVAL_MS - 1);
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(fetchStub).toHaveBeenCalledTimes(2);
+
+      await store.refreshIfStale();
+      await vi.advanceTimersByTimeAsync(120 * 1000 - 1);
+      expect(fetchStub).toHaveBeenCalledTimes(2);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(fetchStub).toHaveBeenCalledTimes(3);
+
+      store.stop();
+      await vi.advanceTimersByTimeAsync(CLIENT_CONFIG_MAX_REFRESH_INTERVAL_MS);
+      expect(fetchStub).toHaveBeenCalledTimes(3);
+    });
+
+    it('falls back to the default interval when the response may not be cached', async () => {
+      vi.useFakeTimers();
+      respondWith({ samplingRate: 0.5 }, 'no-store');
+      const store = createStore();
+      store.start();
+      await store.refreshIfStale();
+
+      await vi.advanceTimersByTimeAsync(
+        CLIENT_CONFIG_FALLBACK_REFRESH_INTERVAL_MS - 1
+      );
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(fetchStub).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not retry a failed fetch before the default interval', async () => {
+      vi.useFakeTimers();
+      fetchStub.mockRejectedValue(new TypeError('network down'));
+      const store = createStore();
+      store.start();
+      await store.refreshIfStale();
+
+      await vi.advanceTimersByTimeAsync(
+        CLIENT_CONFIG_FALLBACK_REFRESH_INTERVAL_MS - 1
+      );
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(fetchStub).toHaveBeenCalledTimes(2);
+    });
+
+    it('defers a refresh that falls due while the page is hidden until it is visible again', async () => {
+      vi.useFakeTimers();
+      respondWith({ samplingRate: 0.5 });
+      const store = createStore();
+      store.start();
+      await store.refreshIfStale();
+
+      const visibility = vi
+        .spyOn(document, 'visibilityState', 'get')
+        .mockReturnValue('hidden');
+      await vi.advanceTimersByTimeAsync(DEFAULT_REFRESH_INTERVAL_MS);
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+
+      visibility.mockReturnValue('visible');
+      document.dispatchEvent(new Event('visibilitychange'));
+      expect(fetchStub).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not refresh when the page becomes visible before the refresh is due', async () => {
+      vi.useFakeTimers();
+      respondWith({ samplingRate: 0.5 });
+      const store = createStore();
+      store.start();
+      await store.refreshIfStale();
+
+      await vi.advanceTimersByTimeAsync(CLIENT_CONFIG_REUSE_WINDOW_MS);
+      document.dispatchEvent(new Event('visibilitychange'));
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops listening for visibility changes when stopped', async () => {
+      vi.useFakeTimers();
+      respondWith({ samplingRate: 0.5 });
+      const store = createStore();
+      store.start();
+      await store.refreshIfStale();
+      store.stop();
+
+      await vi.advanceTimersByTimeAsync(DEFAULT_REFRESH_INTERVAL_MS);
+      document.dispatchEvent(new Event('visibilitychange'));
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+    });
   });
 });

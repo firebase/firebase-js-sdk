@@ -19,22 +19,25 @@ const C1 = 0xcc9e2d51;
 const C2 = 0x1b873593;
 
 /**
- * Encodes a string as UTF-8 bytes. Uses `TextEncoder` when available and falls back to a
- * minimal manual encoder otherwise.
+ * Encodes a string as UTF-8 exactly like Java's `String.getBytes(UTF_8)`, which are the bytes Guava
+ * hashes on the server: an unpaired surrogate becomes `?`. `TextEncoder` is not used because it
+ * writes U+FFFD instead, and one code path gives the same bytes on every platform.
+ *
+ * @internal
  */
-function utf8Encode(input: string): Uint8Array {
-  if (typeof TextEncoder !== 'undefined') {
-    return new TextEncoder().encode(input);
-  }
+export function utf8Encode(input: string): Uint8Array {
   const bytes: number[] = [];
   for (let i = 0; i < input.length; i++) {
     let codePoint = input.charCodeAt(i);
-    // Combine surrogate pairs into a single code point.
-    if (codePoint >= 0xd800 && codePoint <= 0xdbff && i + 1 < input.length) {
+    if (codePoint >= 0xd800 && codePoint <= 0xdfff) {
+      // Combine a surrogate pair into a single code point; an unpaired surrogate becomes `?`.
       const next = input.charCodeAt(i + 1);
-      if (next >= 0xdc00 && next <= 0xdfff) {
+      if (codePoint <= 0xdbff && next >= 0xdc00 && next <= 0xdfff) {
         codePoint = 0x10000 + ((codePoint - 0xd800) << 10) + (next - 0xdc00);
         i++;
+      } else {
+        bytes.push(0x3f);
+        continue;
       }
     }
     if (codePoint < 0x80) {

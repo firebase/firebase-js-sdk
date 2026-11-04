@@ -421,14 +421,14 @@ describe('helpers', () => {
   });
 
   describe('getClientConfigUrl', () => {
-    it('should build the GetClientConfig URL from project, region and app id', () => {
+    it('should build the GetClientConfig URL from the project number in the app id, region and app id', () => {
       expect(
         getClientConfigUrl({
           projectId: 'my-project',
           appId: '1:123456789012:web:abcdef'
         })
       ).toBe(
-        'https://firebasetelemetry.googleapis.com/v1alpha/projects/my-project/locations/global/apps/1%3A123456789012%3Aweb%3Aabcdef/clientConfig'
+        'https://firebasetelemetry.googleapis.com/v1alpha/projects/123456789012/locations/global/apps/1%3A123456789012%3Aweb%3Aabcdef/clientConfig'
       );
       expect(
         getClientConfigUrl(
@@ -436,13 +436,27 @@ describe('helpers', () => {
           { region: 'us-east5' }
         )
       ).toBe(
-        'https://firebasetelemetry.us-east5.rep.googleapis.com/v1alpha/projects/my-project/locations/us-east5/apps/1%3A1%3Aweb%3Aa/clientConfig'
+        'https://firebasetelemetry.us-east5.rep.googleapis.com/v1alpha/projects/1/locations/us-east5/apps/1%3A1%3Aweb%3Aa/clientConfig'
       );
     });
 
-    it('should return undefined when the project or app id is missing', () => {
-      expect(getClientConfigUrl({ appId: '1:1:web:a' })).toBeUndefined();
+    it('should not need the project id when the app id embeds the project number', () => {
+      expect(getClientConfigUrl({ appId: '1:123456789012:web:abcdef' })).toBe(
+        'https://firebasetelemetry.googleapis.com/v1alpha/projects/123456789012/locations/global/apps/1%3A123456789012%3Aweb%3Aabcdef/clientConfig'
+      );
+    });
+
+    it('should fall back to the project id when the app id does not embed a project number', () => {
+      expect(
+        getClientConfigUrl({ projectId: 'my-project', appId: 'my-app' })
+      ).toBe(
+        'https://firebasetelemetry.googleapis.com/v1alpha/projects/my-project/locations/global/apps/my-app/clientConfig'
+      );
+    });
+
+    it('should return undefined when the app id or the project is missing', () => {
       expect(getClientConfigUrl({ projectId: 'my-project' })).toBeUndefined();
+      expect(getClientConfigUrl({ appId: 'my-app' })).toBeUndefined();
       expect(getClientConfigUrl({})).toBeUndefined();
     });
   });

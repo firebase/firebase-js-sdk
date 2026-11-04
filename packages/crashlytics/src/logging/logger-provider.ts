@@ -202,20 +202,13 @@ class OTLPLogExporter
     }
 
     // Session sampling: the decision is made at the first export attempt of the session. Logs of
-    // unsampled sessions are dropped here, before any network transmission. Logs of sampled
-    // sessions carry the rate the decision was made with, so the backend can extrapolate counts
-    // and reconcile the rate against the live configuration.
-    if (this.sessionSampler) {
-      const decision = await this.sessionSampler.getDecision();
-      if (!decision.sampled) {
-        resultCallback({ code: ExportResultCode.SUCCESS });
-        return;
-      }
-      const samplingAttribute =
-        this.sessionSampler.getSamplingAttribute(decision);
-      filteredLogs.forEach(log => {
-        Object.assign(log.attributes, samplingAttribute);
-      });
+    // unsampled sessions are dropped here, before any network transmission.
+    if (
+      this.sessionSampler &&
+      !(await this.sessionSampler.applySampling(filteredLogs))
+    ) {
+      resultCallback({ code: ExportResultCode.SUCCESS });
+      return;
     }
 
     const installationIdAttribute =

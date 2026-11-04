@@ -309,12 +309,29 @@ export function getClientConfigEndpointUrl(
 }
 
 /**
+ * Returns the project number embedded in a Firebase app ID, which has the form
+ * `<version>:<project number>:<platform>:<hash>` (e.g. `1:1234567890:web:abcdef`), or `undefined`
+ * if the app ID does not have that form.
+ */
+function getProjectNumberFromAppId(appId: string): string | undefined {
+  const projectNumber = appId.split(':')[1];
+  return projectNumber && /^\d+$/.test(projectNumber)
+    ? projectNumber
+    : undefined;
+}
+
+/**
  * Builds the fully-qualified `GetClientConfig` URL for an app, or returns `undefined` when the
  * app options do not identify a project and app.
  *
  * `GetClientConfig` is a public, unauthenticated `GET` (no API key or App Check token): the
  * project in the path is the service consumer, so a single edge-cached response serves every
  * user of the app.
+ *
+ * The API defines the project segment as the project number (`project_number`), which is taken
+ * from the app ID so that every client of an app requests the same URL, and therefore shares one
+ * GFE cache entry. The project ID is only used for app IDs that do not embed a project number; the
+ * API accepts it as well.
  *
  * @internal
  */
@@ -323,13 +340,17 @@ export function getClientConfigUrl(
   crashlyticsOptions: CrashlyticsOptions = {}
 ): string | undefined {
   const { projectId, appId } = firebaseOptions;
-  if (!projectId || !appId) {
+  if (!appId) {
+    return undefined;
+  }
+  const project = getProjectNumberFromAppId(appId) ?? projectId;
+  if (!project) {
     return undefined;
   }
   const region = crashlyticsOptions?.region || DEFAULT_TELEMETRY_REGION;
   const base = getClientConfigEndpointUrl(crashlyticsOptions);
   return (
-    `${base}/${CLIENT_CONFIG_API_VERSION}/projects/${encodeURIComponent(projectId)}` +
+    `${base}/${CLIENT_CONFIG_API_VERSION}/projects/${encodeURIComponent(project)}` +
     `/locations/${encodeURIComponent(region)}/apps/${encodeURIComponent(appId)}/clientConfig`
   );
 }

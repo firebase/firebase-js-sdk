@@ -19,7 +19,6 @@ import { AttributesStore } from '../attributes-store';
 import {
   ATTR_KEY_SESSION_SAMPLING_RATE,
   SESSION_STORAGE_DEBUG_KEY,
-  SESSION_STORAGE_SAMPLING_DECISION_KEY,
   TELEMETRY_DEBUG_GLOBAL_FLAG
 } from '../constants';
 import { ClientConfig, ClientConfigStore } from './client-config';
@@ -30,25 +29,29 @@ const SESSION_LOW = 'test-session-3';
 const SESSION_MID = 'test-session-1';
 const SESSION_HIGH = 'sëssion-ü';
 
+// Decision keys of two apps on the same page (which share the session ID).
+const STORAGE_KEY = 'firebasecrashlytics.sampling:app-a:global';
+const OTHER_APP_STORAGE_KEY = 'firebasecrashlytics.sampling:app-b:global';
+
 class FakeConfigStore {
   config: ClientConfig;
+  /** What {@link refreshIfStale} returns, i.e. when the sampler's refresh settles. */
   ready: Promise<void> = Promise.resolve();
-  fresh = false;
+  refreshCount = 0;
   constructor(config: Partial<ClientConfig> = {}) {
     this.config = { enabled: true, samplingRate: 1, ...config };
   }
-  whenReady(): Promise<void> {
+  refreshIfStale(): Promise<void> {
+    this.refreshCount++;
     return this.ready;
-  }
-  isFresh(): boolean {
-    return this.fresh;
   }
 }
 
 function createSampler(
   config: Partial<ClientConfig>,
   sessionId: string | undefined,
-  initialWaitMs = 10
+  initialWaitMs = 10,
+  storageKey = STORAGE_KEY
 ): { sampler: SessionSampler; store: FakeConfigStore; attrs: AttributesStore } {
   const store = new FakeConfigStore(config);
   const attrs = new AttributesStore({ projectId: 'p', appId: 'a' });
@@ -58,11 +61,13 @@ function createSampler(
   const sampler = new SessionSampler(
     store as unknown as ClientConfigStore,
     attrs,
+    storageKey,
     initialWaitMs
   );
   return { sampler, store, attrs };
 }
 
+// Mirrors the hash-based cases of the backend's SessionSamplingTest.
 describe('isSessionSampled', () => {
   it('uses the shared hash buckets', () => {
     expect(isSessionSampled(SESSION_LOW, 0.1185)).toBe(true);
@@ -71,6 +76,11 @@ describe('isSessionSampled', () => {
     expect(isSessionSampled(SESSION_MID, 0.6018)).toBe(false);
     expect(isSessionSampled(SESSION_HIGH, 0.8829)).toBe(true);
     expect(isSessionSampled(SESSION_HIGH, 0.8828)).toBe(false);
+  });
+
+  it('makes the same decisions as the backend when it resamples at 0.5', () => {
+    expect(isSessionSampled(SESSION_LOW, 0.5)).toBe(true);
+    expect(isSessionSampled(SESSION_MID, 0.5)).toBe(false);
   });
 
   it('keeps everything at 1.0 and nothing at 0.0', () => {
@@ -153,9 +163,7 @@ describe('SessionSampler', () => {
       samplingRate: 1
     });
     // Nothing is persisted without a session id.
-    expect(
-      sessionStorage.getItem(SESSION_STORAGE_SAMPLING_DECISION_KEY)
-    ).toBeNull();
+    expect(sessionStorage.getItem(STORAGE_KEY)).toBeNull();
   });
 
   it('makes a new decision once a session id becomes available', async () => {
@@ -203,9 +211,7 @@ describe('SessionSampler', () => {
   it('persists the decision in sessionStorage and reuses it after a reload', async () => {
     const { sampler } = createSampler({ samplingRate: 0.5 }, SESSION_LOW);
     const first = await sampler.getDecision();
-    expect(
-      JSON.parse(sessionStorage.getItem(SESSION_STORAGE_SAMPLING_DECISION_KEY)!)
-    ).toEqual(first);
+    expect(JSON.parse(sessionStorage.getItem(STORAGE_KEY)!)).toEqual(first);
 
     // A new SDK instance in the same tab (same session id) sees a lower rate, but keeps the
     // original decision and rate.
@@ -218,7 +224,7 @@ describe('SessionSampler', () => {
 
   it('ignores a persisted decision for a different session', async () => {
     sessionStorage.setItem(
-      SESSION_STORAGE_SAMPLING_DECISION_KEY,
+      STORAGE_KEY,
       JSON.stringify({ sessionId: 'other', sampled: false, samplingRate: 0.1 })
     );
     const { sampler } = createSampler({ samplingRate: 0.5 }, SESSION_LOW);
@@ -229,7 +235,44 @@ describe('SessionSampler', () => {
     });
   });
 
-  it('waits for the initial config fetch before the first decision', async () => {
+  it('keeps the decisions of apps sharing a session apart, across reloads', async () => {
+    // SESSION_MID (bucket 6018) is sampled at app A's rate of 0.9 but not at app B's rate of 0.5.
+    const { sampler: appA } = createSampler({ samplingRate: 0.9 }, SESSION_MID);
+    const { sampler: appB } = createSampler(
+      { samplingRate: 0.5 },
+      SESSION_MID,
+      undefined,
+      OTHER_APP_STORAGE_KEY
+    );
+    const decisionA = await appA.getDecision();
+    const decisionB = await appB.getDecision();
+    expect(decisionA).toEqual({
+      sessionId: SESSION_MID,
+      sampled: true,
+      samplingRate: 0.9
+    });
+    expect(decisionB).toEqual({
+      sessionId: SESSION_MID,
+      sampled: false,
+      samplingRate: 0.5
+    });
+
+    // After a reload, each app restores its own decision, regardless of its current rate.
+    const { sampler: reloadedA } = createSampler(
+      { samplingRate: 0.01 },
+      SESSION_MID
+    );
+    const { sampler: reloadedB } = createSampler(
+      { samplingRate: 1 },
+      SESSION_MID,
+      undefined,
+      OTHER_APP_STORAGE_KEY
+    );
+    expect(await reloadedA.getDecision()).toEqual(decisionA);
+    expect(await reloadedB.getDecision()).toEqual(decisionB);
+  });
+
+  it('refreshes the config and waits for it before the first decision', async () => {
     const { sampler, store } = createSampler(
       { samplingRate: 1 },
       SESSION_HIGH,
@@ -241,13 +284,14 @@ describe('SessionSampler', () => {
     });
 
     const pending = sampler.getDecision();
+    expect(store.refreshCount).toBe(1);
     store.config = { enabled: true, samplingRate: 0.5 };
     resolveFetch();
 
     expect(await pending).toMatchObject({ sampled: false, samplingRate: 0.5 });
   });
 
-  it('does not wait longer than the initial wait for a slow fetch', async () => {
+  it('does not wait longer than the initial wait for a slow refresh', async () => {
     const { sampler, store } = createSampler(
       { samplingRate: 1 },
       SESSION_HIGH,
@@ -260,7 +304,36 @@ describe('SessionSampler', () => {
     });
   });
 
-  describe('initial wait', () => {
+  describe('applySampling', () => {
+    it('stamps the sampling rate on every record of a sampled session', async () => {
+      const { sampler } = createSampler({ samplingRate: 0.5 }, SESSION_LOW);
+      const records = [
+        { attributes: { existing: 'value' } },
+        { attributes: {} }
+      ];
+
+      expect(await sampler.applySampling(records)).toBe(true);
+      expect(records).toEqual([
+        {
+          attributes: {
+            existing: 'value',
+            [ATTR_KEY_SESSION_SAMPLING_RATE]: 0.5
+          }
+        },
+        { attributes: { [ATTR_KEY_SESSION_SAMPLING_RATE]: 0.5 } }
+      ]);
+    });
+
+    it('leaves the records untouched and returns false for an unsampled session', async () => {
+      const { sampler } = createSampler({ samplingRate: 0.5 }, SESSION_HIGH);
+      const records = [{ attributes: { existing: 'value' } }];
+
+      expect(await sampler.applySampling(records)).toBe(false);
+      expect(records).toEqual([{ attributes: { existing: 'value' } }]);
+    });
+  });
+
+  describe('waiting for the config refresh', () => {
     const NEVER = new Promise<void>(() => {});
 
     beforeEach(() => {
@@ -276,23 +349,20 @@ describe('SessionSampler', () => {
       vi.spyOn(document, 'visibilityState', 'get').mockReturnValue(state);
     }
 
-    it('does not wait when the cached config is fresh', async () => {
+    it('refreshes only before the first decision of a session', async () => {
       const { sampler, store } = createSampler(
         { samplingRate: 0.5 },
         SESSION_HIGH,
         60_000
       );
-      store.ready = NEVER;
-      store.fresh = true;
 
-      expect(await sampler.getDecision()).toMatchObject({
-        sampled: false,
-        samplingRate: 0.5
-      });
+      const first = await sampler.getDecision();
+      expect(await sampler.getDecision()).toEqual(first);
+      expect(store.refreshCount).toBe(1);
       expect(vi.getTimerCount()).toBe(0);
     });
 
-    it('does not wait when the page is already hidden (unload flush)', async () => {
+    it('does not refresh or wait when the page is already hidden (unload flush)', async () => {
       mockVisibility('hidden');
       const { sampler, store } = createSampler(
         { samplingRate: 0.5 },
@@ -305,6 +375,7 @@ describe('SessionSampler', () => {
         sampled: false,
         samplingRate: 0.5
       });
+      expect(store.refreshCount).toBe(0);
       expect(vi.getTimerCount()).toBe(0);
     });
 
@@ -441,7 +512,7 @@ describe('SessionSampler', () => {
       });
     });
 
-    it('does not wait for the initial config fetch when the debug override is active', async () => {
+    it('does not refresh or wait for the config when the debug override is active', async () => {
       (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
         true;
       const { sampler, store } = createSampler(
@@ -456,6 +527,7 @@ describe('SessionSampler', () => {
         sampled: true,
         samplingRate: 1
       });
+      expect(store.refreshCount).toBe(0);
     });
 
     it('overrides a previously cached unsampled decision when enabled mid-session', async () => {

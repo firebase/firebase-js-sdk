@@ -18,9 +18,13 @@
 import { context, diag } from '@opentelemetry/api';
 import { suppressTracing } from '@opentelemetry/core';
 import {
+  CLIENT_CONFIG_FALLBACK_REFRESH_INTERVAL_MS,
   CLIENT_CONFIG_FETCH_TIMEOUT_MS,
-  CLIENT_CONFIG_REFRESH_INTERVAL_MS
+  CLIENT_CONFIG_MAX_REFRESH_INTERVAL_MS,
+  CLIENT_CONFIG_MIN_REFRESH_INTERVAL_MS,
+  CLIENT_CONFIG_REUSE_WINDOW_MS
 } from '../constants';
+import { isPageHidden } from './session-sampler';
 
 /**
  * Operational telemetry configuration for a Firebase app, as served by the Firebase Telemetry
@@ -37,8 +41,6 @@ export interface ClientConfig {
    * surge protection before serving it.
    */
   samplingRate: number;
-  /** Epoch milliseconds at which this configuration was fetched, if it came from the network. */
-  fetchTime?: number;
 }
 
 /**
@@ -81,16 +83,43 @@ export function normalizeSamplingRate(rate: unknown): number {
  *
  * @internal
  */
-export function parseClientConfigResponse(
-  body: unknown,
-  fetchTime: number = Date.now()
-): ClientConfig {
+export function parseClientConfigResponse(body: unknown): ClientConfig {
   const response = (body ?? {}) as Record<string, unknown>;
   return {
     enabled: response['enablementState'] !== ENABLEMENT_STATE_DISABLED,
-    samplingRate: normalizeSamplingRate(response['samplingRate']),
-    fetchTime
+    samplingRate: normalizeSamplingRate(response['samplingRate'])
   };
+}
+
+/**
+ * Returns how long a long-running page waits before re-fetching the configuration, given the
+ * `Cache-Control` header of the last `GetClientConfig` response: its `max-age` plus
+ * `stale-while-revalidate`.
+ * @internal
+ */
+export function getRefreshIntervalMs(cacheControl: string | null): number {
+  const directives = new Map<string, string>();
+  for (const directive of (cacheControl ?? '').split(',')) {
+    const [name, value = ''] = directive.trim().toLowerCase().split('=', 2);
+    if (name) {
+      directives.set(name, value.replace(/^"|"$/g, ''));
+    }
+  }
+  const maxAgeSeconds = Number(directives.get('max-age'));
+  if (
+    directives.has('no-store') ||
+    directives.has('no-cache') ||
+    !(maxAgeSeconds > 0)
+  ) {
+    return CLIENT_CONFIG_FALLBACK_REFRESH_INTERVAL_MS;
+  }
+  const staleSeconds = Number(directives.get('stale-while-revalidate'));
+  const intervalMs =
+    (maxAgeSeconds + (staleSeconds > 0 ? staleSeconds : 0)) * 1000;
+  return Math.min(
+    Math.max(intervalMs, CLIENT_CONFIG_MIN_REFRESH_INTERVAL_MS),
+    CLIENT_CONFIG_MAX_REFRESH_INTERVAL_MS
+  );
 }
 
 function isValidStoredConfig(value: unknown): value is ClientConfig {
@@ -113,104 +142,147 @@ function isValidStoredConfig(value: unknown): value is ClientConfig {
  * - **Background refresh**: {@link ClientConfigStore.start} issues a non-blocking fetch of
  *   `GetClientConfig`; when it returns, the in-memory configuration and the local cache are
  *   updated.
- * - **Periodic polling**: long-running pages re-fetch every 15 minutes to pick up developer rate
- *   changes. The response is edge-cached by GFE with the same TTL, so the request is cheap.
+ * - **Refresh before the sampling decision**: a session's sampling decision, made at its first
+ *   export, calls {@link ClientConfigStore.refreshIfStale} and waits briefly for it, so it uses the
+ *   most recent configuration the server's caches allow.
+ * - **Periodic refresh**: long-running pages re-fetch once the last response's cache lifetime has
+ *   passed (`max-age` + `stale-while-revalidate`), but only while
+ *   the page is visible. A page that is hidden when the refresh falls due re-fetches when it
+ *   becomes visible again.
  *
- * Fetch failures (network errors, timeouts, non-2xx responses, malformed bodies) are swallowed:
- * the previous configuration stays in effect and telemetry continues to flow.
+ * Fetches go through the browser's HTTP cache (the default `fetch` cache mode). Like GFE, it honors
+ * the server's `Cache-Control`, and GFE's `Age` header makes both expire a response at the same
+ * time, so a fetch never returns a configuration older than one cache lifetime (16 minutes by
+ * default) and repeated fetches are cheap.
+ *
+ * Fetch failures are swallowed: the
+ * previous configuration stays in effect and telemetry continues to flow. They are not retried
+ * early, because error responses are never cached and every retry would reach the backend.
  *
  * @internal
  */
 export class ClientConfigStore {
   private _config: ClientConfig;
-  private _initialFetch?: Promise<void>;
-  private _refreshTimer?: ReturnType<typeof setInterval>;
   private _started = false;
+  private _latestRefresh?: Promise<void>;
+  private _latestRefreshStartedAt = 0;
+  private _refreshTimer?: ReturnType<typeof setTimeout>;
+  private _nextRefreshAt = 0;
 
   /**
    * @param _url - Fully-qualified `GetClientConfig` URL, or `undefined` when the configuration
-   *   cannot be fetched (e.g. missing project or app ID). In that case the store only ever serves
-   *   the cached or default configuration.
-   * @param _storageKey - `localStorage` key under which the configuration is cached.
-   * @param _refreshIntervalMs - Polling interval. Exposed for tests.
+   *   cannot be fetched (e.g. missing app ID). In that case the store only ever serves the cached
+   *   or default configuration.
+   * @param _storageKey - `localStorage` key.
    */
   constructor(
     private readonly _url: string | undefined,
-    private readonly _storageKey: string,
-    private readonly _refreshIntervalMs = CLIENT_CONFIG_REFRESH_INTERVAL_MS
+    private readonly _storageKey: string
   ) {
     this._config = this._loadFromStorage() ?? DEFAULT_CLIENT_CONFIG;
   }
 
-  /** The configuration currently in effect. */
   get config(): ClientConfig {
     return this._config;
   }
 
-  /** The `GetClientConfig` URL this store fetches from, if any. */
   get url(): string | undefined {
     return this._url;
   }
 
   /**
-   * Kicks off the initial background fetch and schedules periodic refreshes. Safe to call more
-   * than once; subsequent calls are no-ops. Does nothing outside of a browser or when no URL is
-   * configured.
+   * Kicks off the background fetch and periodic refreshes. Safe to call more than once; subsequent
+   * calls are no-ops. Does nothing outside of a browser or when no URL is configured.
    */
   start(): void {
     if (this._started || !this._url || typeof window === 'undefined') {
       return;
     }
     this._started = true;
-    this._initialFetch = this.refresh();
-    this._refreshTimer = setInterval(() => {
-      void this.refresh();
-    }, this._refreshIntervalMs);
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', this._onVisibilityChange);
+    }
+    void this.refresh();
   }
 
   /** Stops periodic refreshes. */
   stop(): void {
-    if (this._refreshTimer !== undefined) {
-      clearInterval(this._refreshTimer);
-      this._refreshTimer = undefined;
+    clearTimeout(this._refreshTimer);
+    this._refreshTimer = undefined;
+    if (typeof document !== 'undefined') {
+      document.removeEventListener(
+        'visibilitychange',
+        this._onVisibilityChange
+      );
     }
     this._started = false;
   }
 
   /**
-   * Resolves once the initial fetch started by {@link start} has settled (successfully or not).
-   * Resolves immediately if no fetch was started.
-   */
-  whenReady(): Promise<void> {
-    return this._initialFetch ?? Promise.resolve();
-  }
-
-  /**
-   * Whether the configuration currently in effect was fetched from the network less than one
-   * refresh interval ago. The refresh interval matches the `Cache-Control: max-age` the server sets
-   * on `GetClientConfig`, so a configuration this recent is as current as what the edge cache would
-   * serve, and there is nothing to gain by waiting for the in-flight fetch.
+   * Returns the refresh started less than `reuseWindowMs` ago, whether it is still in flight,
+   * succeeded or failed, or starts a new one. Never rejects.
    *
-   * @param now - Current epoch milliseconds. Exposed for tests.
+   * @param reuseWindowMs - Exposed for tests.
    */
-  isFresh(now: number = Date.now()): boolean {
-    const fetchTime = this._config.fetchTime;
-    if (fetchTime === undefined) {
-      return false;
+  refreshIfStale(
+    reuseWindowMs: number = CLIENT_CONFIG_REUSE_WINDOW_MS
+  ): Promise<void> {
+    if (
+      this._latestRefresh &&
+      Date.now() - this._latestRefreshStartedAt < reuseWindowMs
+    ) {
+      return this._latestRefresh;
     }
-    const age = now - fetchTime;
-    // A negative age means the clock moved backwards (or the cache was written with a skewed
-    // clock); treat it as stale rather than trusting it indefinitely.
-    return age >= 0 && age < this._refreshIntervalMs;
+    return this.refresh();
   }
 
   /**
-   * Fetches the latest configuration and, on success, updates the in-memory value and the local
-   * cache. Never rejects.
+   * Fetches the latest configuration. Once the store is started, also schedules the next periodic refresh. Never rejects.
    */
-  async refresh(): Promise<void> {
-    if (!this._url || typeof fetch !== 'function') {
-      return;
+  refresh(): Promise<void> {
+    this._latestRefreshStartedAt = Date.now();
+    const refresh = this._fetchAndStore().then(refreshIntervalMs => {
+      if (this._started && this._latestRefresh === refresh) {
+        this._scheduleRefresh(refreshIntervalMs);
+      }
+    });
+    this._latestRefresh = refresh;
+    return refresh;
+  }
+
+  /**
+   * Schedules the next periodic refresh. If it falls due while the page is hidden, it is deferred
+   * until the page becomes visible again (see `_onVisibilityChange`).
+   */
+  private _scheduleRefresh(delayMs: number): void {
+    clearTimeout(this._refreshTimer);
+    this._nextRefreshAt = Date.now() + delayMs;
+    this._refreshTimer = setTimeout(() => {
+      this._refreshTimer = undefined;
+      if (!isPageHidden()) {
+        void this.refreshIfStale();
+      }
+    }, delayMs);
+  }
+
+  /** Runs a periodic refresh that fell due while the page was hidden. */
+  private readonly _onVisibilityChange = (): void => {
+    if (!isPageHidden() && Date.now() >= this._nextRefreshAt) {
+      void this.refreshIfStale();
+    }
+  };
+
+  /**
+   * Fetches `GetClientConfig` and, on success, updates the in-memory configuration and the local
+   * cache. Resolves with the delay until the next periodic refresh. Never rejects.
+   */
+  private async _fetchAndStore(): Promise<number> {
+    if (
+      !this._url ||
+      typeof window === 'undefined' ||
+      typeof fetch !== 'function'
+    ) {
+      return CLIENT_CONFIG_FALLBACK_REFRESH_INTERVAL_MS;
     }
     const abortController = new AbortController();
     const timeout = setTimeout(
@@ -227,6 +299,8 @@ export class ClientConfigStore {
             method: 'GET',
             mode: 'cors',
             credentials: 'omit',
+            // No `cache` option: the browser's HTTP cache serves the response for as long as the
+            // server's `Cache-Control` allows.
             headers: { Accept: 'application/json' },
             signal: abortController.signal
           })
@@ -235,13 +309,15 @@ export class ClientConfigStore {
         diag.debug(
           `Firebase Crashlytics: client config fetch failed with status ${response.status}`
         );
-        return;
+        return CLIENT_CONFIG_FALLBACK_REFRESH_INTERVAL_MS;
       }
       const body: unknown = await response.json();
       this._config = parseClientConfigResponse(body);
       this._saveToStorage(this._config);
+      return getRefreshIntervalMs(response.headers.get('Cache-Control'));
     } catch (error) {
       diag.debug('Firebase Crashlytics: client config fetch failed', error);
+      return CLIENT_CONFIG_FALLBACK_REFRESH_INTERVAL_MS;
     } finally {
       clearTimeout(timeout);
     }
@@ -262,9 +338,7 @@ export class ClientConfigStore {
       }
       return {
         enabled: parsed.enabled,
-        samplingRate: normalizeSamplingRate(parsed.samplingRate),
-        fetchTime:
-          typeof parsed.fetchTime === 'number' ? parsed.fetchTime : undefined
+        samplingRate: normalizeSamplingRate(parsed.samplingRate)
       };
     } catch (e) {
       // Ignore errors accessing localStorage (e.g. security restrictions) or corrupt entries.

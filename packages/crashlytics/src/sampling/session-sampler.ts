@@ -19,10 +19,10 @@ import { AttributesStore } from '../attributes-store';
 import {
   ATTR_KEY_SESSION_SAMPLING_RATE,
   CLIENT_CONFIG_INITIAL_WAIT_MS,
-  SESSION_SAMPLING_HASH_BUCKETS,
-  SESSION_STORAGE_SAMPLING_DECISION_KEY
+  SESSION_SAMPLING_HASH_BUCKETS
 } from '../constants';
-import { ClientConfig, ClientConfigStore } from './client-config';
+// Types only, so the runtime import goes one way: client-config imports isPageHidden from here.
+import type { ClientConfig, ClientConfigStore } from './client-config';
 import { isTelemetryDebugEnabled } from './debug-override';
 import { murmurHash3 } from './murmurhash3';
 
@@ -60,8 +60,10 @@ export function isSessionSampled(sessionId: string, rate: number): boolean {
 /**
  * Whether the page is currently hidden. Browsers set `visibilityState` to `hidden` before
  * dispatching `pagehide` when a document is unloaded, so this is also true during the unload flush.
+ *
+ * @internal
  */
-function isPageHidden(): boolean {
+export function isPageHidden(): boolean {
   return (
     typeof document !== 'undefined' && document.visibilityState === 'hidden'
   );
@@ -71,7 +73,8 @@ function isPageHidden(): boolean {
  * Makes and remembers the session sampling decision for a Crashlytics instance.
  *
  * - The decision is made lazily, at the first telemetry export attempt of the session (not at
- *   session creation), so the most recently fetched sampling rate is used.
+ *   session creation), right after refreshing the configuration, so the most recent sampling rate
+ *   is used.
  * - A session is either kept completely or discarded completely. Once made, the decision (and the
  *   rate it was made with) is fixed for the rest of the session and persisted in `sessionStorage`
  *   so page reloads within the session do not flip it. Rate changes apply to new sessions only;
@@ -85,21 +88,29 @@ export class SessionSampler {
   private _decision?: SamplingDecision;
   private _pendingWait?: Promise<void>;
 
+  /**
+   * @param _storageKey - `sessionStorage` key under which the decision is persisted. It must be
+   *   specific to the app and region: the session ID is shared by every app on the page, but each
+   *   app makes its own decision from its own configuration.
+   * @param _initialWaitMs - Maximum time the first decision waits for the config refresh. Exposed
+   *   for tests.
+   */
   constructor(
     private readonly _configStore: ClientConfigStore,
     private readonly _attributesStore: AttributesStore,
+    private readonly _storageKey: string,
     private readonly _initialWaitMs = CLIENT_CONFIG_INITIAL_WAIT_MS
   ) {}
 
   /**
    * Returns the decision for the current session, computing it on first use.
    *
-   * On first use this may wait (bounded by `initialWaitMs`) for the initial config fetch so a fresh
-   * rate is used when it arrives quickly; otherwise the cached or default configuration is used.
-   * It does not wait when:
+   * Before the first decision this refreshes the configuration (reusing a refresh started within
+   * the last minute, see {@link ClientConfigStore.refreshIfStale}) and waits for it, bounded by
+   * `initialWaitMs`, so the decision uses the most recent sampling rate the server's caches allow.
+   * If the refresh is slow or fails, the configuration already in memory (cached or default) is
+   * used. It does not refresh or wait when:
    * - the telemetry debug override is active
-   * - the cached configuration is younger than the server's `max-age` (see
-   *   {@link ClientConfigStore.isFresh}), since the fetch would most likely return the same value;
    * - the page is hidden. Exports issued while the page is hidden are typically the unload flush
    *   (`visibilitychange`/`pagehide`), whose `keepalive` request must be started before the
    *   document is frozen or discarded, so it cannot be held back behind a timer. An export that is
@@ -110,12 +121,8 @@ export class SessionSampler {
     if (cached) {
       return cached;
     }
-    if (
-      !isTelemetryDebugEnabled() &&
-      !this._configStore.isFresh() &&
-      !isPageHidden()
-    ) {
-      await this._waitForInitialConfig();
+    if (!isTelemetryDebugEnabled() && !isPageHidden()) {
+      await this._waitForConfigRefresh();
     }
     return this.decide();
   }
@@ -146,11 +153,34 @@ export class SessionSampler {
   }
 
   /**
-   * Resolves when the initial config fetch settles, `initialWaitMs` elapses, or the page becomes
-   * hidden / is being unloaded, whichever happens first. Concurrent callers (e.g. the log and the
-   * trace exporters) share a single wait. The timer and listeners are removed once it settles.
+   * Applies the session's sampling decision to a batch of log records or spans about to be
+   * exported. Waits for the decision (see {@link SessionSampler.getDecision}); if the session is
+   * sampled, stamps `session.sampling.rate` on every record and resolves to `true`. Otherwise
+   * resolves to `false`, and the caller must drop the batch without sending it.
+   *
+   * Shared by the log and trace exporters, so both apply the decision at export time the same way.
    */
-  private _waitForInitialConfig(): Promise<void> {
+  async applySampling(
+    records: ReadonlyArray<{ readonly attributes: object }>
+  ): Promise<boolean> {
+    const decision = await this.getDecision();
+    if (!decision.sampled) {
+      return false;
+    }
+    const samplingAttribute = this.getSamplingAttribute(decision);
+    for (const record of records) {
+      Object.assign(record.attributes, samplingAttribute);
+    }
+    return true;
+  }
+
+  /**
+   * Refreshes the configuration if needed and resolves when the refresh settles, `initialWaitMs`
+   * elapses, or the page becomes hidden / is being unloaded, whichever happens first. Concurrent
+   * callers (e.g. the log and the trace exporters) share a single wait. The timer and listeners are
+   * removed once it settles.
+   */
+  private _waitForConfigRefresh(): Promise<void> {
     if (this._pendingWait) {
       return this._pendingWait;
     }
@@ -183,7 +213,7 @@ export class SessionSampler {
         document.addEventListener('visibilitychange', onVisibilityChange);
         window.addEventListener('pagehide', settle);
       }
-      this._configStore.whenReady().then(settle, settle);
+      this._configStore.refreshIfStale().then(settle, settle);
     });
     this._pendingWait = wait;
     return wait;
@@ -237,7 +267,7 @@ export class SessionSampler {
       return undefined;
     }
     try {
-      const raw = sessionStorage.getItem(SESSION_STORAGE_SAMPLING_DECISION_KEY);
+      const raw = sessionStorage.getItem(this._storageKey);
       if (!raw) {
         return undefined;
       }
@@ -264,10 +294,7 @@ export class SessionSampler {
       return;
     }
     try {
-      sessionStorage.setItem(
-        SESSION_STORAGE_SAMPLING_DECISION_KEY,
-        JSON.stringify(decision)
-      );
+      sessionStorage.setItem(this._storageKey, JSON.stringify(decision));
     } catch (e) {
       // Ignore errors accessing sessionStorage (e.g. security restrictions)
     }
