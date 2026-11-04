@@ -70,9 +70,8 @@ export function freezeSqlServiceSettings(
  * Validates that the provided port is a valid TCP port number.
  *
  * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if port is invalid.
- * @internal
  */
-export function validatePort(port: unknown): void {
+function validatePort(port: unknown): void {
   if (port === undefined) {
     return;
   }
