@@ -199,7 +199,7 @@ export class ClientConfigStore {
       return;
     }
     this._started = true;
-    if (typeof document !== 'undefined') {
+    if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
       document.addEventListener('visibilitychange', this._onVisibilityChange);
     }
     void this.refresh();
