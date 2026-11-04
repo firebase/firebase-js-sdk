@@ -196,7 +196,8 @@ export function viewApplyOperation(
   view: View,
   operation: Operation,
   writesCache: WriteTreeRef,
-  completeServerCache: Node | null
+  completeServerCache: Node | null,
+  filter = false
 ): Event[] {
   if (
     operation.type === OperationType.MERGE &&
@@ -218,7 +219,8 @@ export function viewApplyOperation(
     oldViewCache,
     operation,
     writesCache,
-    completeServerCache
+    completeServerCache,
+    filter
   );
   viewProcessorAssertIndexed(view.processor_, result.viewCache);
 
