@@ -276,39 +276,92 @@ describe('getSql()', () => {
       }
     });
 
-    it('rejects invalid port values with FirebaseSqlError (invalid-argument, sql-client)', () => {
-      const invalidPorts: unknown[] = [
-        NaN,
-        -1,
-        65536,
-        70000,
-        80.5,
-        Infinity,
-        -Infinity,
-        '8080',
-        null,
-        true
-      ];
-
-      for (const badPort of invalidPorts) {
-        let caughtError: unknown;
-        try {
+    describe('port validation', () => {
+      it('allows undefined port', () => {
+        expect(() =>
           FirebaseSql.getSql(app, {
             serviceId: 'my-service',
             location: 'us-central1',
-            port: badPort as unknown as number
-          });
-        } catch (e) {
-          caughtError = e;
+            port: undefined
+          })
+        ).not.toThrow();
+      });
+
+      it('allows valid port numbers within [1, 65535]', () => {
+        expect(() =>
+          FirebaseSql.getSql(app, {
+            serviceId: 'my-service',
+            location: 'us-central1',
+            port: 1
+          })
+        ).not.toThrow();
+        expect(() =>
+          FirebaseSql.getSql(app, {
+            serviceId: 'my-service',
+            location: 'us-central1',
+            port: 80
+          })
+        ).not.toThrow();
+        expect(() =>
+          FirebaseSql.getSql(app, {
+            serviceId: 'my-service',
+            location: 'us-central1',
+            port: 443
+          })
+        ).not.toThrow();
+        expect(() =>
+          FirebaseSql.getSql(app, {
+            serviceId: 'my-service',
+            location: 'us-central1',
+            port: 8080
+          })
+        ).not.toThrow();
+        expect(() =>
+          FirebaseSql.getSql(app, {
+            serviceId: 'my-service',
+            location: 'us-central1',
+            port: 65535
+          })
+        ).not.toThrow();
+      });
+
+      it('throws FirebaseSqlError(INVALID_ARGUMENT) on invalid ports', () => {
+        const invalidPorts = [
+          NaN,
+          -1,
+          0,
+          65536,
+          100000,
+          80.5,
+          Infinity,
+          -Infinity,
+          '8080',
+          null,
+          {},
+          true
+        ];
+
+        for (const badPort of invalidPorts) {
+          let caughtError: unknown;
+          try {
+            FirebaseSql.getSql(app, {
+              serviceId: 'my-service',
+              location: 'us-central1',
+              port: badPort as unknown as number
+            });
+          } catch (e) {
+            caughtError = e;
+          }
+
+          expect(caughtError).toBeInstanceOf(FirebaseSqlError);
+          expect((caughtError as FirebaseSqlError).code).toBe(
+            Code.INVALID_ARGUMENT
+          );
+          expect((caughtError as FirebaseSqlError).category).toBe(
+            FirebaseSqlErrorCategory.SQL_CLIENT
+          );
         }
-        expect(caughtError).toBeInstanceOf(FirebaseSqlError);
-        expect((caughtError as FirebaseSqlError).code).toBe(
-          Code.INVALID_ARGUMENT
-        );
-        expect((caughtError as FirebaseSqlError).category).toBe(
-          FirebaseSqlErrorCategory.SQL_CLIENT
-        );
-      }
+      });
     });
   });
 

@@ -67,7 +67,7 @@ export function freezeSqlServiceSettings(
 }
 
 /**
- * Validates that the provided port is a valid TCP port number (integer between 0 and 65535).
+ * Validates that the provided port is a valid TCP port number.
  *
  * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if port is invalid.
  * @internal
@@ -79,12 +79,12 @@ export function validatePort(port: unknown): void {
   if (
     typeof port !== 'number' ||
     !Number.isInteger(port) ||
-    port < 0 ||
+    port < 1 ||
     port > 65535
   ) {
     throw new FirebaseSqlError(
       Code.INVALID_ARGUMENT,
-      `Port must be a valid integer between 0 and 65535 if provided. Received: ${String(port)}.`,
+      `Port must be a valid integer between 1 and 65535 if provided. Received: ${String(port)}.`,
       FirebaseSqlErrorCategory.SQL_CLIENT
     );
   }
