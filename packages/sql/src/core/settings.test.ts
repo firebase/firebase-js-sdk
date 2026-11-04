@@ -17,7 +17,13 @@
 
 import { expect } from 'vitest';
 
-import { copySqlServiceSettings, SqlServiceSettings } from './settings';
+import { Code, FirebaseSqlError, FirebaseSqlErrorCategory } from './error';
+import {
+  copySqlServiceSettings,
+  SqlServiceSettings,
+  validatePort,
+  validateSqlServiceSettings
+} from './settings';
 
 describe('SqlServiceSettings', () => {
   const baseSettings: SqlServiceSettings = {
@@ -61,6 +67,74 @@ describe('SqlServiceSettings', () => {
       expect(withNullProto.headers).not.toBe(nullProtoHeaders);
       nullProtoHeaders['X-Custom'] = '2';
       expect(withNullProto.headers!['X-Custom']).toBe('1');
+    });
+  });
+
+  describe('validatePort', () => {
+    it('allows undefined port', () => {
+      expect(() => validatePort(undefined)).not.toThrow();
+    });
+
+    it('allows valid port numbers within [0, 65535]', () => {
+      expect(() => validatePort(0)).not.toThrow();
+      expect(() => validatePort(80)).not.toThrow();
+      expect(() => validatePort(443)).not.toThrow();
+      expect(() => validatePort(8080)).not.toThrow();
+      expect(() => validatePort(65535)).not.toThrow();
+    });
+
+    it('throws FirebaseSqlError(INVALID_ARGUMENT) on invalid ports', () => {
+      const invalidPorts = [
+        NaN,
+        -1,
+        65536,
+        100000,
+        80.5,
+        Infinity,
+        -Infinity,
+        '8080',
+        null,
+        {},
+        true
+      ];
+
+      for (const badPort of invalidPorts) {
+        let caughtError: unknown;
+        try {
+          validatePort(badPort);
+        } catch (e) {
+          caughtError = e;
+        }
+
+        expect(caughtError).toBeInstanceOf(FirebaseSqlError);
+        expect((caughtError as FirebaseSqlError).code).toBe(
+          Code.INVALID_ARGUMENT
+        );
+        expect((caughtError as FirebaseSqlError).category).toBe(
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        );
+      }
+    });
+  });
+
+  describe('validateSqlServiceSettings', () => {
+    it('throws when port is invalid', () => {
+      expect(() =>
+        validateSqlServiceSettings({
+          serviceId: 'my-service',
+          location: 'us-central1',
+          port: NaN
+        })
+      ).toThrow(FirebaseSqlError);
+    });
+
+    it('allows valid port', () => {
+      const validated = validateSqlServiceSettings({
+        serviceId: 'my-service',
+        location: 'us-central1',
+        port: 8080
+      });
+      expect(validated.port).toBe(8080);
     });
   });
 });

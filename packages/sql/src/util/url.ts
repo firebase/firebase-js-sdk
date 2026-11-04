@@ -15,11 +15,6 @@
  * limitations under the License.
  */
 
-import {
-  Code,
-  FirebaseSqlError,
-  FirebaseSqlErrorCategory
-} from '../core/error';
 import { SqlServiceSettings } from '../core/settings';
 
 /** @internal */
@@ -27,6 +22,7 @@ export const PROD_HOST = 'firebasedataconnect.googleapis.com';
 
 /**
  * Builds the resolved PostgREST endpoint URL for a given SQL service configuration.
+ * Assumes settings have been validated!
  *
  * @throws TypeError if the hostname + protocol combination is invalid for the URL constructor.
  * @internal
@@ -39,14 +35,8 @@ export function resolvePostgrestUrl(
   const host = settings.host ?? PROD_HOST;
   const url = new URL(`${protocol}://${host}`);
 
-  if (typeof settings.port === 'number') {
+  if (settings.port !== undefined) {
     url.port = String(settings.port);
-  } else if (typeof settings.port !== 'undefined') {
-    throw new FirebaseSqlError(
-      Code.INVALID_ARGUMENT,
-      'Port must be a number if provided.',
-      FirebaseSqlErrorCategory.SQL_CLIENT
-    );
   }
 
   const encodedProjectId = encodeURIComponent(projectId);

@@ -67,10 +67,34 @@ export function freezeSqlServiceSettings(
 }
 
 /**
+ * Validates that the provided port is a valid TCP port number (integer between 0 and 65535).
+ *
+ * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if port is invalid.
+ * @internal
+ */
+export function validatePort(port: unknown): void {
+  if (port === undefined) {
+    return;
+  }
+  if (
+    typeof port !== 'number' ||
+    !Number.isInteger(port) ||
+    port < 0 ||
+    port > 65535
+  ) {
+    throw new FirebaseSqlError(
+      Code.INVALID_ARGUMENT,
+      `Port must be a valid integer between 0 and 65535 if provided. Received: ${String(port)}.`,
+      FirebaseSqlErrorCategory.SQL_CLIENT
+    );
+  }
+}
+
+/**
  * Validates required `SqlServiceSettings` fields.
  *
  * @returns a deep, frozen copy of the settings.
- * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if required fields are missing.
+ * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if required fields are missing or invalid.
  * @internal
  */
 export function validateSqlServiceSettings(
@@ -97,6 +121,7 @@ export function validateSqlServiceSettings(
       FirebaseSqlErrorCategory.SQL_CLIENT
     );
   }
+  validatePort(settings.port);
   validateHeaders(settings.headers);
   return freezeSqlServiceSettings(settings);
 }
