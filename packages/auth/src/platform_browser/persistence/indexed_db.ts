@@ -444,12 +444,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
         return false;
       }
       await this._withRetries(async (db: IDBDatabase) => {
-        await _putObject(
-          db,
-          STORAGE_AVAILABLE_KEY,
-          '1',
-          _DB_PROBE_TIMEOUT_MS
-        );
+        await _putObject(db, STORAGE_AVAILABLE_KEY, '1', _DB_PROBE_TIMEOUT_MS);
         await _deleteObject(db, STORAGE_AVAILABLE_KEY, _DB_PROBE_TIMEOUT_MS);
       });
       return true;
