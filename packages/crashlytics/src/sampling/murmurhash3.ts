@@ -59,7 +59,7 @@ export function utf8Encode(input: string): Uint8Array {
       );
     }
   }
-  return Uint8Array.from(bytes);
+  return new Uint8Array(bytes);
 }
 
 function rotl32(value: number, bits: number): number {
