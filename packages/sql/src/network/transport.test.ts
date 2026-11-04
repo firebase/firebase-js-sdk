@@ -47,7 +47,6 @@ import { TokenOptions } from '../core/tokenProviders/AbstractTokenProvider';
 import { FirebaseAuthProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
 import { SDK_VERSION, setSDKVersion } from '../core/version';
 
-import { Fetch, getFetch, initializeFetch } from './fetch';
 import { FirebaseHeaders, getGoogApiClientValue } from './headers';
 import {
   FirebaseSqlTransport,
@@ -94,7 +93,6 @@ function getHeadersFromCall(
 }
 
 describe('FirebaseSqlTransport', () => {
-  const originalFetch = getFetch();
   const originalVersion = SDK_VERSION;
   let mockFetch: ReturnType<typeof vi.fn>;
 
@@ -103,11 +101,11 @@ describe('FirebaseSqlTransport', () => {
     mockFetch = vi.fn(() =>
       Promise.resolve(new Response(JSON.stringify([]), { status: 200 }))
     );
-    initializeFetch(mockFetch as Fetch);
+    vi.stubGlobal('fetch', mockFetch);
   });
 
   afterEach(async () => {
-    initializeFetch(originalFetch);
+    vi.unstubAllGlobals();
     setSDKVersion(originalVersion);
     vi.restoreAllMocks();
     await Promise.all(getApps().map(app => deleteApp(app)));

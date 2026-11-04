@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'vitest';
+import { expect, vi } from 'vitest';
 
 import {
   FirebaseSqlErrorCategory,
@@ -23,13 +23,11 @@ import {
   FirebaseSqlError
 } from '../core/error';
 
-import { getFetch, initializeFetch } from './fetch';
+import { getFetch } from './fetch';
 
 describe('Firebase SQL Fetch Manager', () => {
-  const originalFetch = getFetch();
-
   afterEach(() => {
-    initializeFetch(originalFetch);
+    vi.unstubAllGlobals();
   });
 
   it('Provides a default fetch implementation in the current environment', () => {
@@ -38,15 +36,15 @@ describe('Firebase SQL Fetch Manager', () => {
     expect(typeof activeFetch).toBe('function');
   });
 
-  it('Allows overriding fetch via initializeFetch', () => {
+  it('Reads globalThis.fetch at call time, so stubbing the global overrides it', () => {
     const customFetch = (() =>
       Promise.resolve(new Response('custom'))) as unknown as typeof fetch;
-    initializeFetch(customFetch);
+    vi.stubGlobal('fetch', customFetch);
     expect(getFetch()).toBe(customFetch);
   });
 
   it('Throws FirebaseSqlError with NOT_SUPPORTED and SQL_CLIENT if no fetch implementation is available', () => {
-    initializeFetch(null);
+    vi.stubGlobal('fetch', undefined);
     let caughtError: unknown;
     try {
       getFetch();

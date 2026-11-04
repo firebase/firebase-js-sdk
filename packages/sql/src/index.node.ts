@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import { initializeFetch } from './network';
 import { registerSql } from './register';
-
-initializeFetch(fetch);
 
 export * from './api';
 
