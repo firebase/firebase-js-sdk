@@ -452,8 +452,9 @@ describe('Top level API', () => {
   });
 
   describe('logViewBoundary()', () => {
-    it("should emit a log record with the severity number of SeverityNumber.INFO, the body of 'Navigation event', and the attribute of 'app.screen.id' as the path of navigation when breadcrumbs() is enabled", () => {
+    it("should emit a log record with the severity number of SeverityNumber.INFO, the body of 'Navigation event', and the attribute of 'app.screen.id' from attributesStore when breadcrumbs() is enabled", () => {
       const urlTemplate = '/users/:id';
+      fakeAttributesStore.setRoutePathProvider(() => urlTemplate);
       const crashlyticsWithTracing: CrashlyticsInternal = {
         ...fakeCrashlytics,
         options: { features: [breadcrumbs()] }
@@ -469,6 +470,7 @@ describe('Top level API', () => {
 
     it('should emit a log record with additional attributes if available when breadcrumbs() is enabled', () => {
       const urlTemplate = '/users/:id';
+      fakeAttributesStore.setRoutePathProvider(() => urlTemplate);
       const additionalAttributes = { 'custom.attr': 'value' };
       const crashlyticsWithTracing: CrashlyticsInternal = {
         ...fakeCrashlytics,
@@ -488,11 +490,11 @@ describe('Top level API', () => {
 
     it('should not emit a log record when breadcrumbs() is not in features', () => {
       const urlTemplate = '/users/:id';
+      fakeAttributesStore.setRoutePathProvider(() => urlTemplate);
       const crashlyticsWithoutTracing: CrashlyticsInternal = {
         ...fakeCrashlytics,
         options: { features: [] }
       };
-      logViewBoundary(fakeCrashlytics, urlTemplate);
       logViewBoundary(crashlyticsWithoutTracing, urlTemplate);
 
       expect(emittedLogs.length).toBe(0);

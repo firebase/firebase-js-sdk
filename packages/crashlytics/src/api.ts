@@ -24,7 +24,6 @@ import { Attributes } from '@opentelemetry/api';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { CrashlyticsService } from './service';
 import { deepEqual } from '@firebase/util';
-import { LOG_ATTR_KEY } from './attributes-store';
 import { flush, getBreadcrumbsFeature } from './helpers';
 
 declare module '@firebase/component' {
@@ -195,16 +194,16 @@ export function logViewBoundary(
   urlTemplate: string,
   attributes?: Attributes
 ): void {
+  if (!crashlytics) {
+    return;
+  }
   const { loggerProvider, attributesStore, options } =
     crashlytics as CrashlyticsInternal;
   if (!getBreadcrumbsFeature(options)) {
     return;
   }
   const logger = loggerProvider.getLogger('view-boundary-logger');
-  const customAttributes = attributesStore.getLogAttributes({
-    [LOG_ATTR_KEY.APP_SCREEN_ID]: urlTemplate,
-    ...attributes
-  });
+  const customAttributes = attributesStore.getLogAttributes(attributes);
 
   logger.emit({
     severityNumber: SeverityNumber.INFO,
