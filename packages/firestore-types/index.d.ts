@@ -66,7 +66,7 @@ export class FirebaseFirestore {
 
   enablePersistence(settings?: PersistenceSettings): Promise<void>;
 
-  collection(collectionPath: string): CollectionReference<DocumentData>;
+  collection<T extends DocumentData = DocumentData>(collectionPath: string): CollectionReference<T>;
 
   doc(documentPath: string): DocumentReference<DocumentData>;
 
@@ -247,7 +247,7 @@ export class DocumentReference<
   readonly parent: CollectionReference<T>;
   readonly path: string;
 
-  collection(collectionPath: string): CollectionReference<DocumentData>;
+  collection<U extends DocumentData = DocumentData>(collectionPath: string): CollectionReference<U>;
 
   isEqual(other: DocumentReference<T>): boolean;
 
