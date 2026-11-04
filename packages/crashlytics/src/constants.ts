@@ -29,6 +29,76 @@ export const DEFAULT_TELEMETRY_ENDPOINT =
 export const DEFAULT_TELEMETRY_REGION = 'global';
 
 /**
+ * The default endpoint for the Firebase Telemetry API, which serves the client telemetry
+ * configuration (`GetClientConfig`) used for client-side session sampling.
+ */
+export const DEFAULT_CLIENT_CONFIG_ENDPOINT =
+  'https://firebasetelemetry.googleapis.com';
+
+/** API version of the `GetClientConfig` RPC on the Firebase Telemetry API. */
+export const CLIENT_CONFIG_API_VERSION = 'v1alpha';
+
+/**
+ * Refresh period for long-running pages when a `GetClientConfig` response does not say how long it
+ * may be cached (e.g. `Cache-Control: no-store`, a missing header, or a failed fetch). Otherwise
+ * the period is the response's `max-age` + `stale-while-revalidate`, which the server controls.
+ */
+export const CLIENT_CONFIG_FALLBACK_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
+
+/** Lower bound on the refresh period derived from a `GetClientConfig` response's `Cache-Control`. */
+export const CLIENT_CONFIG_MIN_REFRESH_INTERVAL_MS = 60 * 1000;
+
+/**
+ * Upper bound on the refresh period derived from a `GetClientConfig` response's `Cache-Control`.
+ * Also keeps the timer delay far below `setTimeout`'s 2^31 - 1 ms limit.
+ */
+export const CLIENT_CONFIG_MAX_REFRESH_INTERVAL_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * A config refresh started less than this long ago is reused, instead of fetching again, when a
+ * session is about to make its sampling decision (e.g. the startup fetch, for a decision made right
+ * after page load).
+ */
+export const CLIENT_CONFIG_REUSE_WINDOW_MS = 60 * 1000;
+
+/** Timeout for a single `GetClientConfig` fetch (matches the RPC deadline). */
+export const CLIENT_CONFIG_FETCH_TIMEOUT_MS = 5000;
+
+/**
+ * Maximum time a session's sampling decision (made at its first telemetry export) waits for a
+ * `GetClientConfig` refresh before using the configuration already in memory. No wait happens when
+ * the page is hidden or the telemetry debug override is active.
+ */
+export const CLIENT_CONFIG_INITIAL_WAIT_MS = 2000;
+
+/** localStorage key prefix for the cached client telemetry configuration (per app and region). */
+export const LOCAL_STORAGE_CLIENT_CONFIG_KEY_PREFIX =
+  'firebasecrashlytics.clientconfig';
+
+/**
+ * sessionStorage key prefix for the persisted session sampling decision. The session ID is shared by every app on
+ * the page, but each app samples it with its own configuration.
+ */
+export const SESSION_STORAGE_SAMPLING_DECISION_KEY_PREFIX =
+  'firebasecrashlytics.sampling';
+
+/** sessionStorage key marking that the telemetry debug override is active for this session. */
+export const SESSION_STORAGE_DEBUG_KEY = 'firebasecrashlytics.debug';
+
+/** Global flag developers can set to force 100% on-device telemetry collection. */
+export const TELEMETRY_DEBUG_GLOBAL_FLAG = 'FIREBASE_TELEMETRY_DEBUG';
+
+/** URL query parameter that enables the telemetry debug override for the browser session. */
+export const TELEMETRY_DEBUG_QUERY_PARAM = 'firebase_telemetry_debug';
+
+/**
+ * Attribute stamped on every exported log record and span with the session sampling rate that
+ * was in effect when the session's sampling decision was made. The backend uses it as the
+ * extrapolation weight (`1 / rate`) and to reconcile stale client rates with the live config.
+ */
+export const ATTR_KEY_SESSION_SAMPLING_RATE = 'session.sampling.rate';
+
+/**
  * Number of hash buckets used by the deterministic session sampling decision. The server
  * re-evaluates the same decision when the configured rate is lowered, and released SDKs keep using
  * this value, so it must never change.
