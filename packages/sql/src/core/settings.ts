@@ -33,7 +33,7 @@ export interface SqlServiceSettings {
   location: string;
   /** Optional custom host for emulator or proxy routing. */
   host?: string | undefined;
-  /** Optional custom port for emulator or proxy routing. */
+  /** Optional custom port for emulator or proxy routing. Must be a number between `1` and `65535`. */
   port?: number | undefined;
   /** Whether SSL is enabled (defaults to true; set to false for local HTTP). */
   sslEnabled?: boolean | undefined;

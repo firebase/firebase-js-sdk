@@ -424,6 +424,7 @@ describe('getSql()', () => {
       });
 
       expect(client1).toBe(client2);
+      expect(client1.settings.headers).toEqual(client2.settings.headers);
     });
   });
 });

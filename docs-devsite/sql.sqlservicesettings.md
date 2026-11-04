@@ -25,7 +25,7 @@ export interface SqlServiceSettings
 |  [headers](./sql.sqlservicesettings.md#sqlservicesettingsheaders) | Record&lt;string, string&gt; \| undefined | Custom HTTP headers to include with outgoing requests. |
 |  [host](./sql.sqlservicesettings.md#sqlservicesettingshost) | string \| undefined | Optional custom host for emulator or proxy routing. |
 |  [location](./sql.sqlservicesettings.md#sqlservicesettingslocation) | string | Firebase SQL service location identifier. |
-|  [port](./sql.sqlservicesettings.md#sqlservicesettingsport) | number \| undefined | Optional custom port for emulator or proxy routing. |
+|  [port](./sql.sqlservicesettings.md#sqlservicesettingsport) | number \| undefined | Optional custom port for emulator or proxy routing. Must be a number between <code>1</code> and <code>65535</code>. |
 |  [schemaName](./sql.sqlservicesettings.md#sqlservicesettingsschemaname) | string \| undefined | Optional PostgreSQL schema name. |
 |  [serviceId](./sql.sqlservicesettings.md#sqlservicesettingsserviceid) | string | Firebase SQL service identifier. |
 |  [sslEnabled](./sql.sqlservicesettings.md#sqlservicesettingssslenabled) | boolean \| undefined | Whether SSL is enabled (defaults to true; set to false for local HTTP). |
@@ -62,7 +62,7 @@ location: string;
 
 ## SqlServiceSettings.port
 
-Optional custom port for emulator or proxy routing.
+Optional custom port for emulator or proxy routing. Must be a number between `1` and `65535`<!-- -->.
 
 <b>Signature:</b>
 

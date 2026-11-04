@@ -305,7 +305,9 @@ export function getSql(
   const provider = _getProvider(app, FIREBASE_SQL_COMPONENT_NAME);
 
   if (provider.isInitialized(instanceIdentifier)) {
-    logDebug('Re-using cached instance');
+    logDebug(
+      'Re-using cached instance (NOTE: custom headers set on the original FSQL client are RE-USED when that client is re-used from the instance cache. Creating multiple FSQL clients with the same settings and app, but different headers, is NOT supported. Instead, use .setHeaders() while building an operation chain to set custom headers for that specific operation.)'
+    );
     return provider.getImmediate({ identifier: instanceIdentifier });
   }
 
