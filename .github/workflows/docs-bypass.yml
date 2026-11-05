@@ -1,0 +1,65 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Documentation Codeowner Bypass
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  approve-typo:
+    # Only run this job if the specific label was added
+    if: github.event.label.name == 'docs-minor'
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Ensure only authorized people can apply this bypass
+      - name: Verify Sender Permissions
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sender = context.payload.sender.login;
+            const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: sender
+            });
+            
+            // Allow write (engineer) or admin to trigger this bypass
+            const allowed = ['write', 'admin'].includes(permission.permission);
+            if (!allowed) {
+              core.setFailed(`User ${sender} does not have permission to bypass docs.`);
+            }
+
+      # Step 2: The Bot submits the official Code Owner approval
+      - name: Bot Approval
+        uses: juliangruber/approve-pull-request-action@v2
+        with:
+          # We use the Bot's token so the approval counts as a Tech Writer team member
+          github-token: ${{ secrets.DOCS_BOT_TOKEN }}
+          number: ${{ github.event.pull_request.number }}
+          
+      # Step 3: Add a comment for accountability and audit trails
+      - name: Leave Audit Trail Comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `🤖 **Bypass Activated:** This PR was automatically approved by the docs bot because the \`docs-minor\` label was applied by @${context.payload.sender.login}.`
+            });
