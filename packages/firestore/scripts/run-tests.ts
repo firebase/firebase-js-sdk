@@ -18,9 +18,9 @@
 import { resolve } from 'path';
 
 import { spawn } from 'child-process-promise';
-import * as yargs from 'yargs';
+import yargs from 'yargs';
 
-const argv = yargs
+const argv = yargs(process.argv.slice(2))
   .options({
     main: {
       type: 'string',

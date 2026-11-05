@@ -19,9 +19,9 @@ import { exec } from 'child-process-promise';
 import { projectRoot } from '../utils';
 import { join } from 'path';
 import { existsSync, readdirSync, readFileSync } from 'fs';
-import * as yargs from 'yargs';
+import yargs from 'yargs';
 
-const argv = yargs
+const argv = yargs(process.argv.slice(2))
   .options({
     dryRun: {
       type: 'boolean',

@@ -17,7 +17,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as yargs from 'yargs';
+import yargs from 'yargs';
 import {
   ExportData,
   extractDependenciesAndSize,
@@ -29,7 +29,7 @@ import {
 // dependencies for each individual exported type. This can then be used to
 // verify dependencies in tree-shakeable SDKs.
 
-const argv = yargs
+const argv = yargs(process.argv.slice(2))
   .options({
     types: {
       type: 'string',

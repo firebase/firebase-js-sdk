@@ -19,11 +19,11 @@ import { TestReason, getTestTasks, filterTasks, logTasks } from './tasks';
 import { spawn } from 'child-process-promise';
 import chalk from 'chalk';
 import { resolve } from 'path';
-import * as yargs from 'yargs';
+import yargs from 'yargs';
 import { testConfig, TestConfig } from './testConfig';
 const root = resolve(__dirname, '../..');
 
-const argv = yargs
+const argv = yargs(process.argv.slice(2))
   .options({
     buildAll: {
       type: 'boolean',
