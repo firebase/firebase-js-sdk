@@ -32,7 +32,7 @@ export declare interface IndexField
 |  --- | --- | --- |
 |  [arrayConfig](./firestore.indexfield.md#indexfieldarrayconfig) | 'CONTAINS' | <b><i>(Public Preview)</i></b> What type of array index to create. Set to <code>CONTAINS</code> for <code>array-contains</code> and <code>array-contains-any</code> indexes.<!-- -->Only one of <code>arrayConfig</code> or <code>order</code> should be set; |
 |  [fieldPath](./firestore.indexfield.md#indexfieldfieldpath) | string | <b><i>(Public Preview)</i></b> The field path to index. |
-|  [order](./firestore.indexfield.md#indexfieldorder) | 'ASCENDING' \| 'DESCENDING' | <b><i>(Public Preview)</i></b> What type of array index to create. Set to <code>ASCENDING</code> or 'DESCENDING<code> for </code>==<code>, </code>!=<code>, </code>&lt;<!-- -->=<code>, </code>&lt;<!-- -->=<code>, </code>in<code> and </code>not-in<!-- -->\` filters.<!-- -->Only one of <code>arrayConfig</code> or <code>order</code> should be set. |
+|  [order](./firestore.indexfield.md#indexfieldorder) | 'ASCENDING' \| 'DESCENDING' | <b><i>(Public Preview)</i></b> What type of array index to create. Set to <code>ASCENDING</code> or <code>DESCENDING</code> for <code>==</code>, <code>!=</code>, <code>&lt;=</code>, <code>&lt;=</code>, <code>in</code> and <code>not-in</code> filters.<!-- -->Only one of <code>arrayConfig</code> or <code>order</code> should be set. |
 
 ## IndexField.arrayConfig
 
@@ -67,7 +67,7 @@ readonly fieldPath: string;
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-What type of array index to create. Set to `ASCENDING` or 'DESCENDING` for `<!-- -->==`, `<!-- -->!=`, `<!-- -->&lt;<!-- -->=`, `<!-- -->&lt;<!-- -->=`, `<!-- -->in` and `<!-- -->not-in<!-- -->\` filters.
+What type of array index to create. Set to `ASCENDING` or `DESCENDING` for `==`<!-- -->, `!=`<!-- -->, `<=`<!-- -->, `<=`<!-- -->, `in` and `not-in` filters.
 
 Only one of `arrayConfig` or `order` should be set.
 

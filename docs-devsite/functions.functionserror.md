@@ -31,7 +31,7 @@ export declare class FunctionsError extends FirebaseError
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [details](./functions.functionserror.md#functionserrordetails) |  | unknown | Additional details to be converted to JSON and included in the error response. |
+|  [details](./functions.functionserror.md#functionserrordetails) |  | unknown \| undefined | Additional details to be converted to JSON and included in the error response. |
 
 ## FunctionsError.(constructor)
 
@@ -42,7 +42,7 @@ Constructs a new instance of the `FunctionsError` class.
 ```typescript
 constructor(
     code: FunctionsErrorCode, message?: string, 
-    details?: unknown, 
+    details?: unknown | undefined, 
     url?: string);
 ```
 
@@ -52,7 +52,7 @@ constructor(
 |  --- | --- | --- |
 |  code | [FunctionsErrorCode](./functions.md#functionserrorcodecore) |  |
 |  message | string |  |
-|  details | unknown |  |
+|  details | unknown \| undefined |  |
 |  url | string |  |
 
 ## FunctionsError.details
@@ -62,5 +62,5 @@ Additional details to be converted to JSON and included in the error response.
 <b>Signature:</b>
 
 ```typescript
-readonly details?: unknown;
+readonly details?: unknown | undefined;
 ```
