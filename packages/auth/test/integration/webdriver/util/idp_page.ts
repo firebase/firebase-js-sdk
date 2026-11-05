@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import type { Page } from 'playwright';
 import type { AuthDriver } from './auth_driver';
 
 const ADD_ACCOUNT_BUTTON = '.js-new-account';
@@ -29,14 +28,10 @@ const ACCOUNT_LIST_ITEMS = '#accounts-list li';
 export class IdPPage {
   static PAGE_TITLE = 'Auth Emulator IDP Login Widget';
 
-  constructor(private readonly driver: AuthDriver | Page) {}
-
-  private get page(): Page {
-    return 'page' in this.driver ? this.driver.page : this.driver;
-  }
+  constructor(private readonly driver: AuthDriver) {}
 
   async pageLoad(): Promise<void> {
-    await this.page.waitForFunction(
+    await this.driver.page.waitForFunction(
       () =>
         document.title.includes('Auth Emulator') &&
         typeof (window as unknown as Record<string, unknown>)['toggleForm'] !==
@@ -45,16 +40,16 @@ export class IdPPage {
   }
 
   async clickAddAccount(): Promise<void> {
-    await this.page.locator(ADD_ACCOUNT_BUTTON).click();
+    await this.driver.page.locator(ADD_ACCOUNT_BUTTON).click();
   }
 
   async clickSignIn(): Promise<void> {
-    await this.page.locator(SIGN_IN_BUTTON).click();
+    await this.driver.page.locator(SIGN_IN_BUTTON).click();
   }
 
   async selectExistingAccountByEmail(email: string): Promise<void> {
-    await this.page.locator(ACCOUNT_LIST_ITEMS).first().waitFor();
-    const accounts = await this.page.locator(ACCOUNT_LIST_ITEMS).all();
+    await this.driver.page.locator(ACCOUNT_LIST_ITEMS).first().waitFor();
+    const accounts = await this.driver.page.locator(ACCOUNT_LIST_ITEMS).all();
     for (const account of accounts) {
       if ((await account.innerText()).includes(email)) {
         await account.click();
@@ -80,7 +75,7 @@ export class IdPPage {
   }
 
   private async fillInput(selector: string, text: string): Promise<void> {
-    const el = this.page.locator(selector);
+    const el = this.driver.page.locator(selector);
     await el.click();
     await el.fill(text);
   }

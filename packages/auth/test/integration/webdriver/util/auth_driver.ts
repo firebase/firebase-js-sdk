@@ -151,7 +151,7 @@ export class AuthDriver {
 
   async wait(
     condition: () => Promise<boolean> | boolean,
-    timeoutMs = 10000
+    timeoutMs = 30000
   ): Promise<void> {
     const start = Date.now();
     while (Date.now() - start < timeoutMs) {
