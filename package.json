@@ -73,7 +73,7 @@
     "@types/chai-as-promised": "7.1.8",
     "@types/child-process-promise": "2.2.6",
     "@types/clone": "2.1.4",
-    "@types/eslint": "7.29.0",
+    "@types/eslint": "9.6.1",
     "@types/inquirer": "8.2.10",
     "@types/js-yaml": "4.0.9",
     "@types/listr": "0.14.9",
