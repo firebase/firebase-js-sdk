@@ -4,14 +4,13 @@
     "outDir": "dist",
     "jsx": "react",
     "experimentalDecorators": true,
-    "baseUrl": ".",
     "paths": {
       "@opentelemetry/browser-instrumentation/experimental/*": [
-        "node_modules/@opentelemetry/browser-instrumentation/dist/*",
+        "./node_modules/@opentelemetry/browser-instrumentation/dist/*",
         "../../node_modules/@opentelemetry/browser-instrumentation/dist/*"
       ],
       "@opentelemetry/instrumentation": [
-        "node_modules/@opentelemetry/instrumentation",
+        "./node_modules/@opentelemetry/instrumentation",
         "../../node_modules/@opentelemetry/instrumentation"
       ]
     }
