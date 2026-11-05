@@ -101,7 +101,7 @@
     "eslint-plugin-unused-imports": "3.2.0",
     "express": "5.2.1",
     "firebase-tools": "15.26.0",
-    "glob": "7.2.3",
+    "glob": "14.0.2",
     "http-server": "14.1.1",
     "indexeddbshim": "10.1.0",
     "inquirer": "8.2.6",
