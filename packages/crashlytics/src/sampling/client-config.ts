@@ -141,9 +141,12 @@ function isValidStoredConfig(value: unknown): value is ClientConfig {
  * - **Background refresh**: {@link ClientConfigStore.start} issues a non-blocking fetch of
  *   `GetClientConfig`; when it returns, the in-memory configuration and the local cache are
  *   updated.
- * - **Refresh before the sampling decision**: a session's sampling decision, made at its first
- *   export, calls {@link ClientConfigStore.refreshIfStale} and waits briefly for it, so it uses the
- *   most recent configuration the server's caches allow.
+ * - **Refresh before the sampling decision**: when a session first exports telemetry, that export
+ *   waits for {@link ClientConfigStore.refreshIfStale}, for at most `CLIENT_CONFIG_INITIAL_WAIT_MS`
+ *   (2 seconds), so the decision uses the latest configuration. Only that first export waits, and
+ *   never while the page is hidden; the app itself is never blocked. The wait is usually near zero:
+ *   a refresh started in the last minute is reused, and the browser's HTTP cache answers while the
+ *   last response is still fresh.
  * - **Periodic refresh**: long-running pages re-fetch once the last response's cache lifetime has
  *   passed (`max-age` + `stale-while-revalidate`), but only while
  *   the page is visible. A page that is hidden when the refresh falls due re-fetches when it
