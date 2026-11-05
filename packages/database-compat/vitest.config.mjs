@@ -33,10 +33,10 @@ for (const project of config.test.projects) {
     project.define = {
       ...(project.define || {}),
       'process.env.RTDB_EMULATOR_PORT': JSON.stringify(
-        process.env.RTDB_EMULATOR_PORT
+        process.env.RTDB_EMULATOR_PORT ?? ''
       ),
       'process.env.RTDB_EMULATOR_NAMESPACE': JSON.stringify(
-        process.env.RTDB_EMULATOR_NAMESPACE
+        process.env.RTDB_EMULATOR_NAMESPACE ?? ''
       )
     };
   }

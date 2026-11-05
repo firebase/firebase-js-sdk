@@ -32,14 +32,10 @@ import { Path } from '../../../database/src/core/util/Path';
 import { Query, Reference } from '../../src/api/Reference';
 export { TEST_PROJECT };
 
-const EMULATOR_PORT =
-  typeof process !== 'undefined' ? process.env?.RTDB_EMULATOR_PORT : undefined;
-const EMULATOR_NAMESPACE =
-  typeof process !== 'undefined'
-    ? process.env?.RTDB_EMULATOR_NAMESPACE
-    : undefined;
+const EMULATOR_PORT = process.env.RTDB_EMULATOR_PORT;
+const EMULATOR_NAMESPACE = process.env.RTDB_EMULATOR_NAMESPACE;
 
-const USE_EMULATOR = !!EMULATOR_PORT && EMULATOR_PORT !== 'undefined';
+const USE_EMULATOR = !!EMULATOR_PORT;
 
 /*
  * When running against the emulator, the hostname will be "localhost" rather
