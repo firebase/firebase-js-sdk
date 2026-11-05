@@ -166,17 +166,19 @@ export class MarkdownEmitter {
         const docParagraph: DocParagraph = docNode as DocParagraph;
         const trimmedParagraph: DocParagraph =
           DocNodeTransforms.trimSpacesInParagraph(docParagraph);
+        const paragraphNodes: ReadonlyArray<DocNode> =
+          this.trimSpacesAfterSoftBreaks(trimmedParagraph.nodes);
         if (context.insideTable) {
           if (docNodeSiblings) {
             writer.write('<p>');
-            this.writeNodes(trimmedParagraph.nodes, context);
+            this.writeNodes(paragraphNodes, context);
             writer.write('</p>');
           } else {
             // Special case:  If we are the only element inside this table cell, then we can omit the <p></p> container.
-            this.writeNodes(trimmedParagraph.nodes, context);
+            this.writeNodes(paragraphNodes, context);
           }
         } else {
-          this.writeNodes(trimmedParagraph.nodes, context);
+          this.writeNodes(paragraphNodes, context);
           writer.ensureNewLine();
           writer.writeLine();
         }
@@ -314,5 +316,33 @@ export class MarkdownEmitter {
     for (const docNode of docNodes) {
       this.writeNode(docNode, context, docNodes.length > 1);
     }
+  }
+
+  /**
+   * Since `@microsoft/tsdoc` 0.17, `trimSpacesInParagraph()` preserves the soft break between
+   * two lines of a comment and also keeps the leading whitespace of the continuation line. The
+   * soft break is already rendered as a separator, so that leading whitespace would otherwise
+   * show up as a double space in the generated Markdown.
+   */
+  private trimSpacesAfterSoftBreaks(
+    docNodes: ReadonlyArray<DocNode>
+  ): ReadonlyArray<DocNode> {
+    return docNodes.map((docNode: DocNode, index: number) => {
+      if (
+        docNode.kind === DocNodeKind.PlainText &&
+        index > 0 &&
+        docNodes[index - 1].kind === DocNodeKind.SoftBreak
+      ) {
+        const docPlainText: DocPlainText = docNode as DocPlainText;
+        const text: string = docPlainText.text.replace(/^\s+/, '');
+        if (text !== docPlainText.text) {
+          return new DocPlainText({
+            configuration: docPlainText.configuration,
+            text
+          });
+        }
+      }
+      return docNode;
+    });
   }
 }

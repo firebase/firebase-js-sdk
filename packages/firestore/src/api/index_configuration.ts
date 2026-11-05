@@ -54,7 +54,7 @@ export interface IndexField {
    */
   readonly arrayConfig?: 'CONTAINS';
   /**
-   * What type of array index to create. Set to `ASCENDING` or 'DESCENDING` for
+   * What type of array index to create. Set to `ASCENDING` or `DESCENDING` for
    * `==`, `!=`, `<=`, `<=`, `in` and `not-in` filters.
    *
    * Only one of `arrayConfig` or `order` should be set.
@@ -146,9 +146,9 @@ export function setIndexConfiguration(
  * before setting an index configuration. If IndexedDb is not enabled, any
  * index configuration is ignored.
  *
- * The method accepts the JSON format exported by the Firebase CLI (`firebase
- * firestore:indexes`). If the JSON format is invalid, this method throws an
- * error.
+ * The method accepts the JSON format exported by the Firebase CLI
+ * (`firebase firestore:indexes`). If the JSON format is invalid, this method
+ * throws an error.
  *
  * @param firestore - The {@link Firestore} instance to configure indexes for.
  * @param json -The JSON format exported by the Firebase CLI.
