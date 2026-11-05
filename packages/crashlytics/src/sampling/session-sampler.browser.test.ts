@@ -24,7 +24,7 @@ import {
 import { ClientConfig, ClientConfigStore } from './client-config';
 import { isSessionSampled, SessionSampler } from './session-sampler';
 
-// Buckets from the backend's SessionSamplingTest: 1184, 6018 and 8828 out of 10000.
+// Session IDs whose hash buckets are 1184, 6018 and 8828 out of 10000.
 const SESSION_LOW = 'test-session-3';
 const SESSION_MID = 'test-session-1';
 const SESSION_HIGH = 'sëssion-ü';
@@ -67,7 +67,7 @@ function createSampler(
   return { sampler, store, attrs };
 }
 
-// Mirrors the hash-based cases of the backend's SessionSamplingTest.
+// The server makes the same decisions for these session IDs.
 describe('isSessionSampled', () => {
   it('uses the shared hash buckets', () => {
     expect(isSessionSampled(SESSION_LOW, 0.1185)).toBe(true);

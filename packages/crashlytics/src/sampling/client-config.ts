@@ -36,9 +36,8 @@ export interface ClientConfig {
   /** Whether telemetry collection is enabled for the app. */
   enabled: boolean;
   /**
-   * Session sampling rate in `[0.0, 1.0]`. `0.0` pauses collection (nothing is exported). This is
-   * the effective rate to apply on the device; the backend already folds in any system-level
-   * surge protection before serving it.
+   * Session sampling rate in `[0.0, 1.0]`. `0.0` pauses collection (nothing is exported). The
+   * device applies it as served.
    */
   samplingRate: number;
 }
@@ -136,7 +135,7 @@ function isValidStoredConfig(value: unknown): value is ClientConfig {
 /**
  * Holds the client telemetry configuration for one Crashlytics instance.
  *
- * Lifecycle (see go/firebase-telemetry-sampling-proposal):
+ * Lifecycle:
  * - **Cold start**: the last known configuration is loaded synchronously from `localStorage`. If
  *   there is none, {@link DEFAULT_CLIENT_CONFIG} is used so application startup is never delayed.
  * - **Background refresh**: {@link ClientConfigStore.start} issues a non-blocking fetch of
@@ -150,10 +149,9 @@ function isValidStoredConfig(value: unknown): value is ClientConfig {
  *   the page is visible. A page that is hidden when the refresh falls due re-fetches when it
  *   becomes visible again.
  *
- * Fetches go through the browser's HTTP cache (the default `fetch` cache mode). Like GFE, it honors
- * the server's `Cache-Control`, and GFE's `Age` header makes both expire a response at the same
- * time, so a fetch never returns a configuration older than one cache lifetime (16 minutes by
- * default) and repeated fetches are cheap.
+ * Fetches go through the browser's HTTP cache (the default `fetch` cache mode), which honors the
+ * server's `Cache-Control` and `Age` headers, so a fetch never returns a configuration older than
+ * one cache lifetime (16 minutes by default) and repeated fetches are cheap.
  *
  * Fetch failures are swallowed: the
  * previous configuration stays in effect and telemetry continues to flow. They are not retried

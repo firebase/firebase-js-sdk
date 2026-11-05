@@ -343,13 +343,12 @@ function getProjectNumberFromAppId(appId: string): string | undefined {
  * project in the path is the service consumer, so a single edge-cached response serves every
  * user of the app.
  *
- * The API defines the project segment as the project number (`project_number`), which is taken
- * from the app ID so that every client of an app requests the same URL, and therefore shares one
- * GFE cache entry. The project ID is only used for app IDs that do not embed a project number; the
- * API accepts it as well.
+ * The project segment is the project number, taken from the app ID so that every client of an app
+ * requests the same URL and therefore shares one cached response. The project ID is only used for
+ * app IDs that do not embed a project number; the API accepts it as well.
  *
  * The colons in the app ID are not percent-encoded: they are valid in a URL path, and the API
- * looks the app up with `%3A` taken literally, which fails.
+ * doesn't decode `%3A`.
  *
  * @internal
  */

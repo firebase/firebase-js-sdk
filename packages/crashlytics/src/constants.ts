@@ -61,7 +61,7 @@ export const CLIENT_CONFIG_MAX_REFRESH_INTERVAL_MS = 24 * 60 * 60 * 1000;
  */
 export const CLIENT_CONFIG_REUSE_WINDOW_MS = 60 * 1000;
 
-/** Timeout for a single `GetClientConfig` fetch (matches the RPC deadline). */
+/** Timeout for a single `GetClientConfig` fetch. */
 export const CLIENT_CONFIG_FETCH_TIMEOUT_MS = 5000;
 
 /**
