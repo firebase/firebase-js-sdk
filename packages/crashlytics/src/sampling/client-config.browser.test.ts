@@ -30,7 +30,7 @@ import {
 } from './client-config';
 
 const URL =
-  'https://firebasetelemetry.googleapis.com/v1alpha/projects/123/locations/global/apps/1%3A123%3Aweb%3Aabc/clientConfig';
+  'https://firebasetelemetry.googleapis.com/v1alpha/projects/123/locations/global/apps/1:123:web:abc/clientConfig';
 const STORAGE_KEY = 'firebasecrashlytics.clientconfig:test';
 
 /** The `Cache-Control` header the server sends by default. */

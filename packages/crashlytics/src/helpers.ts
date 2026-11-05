@@ -348,6 +348,9 @@ function getProjectNumberFromAppId(appId: string): string | undefined {
  * GFE cache entry. The project ID is only used for app IDs that do not embed a project number; the
  * API accepts it as well.
  *
+ * The colons in the app ID are not percent-encoded: they are valid in a URL path, and the API
+ * looks the app up with `%3A` taken literally, which fails.
+ *
  * @internal
  */
 export function getClientConfigUrl(
@@ -364,9 +367,10 @@ export function getClientConfigUrl(
   }
   const region = crashlyticsOptions?.region || DEFAULT_TELEMETRY_REGION;
   const base = getClientConfigEndpointUrl(crashlyticsOptions);
+  const app = encodeURIComponent(appId).replace(/%3A/g, ':');
   return (
     `${base}/${CLIENT_CONFIG_API_VERSION}/projects/${encodeURIComponent(project)}` +
-    `/locations/${encodeURIComponent(region)}/apps/${encodeURIComponent(appId)}/clientConfig`
+    `/locations/${encodeURIComponent(region)}/apps/${app}/clientConfig`
   );
 }
 

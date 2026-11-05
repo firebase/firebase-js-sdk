@@ -465,7 +465,7 @@ describe('helpers', () => {
           appId: '1:123456789012:web:abcdef'
         })
       ).toBe(
-        'https://firebasetelemetry.googleapis.com/v1alpha/projects/123456789012/locations/global/apps/1%3A123456789012%3Aweb%3Aabcdef/clientConfig'
+        'https://firebasetelemetry.googleapis.com/v1alpha/projects/123456789012/locations/global/apps/1:123456789012:web:abcdef/clientConfig'
       );
       expect(
         getClientConfigUrl(
@@ -473,13 +473,19 @@ describe('helpers', () => {
           { region: 'us-east5' }
         )
       ).toBe(
-        'https://firebasetelemetry.us-east5.rep.googleapis.com/v1alpha/projects/1/locations/us-east5/apps/1%3A1%3Aweb%3Aa/clientConfig'
+        'https://firebasetelemetry.us-east5.rep.googleapis.com/v1alpha/projects/1/locations/us-east5/apps/1:1:web:a/clientConfig'
+      );
+    });
+
+    it('should keep the colons of the app id but encode other reserved characters', () => {
+      expect(getClientConfigUrl({ projectId: 'p', appId: 'a/b?c:d' })).toBe(
+        'https://firebasetelemetry.googleapis.com/v1alpha/projects/p/locations/global/apps/a%2Fb%3Fc:d/clientConfig'
       );
     });
 
     it('should not need the project id when the app id embeds the project number', () => {
       expect(getClientConfigUrl({ appId: '1:123456789012:web:abcdef' })).toBe(
-        'https://firebasetelemetry.googleapis.com/v1alpha/projects/123456789012/locations/global/apps/1%3A123456789012%3Aweb%3Aabcdef/clientConfig'
+        'https://firebasetelemetry.googleapis.com/v1alpha/projects/123456789012/locations/global/apps/1:123456789012:web:abcdef/clientConfig'
       );
     });
 
