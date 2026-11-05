@@ -47,7 +47,6 @@ import type {
 import { logDebug } from '../logger';
 import { createBuilderFetch } from '../network/transport';
 import { FIREBASE_SQL_COMPONENT_NAME } from '../util/constants';
-import { deepSortKeysForObj } from '../util/encoder';
 import { resolvePostgrestUrl } from '../util/url';
 
 import type { FilterBuilder } from './FilterBuilder';
@@ -86,7 +85,10 @@ export class FirebaseSql {
     UntypedSchema
   >;
 
-  /** @internal */
+  /**
+   * Should only be called by {@linkcode getSql()}, after validating inputs.
+   * @internal
+   */
   constructor(
     /** The bound FirebaseApp instance. */
     readonly app: FirebaseApp,
@@ -303,7 +305,9 @@ export function getSql(
   const provider = _getProvider(app, FIREBASE_SQL_COMPONENT_NAME);
 
   if (provider.isInitialized(instanceIdentifier)) {
-    logDebug('Re-using cached instance');
+    logDebug(
+      'Re-using cached instance (NOTE: custom headers set on the original FSQL client are RE-USED when that client is re-used from the instance cache. Creating multiple FSQL clients with the same settings and app, but different headers, is NOT supported. Instead, use .setHeaders() while building an operation chain to set custom headers for that specific operation.)'
+    );
     return provider.getImmediate({ identifier: instanceIdentifier });
   }
 
@@ -324,7 +328,8 @@ export function terminate(sql: FirebaseSql): Promise<void> {
 }
 
 /**
- * Computes a deterministic, normalized JSON instance identifier string.
+ * Computes a deterministic JSON instance identifier string.
+ * Assumes settings have been validated!
  * @internal
  */
 export function getInstanceIdentifier(
@@ -332,36 +337,8 @@ export function getInstanceIdentifier(
   projectId: string
 ): string {
   const resolvedUrl = resolvePostgrestUrl(settings, projectId);
-  const headers = normalizeInstanceIdentifierHeaders(settings.headers);
-  return JSON.stringify(
-    deepSortKeysForObj({
-      resolvedUrl,
-      schemaName: settings.schemaName,
-      headers
-    })
-  );
-}
-
-/**
- * Normalizes the given headers by lowercasing the keys and sorting entries deterministically by key.
- * Used for computing a deterministic instance cache key - NOT used for request headers.
- * Duplicate keys with different case names will be de-duplicated based on sorting order. Does not mutate the input object.
- * @returns headers with lowercased keys, sorted by key
- * @internal
- */
-export function normalizeInstanceIdentifierHeaders(
-  headers?: Record<string, string> | undefined
-): Record<string, string> {
-  if (!headers) {
-    return {};
-  }
-  const normalizedHeaders: Record<string, string> = {};
-  // initial sort so that repeated keys in the case of a duplicate key after lowercasing have deterministic values in the normalized list
-  const sortedEntries = Object.entries(headers).sort(([a], [b]) =>
-    a < b ? -1 : a > b ? 1 : 0
-  );
-  for (const [key, value] of sortedEntries) {
-    normalizedHeaders[key.toLowerCase()] = value;
-  }
-  return normalizedHeaders;
+  return JSON.stringify({
+    resolvedUrl,
+    schemaName: settings.schemaName
+  });
 }

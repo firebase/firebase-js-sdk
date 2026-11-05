@@ -33,7 +33,7 @@ export interface SqlServiceSettings {
   location: string;
   /** Optional custom host for emulator or proxy routing. */
   host?: string | undefined;
-  /** Optional custom port for emulator or proxy routing. */
+  /** Optional custom port for emulator or proxy routing. Must be a number between `1` and `65535`. */
   port?: number | undefined;
   /** Whether SSL is enabled (defaults to true; set to false for local HTTP). */
   sslEnabled?: boolean | undefined;
@@ -67,10 +67,33 @@ export function freezeSqlServiceSettings(
 }
 
 /**
+ * Validates that the provided port is a valid TCP port number.
+ *
+ * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if port is invalid.
+ */
+function validatePort(port: unknown): void {
+  if (port === undefined) {
+    return;
+  }
+  if (
+    typeof port !== 'number' ||
+    !Number.isInteger(port) ||
+    port < 1 ||
+    port > 65535
+  ) {
+    throw new FirebaseSqlError(
+      Code.INVALID_ARGUMENT,
+      `Port must be a valid integer between 1 and 65535 if provided. Received: ${String(port)}.`,
+      FirebaseSqlErrorCategory.SQL_CLIENT
+    );
+  }
+}
+
+/**
  * Validates required `SqlServiceSettings` fields.
  *
  * @returns a deep, frozen copy of the settings.
- * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if required fields are missing.
+ * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if required fields are missing or invalid.
  * @internal
  */
 export function validateSqlServiceSettings(
@@ -97,6 +120,7 @@ export function validateSqlServiceSettings(
       FirebaseSqlErrorCategory.SQL_CLIENT
     );
   }
+  validatePort(settings.port);
   validateHeaders(settings.headers);
   return freezeSqlServiceSettings(settings);
 }
