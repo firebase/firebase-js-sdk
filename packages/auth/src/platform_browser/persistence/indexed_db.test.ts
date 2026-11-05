@@ -274,8 +274,9 @@ describe('platform_browser/persistence/indexed_db', () => {
         ]);
 
         // Verify Tab B2 read the user via readonly _get before _isAvailable queued a readwrite lock,
-        // migrated the user to browserLocalPersistence, and preserved the signed-in user!
-        expect(abortSpy).toHaveBeenCalledTimes(2);
+        // migrated the user to browserLocalPersistence, skipped _remove on the unavailable
+        // indexedDBLocalPersistence, and preserved the signed-in user!
+        expect(abortSpy).toHaveBeenCalledTimes(1);
         expect(multiManager.persistence).toBe(fallbackLocal);
         expect((await multiManager.getCurrentUser())?.uid).toBe(
           'tab-a-signed-in-uid'

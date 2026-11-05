@@ -480,9 +480,9 @@ class IndexedDBLocalPersistence implements InternalPersistence {
       if (
         e instanceof Error &&
         e.message === DB_TIMEOUT_ERROR &&
-        key in this.localCache
+        this.localCache[key] != null
       ) {
-        return (this.localCache[key] as T) ?? null;
+        return this.localCache[key] as T;
       }
       throw e;
     }

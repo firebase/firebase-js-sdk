@@ -195,9 +195,7 @@ describe('core/persistence/persistence_user_manager', () => {
       );
       expect(a.stub._set).not.toHaveBeenCalled();
       expect(c.stub._set).not.toHaveBeenCalled();
-      expect(a.stub._remove).toHaveBeenCalledExactlyOnceWith(
-        'firebase:authUser:test-api-key:test-app'
-      );
+      expect(a.stub._remove).not.toHaveBeenCalled();
       expect(c.stub._remove).toHaveBeenCalledExactlyOnceWith(
         'firebase:authUser:test-api-key:test-app'
       );
@@ -277,12 +275,12 @@ describe('core/persistence/persistence_user_manager', () => {
       expect(thirdPersistence.stub._remove).toHaveBeenCalledTimes(1);
     });
 
-    it('skips _remove on persistence whose _get threw even when no user is found anywhere', async () => {
+    it('skips _remove on persistence whose _get threw even when _isAvailable succeeded and no user is found anywhere', async () => {
       const brokenPrimary = makePersistence(PersistenceType.LOCAL, true);
       const fallbackSecondary = makePersistence(PersistenceType.LOCAL, true);
       const thirdPersistence = makePersistence(PersistenceType.LOCAL, true);
 
-      brokenPrimary.stub._isAvailable.mockResolvedValue(false);
+      brokenPrimary.stub._isAvailable.mockResolvedValue(true);
       brokenPrimary.stub._get.mockRejectedValue(new Error('DB_TIMEOUT'));
 
       fallbackSecondary.stub._isAvailable.mockResolvedValue(true);
@@ -291,8 +289,8 @@ describe('core/persistence/persistence_user_manager', () => {
       thirdPersistence.stub._get.mockResolvedValue(null);
 
       const out = await PersistenceUserManager.create(auth, [
-        brokenPrimary.persistence,
         fallbackSecondary.persistence,
+        brokenPrimary.persistence,
         thirdPersistence.persistence
       ]);
 
