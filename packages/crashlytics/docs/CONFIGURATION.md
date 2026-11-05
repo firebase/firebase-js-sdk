@@ -15,13 +15,13 @@ You can configure the sampling rate for your web app to a value from **0% to 100
 
 ### How Session Sampling Works
 
-- **Configuration fetch**: On startup the SDK loads the last known configuration (enablement state and sampling rate) from `localStorage` and refreshes it in the background with a non-blocking, unauthenticated `GET` to the Firebase Telemetry API (`firebasetelemetry.googleapis.com`, or the regional `firebasetelemetry.{region}.rep.googleapis.com` endpoint when a `region` is configured). Right before a session makes its sampling decision, the SDK refreshes the configuration again if needed, waiting at most 2 seconds, so the decision uses the latest rate. Long-running pages also re-fetch it while they are visible, as often as the server's caching allows (every 16 minutes by default). If no configuration has ever been fetched, the SDK defaults to collecting **100%** of sessions. Fetch failures never surface to your app; the previous configuration stays in effect.
-- **Per-session consistency**: Sampling decisions are made per session on the client device using a deterministic hash of the session ID (`MurmurHash3(session.id) % 10000 / 10000 < sampling_rate`). A session is either collected completely or discarded completely on the device before network transmission. The decision is made at the first telemetry export of the session (so the freshest rate is used) and then kept for the rest of the session, including across page reloads in the same tab.
-- **Sampling rate attribute**: Every exported log record and span of a collected session carries a `session.sampling.rate` attribute with the rate the decision was made with. The backend uses it to extrapolate dashboard metrics (`1 / session.sampling.rate` per event) and to reconcile the device's rate with the live configuration.
-- **Rate update propagation**: The configuration is cached for up to **15 minutes**, plus 1 minute of revalidation, so changes apply to sessions that start about **16 minutes** after you save them. Sessions already in progress keep their sampling decision until they end (when the browser tab is closed).
-  - **Lowering the sampling rate** is also enforced on the server **immediately** (the server re-evaluates the same hash with the new rate) to stop unwanted ingestion costs right away.
-  - **Raising the sampling rate** applies only to sessions that start after the change has propagated.
-- **Pausing collection**: A sampling rate of `0.0`, or disabling telemetry collection, stops the SDK from exporting any telemetry for new sessions once the configuration is picked up.
+- **Whole sessions, decided on the device**: The SDK collects either all of a session's telemetry or none of it. It decides with a deterministic hash of the session ID, `MurmurHash3(session.id) % 10000 / 10000 < sampling_rate`, when the session first exports telemetry. The decision is stored in `sessionStorage` and kept for the rest of the session, including across page reloads in the same tab. Telemetry from sessions that aren't sampled is never sent.
+- **Sampling rate attribute**: Every log record and span from a sampled session carries a `session.sampling.rate` attribute with the rate used for the decision. Crashlytics uses it to extrapolate dashboard metrics (`1 / session.sampling.rate` per event).
+- **Configuration refresh**: The SDK caches the sampling configuration (sampling rate and enablement state) in `localStorage` and refreshes it with an unauthenticated `GET` request to the Firebase Telemetry API (`firebasetelemetry.googleapis.com`, or `firebasetelemetry.{region}.rep.googleapis.com` when a `region` is set). It refreshes when the SDK starts, before each session's sampling decision (waiting at most 2 seconds), and periodically while the page is visible. Until a configuration has been fetched, the SDK collects all sessions. Fetch errors don't affect your app; the last known configuration stays in effect.
+- **Propagation**: The configuration can be cached for up to 16 minutes, so a new rate applies to sessions that start about 16 minutes after you change it. Sessions in progress keep their decision until they end, when the browser tab is closed.
+  - **Lowering the rate** also takes effect on the server immediately: the server re-evaluates the same hash with the new rate and drops sessions that no longer qualify.
+  - **Raising the rate** applies only to sessions that start after the change has propagated.
+- **Pausing collection**: When the sampling rate is `0.0` or telemetry collection is disabled, the SDK sends nothing for new sessions.
 
 ---
 
@@ -29,7 +29,7 @@ You can configure the sampling rate for your web app to a value from **0% to 100
 
 1. Open the [Firebase Console Crashlytics dashboard](https://console.firebase.google.com/u/0/project/_/crashlytics) and select your web app.
 2. Click **Configure sampling** in the top action bar.
-3. In the **Configure sampling for your app** dialog, use the slider or enter a value from **0% to 100%** to set the percentage of events and sessions collected from clients. Changes take effect automatically.
+3. In the **Configure sampling for your app** dialog, use the slider or enter a value from **0% to 100%** to set the percentage of events and sessions collected from clients. Changes reach your app within about 16 minutes (see [How Session Sampling Works](#how-session-sampling-works)).
 
 ---
 
@@ -127,18 +127,18 @@ severity=(ERROR) AND sample(insert_id, 0.5)
 
 ---
 
-### Force 100% Sampling for Debugging (Overrides)
+### Force On-Device Sampling for Debugging
 
-When reproducing or investigating a specific issue during local development or QA testing, you can override the app's configured sampling rate and force **100% telemetry collection** for the current browser session by setting the `FIREBASE_TELEMETRY_DEBUG` flag in code or in the browser developer console:
+To make the SDK send all telemetry from your browser session while you reproduce an issue, set the `FIREBASE_TELEMETRY_DEBUG` flag in your code or in the browser's developer console:
 
 ```javascript
 self.FIREBASE_TELEMETRY_DEBUG = true;
 ```
 
-If an end user is experiencing an issue, you can instead ask them to open your web app with the `firebase_telemetry_debug=true` query parameter (for example `https://example.com/?firebase_telemetry_debug=true`). The SDK persists the override in `sessionStorage`, so it stays active for the lifetime of that browser session even after in-app navigation.
+To do the same for a user's session, ask them to open your app with the `firebase_telemetry_debug=true` query parameter, for example `https://example.com/?firebase_telemetry_debug=true`. The SDK keeps the override in `sessionStorage`, so it stays active for the rest of the browser session, including after in-app navigation.
 
 > [!NOTE]
-> The override only affects the on-device decision and stamps `session.sampling.rate` as `1.0` (so debug sessions are not extrapolated as `1 / sampling_rate` sessions in dashboard metrics). The server still enforces the configured sampling rate on ingestion: when the configured rate is below `1.0`, the server re-samples incoming sessions at the configured rate, and if the configured rate is `0.0` (collection paused) or telemetry collection is disabled, the data is dropped on ingestion.
+> The override only changes the decision on the device, and the SDK stamps these sessions with a `session.sampling.rate` of `1.0`. The server still enforces the configured rate: below `1.0`, it re-samples incoming sessions with the same hash, and when collection is paused (`0.0`) or disabled, it drops them. To make sure a debug session is stored, set the sampling rate to 100% while you debug.
 
 ---
 
