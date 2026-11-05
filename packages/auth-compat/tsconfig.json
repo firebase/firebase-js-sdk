@@ -3,7 +3,10 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "..",
-    "types": ["node", "trusted-types"]
+    "types": ["node", "trusted-types"],
+    "paths": {
+      "@firebase/auth-compat": ["./index.ts"]
+    }
   },
   "exclude": ["dist/**/*", "vitest.config.mjs"]
 }

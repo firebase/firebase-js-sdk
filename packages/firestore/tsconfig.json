@@ -2,8 +2,9 @@
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
+    "rootDir": "..",
     "module": "es2020",
     "types": ["node", "trusted-types", "../../node_modules/vitest/globals"]
   },
-  "exclude": ["scripts/**/*", "dist/**/*", "vitest.config.mjs"]
+  "exclude": ["scripts/**/*", "dist/**/*", "*.js", "*.cjs", "*.mjs"]
 }
