@@ -24,6 +24,8 @@ import {
   startNewSession,
   logVisibilityEvent,
   generateUuid,
+  getClientConfigEndpointUrl,
+  getClientConfigUrl,
   getTelemetryEndpointUrl,
   isTelemetryUrl
 } from './helpers';
@@ -430,6 +432,78 @@ describe('helpers', () => {
     });
   });
 
+  describe('getClientConfigEndpointUrl', () => {
+    it('should return the global firebasetelemetry endpoint by default', () => {
+      expect(getClientConfigEndpointUrl()).toBe(
+        'https://firebasetelemetry.googleapis.com'
+      );
+      expect(getClientConfigEndpointUrl({ region: 'global' })).toBe(
+        'https://firebasetelemetry.googleapis.com'
+      );
+    });
+
+    it('should return a regional REP endpoint for a non-global region', () => {
+      expect(getClientConfigEndpointUrl({ region: 'us-east5' })).toBe(
+        'https://firebasetelemetry.us-east5.rep.googleapis.com'
+      );
+    });
+
+    it('should not be affected by a custom OTLP endpointUrl', () => {
+      expect(
+        getClientConfigEndpointUrl({
+          endpointUrl: 'https://custom-proxy.internal.net'
+        })
+      ).toBe('https://firebasetelemetry.googleapis.com');
+    });
+  });
+
+  describe('getClientConfigUrl', () => {
+    it('should build the GetClientConfig URL from the project number in the app id, region and app id', () => {
+      expect(
+        getClientConfigUrl({
+          projectId: 'my-project',
+          appId: '1:123456789012:web:abcdef'
+        })
+      ).toBe(
+        'https://firebasetelemetry.googleapis.com/v1alpha/projects/123456789012/locations/global/apps/1:123456789012:web:abcdef/clientConfig'
+      );
+      expect(
+        getClientConfigUrl(
+          { projectId: 'my-project', appId: '1:1:web:a' },
+          { region: 'us-east5' }
+        )
+      ).toBe(
+        'https://firebasetelemetry.us-east5.rep.googleapis.com/v1alpha/projects/1/locations/us-east5/apps/1:1:web:a/clientConfig'
+      );
+    });
+
+    it('should keep the colons of the app id but encode other reserved characters', () => {
+      expect(getClientConfigUrl({ projectId: 'p', appId: 'a/b?c:d' })).toBe(
+        'https://firebasetelemetry.googleapis.com/v1alpha/projects/p/locations/global/apps/a%2Fb%3Fc:d/clientConfig'
+      );
+    });
+
+    it('should not need the project id when the app id embeds the project number', () => {
+      expect(getClientConfigUrl({ appId: '1:123456789012:web:abcdef' })).toBe(
+        'https://firebasetelemetry.googleapis.com/v1alpha/projects/123456789012/locations/global/apps/1:123456789012:web:abcdef/clientConfig'
+      );
+    });
+
+    it('should fall back to the project id when the app id does not embed a project number', () => {
+      expect(
+        getClientConfigUrl({ projectId: 'my-project', appId: 'my-app' })
+      ).toBe(
+        'https://firebasetelemetry.googleapis.com/v1alpha/projects/my-project/locations/global/apps/my-app/clientConfig'
+      );
+    });
+
+    it('should return undefined when the app id or the project is missing', () => {
+      expect(getClientConfigUrl({ projectId: 'my-project' })).toBeUndefined();
+      expect(getClientConfigUrl({ appId: 'my-app' })).toBeUndefined();
+      expect(getClientConfigUrl({})).toBeUndefined();
+    });
+  });
+
   describe('isTelemetryUrl', () => {
     it('should identify default global and regional clienttelemetry endpoint URLs', () => {
       expect(
@@ -449,6 +523,22 @@ describe('helpers', () => {
         isTelemetryUrl(
           'https://clienttelemetry.us-east5.rep.googleapis.com.attacker.com/v1/logs'
         )
+      ).toBe(false);
+    });
+
+    it('should identify global and regional firebasetelemetry client config URLs', () => {
+      expect(
+        isTelemetryUrl(
+          'https://firebasetelemetry.googleapis.com/v1alpha/projects/p/locations/global/apps/a/clientConfig'
+        )
+      ).toBe(true);
+      expect(
+        isTelemetryUrl(
+          'https://firebasetelemetry.us-east5.rep.googleapis.com/v1alpha/projects/p/locations/us-east5/apps/a/clientConfig'
+        )
+      ).toBe(true);
+      expect(
+        isTelemetryUrl('https://firebasetelemetry.googleapis.com.attacker.com/')
       ).toBe(false);
     });
 
