@@ -209,6 +209,32 @@ describe('Google AI Mappers', () => {
         googleAIResponse.usageMetadata
       );
     });
+
+    it('should map promptFeedback to promptFeedback property when present', () => {
+      const googleAIResponse: GoogleAIGenerateContentResponse = {
+        promptFeedback: {
+          blockReason: BlockReason.SAFETY,
+          safetyRatings: [
+            {
+              category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+              probability: HarmProbability.HIGH,
+              blocked: true
+            } as any
+          ]
+        }
+      };
+      const mappedResponse = mapGenerateContentResponse(googleAIResponse);
+      expect(mappedResponse.promptFeedback).toBeDefined();
+      expect(mappedResponse.promptFeedback?.blockReason).to.equal(
+        BlockReason.SAFETY
+      );
+      expect(mappedResponse.promptFeedback?.safetyRatings[0].category).to.equal(
+        HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT
+      );
+      expect(mappedResponse.promptFeedback?.safetyRatings[0].severity).to.equal(
+        HarmSeverity.HARM_SEVERITY_UNSUPPORTED
+      );
+    });
   });
 
   describe('mapCountTokensRequest', () => {
