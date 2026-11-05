@@ -29,8 +29,9 @@ export const DEFAULT_TELEMETRY_ENDPOINT =
 export const DEFAULT_TELEMETRY_REGION = 'global';
 
 /**
- * Number of hash buckets used by the deterministic session sampling decision. Must stay in sync
- * with the backend, which re-evaluates the same decision when the configured rate is lowered.
+ * Number of hash buckets used by the deterministic session sampling decision. The server
+ * re-evaluates the same decision when the configured rate is lowered, and released SDKs keep using
+ * this value, so it must never change.
  */
 export const SESSION_SAMPLING_HASH_BUCKETS = 10000;
 

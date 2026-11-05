@@ -19,11 +19,10 @@ import { murmurHash3, utf8Encode } from './murmurhash3';
 import { SESSION_SAMPLING_HASH_BUCKETS } from '../constants';
 
 /**
- * The server's hash of each input: Guava's `Hashing.murmur3_32_fixed().hashString(input, UTF_8)`,
- * as unsigned. The first group is from Guava's own Murmur3Hash32Test; the others were generated
- * with Guava 32.1.2.
+ * The server's hash of each input, as an unsigned 32-bit integer. The first group are commonly
+ * used MurmurHash3 (x86, 32-bit) test strings.
  */
-const GUAVA_VECTORS: Array<[string, number]> = [
+const SERVER_VECTORS: Array<[string, number]> = [
   ['', 0x00000000],
   ['k', 0xcfbda5d1],
   ['hell', 0xa167dbf3],
@@ -53,7 +52,7 @@ const GUAVA_VECTORS: Array<[string, number]> = [
   ['\ud7ff', 0x43e3f269],
   ['\ue000', 0x1ae2e2da],
   ['\ufffd', 0xb69ca6c1],
-  // Unpaired surrogates, which Java encodes as `?`.
+  // Unpaired surrogates, which the server encodes as `?`.
   ['a\ud800\ud800z', 0x85614bf1],
   ['\ud800', 0x96615806],
   ['\udc00', 0x96615806],
@@ -66,16 +65,14 @@ const GUAVA_VECTORS: Array<[string, number]> = [
 
 describe('murmurHash3', () => {
   it('hashes every input like the server', () => {
-    const actual = GUAVA_VECTORS.map(([input]) => [input, murmurHash3(input)]);
-    expect(actual).toEqual(GUAVA_VECTORS);
+    const actual = SERVER_VECTORS.map(([input]) => [input, murmurHash3(input)]);
+    expect(actual).toEqual(SERVER_VECTORS);
   });
 
   /**
-   * These session IDs and buckets are the test vectors of the backend's `SessionSamplingTest`
-   * (google3/javatests/com/google/firebase/telemetry/common/sampling/SessionSamplingTest.kt),
-   * which re-evaluates the same decision server-side. They must never change independently.
+   * The server makes the same decision for these session IDs, so their buckets must never change.
    */
-  it('matches the backend session sampling buckets', () => {
+  it("matches the server's session sampling buckets", () => {
     const bucket = (sessionId: string): number =>
       murmurHash3(sessionId) % SESSION_SAMPLING_HASH_BUCKETS;
     expect(bucket('test-session-3')).toBe(1184);
@@ -112,8 +109,8 @@ describe('utf8Encode', () => {
     expect(actual.findIndex((byte, i) => byte !== expected[i])).toBe(-1);
   });
 
-  it("writes `?` for each unpaired surrogate, like Java's String.getBytes(UTF_8)", () => {
-    // The string of Guava's Murmur3Hash32Test.testInvalidUnicodeHashString.
+  it('writes `?` for each unpaired surrogate', () => {
+    // Two unpaired high surrogates.
     expect(Array.from(utf8Encode('a\ud800\ud800z'))).toEqual([
       0x61, 0x3f, 0x3f, 0x7a
     ]);

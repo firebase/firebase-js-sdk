@@ -19,9 +19,9 @@ const C1 = 0xcc9e2d51;
 const C2 = 0x1b873593;
 
 /**
- * Encodes a string as UTF-8 exactly like Java's `String.getBytes(UTF_8)`, which are the bytes Guava
- * hashes on the server: an unpaired surrogate becomes `?`. `TextEncoder` is not used because it
- * writes U+FFFD instead, and one code path gives the same bytes on every platform.
+ * Encodes a string as UTF-8, with `?` in place of each unpaired surrogate, which is how the server
+ * encodes it. `TextEncoder` is not used because it writes U+FFFD instead, and one code path gives
+ * the same bytes on every platform.
  *
  * @internal
  */
@@ -75,9 +75,8 @@ function mixK1(k1: number): number {
 /**
  * MurmurHash3 (x86, 32-bit variant) of the UTF-8 encoding of `input`.
  *
- * This is the same function as Guava's `Hashing.murmur3_32_fixed().hashString(input, UTF_8)`,
- * which the Firebase Telemetry backend uses to re-evaluate session sampling decisions. Any change
- * here must be mirrored on the server, otherwise device and server decisions diverge.
+ * The server computes the same hash to re-evaluate session sampling decisions, and released SDKs
+ * keep computing it, so it must never change.
  *
  * @param input - The string to hash.
  * @param seed - Optional 32-bit seed. Defaults to `0`.
