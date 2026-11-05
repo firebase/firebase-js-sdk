@@ -28,6 +28,13 @@ export const DEFAULT_TELEMETRY_ENDPOINT =
 /** Default region for telemetry data. */
 export const DEFAULT_TELEMETRY_REGION = 'global';
 
+/**
+ * Number of hash buckets used by the deterministic session sampling decision. The server
+ * re-evaluates the same decision when the configured rate is lowered, and released SDKs keep using
+ * this value, so it must never change.
+ */
+export const SESSION_SAMPLING_HASH_BUCKETS = 10000;
+
 /** Label keys for resource attributes in telemetry providers. */
 export const RESOURCE_ATTRIBUTE_KEYS = {
   GCP_PROJECT_ID: 'gcp.project_id',
