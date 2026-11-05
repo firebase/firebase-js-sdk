@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as yargs from 'yargs';
+import yargs from 'yargs';
 import { runPrerelease } from './prerelease';
 import { runRelease } from './release';
 import { bannerText } from './utils/banner';
@@ -25,7 +25,7 @@ import { bannerText } from './utils/banner';
  */
 bannerText();
 
-yargs
+yargs(process.argv.slice(2))
   .command(
     '$0',
     'Make a prod or staging release',

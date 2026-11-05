@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import * as yargs from 'yargs';
+import yargs from 'yargs';
 import * as ts from 'typescript';
 import * as fs from 'fs';
 
-const argv = yargs
+const argv = yargs(process.argv.slice(2))
   .options({
     input: {
       alias: 'i',

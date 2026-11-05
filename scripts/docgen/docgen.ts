@@ -21,7 +21,7 @@ import { projectRoot } from '../utils';
 import fs from 'fs';
 import glob from 'glob';
 import { join } from 'path';
-import * as yargs from 'yargs';
+import yargs from 'yargs';
 
 /**
  * Add to devsite files to alert anyone trying to make a documentation fix
@@ -76,7 +76,7 @@ const PREFERRED_PARAMS = [
 let authApiReportOriginal: string;
 let authApiConfigOriginal: string;
 
-yargs
+yargs(process.argv.slice(2))
   .command(
     '$0',
     'generate standard reference docs',

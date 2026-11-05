@@ -16,7 +16,7 @@
  */
 
 import { rollup } from 'rollup';
-import * as yargs from 'yargs';
+import yargs from 'yargs';
 
 const alias = require('@rollup/plugin-alias');
 const json = require('@rollup/plugin-json');
@@ -24,7 +24,7 @@ const typescriptPlugin = require('rollup-plugin-typescript2');
 
 const util = require('../rollup.shared');
 
-const argv = yargs
+const argv = yargs(process.argv.slice(2))
   .options({
     input: {
       type: 'string',

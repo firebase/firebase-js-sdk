@@ -19,11 +19,11 @@ import { resolve } from 'path';
 import { spawn } from 'child-process-promise';
 import { TestReason, filterTasks, getTestTasks, logTasks } from './tasks';
 import chalk from 'chalk';
-import * as yargs from 'yargs';
+import yargs from 'yargs';
 import { TestConfig, testConfig } from './testConfig';
 const root = resolve(__dirname, '../..');
 
-const argv = yargs.parseSync();
+const argv = yargs(process.argv.slice(2)).parseSync();
 const inputTestConfigName = argv._[0].toString();
 const testCommand = 'test:ci';
 
