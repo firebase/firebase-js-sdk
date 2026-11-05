@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { EventAccumulator } from '../../database/test/helpers/EventAccumulator';
 import { Reference } from '../src/api/Reference';
 
@@ -41,8 +39,8 @@ declare const TEST_NAMESPACE;
 describe('.info Tests', () => {
   it('Can get a reference to .info nodes.', () => {
     const f = getRootNode() as Reference;
-    expect(getPath(f.child('.info'))).to.equal('/.info');
-    expect(getPath(f.child('.info/foo'))).to.equal('/.info/foo');
+    expect(getPath(f.child('.info'))).toBe('/.info');
+    expect(getPath(f.child('.info/foo'))).toBe('/.info/foo');
   });
 
   it("Can't write to .info", () => {
@@ -129,7 +127,7 @@ describe('.info Tests', () => {
 
     await ea.promise;
 
-    expect(offsets[0]).to.be.a('number');
+    expect(typeof offsets[0]).toBe('number');
 
     // Make sure push still works
     ref.push();
@@ -186,7 +184,7 @@ describe('.info Tests', () => {
         ready = snap.val() === true || ready;
       });
       setTimeout(() => {
-        expect(ready).to.equal(0);
+        expect(ready).toBe(0);
         refDup.child('.info/connected').off();
         ready = -1;
       }, 500);
