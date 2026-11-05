@@ -15,61 +15,69 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { Connection } from '../src/realtime/Connection';
 
 import { repoInfoForConnectionTest } from './helpers/util';
 
 describe('Connection', () => {
-  it('return the session id', done => {
-    new Connection(
-      '1',
-      repoInfoForConnectionTest(),
-      'fake-app-id',
-      'fake-app-check-token',
-      'fake-auth-token',
-      message => {},
-      (timestamp, sessionId) => {
-        expect(sessionId).not.to.be.null;
-        expect(sessionId).not.to.equal('');
-        done();
-      },
-      () => {},
-      reason => {}
-    );
+  it('return the session id', () => {
+    return new Promise<void>((resolve, reject) => {
+      new Connection(
+        '1',
+        repoInfoForConnectionTest(),
+        'fake-app-id',
+        'fake-app-check-token',
+        'fake-auth-token',
+        message => {},
+        (timestamp, sessionId) => {
+          try {
+            expect(sessionId).not.toBeNull();
+            expect(sessionId).not.toBe('');
+            resolve();
+          } catch (err) {
+            reject(err);
+          }
+        },
+        () => {},
+        reason => {
+          reject(new Error('Connection failed: ' + reason));
+        }
+      );
+    });
   });
 
   // TODO(koss) - Flakey Test.  When Dev Tools is closed on my Mac, this test
   // fails about 20% of the time (open - it never fails).  In the failing
   // case a long-poll is opened first.
-  it.skip('disconnect old session on new connection', done => {
-    const info = repoInfoForConnectionTest();
-    new Connection(
-      '1',
-      info,
-      'fake-app-id',
-      'fake-app-check-token',
-      'fake-auth-token',
-      message => {},
-      (timestamp, sessionId) => {
-        new Connection(
-          '2',
-          info,
-          'fake-app-id',
-          'fake-app-check-token',
-          'fake-auth-token',
-          message => {},
-          (timestamp, sessionId) => {},
-          () => {},
-          reason => {},
-          sessionId
-        );
-      },
-      () => {
-        done(); // first connection was disconnected
-      },
-      reason => {}
-    );
+  it.skip('disconnect old session on new connection', () => {
+    return new Promise<void>(resolve => {
+      const info = repoInfoForConnectionTest();
+      new Connection(
+        '1',
+        info,
+        'fake-app-id',
+        'fake-app-check-token',
+        'fake-auth-token',
+        message => {},
+        (timestamp, sessionId) => {
+          new Connection(
+            '2',
+            info,
+            'fake-app-id',
+            'fake-app-check-token',
+            'fake-auth-token',
+            message => {},
+            (timestamp, sessionId) => {},
+            () => {},
+            reason => {},
+            sessionId
+          );
+        },
+        () => {
+          resolve(); // first connection was disconnected
+        },
+        reason => {}
+      );
+    });
   });
 });
