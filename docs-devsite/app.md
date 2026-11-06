@@ -34,19 +34,19 @@ This package coordinates the communication between the different Firebase compon
 |  <b>function(name, ...)</b> |
 |  [getApp(name)](./app.md#getapp_1eaaff4) | Retrieves a [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.<!-- -->When called with no arguments, the default app is returned. When an app name is provided, the app corresponding to that name is returned.<!-- -->An exception is thrown if the app being retrieved has not yet been initialized. |
 |  <b>function(options, ...)</b> |
-|  [initializeApp(options, name)](./app.md#initializeapp_cb2f5e1) | Creates and initializes a [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.<!-- -->See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation. |
-|  [initializeApp(options, config)](./app.md#initializeapp_079e917) | Creates and initializes a FirebaseApp instance. |
-|  [initializeServerApp(options, config)](./app.md#initializeserverapp_30ab697) | Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance.<!-- -->The <code>FirebaseServerApp</code> is similar to <code>FirebaseApp</code>, but is intended for execution in server side rendering environments only. Initialization will fail if invoked from a browser environment.<!-- -->See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation. |
+|  [initializeApp(options, name)](./app.md#initializeapp_c23a2f7) | Creates and initializes a [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.<!-- -->See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation. |
+|  [initializeApp(options, config)](./app.md#initializeapp_03d4ee0) | Creates and initializes a FirebaseApp instance. |
+|  [initializeServerApp(options, config)](./app.md#initializeserverapp_dc3e48f) | Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance.<!-- -->The <code>FirebaseServerApp</code> is similar to <code>FirebaseApp</code>, but is intended for execution in server side rendering environments only. Initialization will fail if invoked from a browser environment.<!-- -->See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_firebase_to_your_app) and [Initialize multiple projects](https://firebase.google.com/docs/web/setup#multiple-projects) for detailed documentation. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | A [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) holds the initialization information for a collection of services.<!-- -->Do not call this constructor directly. Instead, use [initializeApp()](./app.md#initializeapp_cb2f5e1) to create an app. |
-|  [FirebaseAppSettings](./app.firebaseappsettings.md#firebaseappsettings_interface) | Configuration options given to [initializeApp()](./app.md#initializeapp_cb2f5e1) |
+|  [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | A [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) holds the initialization information for a collection of services.<!-- -->Do not call this constructor directly. Instead, use [initializeApp()](./app.md#initializeapp_c23a2f7) to create an app. |
+|  [FirebaseAppSettings](./app.firebaseappsettings.md#firebaseappsettings_interface) | Configuration options given to [initializeApp()](./app.md#initializeapp_c23a2f7) |
 |  [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) | Firebase configuration object. Contains a set of parameters required by services in order to successfully communicate with Firebase server APIs and to associate client data with your Firebase project and Firebase application. Typically this object is populated by the Firebase console at project setup. See also: [Learn about the Firebase config object](https://firebase.google.com/docs/web/setup#config-object)<!-- -->. |
-|  [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) | A [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) holds the initialization information for a collection of services running in server environments.<!-- -->Do not call this constructor directly. Instead, use [initializeServerApp()](./app.md#initializeserverapp_30ab697) to create an app. |
-|  [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Configuration options given to [initializeServerApp()](./app.md#initializeserverapp_30ab697) |
+|  [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) | A [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) holds the initialization information for a collection of services running in server environments.<!-- -->Do not call this constructor directly. Instead, use [initializeServerApp()](./app.md#initializeserverapp_dc3e48f) to create an app. |
+|  [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Configuration options given to [initializeServerApp()](./app.md#initializeserverapp_dc3e48f) |
 
 ## Variables
 
@@ -269,7 +269,7 @@ const otherApp = getApp("otherApp");
 
 ## function(options, ...)
 
-### initializeApp(options, name) {:#initializeapp_cb2f5e1}
+### initializeApp(options, name) {:#initializeapp_c23a2f7}
 
 Creates and initializes a [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.
 
@@ -278,14 +278,14 @@ See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_fi
 <b>Signature:</b>
 
 ```typescript
-export declare function initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
+export declare function initializeApp(options: FirebaseOptions | string, name?: string): FirebaseApp;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) | Options to configure the app's services. |
+|  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) \| string | A <code>FirebaseOptions</code> object to configure the app's services. This can also be a JSON string respresenting a <code>FirebaseOptions</code> object. |
 |  name | string | Optional name of the app to initialize. If no name is provided, the default is <code>&quot;[DEFAULT]&quot;</code>. |
 
 <b>Returns:</b>
@@ -331,21 +331,21 @@ const otherApp = initializeApp({
 
 ```
 
-### initializeApp(options, config) {:#initializeapp_079e917}
+### initializeApp(options, config) {:#initializeapp_03d4ee0}
 
 Creates and initializes a FirebaseApp instance.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function initializeApp(options: FirebaseOptions, config?: FirebaseAppSettings): FirebaseApp;
+export declare function initializeApp(options: FirebaseOptions | string, config?: FirebaseAppSettings): FirebaseApp;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) | Options to configure the app's services. |
+|  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) \| string | A <code>FirebaseOptions</code> object to configure the app's services. This can also be a JSON string respresenting a <code>FirebaseOptions</code> object. |
 |  config | [FirebaseAppSettings](./app.firebaseappsettings.md#firebaseappsettings_interface) | FirebaseApp Configuration |
 
 <b>Returns:</b>
@@ -358,7 +358,7 @@ If [FirebaseAppSettings.name](./app.firebaseappsettings.md#firebaseappsettingsna
 
 If a `FirebaseApp` already exists with the same name but with a different configuration.
 
-### initializeServerApp(options, config) {:#initializeserverapp_30ab697}
+### initializeServerApp(options, config) {:#initializeserverapp_dc3e48f}
 
 Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance.
 
@@ -369,14 +369,14 @@ See [Add Firebase to your app](https://firebase.google.com/docs/web/setup#add_fi
 <b>Signature:</b>
 
 ```typescript
-export declare function initializeServerApp(options: FirebaseOptions | FirebaseApp, config?: FirebaseServerAppSettings): FirebaseServerApp;
+export declare function initializeServerApp(options: FirebaseOptions | FirebaseApp | string, config?: FirebaseServerAppSettings): FirebaseServerApp;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) \| [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | <code>Firebase.AppOptions</code> to configure the app's services, or a a <code>FirebaseApp</code> instance which contains the <code>AppOptions</code> within. |
+|  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) \| [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) \| string | A <code>FirebaseOptions</code> object to configure the app's services, or a a <code>FirebaseApp</code> instance which contains the <code>AppOptions</code> within. This can also be a JSON string respresenting a <code>FirebaseOptions</code> object. |
 |  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Optional <code>FirebaseServerApp</code> settings. |
 
 <b>Returns:</b>
