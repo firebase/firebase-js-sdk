@@ -27,6 +27,7 @@ import sourcemaps from 'rollup-plugin-sourcemaps';
 import terser from '@rollup/plugin-terser';
 import typescript from 'typescript';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
+import { transpileJs } from '../../scripts/build/rollup_transpile_js.js';
 
 const external = Object.keys(pkg.dependencies || {});
 const plugins = [sourcemaps(), resolveModule(), json(), commonjs()];
@@ -37,8 +38,6 @@ const typescriptPlugin = rollupTypescriptPlugin({
 
 const typescriptPluginCDN = rollupTypescriptPlugin({
   typescript,
-  allowJs: true,
-  include: ['*.ts', '**/*.ts', '*.js', '**/*.js'],
   tsconfigOverride: {
     compilerOptions: {
       declaration: false
@@ -177,13 +176,15 @@ function cdnImportsGuard() {
  * the `browser` export condition). Otherwise packages that ship separate
  * Node.js and browser implementations, such as the OpenTelemetry packages that
  * `@firebase/crashlytics` depends on, contribute their Node.js implementations,
- * and the bundle imports Node.js built-in modules.
+ * and the bundle imports Node.js built-in modules. Dependencies are also
+ * transpiled to the tsconfig target, so the bundles don't contain newer syntax.
  */
 const cdnPlugins = [
   sourcemaps(),
   resolveModule({ browser: true }),
   json(),
   commonjs(),
+  transpileJs(),
   cdnImportsGuard()
 ];
 
