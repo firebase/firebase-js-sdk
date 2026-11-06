@@ -112,7 +112,7 @@ export interface FirebaseServerApp extends FirebaseApp {
  * console at project setup. See also:
  * {@link https://firebase.google.com/docs/web/setup#config-object | Learn about the Firebase config object}.
  */
-export interface FirebaseOptions {
+export declare interface FirebaseOptions {
   /**
    * An encrypted string used when calling certain APIs that don't need to
    * access private user data
