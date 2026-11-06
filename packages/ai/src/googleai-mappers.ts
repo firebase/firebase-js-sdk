@@ -100,7 +100,7 @@ export function mapGenerateContentResponse(
     candidates: googleAIResponse.candidates
       ? mapGenerateContentCandidates(googleAIResponse.candidates)
       : undefined,
-    prompt: googleAIResponse.promptFeedback
+    promptFeedback: googleAIResponse.promptFeedback
       ? mapPromptFeedback(googleAIResponse.promptFeedback)
       : undefined,
     usageMetadata: googleAIResponse.usageMetadata
