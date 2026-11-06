@@ -44,6 +44,7 @@ export const AIErrorCode: {
     readonly SESSION_CLOSED: "session-closed";
     readonly INVALID_CONTENT: "invalid-content";
     readonly API_NOT_ENABLED: "api-not-enabled";
+    readonly ALREADY_INITIALIZED: "already-initialized";
     readonly INVALID_SCHEMA: "invalid-schema";
     readonly NO_API_KEY: "no-api-key";
     readonly NO_APP_ID: "no-app-id";

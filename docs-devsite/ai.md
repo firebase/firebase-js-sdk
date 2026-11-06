@@ -252,6 +252,10 @@ export declare function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 
 The default [AI](./ai.ai.md#ai_interface) instance for the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->.
 
+#### Exceptions
+
+If `options.useLimitedUseAppCheckTokens` conflicts with the options of the existing [AI](./ai.ai.md#ai_interface) instance for the same app and backend.
+
 ### Example 1
 
 
@@ -441,6 +445,7 @@ AIErrorCode: {
     readonly SESSION_CLOSED: "session-closed";
     readonly INVALID_CONTENT: "invalid-content";
     readonly API_NOT_ENABLED: "api-not-enabled";
+    readonly ALREADY_INITIALIZED: "already-initialized";
     readonly INVALID_SCHEMA: "invalid-schema";
     readonly NO_API_KEY: "no-api-key";
     readonly NO_APP_ID: "no-app-id";

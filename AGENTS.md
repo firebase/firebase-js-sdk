@@ -6,7 +6,10 @@
 
 ## Preparing code for PRs
 - Run `yarn format` after any changes to `*.ts` or `*.js` files, to do a formatting and license pass.
-- Run `yarn docgen:all` after any changes that affect the public API or that change the text of comments that are the source of public documentation
+- Run `yarn docgen:all` after any changes that affect the public API or that change the text of comments that are the source of public documentation.
+  - In doc comments, don't separate paragraphs with a blank line: api-documenter drops the break, running the sentences together with no space. Prefer one paragraph, or use `<br/>` if a break is really needed.
+- Add a changeset in `.changeset/` for any user-facing change.
+  - For `patch` changes, list only the affected `@firebase/*` package(s). Do not add a `'firebase'` entry; the changesets tool automatically bumps the umbrella package by a patch for any dependency bump.
 
 ## Commit messages and PR titles
 - PRs are squash-merged into `main`, and the squash commit's subject is the PR title. So the PR title must be a Conventional Commits header: `type: description` or `type(package): description`, with a `!` before the colon for breaking changes (e.g. `feat(ai)!: ...`). Write the first line of the first commit on the branch in the same format: GitHub pre-fills the PR title from it when the PR is opened with a single commit (with more commits it falls back to the branch name).
