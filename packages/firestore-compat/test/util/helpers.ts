@@ -57,7 +57,7 @@ export function isPersistenceAvailable(): boolean {
  * persistence both disabled and enabled (if the browser is supported).
  */
 function apiDescribeInternal(
-  describeFn: Mocha.PendingSuiteFunction,
+  describeFn: (name: string, fn: () => void) => void,
   message: string,
   testSuite: (persistence: boolean) => void
 ): void {

@@ -16,7 +16,6 @@
  */
 
 import type * as firestore from '@firebase/firestore-types';
-import { expect } from 'chai';
 
 import { addEqualityMatcher } from './util/equality_matcher';
 import { EventsAccumulator } from './util/events_accumulator';
@@ -51,16 +50,16 @@ apiDescribe('Array Transforms:', (persistence: boolean) => {
     await docRef.set(initialData);
     await accumulator.awaitLocalEvent();
     const snapshot = await accumulator.awaitRemoteEvent();
-    expect(snapshot.data()).to.deep.equal(initialData);
+    expect(snapshot.data()).toEqual(initialData);
   }
 
   async function expectLocalAndRemoteEvent(
     expected: firestore.DocumentData
   ): Promise<void> {
     const localSnap = await accumulator.awaitLocalEvent();
-    expect(localSnap.data()).to.deep.equal(expected);
+    expect(localSnap.data()).toEqual(expected);
     const remoteSnap = await accumulator.awaitRemoteEvent();
-    expect(remoteSnap.data()).to.deep.equal(expected);
+    expect(remoteSnap.data()).toEqual(expected);
   }
 
   /**
@@ -78,7 +77,7 @@ apiDescribe('Array Transforms:', (persistence: boolean) => {
 
       // wait for initial null snapshot to avoid potential races.
       const snapshot = await accumulator.awaitRemoteEvent();
-      expect(snapshot.exists).to.be.false;
+      expect(snapshot.exists).toBe(false);
       await test();
       unsubscribe();
     });
@@ -167,7 +166,7 @@ apiDescribe('Array Transforms:', (persistence: boolean) => {
       await withTestDoc(persistence, async docRef => {
         await docRef.set({ array: FieldValue.arrayUnion(1, 2) });
         const snapshot = await docRef.get({ source: 'cache' });
-        expect(snapshot.data()).to.deep.equal({ array: [1, 2] });
+        expect(snapshot.data()).toEqual({ array: [1, 2] });
       });
     });
 
@@ -191,10 +190,10 @@ apiDescribe('Array Transforms:', (persistence: boolean) => {
           await docRef.get({ source: 'cache' });
         } catch (e) {
           const err = e as firestore.FirestoreError;
-          expect(err.code).to.equal('unavailable');
+          expect(err.code).toBe('unavailable');
           errCaught = true;
         }
-        expect(errCaught).to.be.true;
+        expect(errCaught).toBe(true);
       });
     });
 
@@ -216,7 +215,7 @@ apiDescribe('Array Transforms:', (persistence: boolean) => {
 
         // Document will be cached but we'll be missing 42.
         const snapshot = await docRef.get({ source: 'cache' });
-        expect(snapshot.data()).to.deep.equal({ array: [1, 2] });
+        expect(snapshot.data()).toEqual({ array: [1, 2] });
       });
     });
 
@@ -225,7 +224,7 @@ apiDescribe('Array Transforms:', (persistence: boolean) => {
         await docRef.set({ array: [42] });
         await docRef.update({ array: FieldValue.arrayUnion(1, 2) });
         const snapshot = await docRef.get({ source: 'cache' });
-        expect(snapshot.data()).to.deep.equal({ array: [42, 1, 2] });
+        expect(snapshot.data()).toEqual({ array: [42, 1, 2] });
       });
     });
 
@@ -234,7 +233,7 @@ apiDescribe('Array Transforms:', (persistence: boolean) => {
         await docRef.set({ array: [42, 1, 2] });
         await docRef.update({ array: FieldValue.arrayRemove(1, 2) });
         const snapshot = await docRef.get({ source: 'cache' });
-        expect(snapshot.data()).to.deep.equal({ array: [42] });
+        expect(snapshot.data()).toEqual({ array: [42] });
       });
     });
   });
