@@ -217,16 +217,6 @@ config.test.projects = config.test.projects.map(project => {
         ? {
             browser: {
               ...project.test.browser,
-              instances: [
-                {
-                  browser:
-                    process.env.BROWSERS === 'WebkitHeadless'
-                      ? 'webkit'
-                      : process.env.BROWSERS === 'Firefox'
-                        ? 'firefox'
-                        : 'chromium'
-                }
-              ],
               screenshotFailures: false
             },
             isolate: false
