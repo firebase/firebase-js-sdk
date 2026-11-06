@@ -204,14 +204,4 @@ class OTLPLogExporter
     }
     super.export(filteredLogs, resultCallback);
   }
-
-  async shutdown(): Promise<void> {
-    // Basic implementation of shutdown for interface compliance
-    console.log('OTLPLogExporter: shutdown called');
-  }
-
-  async forceFlush(): Promise<void> {
-    // Basic implementation of forceFlush for interface compliance
-    console.log('OTLPLogExporter: forceFlush called');
-  }
 }
