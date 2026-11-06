@@ -24,7 +24,6 @@ import {
   AnalyticsSettings,
   ConsentSettings,
   CustomParams,
-  EventNameString,
   EventParams
 } from './public-types';
 import { Provider } from '@firebase/component';
@@ -717,7 +716,7 @@ export function logEvent(
  */
 export function logEvent<T extends string>(
   analyticsInstance: Analytics,
-  eventName: CustomEventName<T>,
+  eventName: T,
   eventParams?: { [key: string]: any },
   options?: AnalyticsCallOptions
 ): void;
@@ -748,13 +747,6 @@ export function logEvent(
     options
   ).catch(e => logger.error(e));
 }
-
-/**
- * Any custom event name string not in the standard list of recommended
- * event names.
- * @public
- */
-export type CustomEventName<T> = T extends EventNameString ? never : T;
 
 /**
  * Sets the applicable end user consent state for this web app across all gtag references once
