@@ -47,11 +47,26 @@ export function transpileJs(tsconfigPath = 'tsconfig.json') {
       typescript.flattenDiagnosticMessageText(error.messageText, '\n')
     );
   }
-  const { options } = typescript.parseJsonConfigFileContent(
+  const { options, errors } = typescript.parseJsonConfigFileContent(
     config,
     typescript.sys,
     dirname(configPath)
   );
+  // Only compilerOptions are used, so errors about the config's input files
+  // (TS18002: `files` is empty; TS18003: `include` matches nothing) are fine.
+  // Anything else, such as an `extends` target that can't be found, would
+  // silently leave `target` undefined.
+  const fatalErrors = errors.filter(e => e.code !== 18002 && e.code !== 18003);
+  if (fatalErrors.length > 0) {
+    throw new Error(
+      fatalErrors
+        .map(e => typescript.flattenDiagnosticMessageText(e.messageText, '\n'))
+        .join('\n')
+    );
+  }
+  if (options.target === undefined) {
+    throw new Error(`${configPath} does not set compilerOptions.target`);
+  }
   const compilerOptions = {
     target: options.target,
     // Keep import and export statements for Rollup.
@@ -63,12 +78,17 @@ export function transpileJs(tsconfigPath = 'tsconfig.json') {
   return {
     name: 'transpile-js',
     transform(code, id) {
-      // Skip virtual modules (ids starting with \0) and non-JavaScript files.
-      if (id.startsWith('\0') || !id.endsWith('.js')) {
+      // Skip virtual modules (ids starting with \0) and anything that isn't a
+      // .js, .mjs or .cjs file. Ignore any `?query` suffix on the id.
+      const file = id.split('?')[0];
+      if (id.startsWith('\0') || !/\.[cm]?js$/.test(file)) {
         return null;
       }
       const { outputText, sourceMapText } = typescript.transpileModule(code, {
-        fileName: id,
+        // By this point, @rollup/plugin-commonjs has converted .cjs modules to
+        // ES modules, but TypeScript 6 emits CommonJS for a .cjs file name
+        // regardless of `module`, so present them as .js files.
+        fileName: file.replace(/\.cjs$/, '.js'),
         compilerOptions
       });
       return { code: outputText, map: sourceMapText };
