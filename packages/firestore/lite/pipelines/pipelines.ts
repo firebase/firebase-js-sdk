@@ -64,6 +64,8 @@ export { Pipeline } from '../../src/lite-api/pipeline';
 
 export { execute } from '../../src/lite-api/pipeline_impl';
 
+export { PipelineExecuteOptions } from '../../src/lite-api/pipeline_options';
+
 export {
   StageOptions,
   CollectionStageOptions,
@@ -74,6 +76,7 @@ export {
   AddFieldsStageOptions,
   RemoveFieldsStageOptions,
   DefineStageOptions,
+  DeleteStageOptions,
   SelectStageOptions,
   WhereStageOptions,
   OffsetStageOptions,
@@ -81,10 +84,14 @@ export {
   DistinctStageOptions,
   AggregateStageOptions,
   FindNearestStageOptions,
+  InsertStageOptions,
+  LiteralsStageOptions,
   ReplaceWithStageOptions,
   SampleStageOptions,
   UnionStageOptions,
   UnnestStageOptions,
+  UpdateStageOptions,
+  UpsertStageOptions,
   SortStageOptions,
   SearchStageOptions
   // TODO(search) export with backend support

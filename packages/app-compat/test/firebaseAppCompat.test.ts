@@ -16,8 +16,6 @@
  */
 
 import './setup';
-import { expect } from 'chai';
-import { stub } from 'sinon';
 import { FirebaseNamespace, FirebaseOptions } from '../src/public-types';
 import { _FirebaseApp, _FirebaseNamespace } from '../src/types';
 import { _components, _clearComponents } from '@firebase/app';
@@ -50,10 +48,10 @@ function executeFirebaseTests(): void {
     });
 
     it('will do nothing if registerComponent is called again with the same name', () => {
-      const registerStub = stub(
+      const registerStub = vi.spyOn(
         (firebase as _FirebaseNamespace).INTERNAL,
         'registerComponent'
-      ).callThrough();
+      );
 
       const testComponent = createTestComponent('test');
 
@@ -69,9 +67,9 @@ function executeFirebaseTests(): void {
 
       const serviceNamespace2 = (firebase as any).test;
 
-      expect(serviceNamespace).to.eq(serviceNamespace2);
-      expect(registerStub).to.have.not.thrown();
-      registerStub.restore();
+      expect(serviceNamespace).toBe(serviceNamespace2);
+      expect(registerStub).toHaveReturnedTimes(2);
+      registerStub.mockRestore();
     });
 
     it('returns cached service instances', () => {
@@ -82,7 +80,7 @@ function executeFirebaseTests(): void {
 
       const service = (firebase as any).test();
 
-      expect(service).to.eq((firebase as any).test());
+      expect(service).toBe((firebase as any).test());
     });
 
     it('does not instantiate explicit components unless called explicitly', () => {
@@ -114,7 +112,7 @@ function executeFirebaseTests(): void {
       );
 
       (firebase as any).consumer();
-      expect(explicitService).to.be.null;
+      expect(explicitService).toBeNull();
     });
 
     it('does instantiate explicit components when called explicitly', () => {
@@ -147,7 +145,7 @@ function executeFirebaseTests(): void {
 
       (firebase as any).explicit2();
       (firebase as any).consumer();
-      expect(explicitService).to.not.be.null;
+      expect(explicitService).not.toBeNull();
     });
 
     it(`creates a new instance of a service after removing the existing instance`, () => {
@@ -158,11 +156,11 @@ function executeFirebaseTests(): void {
 
       const service = (firebase as any).test();
 
-      expect(service).to.eq((firebase as any).test());
+      expect(service).toBe((firebase as any).test());
 
       (app as _FirebaseApp)._removeServiceInstance('test');
 
-      expect(service, (firebase as any).test());
+      expect(service).not.toBe((firebase as any).test());
     });
 
     it(`creates a new instance of a service after removing the existing instance - for service that supports multiple instances`, () => {
@@ -184,9 +182,9 @@ function executeFirebaseTests(): void {
       );
 
       // default instance should not be changed
-      expect(instance1).to.eq((firebase.app() as any).multiInstance());
+      expect(instance1).toBe((firebase.app() as any).multiInstance());
 
-      expect(instance2).to.not.eq(
+      expect(instance2).not.toBe(
         (firebase.app() as any).multiInstance(serviceIdentifier)
       );
     });
@@ -200,38 +198,40 @@ function executeFirebaseTests(): void {
     });
 
     it('will register an official version component without warnings', () => {
-      const warnStub = stub(console, 'warn');
+      const warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const initialSize = _components.size;
 
       firebase.registerVersion('@firebase/app-compat', '1.2.3');
-      expect(_components.get('fire-core-compat-version')).to.exist;
-      expect(_components.size).to.equal(initialSize + 1);
+      expect(_components.get('fire-core-compat-version')).toBeDefined();
+      expect(_components.size).toBe(initialSize + 1);
 
-      expect(warnStub.called).to.be.false;
+      expect(warnStub).not.toHaveBeenCalled();
     });
 
     it('will register an arbitrary version component without warnings', () => {
-      const warnStub = stub(console, 'warn');
+      const warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const initialSize = _components.size;
 
       firebase.registerVersion('angularfire', '1.2.3');
-      expect(_components.get('angularfire-version')).to.exist;
-      expect(_components.size).to.equal(initialSize + 1);
+      expect(_components.get('angularfire-version')).toBeDefined();
+      expect(_components.size).toBe(initialSize + 1);
 
-      expect(warnStub.called).to.be.false;
+      expect(warnStub).not.toHaveBeenCalled();
     });
 
     it('will do nothing if registerVersion() is given illegal characters', () => {
-      const warnStub = stub(console, 'warn');
+      const warnStub = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const initialSize = _components.size;
 
       firebase.registerVersion('remote config', '1.2.3');
-      expect(warnStub.args[0][1]).to.include('library name "remote config"');
-      expect(_components.size).to.equal(initialSize);
+      expect(warnStub.mock.calls[0][1]).toContain(
+        'library name "remote config"'
+      );
+      expect(_components.size).toBe(initialSize);
 
       firebase.registerVersion('remote-config', '1.2/3');
-      expect(warnStub.args[1][1]).to.include('version name "1.2/3"');
-      expect(_components.size).to.equal(initialSize);
+      expect(warnStub.mock.calls[1][1]).toContain('version name "1.2/3"');
+      expect(_components.size).toBe(initialSize);
     });
   });
 }
@@ -256,7 +256,7 @@ function executeFirebaseLiteTests(): void {
       );
       const app = firebase.initializeApp({});
       const perf = (app as any).performance();
-      expect(perf).to.be.instanceof(TestService);
+      expect(perf).toBeInstanceOf(TestService);
     });
 
     it('allows Installations service to register', () => {
@@ -265,7 +265,7 @@ function executeFirebaseLiteTests(): void {
       );
       const app = firebase.initializeApp({});
       const perf = (app as any).installations();
-      expect(perf).to.be.instanceof(TestService);
+      expect(perf).toBeInstanceOf(TestService);
     });
 
     it('does NOT allow services other than Performance and installations to register', () => {
@@ -273,7 +273,7 @@ function executeFirebaseLiteTests(): void {
         (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
           createTestComponent('auth')
         )
-      ).to.throw();
+      ).toThrow();
     });
 
     it('allows any private component to register', () => {
@@ -281,7 +281,7 @@ function executeFirebaseLiteTests(): void {
         (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
           createTestComponent('auth-internal', false, ComponentType.PRIVATE)
         )
-      ).to.not.throw();
+      ).not.toThrow();
     });
   });
 }
@@ -302,48 +302,48 @@ function firebaseAppTests(
     });
 
     it('has no initial apps.', () => {
-      expect(firebase.apps.length).to.eq(0);
+      expect(firebase.apps.length).toBe(0);
     });
 
     it('Can get app via firebase namespace.', () => {
       const app = firebase.initializeApp({});
-      expect(app).to.be.not.null;
+      expect(app).not.toBeNull();
     });
 
     it('can initialize DEFAULT App.', () => {
       const app = firebase.initializeApp({});
-      expect(firebase.apps.length).to.eq(1);
-      expect(app).to.eq(firebase.apps[0]);
-      expect(app.name).to.eq('[DEFAULT]');
-      expect(firebase.app()).to.eq(app);
-      expect(firebase.app('[DEFAULT]')).to.eq(app);
+      expect(firebase.apps.length).toBe(1);
+      expect(app).toBe(firebase.apps[0]);
+      expect(app.name).toBe('[DEFAULT]');
+      expect(firebase.app()).toBe(app);
+      expect(firebase.app('[DEFAULT]')).toBe(app);
     });
 
     it('can get options of App.', () => {
       const options: FirebaseOptions = { projectId: 'projectId' };
       const app = firebase.initializeApp(options);
-      expect(app.options).to.deep.eq(options);
+      expect(app.options).toEqual(options);
     });
 
     it('can delete App.', async () => {
       const app = firebase.initializeApp({});
-      expect(firebase.apps.length).to.eq(1);
+      expect(firebase.apps.length).toBe(1);
       await app.delete();
-      expect(firebase.apps.length).to.eq(0);
+      expect(firebase.apps.length).toBe(0);
     });
 
     it('can create named App.', () => {
       const app = firebase.initializeApp({}, 'my-app');
-      expect(firebase.apps.length).to.eq(1);
-      expect(app.name).to.eq('my-app');
-      expect(firebase.app('my-app')).to.eq(app);
+      expect(firebase.apps.length).toBe(1);
+      expect(app.name).toBe('my-app');
+      expect(firebase.app('my-app')).toBe(app);
     });
 
     it('can create named App and DEFAULT app.', () => {
       firebase.initializeApp({}, 'my-app');
-      expect(firebase.apps.length).to.eq(1);
+      expect(firebase.apps.length).toBe(1);
       firebase.initializeApp({});
-      expect(firebase.apps.length).to.eq(2);
+      expect(firebase.apps.length).toBe(2);
     });
 
     it('initializeApp can be called more than once and returns the same instance if the options and config are the same', () => {
@@ -360,19 +360,19 @@ function firebaseAppTests(
           },
           { automaticDataCollectionEnabled: true }
         )
-      ).to.equal(app);
+      ).toBe(app);
     });
 
     it('duplicate DEFAULT initialize with different options is an error.', () => {
       firebase.initializeApp({ apiKey: 'key1' });
-      expect(() => firebase.initializeApp({ apiKey: 'key2' })).throws(
+      expect(() => firebase.initializeApp({ apiKey: 'key2' })).toThrow(
         /\[DEFAULT\].*exists/i
       );
     });
 
     it('duplicate named App initialize with different options is an error.', () => {
       firebase.initializeApp({ apiKey: 'key1', appId: 'id' }, 'abc');
-      expect(() => firebase.initializeApp({ apiKey: 'key1' }, 'abc')).throws(
+      expect(() => firebase.initializeApp({ apiKey: 'key1' }, 'abc')).toThrow(
         /'abc'.*exists/i
       );
     });
@@ -387,7 +387,7 @@ function firebaseAppTests(
           { apiKey: 'key1' },
           { automaticDataCollectionEnabled: false }
         )
-      ).throws(/\[DEFAULT\].*exists/i);
+      ).toThrow(/\[DEFAULT\].*exists/i);
     });
 
     it('duplicate named App initialize with different config is an error.', () => {
@@ -400,12 +400,12 @@ function firebaseAppTests(
           { apiKey: 'key1' },
           { name: 'abc', automaticDataCollectionEnabled: false }
         )
-      ).throws(/'abc'.*exists/i);
+      ).toThrow(/'abc'.*exists/i);
     });
 
     it('automaticDataCollectionEnabled is `true` by default', () => {
       const app = firebase.initializeApp({}, 'my-app');
-      expect(app.automaticDataCollectionEnabled).to.eq(true);
+      expect(app.automaticDataCollectionEnabled).toBe(true);
     });
 
     it('automaticDataCollectionEnabled can be set via the config object', () => {
@@ -413,7 +413,7 @@ function firebaseAppTests(
         {},
         { automaticDataCollectionEnabled: false }
       );
-      expect(app.automaticDataCollectionEnabled).to.eq(false);
+      expect(app.automaticDataCollectionEnabled).toBe(false);
     });
 
     it('Modifying options object does not change options.', () => {
@@ -424,7 +424,7 @@ function firebaseAppTests(
       firebase.initializeApp(options);
       options.appId = 'changed';
       delete options.measurementId;
-      expect(firebase.app().options).to.deep.eq({
+      expect(firebase.app().options).toEqual({
         appId: 'original',
         measurementId: 'someId'
       });
@@ -433,7 +433,7 @@ function firebaseAppTests(
     it('Error to use app after it is deleted.', async () => {
       const app = firebase.initializeApp({});
       await app.delete();
-      expect(() => console.log(app.name)).throws(/already.*deleted/);
+      expect(() => console.log(app.name)).toThrow(/already.*deleted/);
     });
 
     it('OK to create same-name app after it is deleted.', async () => {
@@ -441,27 +441,27 @@ function firebaseAppTests(
       await app.delete();
 
       const app2 = firebase.initializeApp({}, 'app-name');
-      expect(app).to.not.eq(app2, 'Expect new instance.');
+      expect(app, 'Expect new instance.').not.toBe(app2);
       // But original app id still orphaned.
-      expect(() => console.log(app.name)).throws(/already.*deleted/);
+      expect(() => console.log(app.name)).toThrow(/already.*deleted/);
     });
 
     it('OK to use Object.prototype member names as app name.', () => {
       const app = firebase.initializeApp({}, 'toString');
-      expect(firebase.apps.length).to.eq(1);
-      expect(app.name).to.eq('toString');
-      expect(firebase.app('toString')).to.eq(app);
+      expect(firebase.apps.length).toBe(1);
+      expect(app.name).toBe('toString');
+      expect(firebase.app('toString')).toBe(app);
     });
 
     it('Error to get uninitialized app using Object.prototype member name.', () => {
-      expect(() => firebase.app('toString')).throws(/'toString'.*created/i);
+      expect(() => firebase.app('toString')).toThrow(/'toString'.*created/i);
     });
 
     describe('Check for bad app names', () => {
       const tests = ['', 123, false];
       for (const data of tests) {
         it("where name == '" + data + "'", () => {
-          expect(() => firebase.initializeApp({}, data as string)).throws(
+          expect(() => firebase.initializeApp({}, data as string)).toThrow(
             /Illegal app name/i
           );
         });
@@ -474,7 +474,7 @@ function firebaseAppTests(
         it("where name == '" + name + "'", () => {
           expect(() =>
             firebase.initializeApp({}, { name: name as string })
-          ).throws(/Illegal app name/i);
+          ).toThrow(/Illegal app name/i);
         });
       }
     });

@@ -17,17 +17,20 @@
 
 declare let MozWebSocket: WebSocket;
 
-import '../../src/index';
+if (typeof window === 'undefined') {
+  await import('../../src/index.node');
+} else {
+  await import('../../src/index');
+}
 
 import firebase from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
 
+import TEST_PROJECT from '../../../../config/project.json';
 import { Path } from '../../../database/src/core/util/Path';
 import { Query, Reference } from '../../src/api/Reference';
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-export const TEST_PROJECT = require('../../../../config/project.json');
+export { TEST_PROJECT };
 
 const EMULATOR_PORT = process.env.RTDB_EMULATOR_PORT;
 const EMULATOR_NAMESPACE = process.env.RTDB_EMULATOR_NAMESPACE;

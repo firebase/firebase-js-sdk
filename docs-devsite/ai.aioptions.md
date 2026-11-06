@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # AIOptions interface
-Options for initializing the AI service using [getAI()](./ai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Gemini Developer API or Gemini Enterprise API) and configuring its specific options (like location for Gemini Enterprise).
+Options for initializing the AI service using [getAI()](./ai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Gemini Developer API or Agent Platform Gemini API) and configuring its specific options (like location for Agent Platform).
 
 <b>Signature:</b>
 
@@ -23,7 +23,7 @@ export interface AIOptions
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [backend](./ai.aioptions.md#aioptionsbackend) | [Backend](./ai.backend.md#backend_class) | The backend configuration to use for the AI service instance. Defaults to the Gemini Developer API backend ([GoogleAIBackend](./ai.googleaibackend.md#googleaibackend_class)<!-- -->). |
-|  [useLimitedUseAppCheckTokens](./ai.aioptions.md#aioptionsuselimiteduseappchecktokens) | boolean | Whether to use App Check limited use tokens. Defaults to false. |
+|  [useLimitedUseAppCheckTokens](./ai.aioptions.md#aioptionsuselimiteduseappchecktokens) | boolean | Whether to use App Check limited use tokens. Defaults to false. This option is applied when the [AI](./ai.ai.md#ai_interface) instance for the given app and backend is first created by [getAI()](./ai.md#getai_a94a413)<!-- -->, and cannot be changed by later <code>getAI()</code> calls. |
 
 ## AIOptions.backend
 
@@ -37,7 +37,7 @@ backend?: Backend;
 
 ## AIOptions.useLimitedUseAppCheckTokens
 
-Whether to use App Check limited use tokens. Defaults to false.
+Whether to use App Check limited use tokens. Defaults to false. This option is applied when the [AI](./ai.ai.md#ai_interface) instance for the given app and backend is first created by [getAI()](./ai.md#getai_a94a413)<!-- -->, and cannot be changed by later `getAI()` calls.
 
 <b>Signature:</b>
 

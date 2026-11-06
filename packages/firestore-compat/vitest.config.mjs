@@ -75,7 +75,6 @@ config.test.projects = config.test.projects.map(project => {
         )
       ],
       fileParallelism: false,
-      isolate: true,
       testTimeout: 20000,
       hookTimeout: 20000,
       retry: process.env.CI ? 3 : 0,
@@ -94,7 +93,8 @@ config.test.projects = config.test.projects.map(project => {
                 }
               ],
               screenshotFailures: false
-            }
+            },
+            isolate: false
           }
         : {})
     }

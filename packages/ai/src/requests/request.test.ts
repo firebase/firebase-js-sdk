@@ -30,13 +30,13 @@ import { DEFAULT_API_VERSION } from '../constants';
 import { AIErrorCode, InferenceMode } from '../types';
 import { AIError } from '../errors';
 import { getMockResponse } from '../../test-utils/mock-response';
-import { EnterpriseBackend } from '../backend';
+import { AgentPlatformBackend } from '../backend';
 
 const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  backend: new EnterpriseBackend()
+  backend: new AgentPlatformBackend()
 };
 
 describe('request methods', () => {
@@ -120,7 +120,7 @@ describe('request methods', () => {
       apiKey: 'key',
       project: 'myproject',
       appId: 'my-appid',
-      backend: new EnterpriseBackend(),
+      backend: new AgentPlatformBackend(),
       getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
       getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
     };
@@ -162,7 +162,7 @@ describe('request methods', () => {
         apiKey: 'key',
         project: 'myproject',
         appId: 'my-appid',
-        backend: new EnterpriseBackend(),
+        backend: new AgentPlatformBackend(),
         automaticDataCollectionEnabled: true,
         getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
         getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
@@ -186,7 +186,7 @@ describe('request methods', () => {
         apiKey: 'key',
         project: 'myproject',
         appId: 'my-appid',
-        backend: new EnterpriseBackend(),
+        backend: new AgentPlatformBackend(),
         automaticDataCollectionEnabled: false,
         getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
         getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
@@ -213,7 +213,7 @@ describe('request methods', () => {
           apiKey: 'key',
           project: 'myproject',
           appId: 'my-appid',
-          backend: new EnterpriseBackend()
+          backend: new AgentPlatformBackend()
         },
         stream: true,
         singleRequestOptions: undefined
@@ -245,7 +245,7 @@ describe('request methods', () => {
           apiKey: 'key',
           project: 'myproject',
           appId: 'my-appid',
-          backend: new EnterpriseBackend(),
+          backend: new AgentPlatformBackend(),
           getAppCheckToken: () =>
             Promise.resolve({ token: 'dummytoken', error: Error('oops') })
         },
@@ -256,7 +256,7 @@ describe('request methods', () => {
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('X-Firebase-AppCheck')).toBe('dummytoken');
       expect(warnStub).toHaveBeenCalledWith(
-        expect.stringMatching(/vertexai/),
+        expect.stringMatching(/ai/),
         expect.stringMatching(/App Check.*oops/)
       );
       warnStub.mockRestore();
@@ -273,7 +273,7 @@ describe('request methods', () => {
           apiKey: 'key',
           project: 'myproject',
           appId: 'my-appid',
-          backend: new EnterpriseBackend()
+          backend: new AgentPlatformBackend()
         },
         stream: true,
         singleRequestOptions: undefined

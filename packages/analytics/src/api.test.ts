@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { SinonStub, stub } from 'sinon';
-import '../testing/setup';
-import { getFullApp } from '../testing/get-fake-firebase-services';
+import { getFullApp } from '../test/get-fake-firebase-services';
 import {
   getAnalytics,
   initializeAnalytics,
@@ -27,9 +24,9 @@ import {
 } from './api';
 import { FirebaseApp, deleteApp } from '@firebase/app';
 import { AnalyticsError } from './errors';
-import * as init from './initialize-analytics';
 const fakeAppParams = { appId: 'abcdefgh12345:23405', apiKey: 'AAbbCCdd12345' };
-import * as factory from './factory';
+
+import { _setWrappedGtagFunction, resetGlobalVars } from './factory';
 import {
   defaultConsentSettingsForInit,
   defaultEventParametersForInit
@@ -37,25 +34,18 @@ import {
 import { ConsentSettings } from './public-types';
 
 describe('FirebaseAnalytics API tests', () => {
-  let initStub: SinonStub = stub();
   let app: FirebaseApp;
-  const wrappedGtag: SinonStub = stub();
-
-  beforeEach(() => {
-    initStub = stub(init, '_initializeAnalytics').resolves(
-      'FAKE_MEASUREMENT_ID'
-    );
-  });
+  const wrappedGtag = vi.fn();
 
   afterEach(async () => {
-    await initStub();
-    initStub.restore();
+    resetGlobalVars();
     if (app) {
-      return deleteApp(app);
+      await deleteApp(app);
+      app = undefined as any;
     }
   });
 
-  after(() => {
+  afterAll(() => {
     delete window['gtag'];
     delete window['dataLayer'];
   });
@@ -64,7 +54,7 @@ describe('FirebaseAnalytics API tests', () => {
     app = getFullApp(fakeAppParams);
     const analyticsInstance = initializeAnalytics(app);
     const newInstance = initializeAnalytics(app);
-    expect(analyticsInstance).to.equal(newInstance);
+    expect(analyticsInstance).toBe(newInstance);
   });
   it('initializeAnalytics() with same options returns same instance', () => {
     app = getFullApp(fakeAppParams);
@@ -74,7 +64,7 @@ describe('FirebaseAnalytics API tests', () => {
     const newInstance = initializeAnalytics(app, {
       config: { 'send_page_view': false }
     });
-    expect(analyticsInstance).to.equal(newInstance);
+    expect(analyticsInstance).toBe(newInstance);
   });
   it('initializeAnalytics() with different options throws', () => {
     app = getFullApp(fakeAppParams);
@@ -85,7 +75,7 @@ describe('FirebaseAnalytics API tests', () => {
       initializeAnalytics(app, {
         config: { 'send_page_view': true }
       })
-    ).to.throw(AnalyticsError.ALREADY_INITIALIZED);
+    ).toThrow(AnalyticsError.ALREADY_INITIALIZED);
   });
   it('initializeAnalytics() with different options (one undefined) throws', () => {
     app = getFullApp(fakeAppParams);
@@ -94,61 +84,53 @@ describe('FirebaseAnalytics API tests', () => {
       initializeAnalytics(app, {
         config: { 'send_page_view': true }
       })
-    ).to.throw(AnalyticsError.ALREADY_INITIALIZED);
+    ).toThrow(AnalyticsError.ALREADY_INITIALIZED);
   });
   it('getAnalytics() returns same instance created by previous getAnalytics()', () => {
     app = getFullApp(fakeAppParams);
     const analyticsInstance = getAnalytics(app);
-    expect(getAnalytics(app)).to.equal(analyticsInstance);
+    expect(getAnalytics(app)).toBe(analyticsInstance);
   });
   it('getAnalytics() returns same instance created by initializeAnalytics()', () => {
     app = getFullApp(fakeAppParams);
     const analyticsInstance = initializeAnalytics(app);
-    expect(getAnalytics(app)).to.equal(analyticsInstance);
+    expect(getAnalytics(app)).toBe(analyticsInstance);
   });
   it('setDefaultEventParameters() updates defaultEventParametersForInit if gtag does not exist ', () => {
     const eventParametersForInit = {
       'github_user': 'dwyfrequency',
       'company': 'google'
     };
-    app = getFullApp(fakeAppParams);
+    _setWrappedGtagFunction(undefined);
     setDefaultEventParameters(eventParametersForInit);
-    expect(defaultEventParametersForInit).to.deep.equal(eventParametersForInit);
+    expect(defaultEventParametersForInit).toEqual(eventParametersForInit);
   });
   it('setDefaultEventParameters() calls gtag set if wrappedGtagFunction exists', () => {
     const eventParametersForInit = {
       'github_user': 'dwyfrequency',
       'company': 'google'
     };
-    stub(factory, 'wrappedGtagFunction').get(() => wrappedGtag);
-    app = getFullApp(fakeAppParams);
+    _setWrappedGtagFunction(wrappedGtag);
     setDefaultEventParameters(eventParametersForInit);
-    expect(wrappedGtag).to.have.been.calledWithExactly(
-      'set',
-      eventParametersForInit
-    );
+    expect(wrappedGtag).toHaveBeenCalledWith('set', eventParametersForInit);
   });
   it('setConsent() updates defaultConsentSettingsForInit if gtag does not exist ', () => {
     const consentParametersForInit: ConsentSettings = {
       'analytics_storage': 'granted',
       'functionality_storage': 'denied'
     };
-    stub(factory, 'wrappedGtagFunction').get(() => undefined);
-    app = getFullApp(fakeAppParams);
+    _setWrappedGtagFunction(undefined);
     setConsent(consentParametersForInit);
-    expect(defaultConsentSettingsForInit).to.deep.equal(
-      consentParametersForInit
-    );
+    expect(defaultConsentSettingsForInit).toEqual(consentParametersForInit);
   });
   it('setConsent() calls gtag consent "update" if wrappedGtagFunction exists', () => {
     const consentParametersForInit: ConsentSettings = {
       'analytics_storage': 'granted',
       'functionality_storage': 'denied'
     };
-    stub(factory, 'wrappedGtagFunction').get(() => wrappedGtag);
-    app = getFullApp(fakeAppParams);
+    _setWrappedGtagFunction(wrappedGtag);
     setConsent(consentParametersForInit);
-    expect(wrappedGtag).to.have.been.calledWithExactly(
+    expect(wrappedGtag).toHaveBeenCalledWith(
       'consent',
       'update',
       consentParametersForInit

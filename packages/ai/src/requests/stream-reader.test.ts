@@ -37,13 +37,13 @@ import {
 } from '../types';
 import { AIError } from '../errors';
 import { ApiSettings } from '../types/internal';
-import { EnterpriseBackend } from '../backend';
+import { AgentPlatformBackend } from '../backend';
 
 const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  backend: new EnterpriseBackend()
+  backend: new AgentPlatformBackend()
 };
 
 describe('getResponseStream', () => {
@@ -568,5 +568,59 @@ describe('aggregateResponses', () => {
           'by a malformed response from the backend.'
       );
     }
+  });
+
+  it('preserves speechMetadata on text parts when aggregating responses', () => {
+    const responsesToAggregate: GenerateContentResponse[] = [
+      {
+        candidates: [
+          {
+            index: 0,
+            content: {
+              role: 'model',
+              parts: [{ type: 'text', text: 'Regular text A' }]
+            }
+          }
+        ]
+      },
+      {
+        candidates: [
+          {
+            index: 0,
+            content: {
+              role: 'model',
+              parts: [
+                {
+                  type: 'text',
+                  text: 'Spoken turn',
+                  speechMetadata: { speaker: 'Joe', style: 'cheerful' }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        candidates: [
+          {
+            index: 0,
+            content: {
+              role: 'model',
+              parts: [{ type: 'text', text: 'Regular text B' }]
+            }
+          }
+        ]
+      }
+    ];
+    const response = aggregateResponses(responsesToAggregate);
+    expect(response.candidates?.[0].content.parts).to.deep.equal([
+      { type: 'text', text: 'Regular text A' },
+      {
+        type: 'text',
+        text: 'Spoken turn',
+        speechMetadata: { speaker: 'Joe', style: 'cheerful' }
+      },
+      { type: 'text', text: 'Regular text B' }
+    ]);
   });
 });

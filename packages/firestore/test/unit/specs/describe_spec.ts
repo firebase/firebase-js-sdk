@@ -16,7 +16,6 @@
  */
 
 import stringify from 'json-stable-stringify';
-import { ExclusiveTestFunction, PendingTestFunction } from 'mocha';
 
 import { Pipeline } from '../../../lite/pipelines/pipelines';
 import { pipelineEq } from '../../../src/core/pipeline-util';
@@ -94,7 +93,7 @@ function getTestRunner(
   tags: string[],
   persistenceEnabled: boolean,
   convertToPipeline: boolean
-): ExclusiveTestFunction | PendingTestFunction {
+): typeof it | typeof it.skip | typeof it.only {
   if (tags.indexOf(NO_WEB_TAG) >= 0) {
     // eslint-disable-next-line no-restricted-properties
     return it.skip;

@@ -16,7 +16,6 @@
  */
 
 import { getModularInstance } from '@firebase/util';
-import { expect } from 'chai';
 import { getRemoteConfig } from '@firebase/remote-config';
 import firebase from '@firebase/app-compat';
 import '@firebase/remote-config-compat';
@@ -30,6 +29,6 @@ const modularRC = getRemoteConfig();
 
 describe('RC compat interop', () => {
   it('RC compat instance references modular RC instance', () => {
-    expect(getModularInstance(compatRC)).to.equal(modularRC);
+    expect(getModularInstance(compatRC)).toBe(modularRC);
   });
 });

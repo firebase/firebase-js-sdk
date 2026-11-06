@@ -636,6 +636,9 @@ export type DefineStageOptions = StageOptions & {
 };
 
 // @public
+export type DeleteStageOptions = StageOptions;
+
+// @public
 export function descending(expr: Expression): Ordering;
 
 // @public
@@ -680,7 +683,7 @@ export function documentId(
 documentPathExpr: Expression
 ): FunctionExpression;
 
-// @beta
+// @public
 export function documentMatches(
 rquery: string | Expression
 ): BooleanExpression;
@@ -1432,7 +1435,6 @@ export class Field extends Expression implements Selectable {
     readonly expressionType: ExpressionType;
     // (undocumented)
     get fieldName(): string;
-    // @beta
     geoDistance(location: GeoPoint | Expression): Expression;
     // (undocumented)
     selectable: true;
@@ -1484,7 +1486,7 @@ export class FunctionExpression extends Expression {
     /* Excluded from this release type: _readUserData */
 }
 
-// @beta
+// @public
 export function geoDistance(
 fieldName: string | Field,
 location: GeoPoint | Expression
@@ -1603,6 +1605,12 @@ export function ifNull(
 ifFieldName: string,
 elseValue: unknown
 ): FunctionExpression;
+
+// @public
+export type InsertStageOptions = StageOptions & {
+    collection?: string | CollectionReference;
+    documentIdExpression?: string | Expression;
+};
 
 // @public
 export function isAbsent(value: Expression): BooleanExpression;
@@ -1737,6 +1745,11 @@ pattern: Expression
 // @public
 export type LimitStageOptions = StageOptions & {
     limit: number;
+};
+
+// @public
+export type LiteralsStageOptions = StageOptions & {
+    documents: Array<Record<string, unknown>>;
 };
 
 // @public
@@ -2072,12 +2085,16 @@ export class Pipeline {
     ...additionalExpressions: AliasedExpression[]
     ): Pipeline;
     define(options: DefineStageOptions): Pipeline;
+    delete(): Pipeline;
+    delete(options: DeleteStageOptions): Pipeline;
     distinct(
     group: string | Selectable,
     ...additionalGroups: Array<string | Selectable>
     ): Pipeline;
     distinct(options: DistinctStageOptions): Pipeline;
     findNearest(options: FindNearestStageOptions): Pipeline;
+    insert(): Pipeline;
+    insert(options: InsertStageOptions): Pipeline;
     limit(limit: number): Pipeline;
     limit(options: LimitStageOptions): Pipeline;
     offset(offset: number): Pipeline;
@@ -2099,7 +2116,6 @@ export class Pipeline {
     replaceWith(options: ReplaceWithStageOptions): Pipeline;
     sample(documents: number): Pipeline;
     sample(options: SampleStageOptions): Pipeline;
-    // @beta
     search(options: SearchStageOptions): Pipeline;
     select(
     selection: Selectable | string,
@@ -2114,12 +2130,25 @@ export class Pipeline {
     union(options: UnionStageOptions): Pipeline;
     unnest(selectable: Selectable, indexField?: string): Pipeline;
     unnest(options: UnnestStageOptions): Pipeline;
+    update(): Pipeline;
+    update(
+    transformedField: AliasedExpression,
+    ...additionalFields: AliasedExpression[]
+    ): Pipeline;
+    update(options: UpdateStageOptions): Pipeline;
+    upsert(): Pipeline;
+    upsert(
+    additionalField: AliasedExpression,
+    ...additionalFields: AliasedExpression[]
+    ): Pipeline;
+    upsert(options: UpsertStageOptions): Pipeline;
     where(condition: BooleanExpression): Pipeline;
     where(options: WhereStageOptions): Pipeline;
 }
 
 // @public
 export interface PipelineExecuteOptions {
+    atomic?: boolean;
     indexMode?: 'recommended';
     pipeline: Pipeline;
     rawOptions?: {
@@ -2169,6 +2198,8 @@ export class PipelineSource<PipelineType> {
     database(options: DatabaseStageOptions): PipelineType;
     documents(docs: Array<string | DocumentReference>): PipelineType;
     documents(options: DocumentsStageOptions): PipelineType;
+    literals(documents: Array<Record<string, unknown>>): PipelineType;
+    literals(options: LiteralsStageOptions): PipelineType;
 }
 
 // @public
@@ -2346,10 +2377,10 @@ OneOf<{
     documents: number;
 }>;
 
-// @beta
+// @public
 export function score(): Expression;
 
-// @beta
+// @public
 export type SearchStageOptions = StageOptions & {
     query: BooleanExpression | string;
     languageCode?: string;
@@ -2891,6 +2922,18 @@ fieldName: string
 export type UnnestStageOptions = StageOptions & {
     selectable: Selectable;
     indexField?: string;
+};
+
+// @public
+export type UpdateStageOptions = StageOptions & {
+    transformedFields?: AliasedExpression[];
+};
+
+// @public
+export type UpsertStageOptions = StageOptions & {
+    collection?: string | CollectionReference;
+    documentIdExpression?: string | Expression;
+    additionalFields?: AliasedExpression[];
 };
 
 // @public

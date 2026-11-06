@@ -1,5 +1,26 @@
 # @firebase/app-compat
 
+## 0.5.21
+
+### Patch Changes
+
+- Updated dependencies [[`fe5dd06`](https://github.com/firebase/firebase-js-sdk/commit/fe5dd06c03ad6d5393b01590ec61bdd9be5e2839)]:
+  - @firebase/app@0.16.5
+
+## 0.5.20
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.16.4
+
+## 0.5.19
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.16.3
+
 ## 0.5.18
 
 ### Patch Changes

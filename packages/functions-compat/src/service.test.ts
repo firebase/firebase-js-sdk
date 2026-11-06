@@ -14,28 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect, use } from 'chai';
+
 import { createTestService } from '../test/utils';
 import { FunctionsService } from './service';
 import firebase, { FirebaseApp } from '@firebase/app-compat';
 import * as functionsExp from '@firebase/functions';
-import { stub, match, SinonStub } from 'sinon';
-import sinonChai from 'sinon-chai';
 
-use(sinonChai);
+vi.mock('@firebase/functions', { spy: true });
 
 describe('Firebase Functions > Service', () => {
   let app: FirebaseApp;
   let service: FunctionsService;
-  let functionsEmulatorStub: SinonStub = stub();
-  let httpsCallableStub: SinonStub = stub();
-
-  before(() => {
-    functionsEmulatorStub = stub(functionsExp, 'connectFunctionsEmulator');
-    httpsCallableStub = stub(functionsExp, 'httpsCallable');
-  });
+  let functionsEmulatorStub = vi.fn();
+  let httpsCallableStub = vi.fn();
 
   beforeEach(() => {
+    functionsEmulatorStub = vi.spyOn(functionsExp, 'connectFunctionsEmulator');
+    httpsCallableStub = vi.spyOn(functionsExp, 'httpsCallable');
     app = firebase.initializeApp({
       projectId: 'my-project',
       messagingSenderId: 'messaging-sender-id'
@@ -46,49 +41,44 @@ describe('Firebase Functions > Service', () => {
     await app.delete();
   });
 
-  after(() => {
-    functionsEmulatorStub.restore();
-    httpsCallableStub.restore();
-  });
-
   it('useFunctionsEmulator (deprecated) calls modular useEmulator', () => {
     service = createTestService(app);
     service.useFunctionsEmulator('http://localhost:5005');
-    expect(functionsEmulatorStub).to.be.calledWith(
-      match.any,
+    expect(functionsEmulatorStub).toHaveBeenCalledWith(
+      expect.anything(),
       'localhost',
       5005
     );
-    functionsEmulatorStub.resetHistory();
+    functionsEmulatorStub.mockClear();
   });
 
   it('useEmulator calls modular useEmulator', () => {
     service = createTestService(app);
     service.useEmulator('otherlocalhost', 5006);
-    expect(functionsEmulatorStub).to.be.calledWith(
-      match.any,
+    expect(functionsEmulatorStub).toHaveBeenCalledWith(
+      expect.anything(),
       'otherlocalhost',
       5006
     );
-    functionsEmulatorStub.resetHistory();
+    functionsEmulatorStub.mockClear();
   });
 
   it('httpsCallable calls modular httpsCallable', () => {
     service = createTestService(app);
     service.httpsCallable('blah', { timeout: 2000 });
-    expect(httpsCallableStub).to.be.calledWith(match.any, 'blah', {
+    expect(httpsCallableStub).toHaveBeenCalledWith(expect.anything(), 'blah', {
       timeout: 2000
     });
-    httpsCallableStub.resetHistory();
+    httpsCallableStub.mockClear();
   });
 
   it('correctly sets region', () => {
     service = createTestService(app, 'my-region');
-    expect(service._region).to.equal('my-region');
+    expect(service._region).toBe('my-region');
   });
 
   it('correctly sets custom domain', () => {
     service = createTestService(app, 'https://mydomain.com');
-    expect(service._customDomain).to.equal('https://mydomain.com');
+    expect(service._customDomain).toBe('https://mydomain.com');
   });
 });

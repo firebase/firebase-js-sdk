@@ -17,4 +17,4 @@
 
 import { Logger } from '@firebase/logger';
 
-export const logger = new Logger('@firebase/vertexai');
+export const logger = new Logger('@firebase/ai');

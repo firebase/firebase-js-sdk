@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { getEmulatorHostAndPort } from '../../src/impl/discovery';
 import {
   loadDatabaseRules,
@@ -38,7 +37,7 @@ describe('loadDatabaseRules()', () => {
         'foo',
         'invalid json %{!@['
       )
-    ).to.be.rejectedWith(/Parse error/);
+    ).rejects.toThrow(/Parse error/);
   });
 });
 
@@ -64,7 +63,7 @@ describe('loadFirestoreRules()', () => {
            banana
          }`
       )
-    ).to.be.rejectedWith(/INVALID_ARGUMENT/);
+    ).rejects.toThrow(/INVALID_ARGUMENT/);
   });
 });
 
@@ -90,6 +89,6 @@ describe('loadStorageRules()', () => {
            banana
          }`
       )
-    ).to.be.rejectedWith(/error updating rules/);
+    ).rejects.toThrow(/error updating rules/);
   });
 });

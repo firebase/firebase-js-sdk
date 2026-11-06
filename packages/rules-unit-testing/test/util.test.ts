@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import * as sinon from 'sinon';
 import {
   assertFails,
   assertSucceeds,
@@ -165,28 +163,28 @@ describe('assertFails()', () => {
 
 describe('withFunctionTriggersDisabled()', () => {
   it('disabling function triggers does not throw, returns value', async function () {
-    const fetchSpy = sinon.spy(globalThis, 'fetch');
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
 
     const res = await withFunctionTriggersDisabled(() => {
       return Promise.resolve(1234);
     });
 
-    expect(res).to.eq(1234);
-    expect(fetchSpy.callCount).to.equal(2);
+    expect(res).toBe(1234);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 
   it('disabling function triggers always re-enables, event when the function throws', async function () {
-    const fetchSpy = sinon.spy(globalThis, 'fetch');
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
 
     const res = withFunctionTriggersDisabled(() => {
       throw new Error('I throw!');
     });
 
-    await expect(res).to.eventually.be.rejectedWith('I throw!');
-    expect(fetchSpy.callCount).to.equal(2);
+    await expect(res).rejects.toThrow('I throw!');
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 
-  context('without env vars', () => {
+  describe('without env vars', () => {
     beforeEach(() => {
       stashEnvVars();
     });
@@ -198,7 +196,7 @@ describe('withFunctionTriggersDisabled()', () => {
         withFunctionTriggersDisabled(() => {
           return Promise.resolve(1234);
         })
-      ).to.rejectedWith(/specify the Emulator Hub host and port/);
+      ).rejects.toThrow(/specify the Emulator Hub host and port/);
     });
   });
 });

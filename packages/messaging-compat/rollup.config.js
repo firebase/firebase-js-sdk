@@ -17,6 +17,7 @@
 
 import json from '@rollup/plugin-json';
 import pkg from './package.json' with { type: 'json' };
+import tsconfig from './tsconfig.json' with { type: 'json' };
 import typescript from 'typescript';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
@@ -27,7 +28,10 @@ const deps = Object.keys(
 
 const buildPlugins = [
   typescriptPlugin({
-    typescript
+    typescript,
+    tsconfigOverride: {
+      exclude: [...tsconfig.exclude, '**/*.test.ts']
+    }
   }),
   json({ preferConst: true })
 ];

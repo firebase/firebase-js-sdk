@@ -10,7 +10,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "tsc && gulp copy-resources",
-    "test": "nyc --reporter lcovonly -- node test/run.js"
+    "test": "vitest run src"
   },
   "bin": {
     "api-documenter-fire": "dist/start.js"
@@ -30,9 +30,7 @@
   },
   "devDependencies": {
     "@types/js-yaml": "4.0.9",
-    "gulp": "5.0.1",
-    "jest-resolve": "29.7.0",
-    "mocha-chai-jest-snapshot": "1.1.6"
+    "gulp": "5.0.1"
   },
   "engines": {
     "node": ">=24.12.0"

@@ -16,7 +16,6 @@
  */
 
 import { _TEST_ACCESS_forceRestClient as forceRestClient } from '@firebase/database';
-import { expect } from 'chai';
 
 import { getRandomNode, getFreshRepoFromReference } from '../helpers/util';
 
@@ -26,15 +25,20 @@ describe('Crawler Support', () => {
   let normalRef;
   let restRef;
 
-  beforeEach(done => {
-    normalRef = getRandomNode();
+  beforeEach(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        const done = (err?: any) => (err ? reject(err) : resolve());
 
-    forceRestClient(true);
-    restRef = getFreshRepoFromReference(normalRef);
-    forceRestClient(false);
+        normalRef = getRandomNode();
 
-    setInitialData(done);
-  });
+        forceRestClient(true);
+        restRef = getFreshRepoFromReference(normalRef);
+        forceRestClient(false);
+
+        setInitialData(done);
+      })
+  );
 
   function setInitialData(done) {
     // Set some initial data.
@@ -64,31 +68,35 @@ describe('Crawler Support', () => {
     };
 
     return normalRef.set(initialData, error => {
-      expect(error).to.not.be.ok;
+      expect(error).toBeFalsy();
       done();
     });
   }
 
-  it('set() is a no-op', done => {
+  it('set() is a no-op', async () => {
+    let leafVal: any;
     normalRef.child('leaf').on('value', s => {
-      expect(s.val()).to.equal(42);
+      leafVal = s.val();
     });
 
-    restRef.child('leaf').set('hello');
+    try {
+      // set() is a no-op on ReadonlyRestClient and its returned promise
+      // never settles; do not await it.
+      void restRef.child('leaf').set('hello');
 
-    // We need to wait long enough to be sure that our 'hello' didn't actually get set, but there's
-    // no good way to do that.  So we just do a couple round-trips via the REST client and assume
-    // that's good enough.
-    restRef.child('obj').once('value', s => {
-      expect(s.val()).to.deep.equal(initialData.obj);
+      // We need to wait long enough to be sure that our 'hello' didn't actually get set, but there's
+      // no good way to do that.  So we just do a couple round-trips via the REST client and assume
+      // that's good enough.
+      const s1 = await restRef.child('obj').once('value');
+      expect(s1.val()).toEqual(initialData.obj);
 
-      restRef.child('obj').once('value', s => {
-        expect(s.val()).to.deep.equal(initialData.obj);
+      const s2 = await restRef.child('obj').once('value');
+      expect(s2.val()).toEqual(initialData.obj);
 
-        normalRef.child('leaf').off();
-        done();
-      });
-    });
+      expect(leafVal).toBe(42);
+    } finally {
+      normalRef.child('leaf').off();
+    }
   });
 
   it('set() is a no-op (Promise)', () => {
@@ -96,7 +104,7 @@ describe('Crawler Support', () => {
     // and we're not accidentally testing a normal Firebase connection.
 
     normalRef.child('leaf').on('value', s => {
-      expect(s.val()).to.equal(42);
+      expect(s.val()).toBe(42);
     });
 
     restRef.child('leaf').set('hello');
@@ -108,13 +116,13 @@ describe('Crawler Support', () => {
       .child('obj')
       .once('value')
       .then(s => {
-        expect(s.val()).to.deep.equal(initialData.obj);
+        expect(s.val()).toEqual(initialData.obj);
 
         return restRef.child('obj').once('value');
       })
       .then(
         s => {
-          expect(s.val()).to.deep.equal(initialData.obj);
+          expect(s.val()).toEqual(initialData.obj);
           normalRef.child('leaf').off();
         },
         reason => {
@@ -124,83 +132,101 @@ describe('Crawler Support', () => {
       );
   });
 
-  it('.info/connected fires with true', done => {
-    restRef.root.child('.info/connected').on('value', s => {
-      if (s.val() === true) {
-        done();
-      }
-    });
-  });
+  it('.info/connected fires with true', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
 
-  it('Leaf read works.', done => {
-    restRef.child('leaf').once('value', s => {
-      expect(s.val()).to.equal(initialData.leaf);
-      done();
-    });
-  });
+      restRef.root.child('.info/connected').on('value', s => {
+        if (s.val() === true) {
+          done();
+        }
+      });
+    }));
+
+  it('Leaf read works.', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      restRef.child('leaf').once('value', s => {
+        expect(s.val()).toBe(initialData.leaf);
+        done();
+      });
+    }));
 
   it('Leaf read works. (Promise)', () => {
     return restRef
       .child('leaf')
       .once('value')
       .then(s => {
-        expect(s.val()).to.equal(initialData.leaf);
+        expect(s.val()).toBe(initialData.leaf);
       });
   });
 
-  it('Object read works.', done => {
-    restRef.child('obj').once('value', s => {
-      expect(s.val()).to.deep.equal(initialData.obj);
-      done();
-    });
-  });
+  it('Object read works.', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      restRef.child('obj').once('value', s => {
+        expect(s.val()).toEqual(initialData.obj);
+        done();
+      });
+    }));
 
   it('Object read works. (Promise)', () => {
     return restRef
       .child('obj')
       .once('value')
       .then(s => {
-        expect(s.val()).to.deep.equal(initialData.obj);
+        expect(s.val()).toEqual(initialData.obj);
       });
   });
 
-  it('Leaf with priority read works.', done => {
-    restRef.child('leafWithPriority').once('value', s => {
-      expect(s.exportVal()).to.deep.equal(initialData.leafWithPriority);
-      done();
-    });
-  });
+  it('Leaf with priority read works.', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      restRef.child('leafWithPriority').once('value', s => {
+        expect(s.exportVal()).toEqual(initialData.leafWithPriority);
+        done();
+      });
+    }));
 
   it('Leaf with priority read works. (Promise)', () => {
     return restRef
       .child('leafWithPriority')
       .once('value')
       .then(s => {
-        expect(s.exportVal()).to.deep.equal(initialData.leafWithPriority);
+        expect(s.exportVal()).toEqual(initialData.leafWithPriority);
       });
   });
 
-  it('Null read works.', done => {
-    restRef.child('nonexistent').once('value', s => {
-      expect(s.val()).to.equal(null);
-      done();
-    });
-  });
+  it('Null read works.', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      restRef.child('nonexistent').once('value', s => {
+        expect(s.val()).toBe(null);
+        done();
+      });
+    }));
 
   it('Null read works. (Promise)', () => {
     return restRef
       .child('nonexistent')
       .once('value')
       .then(s => {
-        expect(s.val()).to.equal(null);
+        expect(s.val()).toBe(null);
       });
   });
 
-  it('on works.', done => {
-    restRef.child('leaf').on('value', s => {
-      expect(s.val()).to.equal(initialData.leaf);
-      restRef.child('leaf').off();
-      done();
-    });
-  });
+  it('on works.', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      restRef.child('leaf').on('value', s => {
+        expect(s.val()).toBe(initialData.leaf);
+        restRef.child('leaf').off();
+        done();
+      });
+    }));
 });

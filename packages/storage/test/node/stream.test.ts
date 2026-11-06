@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { createApp, createStorage } from '../integration/integration.test';
+import { createApp, createStorage } from '../integration/testshared';
 import { FirebaseApp, deleteApp } from '@firebase/app';
 import { getStream, ref, uploadBytes } from '../../src/index.node';
 import * as types from '../../src/public-types';
@@ -59,19 +58,19 @@ describe('Firebase Storage > getStream', () => {
   });
 
   it('can get stream', async () => {
-    const reference = ref(storage, 'public/exp-bytes');
+    const reference = ref(storage, 'public/node/exp-stream');
     await uploadBytes(reference, new Uint8Array([0, 1, 3, 128, 255]));
     const stream = getStream(reference);
     const data = await readData(stream);
-    expect(data).to.deep.equal(new Uint8Array([0, 1, 3, 128, 255]));
+    expect(data).toEqual(new Uint8Array([0, 1, 3, 128, 255]));
   });
 
   it('can get first n bytes of stream', async () => {
-    const reference = ref(storage, 'public/exp-bytes');
+    const reference = ref(storage, 'public/node/exp-stream');
     await uploadBytes(reference, new Uint8Array([0, 1, 3]));
     const stream = getStream(reference, 2);
     const data = await readData(stream);
-    expect(data).to.deep.equal(new Uint8Array([0, 1]));
+    expect(data).toEqual(new Uint8Array([0, 1]));
   });
 
   it('getStream() throws for missing file', async () => {
@@ -81,8 +80,8 @@ describe('Firebase Storage > getStream', () => {
       await readData(stream);
       expect.fail();
     } catch (e) {
-      expect((e as Error)?.message).to.satisfy((v: string) =>
-        v.match(/Object 'public\/exp-bytes-missing' does not exist/)
+      expect((e as Error)?.message).toMatch(
+        /Object 'public\/exp-bytes-missing' does not exist/
       );
     }
   });

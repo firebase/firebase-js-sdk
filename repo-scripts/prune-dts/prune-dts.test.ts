@@ -19,7 +19,7 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
 import { format, resolveConfig } from 'prettier';
-import { describe, it } from 'mocha';
+import { describe, it } from 'vitest';
 import { addBlankLines, pruneDts, removeUnusedImports } from './src/index';
 
 const testCasesDir = path.resolve(__dirname, 'tests');
@@ -239,8 +239,7 @@ describe('Prune DTS', () => {
     describe('Package Regressions', () => {
       const packagesDir = path.resolve(testCasesDir, 'packages');
       for (const testCase of productionCases) {
-        it(`Package: ${testCase.name}`, async function () {
-          this.timeout(60000);
+        it(`Package: ${testCase.name}`, { timeout: 60000 }, async () => {
           const otherExports =
             testCase.baseName === 'firestore-pipelines'
               ? [path.resolve(packagesDir, 'firestore.input.d.ts')]

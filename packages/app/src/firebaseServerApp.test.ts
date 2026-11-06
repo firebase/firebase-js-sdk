@@ -107,8 +107,7 @@ describe('FirebaseServerApp', () => {
     };
 
     const serverAppSettings: FirebaseServerAppSettings = {
-      automaticDataCollectionEnabled: false,
-      releaseOnDeref: options
+      automaticDataCollectionEnabled: false
     };
 
     const app = new FirebaseServerAppImpl(
@@ -134,8 +133,7 @@ describe('FirebaseServerApp', () => {
     };
 
     const serverAppSettings: FirebaseServerAppSettings = {
-      automaticDataCollectionEnabled: false,
-      releaseOnDeref: options
+      automaticDataCollectionEnabled: false
     };
 
     const app = new FirebaseServerAppImpl(

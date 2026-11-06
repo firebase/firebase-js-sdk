@@ -14,15 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
 import { getStorage } from '../../src/index';
 import { FirebaseStorageImpl } from '../../src/service';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { initializeApp, deleteApp } from '@firebase/app';
+import PROJECT_CONFIG from '../../../../config/project.json';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const PROJECT_CONFIG = require('../../../../config/project.json');
-
 export const PROJECT_ID = PROJECT_CONFIG.projectId;
 export const STORAGE_BUCKET = PROJECT_CONFIG.storageBucket;
 export const API_KEY = PROJECT_CONFIG.apiKey;
@@ -37,7 +35,7 @@ describe('Firebase Storage > API', () => {
       authDomain: AUTH_DOMAIN
     });
     const storage = getStorage(app);
-    expect((storage as FirebaseStorageImpl)._bucket?.bucket).to.equal(
+    expect((storage as FirebaseStorageImpl)._bucket?.bucket).toBe(
       STORAGE_BUCKET
     );
     await deleteApp(app);
@@ -50,7 +48,7 @@ describe('Firebase Storage > API', () => {
       authDomain: AUTH_DOMAIN
     });
     const storage = getStorage(app, 'gs://foo-bar.appspot.com');
-    expect((storage as FirebaseStorageImpl)._bucket?.bucket).to.equal(
+    expect((storage as FirebaseStorageImpl)._bucket?.bucket).toBe(
       'foo-bar.appspot.com'
     );
     await deleteApp(app);

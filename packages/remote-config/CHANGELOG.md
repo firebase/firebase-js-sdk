@@ -1,5 +1,11 @@
 # @firebase/remote-config
 
+## 0.9.3
+
+### Patch Changes
+
+- [`a034f68`](https://github.com/firebase/firebase-js-sdk/commit/a034f682b6044f238138453d351c0fe89c07e5fb) [#10384](https://github.com/firebase/firebase-js-sdk/pull/10384) (fixes [#9426](https://github.com/firebase/firebase-js-sdk/issues/9426)) - Suppress false-positive `CONFIG_UPDATE_STREAM_ERROR` events emitted by `onConfigUpdated` when the application enters the background, stop recording a connection backoff penalty for these expected closes, and reconnect if the application returns to the foreground before the connection finishes closing.
+
 ## 0.9.2
 
 ### Patch Changes

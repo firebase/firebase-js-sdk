@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { ChildrenNode } from '../src/core/snap/ChildrenNode';
 import { nodeFromJSON } from '../src/core/snap/nodeFromJSON';
 import {
@@ -36,10 +34,8 @@ describe('SparseSnapshotTree Tests', () => {
     const node = nodeFromJSON('sdfsd');
 
     sparseSnapshotTreeRemember(st, path, node);
-    expect(sparseSnapshotTreeFind(st, new Path('a/b')).isEmpty()).to.equal(
-      false
-    );
-    expect(sparseSnapshotTreeFind(st, new Path('a'))).to.equal(null);
+    expect(sparseSnapshotTreeFind(st, new Path('a/b')).isEmpty()).toBe(false);
+    expect(sparseSnapshotTreeFind(st, new Path('a'))).toBe(null);
   });
 
   it('Find inside an existing snapshot', () => {
@@ -49,21 +45,15 @@ describe('SparseSnapshotTree Tests', () => {
     node = node.updateImmediateChild('apples', nodeFromJSON({ goats: 88 }));
     sparseSnapshotTreeRemember(st, path, node);
 
-    expect(sparseSnapshotTreeFind(st, new Path('t/tt')).isEmpty()).to.equal(
+    expect(sparseSnapshotTreeFind(st, new Path('t/tt')).isEmpty()).toBe(false);
+    expect(sparseSnapshotTreeFind(st, new Path('t/tt/a')).val()).toBe('sdfsd');
+    expect(sparseSnapshotTreeFind(st, new Path('t/tt/999i')).val()).toBe(true);
+    expect(sparseSnapshotTreeFind(st, new Path('t/tt/apples')).isEmpty()).toBe(
       false
     );
-    expect(sparseSnapshotTreeFind(st, new Path('t/tt/a')).val()).to.equal(
-      'sdfsd'
-    );
-    expect(sparseSnapshotTreeFind(st, new Path('t/tt/999i')).val()).to.equal(
-      true
-    );
-    expect(
-      sparseSnapshotTreeFind(st, new Path('t/tt/apples')).isEmpty()
-    ).to.equal(false);
     expect(
       sparseSnapshotTreeFind(st, new Path('t/tt/apples/goats')).val()
-    ).to.equal(88);
+    ).toBe(88);
   });
 
   it('Write a snapshot inside a snapshot.', () => {
@@ -74,23 +64,21 @@ describe('SparseSnapshotTree Tests', () => {
       nodeFromJSON({ a: { b: 'v' } })
     );
     sparseSnapshotTreeRemember(st, new Path('t/a/rr'), nodeFromJSON(19));
-    expect(sparseSnapshotTreeFind(st, new Path('t/a/b')).val()).to.equal('v');
-    expect(sparseSnapshotTreeFind(st, new Path('t/a/rr')).val()).to.equal(19);
+    expect(sparseSnapshotTreeFind(st, new Path('t/a/b')).val()).toBe('v');
+    expect(sparseSnapshotTreeFind(st, new Path('t/a/rr')).val()).toBe(19);
   });
 
   it('Write a null value and confirm it is remembered.', () => {
     const st = newSparseSnapshotTree();
     sparseSnapshotTreeRemember(st, new Path('awq/fff'), nodeFromJSON(null));
-    expect(sparseSnapshotTreeFind(st, new Path('awq/fff'))).to.equal(
+    expect(sparseSnapshotTreeFind(st, new Path('awq/fff'))).toBe(
       ChildrenNode.EMPTY_NODE
     );
-    expect(sparseSnapshotTreeFind(st, new Path('awq/sdf'))).to.equal(null);
-    expect(sparseSnapshotTreeFind(st, new Path('awq/fff/jjj'))).to.equal(
+    expect(sparseSnapshotTreeFind(st, new Path('awq/sdf'))).toBe(null);
+    expect(sparseSnapshotTreeFind(st, new Path('awq/fff/jjj'))).toBe(
       ChildrenNode.EMPTY_NODE
     );
-    expect(sparseSnapshotTreeFind(st, new Path('awq/sdf/sdf/q'))).to.equal(
-      null
-    );
+    expect(sparseSnapshotTreeFind(st, new Path('awq/sdf/sdf/q'))).toBe(null);
   });
 
   it('Overwrite with null and confirm it is remembered.', () => {
@@ -100,9 +88,9 @@ describe('SparseSnapshotTree Tests', () => {
       new Path('t'),
       nodeFromJSON({ a: { b: 'v' } })
     );
-    expect(sparseSnapshotTreeFind(st, new Path('t')).isEmpty()).to.equal(false);
+    expect(sparseSnapshotTreeFind(st, new Path('t')).isEmpty()).toBe(false);
     sparseSnapshotTreeRemember(st, new Path('t'), ChildrenNode.EMPTY_NODE);
-    expect(sparseSnapshotTreeFind(st, new Path('t')).isEmpty()).to.equal(true);
+    expect(sparseSnapshotTreeFind(st, new Path('t')).isEmpty()).toBe(true);
   });
 
   it('Simple remember and forget.', () => {
@@ -112,9 +100,9 @@ describe('SparseSnapshotTree Tests', () => {
       new Path('t'),
       nodeFromJSON({ a: { b: 'v' } })
     );
-    expect(sparseSnapshotTreeFind(st, new Path('t')).isEmpty()).to.equal(false);
+    expect(sparseSnapshotTreeFind(st, new Path('t')).isEmpty()).toBe(false);
     sparseSnapshotTreeForget(st, new Path('t'));
-    expect(sparseSnapshotTreeFind(st, new Path('t'))).to.equal(null);
+    expect(sparseSnapshotTreeFind(st, new Path('t'))).toBe(null);
   });
 
   it('Forget the root.', () => {
@@ -124,9 +112,9 @@ describe('SparseSnapshotTree Tests', () => {
       new Path('t'),
       nodeFromJSON({ a: { b: 'v' } })
     );
-    expect(sparseSnapshotTreeFind(st, new Path('t')).isEmpty()).to.equal(false);
+    expect(sparseSnapshotTreeFind(st, new Path('t')).isEmpty()).toBe(false);
     sparseSnapshotTreeForget(st, newEmptyPath());
-    expect(sparseSnapshotTreeFind(st, new Path('t'))).to.equal(null);
+    expect(sparseSnapshotTreeFind(st, new Path('t'))).toBe(null);
   });
 
   it('Forget snapshot inside snapshot.', () => {
@@ -136,19 +124,15 @@ describe('SparseSnapshotTree Tests', () => {
       new Path('t'),
       nodeFromJSON({ a: { b: 'v', c: 9, art: false } })
     );
-    expect(sparseSnapshotTreeFind(st, new Path('t/a/c')).isEmpty()).to.equal(
-      false
-    );
-    expect(sparseSnapshotTreeFind(st, new Path('t')).isEmpty()).to.equal(false);
+    expect(sparseSnapshotTreeFind(st, new Path('t/a/c')).isEmpty()).toBe(false);
+    expect(sparseSnapshotTreeFind(st, new Path('t')).isEmpty()).toBe(false);
 
     sparseSnapshotTreeForget(st, new Path('t/a/c'));
-    expect(sparseSnapshotTreeFind(st, new Path('t'))).to.equal(null);
-    expect(sparseSnapshotTreeFind(st, new Path('t/a'))).to.equal(null);
-    expect(sparseSnapshotTreeFind(st, new Path('t/a/b')).val()).to.equal('v');
-    expect(sparseSnapshotTreeFind(st, new Path('t/a/c'))).to.equal(null);
-    expect(sparseSnapshotTreeFind(st, new Path('t/a/art')).val()).to.equal(
-      false
-    );
+    expect(sparseSnapshotTreeFind(st, new Path('t'))).toBe(null);
+    expect(sparseSnapshotTreeFind(st, new Path('t/a'))).toBe(null);
+    expect(sparseSnapshotTreeFind(st, new Path('t/a/b')).val()).toBe('v');
+    expect(sparseSnapshotTreeFind(st, new Path('t/a/c'))).toBe(null);
+    expect(sparseSnapshotTreeFind(st, new Path('t/a/art')).val()).toBe(false);
   });
 
   it('Forget path shallower than snapshots.', () => {
@@ -156,7 +140,7 @@ describe('SparseSnapshotTree Tests', () => {
     sparseSnapshotTreeRemember(st, new Path('t/x1'), nodeFromJSON(false));
     sparseSnapshotTreeRemember(st, new Path('t/x2'), nodeFromJSON(true));
     sparseSnapshotTreeForget(st, new Path('t'));
-    expect(sparseSnapshotTreeFind(st, new Path('t'))).to.equal(null);
+    expect(sparseSnapshotTreeFind(st, new Path('t'))).toBe(null);
   });
 
   it('Iterate children.', () => {
@@ -178,13 +162,13 @@ describe('SparseSnapshotTree Tests', () => {
       } else if (key === 'q') {
         gotQ = true;
       } else {
-        expect(false).to.equal(true);
+        expect(false).toBe(true);
       }
     });
 
-    expect(gotT).to.equal(true);
-    expect(gotQ).to.equal(true);
-    expect(num).to.equal(2);
+    expect(gotT).toBe(true);
+    expect(gotQ).toBe(true);
+    expect(num).toBe(2);
   });
 
   it('Iterate trees.', () => {
@@ -194,7 +178,7 @@ describe('SparseSnapshotTree Tests', () => {
     sparseSnapshotTreeForEachTree(st, newEmptyPath(), (path, tree) => {
       count += 1;
     });
-    expect(count).to.equal(0);
+    expect(count).toBe(0);
 
     sparseSnapshotTreeRemember(st, new Path('t'), nodeFromJSON(1));
     sparseSnapshotTreeRemember(st, new Path('a/b'), nodeFromJSON(2));
@@ -211,26 +195,26 @@ describe('SparseSnapshotTree Tests', () => {
       const pathString = path.toString();
       if (pathString === '/q/t') {
         got1 = true;
-        expect(node.val()).to.equal(1);
+        expect(node.val()).toBe(1);
       } else if (pathString === '/q/a/b') {
         got2 = true;
-        expect(node.val()).to.equal(2);
+        expect(node.val()).toBe(2);
       } else if (pathString === '/q/a/x/g') {
         got3 = true;
-        expect(node.val()).to.equal(3);
+        expect(node.val()).toBe(3);
       } else if (pathString === '/q/a/x/null') {
         got4 = true;
-        expect(node.val()).to.equal(null);
+        expect(node.val()).toBe(null);
       } else {
-        expect(false).to.equal(true);
+        expect(false).toBe(true);
       }
     });
 
-    expect(got1).to.equal(true);
-    expect(got2).to.equal(true);
-    expect(got3).to.equal(true);
-    expect(got4).to.equal(true);
-    expect(num).to.equal(4);
+    expect(got1).toBe(true);
+    expect(got2).toBe(true);
+    expect(got3).toBe(true);
+    expect(got4).toBe(true);
+    expect(num).toBe(4);
   });
 
   it('Set leaf, then forget deeper path', () => {
@@ -239,6 +223,6 @@ describe('SparseSnapshotTree Tests', () => {
     sparseSnapshotTreeRemember(st, new Path('foo'), nodeFromJSON('bar'));
     const safeToRemove = sparseSnapshotTreeForget(st, new Path('foo/baz'));
     // it's not safe to remove this node
-    expect(safeToRemove).to.equal(false);
+    expect(safeToRemove).toBe(false);
   });
 });

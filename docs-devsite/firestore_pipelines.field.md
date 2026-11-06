@@ -39,7 +39,7 @@ export declare class Field extends Expression implements Selectable
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [geoDistance(location)](./firestore_pipelines.field.md#fieldgeodistance) |  | <b><i>(Public Preview)</i></b> Evaluates to the distance in meters between the location specified by this field and the query location. |
+|  [geoDistance(location)](./firestore_pipelines.field.md#fieldgeodistance) |  | Evaluates to the distance in meters between the location specified by this field and the query location. |
 
 ## Field.alias
 
@@ -82,9 +82,6 @@ selectable: true;
 ```
 
 ## Field.geoDistance()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Evaluates to the distance in meters between the location specified by this field and the query location.
 

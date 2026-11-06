@@ -484,11 +484,22 @@
                     }
                   },
                   "nested": {
+                    "ConcurrencyMode": {
+                      "values": {
+                        "CONCURRENCY_MODE_UNSPECIFIED": 0,
+                        "OPTIMISTIC": 1,
+                        "PESSIMISTIC": 2
+                      }
+                    },
                     "ReadWrite": {
                       "fields": {
                         "retryTransaction": {
                           "type": "bytes",
                           "id": 1
+                        },
+                        "concurrencyMode": {
+                          "type": "ConcurrencyMode",
+                          "id": 2
                         }
                       }
                     },
@@ -1364,6 +1375,20 @@
                     "readTime": {
                       "type": "google.protobuf.Timestamp",
                       "id": 7
+                    },
+                    "autoCommitTransaction": {
+                      "type": "bool",
+                      "id": 9,
+                      "options": {
+                        "(google.api.field_behavior)": "OPTIONAL"
+                      }
+                    },
+                    "requestOptions": {
+                      "type": "RequestOptions",
+                      "id": 10,
+                      "options": {
+                        "(google.api.field_behavior)": "OPTIONAL"
+                      }
                     }
                   }
                 },
@@ -2195,6 +2220,18 @@
                     "before": {
                       "type": "bool",
                       "id": 2
+                    }
+                  }
+                },
+                "RequestOptions": {
+                  "fields": {
+                    "requestTags": {
+                      "rule": "repeated",
+                      "type": "string",
+                      "id": 1,
+                      "options": {
+                        "(google.api.field_behavior)": "OPTIONAL"
+                      }
                     }
                   }
                 }
