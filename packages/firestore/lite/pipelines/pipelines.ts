@@ -93,7 +93,11 @@ export {
   UpdateStageOptions,
   UpsertStageOptions,
   SortStageOptions,
-  SearchStageOptions
+  SearchStageOptions,
+  AddWindowFieldsStageOptions,
+  WindowSpec,
+  DocumentWindowFrame,
+  RangeWindowFrame
   // TODO(search) export with backend support
   // QueryEnhancement
 } from '../../src/lite-api/stage_options';
@@ -254,6 +258,9 @@ export {
   Selectable,
   BooleanExpression,
   AggregateFunction,
+  WindowFunction,
+  AliasedWindowFunction,
+  rank,
   TimeGranularity,
   TimePart,
   TimeUnit

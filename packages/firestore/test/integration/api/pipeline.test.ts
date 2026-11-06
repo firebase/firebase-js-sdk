@@ -179,7 +179,6 @@ import {
   join,
   log10,
   arraySum,
-  PipelineSnapshot,
   timestampTruncate,
   timestampDiff,
   timestampExtract,
@@ -194,6 +193,7 @@ import {
   score,
   documentMatches
 } from '../util/pipeline_export';
+import { expectResults } from '../util/pipeline_helpers';
 import {
   getRunEnterpriseTests,
   getTargetBackend,
@@ -219,32 +219,6 @@ async function testCollectionWithDocs(
   await batch.commit();
   endDocCreation = new Date().valueOf();
   return collection;
-}
-
-function expectResults(snapshot: PipelineSnapshot, ...docs: string[]): void;
-function expectResults(
-  snapshot: PipelineSnapshot,
-  ...data: DocumentData[]
-): void;
-
-function expectResults(
-  snapshot: PipelineSnapshot,
-  ...data: DocumentData[] | string[]
-): void {
-  const docs = snapshot.results;
-
-  expect(docs.length).toBe(data.length);
-
-  if (data.length > 0) {
-    if (typeof data[0] === 'string') {
-      const actualIds = docs.map(doc => doc.id);
-      expect(actualIds).toEqual(data);
-    } else {
-      docs.forEach(r => {
-        expect(r.data()).toEqual(data.shift());
-      });
-    }
-  }
 }
 
 apiDescribe.skipClassic('Pipelines', persistence => {

@@ -70,6 +70,16 @@ export function getRunEnterpriseTests(): boolean {
   return !!process.env.RUN_ENTERPRISE_TESTS;
 }
 
+/**
+ * Whether to run comprehensive integration test suites, which are skipped by
+ * default to keep CI and local runs fast. Enable them by setting the
+ * `FIRESTORE_RUN_COMPREHENSIVE_TESTS` environment variable to `true` or `YES`.
+ */
+export function getRunComprehensiveTests(): boolean {
+  const value = process.env.FIRESTORE_RUN_COMPREHENSIVE_TESTS;
+  return value === 'true' || value === 'YES';
+}
+
 function parseTargetBackend(targetBackend: string): TargetBackend {
   switch (targetBackend) {
     case 'emulator':

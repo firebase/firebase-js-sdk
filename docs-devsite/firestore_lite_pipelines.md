@@ -20,6 +20,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [currentDocument()](./firestore_lite_pipelines.md#currentdocument) | Creates an expression that represents the current document being processed. |
 |  [currentTimestamp()](./firestore_lite_pipelines.md#currenttimestamp) | Creates an expression that evaluates to the current server timestamp. |
 |  [rand()](./firestore_lite_pipelines.md#rand) | Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0. |
+|  [rank()](./firestore_lite_pipelines.md#rank) | Returns the rank of each document within its partition according to the window's sort order. Documents with equal sort values receive the same rank, and the following rank is skipped. The window must specify exactly one sort ordering. |
 |  [score()](./firestore_lite_pipelines.md#score) | Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: <code>documentMatches</code>) in the search query. If <code>SearchStageOptions.query</code> is not set or does not contain any text predicates, then this topicality score will always be <code>0</code>. |
 |  <b>function(array, ...)</b> |
 |  [arrayContains(array, element)](./firestore_lite_pipelines.md#arraycontains_a00ea48) | Creates an expression that checks if an array expression contains a specific element. |
@@ -427,6 +428,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class) | A class that represents an aggregate function. |
 |  [AliasedAggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregate_class) | An AggregateFunction with alias. |
 |  [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class) |  |
+|  [AliasedWindowFunction](./firestore_lite_pipelines.aliasedwindowfunction.md#aliasedwindowfunction_class) | A [WindowFunction](./firestore_pipelines.windowfunction.md#windowfunction_class) with an alias. |
 |  [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class) | An interface that represents a filter condition. |
 |  [Expression](./firestore_lite_pipelines.expression.md#expression_class) | Represents an expression that can be evaluated to a value within the execution of a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.<!-- -->Expressions are the building blocks for creating complex queries and transformations in Firestore pipelines. They can represent:<!-- -->- \*\*Field references:\*\* Access values from document fields. - \*\*Literals:\*\* Represent constant values (strings, numbers, booleans). - \*\*Function calls:\*\* Apply functions to one or more expressions.<!-- -->The <code>Expression</code> class provides a fluent API for building expressions. You can chain together method calls to create complex expressions. |
 |  [Field](./firestore_lite_pipelines.field.md#field_class) | Represents a reference to a field in a Firestore document, or outputs of a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) stage.<p>Field references are used to access document field values in expressions and to specify fields for sorting, filtering, and projecting data in Firestore pipelines.<p>You can create a <code>Field</code> instance using the static [field](./firestore_pipelines.md#field_1eaaff4) method: |
@@ -436,12 +438,15 @@ https://github.com/firebase/firebase-js-sdk
 |  [PipelineResult](./firestore_lite_pipelines.pipelineresult.md#pipelineresult_class) | A PipelineResult contains data read from a Firestore Pipeline. The data can be extracted with the [PipelineResult.data()](./firestore_pipelines.pipelineresult.md#pipelineresultdata) or [PipelineResult.get()](./firestore_pipelines.pipelineresult.md#pipelineresultget) methods.<p>If the PipelineResult represents a non-document result, <code>ref</code> will return a undefined value. |
 |  [PipelineSnapshot](./firestore_lite_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) | Represents the results of a Firestore pipeline execution.<!-- -->A <code>PipelineSnapshot</code> contains zero or more [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects representing the documents returned by a pipeline query. It provides methods to iterate over the documents and access metadata about the query results. |
 |  [PipelineSource](./firestore_lite_pipelines.pipelinesource.md#pipelinesource_class) | Provides the entry point for defining the data source of a Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.<!-- -->Use the methods of this class (e.g., [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->, [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup)<!-- -->, [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->, or [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->) to specify the initial data for your pipeline, such as a collection, a collection group, the entire database, or a set of specific documents. |
+|  [WindowFunction](./firestore_lite_pipelines.windowfunction.md#windowfunction_class) | A function that is evaluated over a window frame of documents, as part of an [Pipeline.addWindowFields()](./firestore_pipelines.pipeline.md#pipelineaddwindowfields) stage.<!-- -->A <code>WindowFunction</code> is created either by one of the dedicated window function factories (such as [rank()](./firestore_pipelines.md#rank)<!-- -->), or by calling <code>over()</code> on an [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)<!-- -->. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
+|  [DocumentWindowFrame](./firestore_lite_pipelines.documentwindowframe.md#documentwindowframe_interface) | Defines a document-count based window frame relative to the position of the current document in the group.<!-- -->Specifying <code>sort</code> on the enclosing [WindowSpec](./firestore_pipelines.md#windowspec) is optional for <code>documents</code> window frames; if no <code>sort</code> expressions are specified, documents are processed in incoming stream (fetch) order. |
 |  [PipelineExecuteOptions](./firestore_lite_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptions_interface) | Options defining Pipeline execution. |
+|  [RangeWindowFrame](./firestore_lite_pipelines.rangewindowframe.md#rangewindowframe_interface) | Defines a range-value based window frame relative to the sort value(s) of the current document.<!-- -->One or more <code>sort</code> expressions must be specified on the enclosing [WindowSpec](./firestore_pipelines.md#windowspec) when using a <code>range</code> window frame. Range frames with numeric or time-unit offsets require a single numeric or timestamp <code>sort</code> expression, whereas frames bounded only by <code>'current'</code> and <code>'unbounded'</code> support multiple <code>sort</code> expressions and non-numeric sort values (such as strings or booleans). |
 |  [Selectable](./firestore_lite_pipelines.selectable.md#selectable_interface) | An interface that represents a selectable expression. |
 
 ## Type Aliases
@@ -449,6 +454,7 @@ https://github.com/firebase/firebase-js-sdk
 |  Type Alias | Description |
 |  --- | --- |
 |  [AddFieldsStageOptions](./firestore_lite_pipelines.md#addfieldsstageoptions) | Options defining how an AddFieldsStage is evaluated. See [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields)<!-- -->. |
+|  [AddWindowFieldsStageOptions](./firestore_lite_pipelines.md#addwindowfieldsstageoptions) | Options defining how an AddWindowFieldsStage is evaluated. See [Pipeline.addWindowFields()](./firestore_pipelines.pipeline.md#pipelineaddwindowfields)<!-- -->. |
 |  [AggregateStageOptions](./firestore_lite_pipelines.md#aggregatestageoptions) | Options defining how an AggregateStage is evaluated. See [Pipeline.aggregate()](./firestore_pipelines.pipeline.md#pipelineaggregate)<!-- -->. |
 |  [CollectionGroupStageOptions](./firestore_lite_pipelines.md#collectiongroupstageoptions) | Defines the configuration options for a CollectionGroupStage within a pipeline. This type extends [StageOptions](./firestore_pipelines.md#stageoptions) and provides specific settings for how a collection group is identified and processed during pipeline execution.<!-- -->See [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup) to create a collection group stage. |
 |  [CollectionStageOptions](./firestore_lite_pipelines.md#collectionstageoptions) | Options defining how a CollectionStage is evaluated. See [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->. |
@@ -480,6 +486,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [UpdateStageOptions](./firestore_lite_pipelines.md#updatestageoptions) | Options for defining an <code>update</code> stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.<!-- -->Each input document is updated in place at the path specified by its <code>__name__</code> field. If an input document does not have a <code>__name__</code> field (for example, when inputs come from [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) without <code>__name__</code> or after <code>.removeFields('__name__')</code>), the operation fails.<!-- -->The <code>update</code> stage does not create documents. If the document at an input document's <code>__name__</code> path does not exist, the input document is skipped and is not counted in <code>documents_modified</code>. When the pipeline is executed with <code>atomic: true</code>, the pipeline instead fails with a <code>NOT_FOUND</code> error and no documents are updated. |
 |  [UpsertStageOptions](./firestore_lite_pipelines.md#upsertstageoptions) | Options for defining an <code>upsert</code> stage in a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.<!-- -->The target document path for each upserted document is determined by the combination of <code>collection</code> and <code>documentIdExpression</code>: - \*\*Neither set:\*\* Upserts each input document in place at its existing <code>__name__</code> path. If an input document does not have a <code>__name__</code> field (for example, when inputs come from [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) without <code>__name__</code> or after <code>.removeFields('__name__')</code>), the operation fails. - \*\*<code>collection</code> only:\*\* Upserts into <code>collection</code>. If the input document has a <code>__name__</code> field, its document ID is reused; otherwise a new document ID is auto-generated (for example, when inputs come from [PipelineSource.literals()](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) or after <code>.removeFields('__name__')</code>). - \*\*Both <code>collection</code> and <code>documentIdExpression</code> set:\*\* Upserts into <code>collection</code> using the evaluated document ID.<!-- -->If no document exists at the target path, it is created. If one exists, it is replaced entirely by the written document; existing fields are not merged. |
 |  [WhereStageOptions](./firestore_lite_pipelines.md#wherestageoptions) | Options defining how a WhereStage is evaluated. See [Pipeline.where()](./firestore_pipelines.pipeline.md#pipelinewhere)<!-- -->. |
+|  [WindowSpec](./firestore_lite_pipelines.md#windowspec) | A type that specifies a window frame, over which a window function will be evaluated.<!-- -->Default frame behavior: - If <code>sort</code> is not specified, the default frame is <code>documents</code> from <code>'unbounded'</code> preceding to <code>'unbounded'</code> following (the entire partition/group). - If <code>sort</code> is specified, the default frame is <code>range</code> from <code>'unbounded'</code> preceding to <code>'current'</code> following (which includes all documents tied with the current document's sort value(s)). |
 
 ## function()
 
@@ -579,6 +586,33 @@ A new `Expression` representing the rand operation.
 ```typescript
 // Generate a random number between 0.0 and 1.0.
 rand();
+
+```
+
+### rank() {:#rank}
+
+Returns the rank of each document within its partition according to the window's sort order. Documents with equal sort values receive the same rank, and the following rank is skipped. The window must specify exactly one sort ordering.
+
+<b>Signature:</b>
+
+```typescript
+export declare function rank(): WindowFunction;
+```
+<b>Returns:</b>
+
+[WindowFunction](./firestore_lite_pipelines.windowfunction.md#windowfunction_class)
+
+A new [WindowFunction](./firestore_pipelines.windowfunction.md#windowfunction_class)<!-- -->.
+
+### Example
+
+
+```typescript
+firestore.pipeline().collection("employees")
+  .addWindowFields(
+    { partition: ['department'], sort: descending('salary') },
+    rank().as('salaryRank')
+  );
 
 ```
 
@@ -12877,6 +12911,19 @@ export declare type AddFieldsStageOptions = StageOptions & {
 };
 ```
 
+## AddWindowFieldsStageOptions
+
+Options defining how an AddWindowFieldsStage is evaluated. See [Pipeline.addWindowFields()](./firestore_pipelines.pipeline.md#pipelineaddwindowfields)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare type AddWindowFieldsStageOptions = StageOptions & {
+  window: WindowSpec;
+  fields: Array<AliasedAggregate | AliasedWindowFunction>;
+};
+```
+
 ## AggregateStageOptions
 
 Options defining how an AggregateStage is evaluated. See [Pipeline.aggregate()](./firestore_pipelines.pipeline.md#pipelineaggregate)<!-- -->.
@@ -12986,6 +13033,7 @@ export declare type ExpressionType =
   | 'Constant'
   | 'Function'
   | 'AggregateFunction'
+  | 'WindowFunction'
   | 'ListOfExpressions'
   | 'AliasedExpression'
   | 'Variable'
@@ -13313,4 +13361,22 @@ Options defining how a WhereStage is evaluated. See [Pipeline.where()](./firesto
 export declare type WhereStageOptions = StageOptions & {
   condition: BooleanExpression;
 };
+```
+
+## WindowSpec
+
+A type that specifies a window frame, over which a window function will be evaluated.
+
+Default frame behavior: - If `sort` is not specified, the default frame is `documents` from `'unbounded'` preceding to `'unbounded'` following (the entire partition/group). - If `sort` is specified, the default frame is `range` from `'unbounded'` preceding to `'current'` following (which includes all documents tied with the current document's sort value(s)).
+
+<b>Signature:</b>
+
+```typescript
+export declare type WindowSpec = {
+  partition?: Array<string | Expression>;
+  sort?: Ordering | Ordering[];
+} & OneOf<{
+  documents?: DocumentWindowFrame;
+  range?: RangeWindowFrame;
+}>;
 ```
