@@ -27,6 +27,7 @@ import sourcemaps from 'rollup-plugin-sourcemaps';
 import terser from '@rollup/plugin-terser';
 import typescript from 'typescript';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file.js';
+import { transpileJs } from '../../scripts/build/rollup_transpile_js.js';
 
 const external = Object.keys(pkg.dependencies || {});
 const plugins = [sourcemaps(), resolveModule(), json(), commonjs()];
@@ -37,8 +38,6 @@ const typescriptPlugin = rollupTypescriptPlugin({
 
 const typescriptPluginCDN = rollupTypescriptPlugin({
   typescript,
-  allowJs: true,
-  include: ['*.ts', '**/*.ts', '*.js', '**/*.js'],
   tsconfigOverride: {
     compilerOptions: {
       declaration: false
@@ -141,6 +140,55 @@ const componentBuilds = [...pkg.components, ...(pkg.nonCdnComponents || [])]
   .reduce((a, b) => a.concat(b), []);
 
 /**
+ * Fails the build if a CDN bundle imports any module other than
+ * `@firebase/app`, which `gulp cdn-type-module-path` rewrites to the URL of
+ * firebase-app.js on gstatic. Browsers can't resolve any other bare module
+ * specifier (for example a Node.js built-in module such as `fs`), so a CDN
+ * bundle that imports one fails to load.
+ */
+function cdnImportsGuard() {
+  return {
+    name: 'cdn-imports-guard',
+    generateBundle(_options, bundle) {
+      for (const chunk of Object.values(bundle)) {
+        if (chunk.type !== 'chunk') {
+          continue;
+        }
+        const disallowedImports = [
+          ...chunk.imports,
+          ...chunk.dynamicImports
+        ].filter(id => id !== '@firebase/app' && !(id in bundle));
+        if (disallowedImports.length > 0) {
+          this.error(
+            `${chunk.fileName} imports ${disallowedImports.join(', ')}. ` +
+              'CDN bundles may only import @firebase/app, because browsers ' +
+              "can't resolve other bare module specifiers."
+          );
+        }
+      }
+    }
+  };
+}
+
+/**
+ * Plugins for the CDN builds. Browsers load these bundles directly, so
+ * dependencies must resolve to their browser builds (the `browser` field and
+ * the `browser` export condition). Otherwise packages that ship separate
+ * Node.js and browser implementations, such as the OpenTelemetry packages that
+ * `@firebase/crashlytics` depends on, contribute their Node.js implementations,
+ * and the bundle imports Node.js built-in modules. Dependencies are also
+ * transpiled to the tsconfig target, so the bundles don't contain newer syntax.
+ */
+const cdnPlugins = [
+  sourcemaps(),
+  resolveModule({ browser: true }),
+  json(),
+  commonjs(),
+  transpileJs(),
+  cdnImportsGuard()
+];
+
+/**
  * CDN script builds
  */
 const cdnBuilds = [
@@ -151,7 +199,7 @@ const cdnBuilds = [
       sourcemap: true,
       format: 'es'
     },
-    plugins: [...plugins, typescriptPluginCDN]
+    plugins: [...cdnPlugins, typescriptPluginCDN]
   },
   ...pkg.components
     .filter(component => component !== 'app')
@@ -170,7 +218,7 @@ const cdnBuilds = [
           format: 'es'
         },
         plugins: [
-          ...plugins,
+          ...cdnPlugins,
           typescriptPluginCDN,
           terser({
             format: { comments: false },
