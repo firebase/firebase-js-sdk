@@ -25,12 +25,14 @@ import {
   Filter,
   Operator
 } from '../core/filter';
+import { Direction } from '../core/order_by';
 import {
   canonifyTarget,
   newTarget,
   Target,
   targetEquals,
   targetGetArrayValues,
+  targetGetFieldFiltersForPath,
   targetGetLowerBound,
   targetGetNotInValues,
   targetGetSegmentCount,
@@ -61,7 +63,7 @@ import {
 } from '../model/field_index';
 import { FieldPath, ResourcePath } from '../model/path';
 import { TargetIndexMatcher } from '../model/target_index_matcher';
-import { isArray, refValue } from '../model/values';
+import { isArray, refValue, valueEquals } from '../model/values';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { logDebug } from '../util/log';
@@ -326,8 +328,43 @@ export class IndexedDbIndexManager implements IndexManager {
 
           const arrayValues = targetGetArrayValues(subTarget, index!);
           const notInValues = targetGetNotInValues(subTarget, index!);
-          const lowerBound = targetGetLowerBound(subTarget, index!);
-          const upperBound = targetGetUpperBound(subTarget, index!);
+          // Document cursors must include the key tie-breaker. Projecting their
+          // exclusivity onto field values would exclude the entire tied group.
+          const hasStartKey = this.hasDocumentKeyBound(
+            subTarget,
+            subTarget.startAt
+          );
+          const hasEndKey = this.hasDocumentKeyBound(
+            subTarget,
+            subTarget.endAt
+          );
+          const startKey = this.encodeDocumentCursor(
+            index!,
+            subTarget,
+            subTarget.startAt
+          );
+          const endKey = this.encodeDocumentCursor(
+            index!,
+            subTarget,
+            subTarget.endAt
+          );
+          // An unrepresentable cursor is applied by the query engine after the
+          // scan, so it must not consume slots in the index-level limit.
+          const limit =
+            (hasStartKey && startKey === null) || (hasEndKey && endKey === null)
+              ? null
+              : target.limit;
+          const rangeTarget = newTarget(
+            subTarget.path,
+            subTarget.collectionGroup,
+            subTarget.orderBy,
+            subTarget.filters,
+            subTarget.limit,
+            hasStartKey ? null : subTarget.startAt,
+            hasEndKey ? null : subTarget.endAt
+          );
+          const lowerBound = targetGetLowerBound(rangeTarget, index!);
+          const upperBound = targetGetUpperBound(rangeTarget, index!);
 
           const lowerBoundEncoded = this.encodeBound(
             index!,
@@ -357,19 +394,27 @@ export class IndexedDbIndexManager implements IndexManager {
           return PersistencePromise.forEach(
             indexRanges,
             (indexRange: IDBKeyRange) => {
-              return indexEntries
-                .loadFirst(indexRange, target.limit)
-                .next(entries => {
-                  entries.forEach(entry => {
-                    const documentKey = DocumentKey.fromSegments(
-                      entry.documentKey
-                    );
-                    if (!existingKeys.has(documentKey)) {
-                      existingKeys = existingKeys.add(documentKey);
-                      result.push(documentKey);
-                    }
-                  });
+              const range = this.applyDocumentCursors(
+                indexRange,
+                startKey,
+                subTarget.startAt?.inclusive ?? true,
+                endKey,
+                subTarget.endAt?.inclusive ?? true
+              );
+              if (range === null) {
+                return PersistencePromise.resolve();
+              }
+              return indexEntries.loadFirst(range, limit).next(entries => {
+                entries.forEach(entry => {
+                  const documentKey = DocumentKey.fromSegments(
+                    entry.documentKey
+                  );
+                  if (!existingKeys.has(documentKey)) {
+                    existingKeys = existingKeys.add(documentKey);
+                    result.push(documentKey);
+                  }
                 });
+              });
             }
           );
         }).next(() => result as DocumentKey[] | null);
@@ -535,7 +580,12 @@ export class IndexedDbIndexManager implements IndexManager {
           indexType = IndexType.NONE;
         } else if (
           indexType !== IndexType.NONE &&
-          index.fields.length < targetGetSegmentCount(target)
+          (index.fields.length < targetGetSegmentCount(target) ||
+            (this.hasDocumentKeyBound(target, target.startAt) &&
+              this.encodeDocumentCursor(index, target, target.startAt) ===
+                null) ||
+            (this.hasDocumentKeyBound(target, target.endAt) &&
+              this.encodeDocumentCursor(index, target, target.endAt) === null))
         ) {
           indexType = IndexType.PARTIAL;
         }
@@ -650,6 +700,130 @@ export class IndexedDbIndexManager implements IndexManager {
     bound: Bound
   ): Uint8Array[] {
     return this.encodeValues(fieldIndex, target, bound.position);
+  }
+
+  private hasDocumentKeyBound(target: Target, bound: Bound | null): boolean {
+    return (
+      bound?.position.some((_, i) => target.orderBy[i].field.isKeyField()) ??
+      false
+    );
+  }
+
+  /** Encodes a complete cursor when its ordering can be represented by the index. */
+  private encodeDocumentCursor(
+    index: FieldIndex,
+    target: Target,
+    bound: Bound | null
+  ): DbIndexEntryKey | null {
+    if (bound === null || bound.position.length !== target.orderBy.length) {
+      return null;
+    }
+    const keyOrder = target.orderBy[target.orderBy.length - 1];
+    if (
+      !keyOrder?.field.isKeyField() ||
+      (keyOrder.dir === Direction.ASCENDING
+        ? IndexKind.ASCENDING
+        : IndexKind.DESCENDING) !== fieldIndexGetKeyOrder(index)
+    ) {
+      return null;
+    }
+
+    const segments = fieldIndexGetDirectionalSegments(index);
+    for (let i = 0; i < target.orderBy.length - 1; ++i) {
+      const field = target.orderBy[i].field;
+      if (!segments.some(segment => segment.fieldPath.isEqual(field))) {
+        return null;
+      }
+      // Equality segments can precede the orderBy segments in a different order.
+      // They can only be treated as a fixed prefix if the cursor agrees with them.
+      if (
+        targetGetFieldFiltersForPath(target, field).some(
+          filter =>
+            filter.op === Operator.EQUAL &&
+            !valueEquals(filter.value, bound.position[i])
+        )
+      ) {
+        return null;
+      }
+    }
+
+    const encoder = new IndexByteEncoder();
+    for (const segment of segments) {
+      const orderIndex = target.orderBy.findIndex(order =>
+        order.field.isEqual(segment.fieldPath)
+      );
+      const value =
+        orderIndex >= 0
+          ? bound.position[orderIndex]
+          : targetGetFieldFiltersForPath(target, segment.fieldPath).find(
+              filter => filter.op === Operator.EQUAL
+            )?.value;
+      if (value === undefined) {
+        return null;
+      }
+      FirestoreIndexValueWriter.INSTANCE.writeIndexValue(
+        value,
+        encoder.forKind(segment.kind)
+      );
+    }
+
+    const documentKey = DocumentKey.fromName(
+      bound.position[bound.position.length - 1].referenceValue!
+    );
+    return new IndexEntry(
+      index.indexId,
+      documentKey,
+      EMPTY_VALUE,
+      encoder.encodedBytes()
+    ).dbIndexEntryKey(
+      this.uid,
+      this.encodeDirectionalKey(index, documentKey),
+      documentKey
+    );
+  }
+
+  /** Intersects a filter range with document cursors, retaining their key tie-breakers. */
+  private applyDocumentCursors(
+    range: IDBKeyRange,
+    startKey: DbIndexEntryKey | null,
+    startInclusive: boolean,
+    endKey: DbIndexEntryKey | null,
+    endInclusive: boolean
+  ): IDBKeyRange | null {
+    if (startKey === null && endKey === null) {
+      return range;
+    }
+    let lower: DbIndexEntryKey = range.lower;
+    let upper: DbIndexEntryKey = range.upper;
+    let lowerOpen = range.lowerOpen;
+    let upperOpen = range.upperOpen;
+    if (startKey !== null) {
+      const cursor: DbIndexEntryKey = [...startKey];
+      cursor[2] = lower[2]; // Preserve this scan's array-contains value.
+      const comparison = indexedDB.cmp(cursor, lower);
+      if (comparison > 0) {
+        lower = cursor;
+        lowerOpen = !startInclusive;
+      } else if (comparison === 0) {
+        lowerOpen ||= !startInclusive;
+      }
+    }
+    if (endKey !== null) {
+      const cursor: DbIndexEntryKey = [...endKey];
+      cursor[2] = upper[2];
+      const comparison = indexedDB.cmp(cursor, upper);
+      if (comparison < 0) {
+        upper = cursor;
+        upperOpen = !endInclusive;
+      } else if (comparison === 0) {
+        upperOpen ||= !endInclusive;
+      }
+    }
+    const comparison = indexedDB.cmp(lower, upper);
+    if (comparison > 0 || (comparison === 0 && (lowerOpen || upperOpen))) {
+      return null;
+    }
+    return IDBKeyRange.bound(lower, upper, lowerOpen, upperOpen);
   }
 
   /** Returns the byte representation for the provided encoders. */
