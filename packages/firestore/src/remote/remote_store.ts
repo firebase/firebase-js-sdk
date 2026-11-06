@@ -224,7 +224,9 @@ export function remoteStoreEnableNetwork(
   remoteStore: RemoteStore
 ): Promise<void> {
   const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
-  remoteStoreImpl.offlineCauses.delete(OfflineCause.UserDisabled);
+  if (!remoteStoreImpl.offlineCauses.delete(OfflineCause.UserDisabled)) {
+    return Promise.resolve();
+  }
   return enableNetworkInternal(remoteStoreImpl);
 }
 
