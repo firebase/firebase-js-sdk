@@ -188,6 +188,9 @@ export class PersistenceUserManager {
             if (await persistence._isAvailable()) {
               return persistence;
             }
+            if (persistence._lastProbeTimedOut) {
+              unreadablePersistences.add(persistence);
+            }
           } catch {
             return undefined;
           }
@@ -230,12 +233,12 @@ export class PersistenceUserManager {
       await selectedPersistence._set(key, userToMigrate.toJSON());
     }
 
-    // Attempt to clear the key in other available persistences (except those whose _get threw,
-    // so we never delete from a store that failed _isAvailable() or that we couldn't read) and
-    // ignore errors. This helps prevent issues such as users getting stuck with a previous
-    // account after signing out and refreshing the tab.
+    // Attempt to clear the key in other persistences (except those whose _get threw or whose
+    // _isAvailable() probe timed out, so we never delete from a store we couldn't read or that
+    // is blocked by another tab) and ignore errors. This helps prevent issues such as users
+    // getting stuck with a previous account after signing out and refreshing the tab.
     await Promise.all(
-      availablePersistences.map(async persistence => {
+      persistenceHierarchy.map(async persistence => {
         if (
           persistence !== selectedPersistence &&
           !unreadablePersistences.has(persistence)

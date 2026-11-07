@@ -195,13 +195,39 @@ describe('core/persistence/persistence_user_manager', () => {
       );
       expect(a.stub._set).not.toHaveBeenCalled();
       expect(c.stub._set).not.toHaveBeenCalled();
-      expect(a.stub._remove).not.toHaveBeenCalled();
+      expect(a.stub._remove).toHaveBeenCalledExactlyOnceWith(
+        'firebase:authUser:test-api-key:test-app'
+      );
       expect(c.stub._remove).toHaveBeenCalledExactlyOnceWith(
         'firebase:authUser:test-api-key:test-app'
       );
 
       expect(out.persistence).toBe(b.persistence);
       expect((await out.getCurrentUser())!.uid).toBe(user.uid);
+    });
+
+    it('skips _remove on persistence whose _isAvailable timed out', async () => {
+      const a = makePersistence(PersistenceType.NONE, true);
+      const b = makePersistence(PersistenceType.NONE, true);
+      const search = [a.persistence, b.persistence];
+      const auth = await testAuth();
+      const user = testUser(auth, 'uid');
+      a.stub._isAvailable.mockImplementation(async () => {
+        (a.persistence as { _lastProbeTimedOut?: boolean })._lastProbeTimedOut =
+          true;
+        return false;
+      });
+      b.stub._isAvailable.mockResolvedValue(true);
+      a.stub._get.mockResolvedValue(user.toJSON());
+      b.stub._get.mockResolvedValue(null);
+
+      const out = await PersistenceUserManager.create(auth, search);
+      expect(b.stub._set).toHaveBeenCalledExactlyOnceWith(
+        'firebase:authUser:test-api-key:test-app',
+        user.toJSON()
+      );
+      expect(a.stub._remove).not.toHaveBeenCalled();
+      expect(out.persistence).toBe(b.persistence);
     });
 
     it('uses default user key if none provided', async () => {

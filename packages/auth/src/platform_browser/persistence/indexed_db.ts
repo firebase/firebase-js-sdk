@@ -241,6 +241,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   private pollTimer: any | null = null;
   private isClosing = false;
   private pendingWrites = 0;
+  _lastProbeTimedOut = false;
 
   private receiver: Receiver | null = null;
   private sender: Sender | null = null;
@@ -439,6 +440,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   }
 
   async _isAvailable(): Promise<boolean> {
+    this._lastProbeTimedOut = false;
     try {
       if (!indexedDB) {
         return false;
@@ -448,7 +450,10 @@ class IndexedDBLocalPersistence implements InternalPersistence {
         await _deleteObject(db, STORAGE_AVAILABLE_KEY, _DB_PROBE_TIMEOUT_MS);
       });
       return true;
-    } catch {}
+    } catch (e) {
+      this._lastProbeTimedOut =
+        e instanceof Error && e.message === DB_TIMEOUT_ERROR;
+    }
     return false;
   }
 
