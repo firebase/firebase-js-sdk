@@ -23,7 +23,11 @@ import {
   HttpsCallableOptions,
   HttpsCallableStreamOptions
 } from './public-types';
-import { _errorForResponse, FunctionsError } from './error';
+import {
+  _errorForNetworkFailure,
+  _errorForResponse,
+  FunctionsError
+} from './error';
 import { ContextProvider } from './context';
 import { encode, decode } from './serializer';
 import { Provider } from '@firebase/component';
@@ -42,6 +46,7 @@ const responseLineRE = /^data: (.*?)(?:\n|$)/;
 interface HttpResponse {
   status: number;
   json: HttpResponseBody | null;
+  fetchError?: unknown;
 }
 /**
  * Describes the shape of the HttpResponse body.
@@ -281,7 +286,8 @@ async function postJSON(
     // treated as a network error by fetch.
     return {
       status: 0,
-      json: null
+      json: null,
+      fetchError: e
     };
   }
   let json: HttpResponseBody | null = null;
@@ -380,6 +386,10 @@ async function callAtURL(
       'cancelled',
       'Firebase Functions instance was deleted.'
     );
+  }
+
+  if ('fetchError' in response) {
+    throw _errorForNetworkFailure(response.fetchError, url);
   }
 
   // Check for an error status, regardless of http status.
@@ -485,7 +495,7 @@ async function streamAtURL(
     // network error. There's no way to know, since an unhandled error on the
     // backend will fail to set the proper CORS header, and thus will be
     // treated as a network error by fetch.
-    const error = _errorForResponse(0, null, url);
+    const error = _errorForNetworkFailure(e, url);
     return {
       data: Promise.reject(error),
       // Return an empty async iterator
