@@ -70,7 +70,11 @@ export class Transaction {
       );
       throw this.lastTransactionError;
     }
-    const docs = await invokeBatchGetDocumentsRpc(this.datastore, keys);
+    const docs = await invokeBatchGetDocumentsRpc(
+      this.datastore,
+      keys,
+      /*isTransaction=*/ true
+    );
     docs.forEach(doc => this.recordVersion(doc));
     return docs;
   }
@@ -111,7 +115,11 @@ export class Transaction {
       const key = DocumentKey.fromPath(path);
       this.mutations.push(new VerifyMutation(key, this.precondition(key)));
     });
-    await invokeCommitRpc(this.datastore, this.mutations);
+    await invokeCommitRpc(
+      this.datastore,
+      this.mutations,
+      /*isTransaction=*/ true
+    );
     this.committed = true;
   }
 
