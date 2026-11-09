@@ -3,5 +3,12 @@
   "main": "dist/pipelines.cjs.js",
   "browser": "dist/esm/pipelines.esm.js",
   "module": "dist/esm/pipelines.esm.js",
-  "typings": "dist/firestore/lite/pipelines/index.d.ts"
+  "typings": "dist/firestore/lite/pipelines/index.d.ts",
+  "typesVersions": {
+    "<4.5": {
+      "*": [
+        "../../../typescript-version-check.ts"
+      ]
+    }
+  }
 }

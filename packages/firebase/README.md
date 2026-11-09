@@ -213,3 +213,12 @@ The Firebase changelog can be found at
 ## Browser/environment compatibility
 
 Please see [Environment Support](https://firebase.google.com/support/guides/environments_js-sdk).
+
+## TypeScript
+
+The Firebase type declarations require TypeScript 4.5 or later. Older versions
+of TypeScript report this error:
+
+```
+Type '"Please upgrade TypeScript"' is not assignable to type '"firebase requires TypeScript 4.5 or later"'.
+```

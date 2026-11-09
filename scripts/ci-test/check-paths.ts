@@ -89,6 +89,33 @@ function checkExports(
   }
 }
 
+/**
+ * Check the paths in the `typesVersions` field in package.json. Paths with a
+ * `*` wildcard are skipped.
+ */
+function checkTypesVersions(
+  pkgName: string,
+  pkgRoot: string,
+  typesVersions: Record<string, Record<string, string[]>>
+) {
+  for (const range in typesVersions) {
+    for (const pattern in typesVersions[range]) {
+      for (const path of typesVersions[range][pattern]) {
+        if (path.includes('*')) {
+          continue;
+        }
+        const filePath = resolve(pkgRoot, path);
+        results.push({
+          packageName: pkgName,
+          found: existsSync(filePath),
+          filePath,
+          fieldPath: `typesVersions[${range}][${pattern}]`
+        });
+      }
+    }
+  }
+}
+
 async function main() {
   const paths = await getPkgJsonPaths();
 
@@ -129,6 +156,12 @@ async function main() {
        */
       if (pkg.exports) {
         checkExports(pkg.name, pkgRoot, '', pkg.exports);
+      }
+      /**
+       * Check typesVersions field.
+       */
+      if (pkg.typesVersions) {
+        checkTypesVersions(pkg.name, pkgRoot, pkg.typesVersions);
       }
     }
   }
