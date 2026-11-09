@@ -16,4 +16,5 @@
  */
 
 export * from './core/query/subscribe';
-export { makeMemoryCacheProvider, CacheProvider } from './api/DataConnect';
+export { makeMemoryCacheProvider } from './api/DataConnect';
+export type { CacheProvider } from './api/DataConnect';

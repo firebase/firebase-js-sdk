@@ -20,11 +20,6 @@ import {
   FirebaseAuthInternal,
   FirebaseAuthTokenData
 } from '@firebase/auth-interop-types';
-import { expect } from 'chai';
-import * as chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions, QueryRef, queryRef, subscribe } from '../../src';
 import {
@@ -34,8 +29,6 @@ import {
 import { DataConnectTransportManager } from '../../src/network/manager';
 import { initializeFetch, RESTTransport } from '../../src/network/rest';
 import { initDatabase } from '../util';
-chai.use(chaiAsPromised);
-chai.use(sinonChai);
 const options: DataConnectOptions = {
   connector: 'c',
   location: 'l',
@@ -63,7 +56,7 @@ const json = {
   message: 'unauthorized'
 };
 
-const fakeFetchImpl = sinon.stub().returns(
+const fakeFetchImpl = vi.fn().mockReturnValue(
   Promise.resolve({
     json: () => {
       return Promise.resolve(json);
@@ -93,31 +86,33 @@ describe('Queries', () => {
     initializeApp({
       projectId: 'p'
     });
-    sinon
-      .stub(DataConnectTransportManager.prototype, 'invokeSubscribe')
-      .returns();
-    sinon
-      .stub(DataConnectTransportManager.prototype, 'invokeUnsubscribe')
-      .returns();
+    vi.spyOn(
+      DataConnectTransportManager.prototype,
+      'invokeSubscribe'
+    ).mockReturnValue(undefined);
+    vi.spyOn(
+      DataConnectTransportManager.prototype,
+      'invokeUnsubscribe'
+    ).mockReturnValue(undefined);
   });
   afterEach(() => {
-    fakeFetchImpl.resetHistory();
-    sinon.restore();
+    fakeFetchImpl.mockClear();
+    vi.restoreAllMocks();
   });
   it('should call onComplete callback after subscribe is called', async () => {
     const taskListQuery = getPostsRef();
-    const onCompleteUserStub = sinon.stub();
+    const onCompleteUserStub = vi.fn();
     const unsubscribe = subscribe(taskListQuery, {
       onNext: () => {},
       onComplete: onCompleteUserStub
     });
-    expect(onCompleteUserStub).to.not.have.been.called;
+    expect(onCompleteUserStub).not.toHaveBeenCalled();
     unsubscribe();
-    expect(onCompleteUserStub).to.have.been.calledOnce;
+    expect(onCompleteUserStub).toHaveBeenCalledOnce();
   });
   it('should call onErr callback after a 401 occurs', async () => {
     const json = {};
-    const throwErrorFakeImpl = sinon.stub().returns(
+    const throwErrorFakeImpl = vi.fn().mockReturnValue(
       Promise.resolve({
         json: () => {
           return Promise.resolve(json);
@@ -127,7 +122,7 @@ describe('Queries', () => {
     );
     initializeFetch(throwErrorFakeImpl);
     const taskListQuery = getPostsRef();
-    const onErrStub = sinon.stub();
+    const onErrStub = vi.fn();
     let unsubscribeFn: (() => void) | null = null;
     const promise = new Promise((resolve, reject) => {
       unsubscribeFn = subscribe(taskListQuery, {
@@ -141,16 +136,16 @@ describe('Queries', () => {
         }
       });
     });
-    expect(onErrStub).not.to.have.been.called;
-    await expect(promise).to.have.eventually.been.rejected;
-    expect(onErrStub).to.have.been.calledOnce;
+    expect(onErrStub).not.toHaveBeenCalled();
+    await expect(promise).rejects.toThrow();
+    expect(onErrStub).toHaveBeenCalledOnce();
     unsubscribeFn!();
   });
   it('should call onErr callback after a graphql error occurs', async () => {
     const json = {
       errors: [{ something: 'abc' }]
     };
-    const throwErrorFakeImpl = sinon.stub().returns(
+    const throwErrorFakeImpl = vi.fn().mockReturnValue(
       Promise.resolve({
         json: () => {
           return Promise.resolve(json);
@@ -160,7 +155,7 @@ describe('Queries', () => {
     );
     initializeFetch(throwErrorFakeImpl);
     const taskListQuery = getPostsRef();
-    const onErrStub = sinon.stub();
+    const onErrStub = vi.fn();
     let unsubscribeFn: (() => void) | null = null;
     const promise = new Promise((resolve, reject) => {
       unsubscribeFn = subscribe(taskListQuery, {
@@ -174,9 +169,9 @@ describe('Queries', () => {
         }
       });
     });
-    expect(onErrStub).not.to.have.been.called;
-    await expect(promise).to.have.eventually.been.rejected;
-    expect(onErrStub).to.have.been.calledOnce;
+    expect(onErrStub).not.toHaveBeenCalled();
+    await expect(promise).rejects.toThrow();
+    expect(onErrStub).toHaveBeenCalledOnce();
     unsubscribeFn!();
     initializeFetch(globalThis.fetch);
   });
@@ -184,19 +179,15 @@ describe('Queries', () => {
     initializeFetch(fakeFetchImpl);
     const authProvider = new FakeAuthProvider();
     const rt = new RESTTransport(options, undefined, undefined, authProvider);
-    await expect(rt.invokeQuery('test', null)).to.eventually.be.rejectedWith(
-      json.message
-    );
-    expect(fakeFetchImpl.callCount).to.eq(2);
+    await expect(rt.invokeQuery('test', null)).rejects.toThrow(json.message);
+    expect(fakeFetchImpl.mock.calls.length).toBe(2);
   });
   it('[MUTATION] should retry auth whenever the fetcher returns with unauthorized', async () => {
     initializeFetch(fakeFetchImpl);
     const authProvider = new FakeAuthProvider();
     const rt = new RESTTransport(options, undefined, undefined, authProvider);
-    await expect(rt.invokeMutation('test', null)).to.eventually.be.rejectedWith(
-      json.message
-    );
-    expect(fakeFetchImpl.callCount).to.eq(2);
+    await expect(rt.invokeMutation('test', null)).rejects.toThrow(json.message);
+    expect(fakeFetchImpl.mock.calls.length).toBe(2);
   });
   it("should not retry auth whenever the fetcher returns with unauthorized and the token doesn't change", async () => {
     initializeFetch(fakeFetchImpl);
@@ -205,7 +196,7 @@ describe('Queries', () => {
     rt._setLastToken('initial token');
     await expect(
       rt.invokeQuery('test', null) as Promise<unknown>
-    ).to.eventually.be.rejectedWith(json.message);
-    expect(fakeFetchImpl.callCount).to.eq(1);
+    ).rejects.toThrow(json.message);
+    expect(fakeFetchImpl.mock.calls.length).toBe(1);
   });
 });

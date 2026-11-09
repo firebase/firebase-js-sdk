@@ -16,7 +16,6 @@
  */
 
 import { deleteApp, initializeApp, FirebaseApp } from '@firebase/app';
-import { expect } from 'chai';
 
 import { queryRef } from '../../src';
 import {
@@ -46,9 +45,9 @@ describe('Transport Options', () => {
       port: 2,
       sslEnabled: false
     };
-    expect(
-      areTransportOptionsEqual(transportOptions1, transportOptions2)
-    ).to.eq(false);
+    expect(areTransportOptionsEqual(transportOptions1, transportOptions2)).toBe(
+      false
+    );
   });
   it('should return true if transport options are equal', () => {
     const transportOptions1: TransportOptions = {
@@ -61,9 +60,9 @@ describe('Transport Options', () => {
       host: 'h',
       sslEnabled: false
     };
-    expect(
-      areTransportOptionsEqual(transportOptions1, transportOptions2)
-    ).to.eq(true);
+    expect(areTransportOptionsEqual(transportOptions1, transportOptions2)).toBe(
+      true
+    );
   });
   it('should throw if emulator is connected to with new transport options', () => {
     const dc = getDataConnect(app, {
@@ -71,9 +70,9 @@ describe('Transport Options', () => {
       location: 'l',
       service: 's'
     });
-    expect(() => connectDataConnectEmulator(dc, 'h', 80, false)).to.not.throw();
+    expect(() => connectDataConnectEmulator(dc, 'h', 80, false)).not.toThrow();
     queryRef(dc, 'query');
-    expect(() => connectDataConnectEmulator(dc, 'h2', 80, false)).to.throw(
+    expect(() => connectDataConnectEmulator(dc, 'h2', 80, false)).toThrow(
       'DataConnect instance already initialized!'
     );
   });
@@ -83,8 +82,8 @@ describe('Transport Options', () => {
       location: 'l',
       service: 's'
     });
-    expect(() => connectDataConnectEmulator(dc, 'h', 80, false)).to.not.throw();
+    expect(() => connectDataConnectEmulator(dc, 'h', 80, false)).not.toThrow();
     queryRef(dc, 'query');
-    expect(() => connectDataConnectEmulator(dc, 'h', 80, false)).to.not.throw();
+    expect(() => connectDataConnectEmulator(dc, 'h', 80, false)).not.toThrow();
   });
 });
