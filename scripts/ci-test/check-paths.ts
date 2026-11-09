@@ -91,7 +91,7 @@ function checkExports(
 
 /**
  * Check the paths in the `typesVersions` field in package.json. Paths with a
- * `*` wildcard are skipped.
+ * `*` wildcard are skipped; no package in this repo uses them today.
  */
 function checkTypesVersions(
   pkgName: string,

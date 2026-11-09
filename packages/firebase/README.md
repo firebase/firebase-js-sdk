@@ -216,9 +216,16 @@ Please see [Environment Support](https://firebase.google.com/support/guides/envi
 
 ## TypeScript
 
-The Firebase type declarations require TypeScript 4.5 or later. Older versions
-of TypeScript report this error:
+The Firebase type declarations require TypeScript 4.5 or later. With an older
+version, TypeScript reports "has no exported member" errors for the names you
+import from Firebase, and this error:
 
 ```
 Type '"Please upgrade TypeScript"' is not assignable to type '"firebase requires TypeScript 4.5 or later"'.
 ```
+
+TypeScript leaves out this error if any type declarations fail to parse. Some
+Firebase dependencies install the latest version of `@types/node`, which can be
+too new for your version of TypeScript. If you see syntax errors in
+`@types/node`, upgrade TypeScript, or install a version of `@types/node` that
+supports your version of TypeScript.
