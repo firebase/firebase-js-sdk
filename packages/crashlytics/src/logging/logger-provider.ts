@@ -44,8 +44,9 @@ import type { TelemetryStore } from '../telemetry-store';
 import { FirebaseAttributesLogProcessor } from './attributes-log-processor';
 import {
   getBreadcrumbsFeature,
-  getTelemetryEndpointUrl,
-  isTelemetryUrl
+  getOtlpExportEndpointUrl,
+  isClientConfigUrl,
+  isOtlpExportUrl
 } from '../helpers';
 
 /**
@@ -70,7 +71,7 @@ export function createLoggerProvider(
   telemetryStore?: TelemetryStore,
   dynamicHeaderProviders: DynamicHeaderProvider[] = []
 ): LoggerProviderResult {
-  const endpointUrl = getTelemetryEndpointUrl(crashlyticsOptions);
+  const endpointUrl = getOtlpExportEndpointUrl(crashlyticsOptions);
 
   const { projectId, appId, apiKey } = app.options;
   const region = crashlyticsOptions.region || DEFAULT_REGION;
@@ -183,7 +184,7 @@ class OTLPLogExporter
         log.attributes?.['url.full'] ||
         log.attributes?.['http.url'] ||
         log.attributes?.['resource.url'];
-      return !isTelemetryUrl(url, this.endpointUrl);
+      return !isOtlpExportUrl(url, this.endpointUrl) && !isClientConfigUrl(url);
     });
 
     if (filteredLogs.length === 0) {

@@ -316,7 +316,8 @@ function getClientConfigEndpointUrl(
  * Builds the fully-qualified `GetClientConfig` URL for an app, or returns `undefined` when the
  * app options are missing the project ID or the app ID.
  *
- * The colons in the app ID are not percent-encoded: they are valid in a URL path, and the API
+ * The project ID, region and app ID are used as-is: they only contain characters that are valid
+ * in a URL path. In particular, the colons in the app ID must stay unencoded, because the API
  * doesn't decode `%3A`.
  *
  * @internal
@@ -331,26 +332,28 @@ export function getClientConfigUrl(
   }
   const region = crashlyticsOptions?.region || DEFAULT_REGION;
   const base = getClientConfigEndpointUrl(crashlyticsOptions);
-  const app = encodeURIComponent(appId).replace(/%3A/g, ':');
   return (
-    `${base}/${CLIENT_CONFIG_API_VERSION}/projects/${encodeURIComponent(projectId)}` +
-    `/locations/${encodeURIComponent(region)}/apps/${app}/clientConfig`
+    `${base}/${CLIENT_CONFIG_API_VERSION}/projects/${projectId}` +
+    `/locations/${region}/apps/${appId}/clientConfig`
   );
 }
 
 /**
- * Determines whether a given URL string targets the Firebase Crashlytics telemetry ingestion endpoint
- * or the Firebase Telemetry API client config endpoint.
+ * Determines whether a given URL string targets an OTLP export endpoint: the Firebase Crashlytics
+ * telemetry ingestion endpoint, or the custom endpoint when one is configured.
  * Used to automatically drop self-referential telemetry records (e.g. from ResourceTiming or Fetch instrumentations).
  *
  * @internal
  */
-export function isTelemetryUrl(url: unknown, customEndpoint?: string): boolean {
+export function isOtlpExportUrl(
+  url: unknown,
+  customEndpoint?: string
+): boolean {
   if (typeof url !== 'string' || !url) {
     return false;
   }
   if (
-    /^https?:\/\/(clienttelemetry|firebasetelemetry)\.(googleapis\.com|[a-z0-9-]+\.rep\.googleapis\.com)(\/|$)/.test(
+    /^https?:\/\/clienttelemetry\.(googleapis\.com|[a-z0-9-]+\.rep\.googleapis\.com)(\/|$)/.test(
       url
     )
   ) {
@@ -360,4 +363,20 @@ export function isTelemetryUrl(url: unknown, customEndpoint?: string): boolean {
     return true;
   }
   return false;
+}
+
+/**
+ * Determines whether a given URL string is a `GetClientConfig` request, which the SDK sends to the
+ * Firebase Telemetry API to fetch its sampling configuration.
+ * Used to drop records about those requests (e.g. from ResourceTiming or Fetch instrumentations).
+ *
+ * @internal
+ */
+export function isClientConfigUrl(url: unknown): boolean {
+  return (
+    typeof url === 'string' &&
+    /^https?:\/\/firebasetelemetry\.(googleapis\.com|[a-z0-9-]+\.rep\.googleapis\.com)\/[^?#]*\/clientConfig([?#]|$)/.test(
+      url
+    )
+  );
 }

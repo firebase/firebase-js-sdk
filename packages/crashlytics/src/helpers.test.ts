@@ -26,7 +26,8 @@ import {
   generateUuid,
   getClientConfigUrl,
   getOtlpExportEndpointUrl,
-  isTelemetryUrl
+  isClientConfigUrl,
+  isOtlpExportUrl
 } from './helpers';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsService } from './service';
@@ -473,12 +474,6 @@ describe('helpers', () => {
       );
     });
 
-    it('should keep the colons of the app id but encode other reserved characters', () => {
-      expect(getClientConfigUrl({ projectId: 'p', appId: 'a/b?c:d' })).toBe(
-        'https://firebasetelemetry.googleapis.com/v1alpha/projects/p/locations/global/apps/a%2Fb%3Fc:d/clientConfig'
-      );
-    });
-
     it('should return undefined when the project id or app id is missing', () => {
       expect(getClientConfigUrl({ projectId: 'my-project' })).toBeUndefined();
       expect(
@@ -488,47 +483,39 @@ describe('helpers', () => {
     });
   });
 
-  describe('isTelemetryUrl', () => {
+  describe('isOtlpExportUrl', () => {
     it('should identify default global and regional clienttelemetry endpoint URLs', () => {
       expect(
-        isTelemetryUrl('https://clienttelemetry.googleapis.com/v1/logs')
+        isOtlpExportUrl('https://clienttelemetry.googleapis.com/v1/logs')
       ).toBe(true);
       expect(
-        isTelemetryUrl(
+        isOtlpExportUrl(
           'https://clienttelemetry.us-east5.rep.googleapis.com/v1/logs'
         )
       ).toBe(true);
       expect(
-        isTelemetryUrl(
+        isOtlpExportUrl(
           'https://clienttelemetry.googleapis.com.attacker.com/v1/logs'
         )
       ).toBe(false);
       expect(
-        isTelemetryUrl(
+        isOtlpExportUrl(
           'https://clienttelemetry.us-east5.rep.googleapis.com.attacker.com/v1/logs'
         )
       ).toBe(false);
     });
 
-    it('should identify global and regional firebasetelemetry client config URLs', () => {
+    it('should not treat Firebase Telemetry API client config URLs as OTLP export URLs', () => {
       expect(
-        isTelemetryUrl(
+        isOtlpExportUrl(
           'https://firebasetelemetry.googleapis.com/v1alpha/projects/p/locations/global/apps/a/clientConfig'
         )
-      ).toBe(true);
-      expect(
-        isTelemetryUrl(
-          'https://firebasetelemetry.us-east5.rep.googleapis.com/v1alpha/projects/p/locations/us-east5/apps/a/clientConfig'
-        )
-      ).toBe(true);
-      expect(
-        isTelemetryUrl('https://firebasetelemetry.googleapis.com.attacker.com/')
       ).toBe(false);
     });
 
     it('should identify custom endpoint URLs when provided', () => {
       expect(
-        isTelemetryUrl(
+        isOtlpExportUrl(
           'https://custom-proxy.internal.net/v1/logs',
           'https://custom-proxy.internal.net'
         )
@@ -537,26 +524,70 @@ describe('helpers', () => {
 
     it('should return false for unrelated URLs (e.g. Auth, Firestore, APIs)', () => {
       expect(
-        isTelemetryUrl('https://identitytoolkit.googleapis.com/v1/accounts')
+        isOtlpExportUrl('https://identitytoolkit.googleapis.com/v1/accounts')
       ).toBe(false);
       expect(
-        isTelemetryUrl(
+        isOtlpExportUrl(
           'https://firestore.googleapis.com/v1/projects/p/databases'
         )
       ).toBe(false);
-      expect(isTelemetryUrl('https://api.example.com/data')).toBe(false);
+      expect(isOtlpExportUrl('https://api.example.com/data')).toBe(false);
       expect(
-        isTelemetryUrl(
+        isOtlpExportUrl(
           'https://example.com/search?query=clienttelemetry.googleapis.com'
         )
       ).toBe(false);
     });
 
     it('should handle undefined or non-string inputs safely', () => {
-      expect(isTelemetryUrl(undefined)).toBe(false);
-      expect(isTelemetryUrl(null)).toBe(false);
-      expect(isTelemetryUrl(12345)).toBe(false);
-      expect(isTelemetryUrl('')).toBe(false);
+      expect(isOtlpExportUrl(undefined)).toBe(false);
+      expect(isOtlpExportUrl(null)).toBe(false);
+      expect(isOtlpExportUrl(12345)).toBe(false);
+      expect(isOtlpExportUrl('')).toBe(false);
+    });
+  });
+
+  describe('isClientConfigUrl', () => {
+    it('should identify the global and regional URLs built by getClientConfigUrl', () => {
+      expect(
+        isClientConfigUrl(
+          getClientConfigUrl({ projectId: 'p', appId: '1:1:web:a' })
+        )
+      ).toBe(true);
+      expect(
+        isClientConfigUrl(
+          getClientConfigUrl(
+            { projectId: 'p', appId: '1:1:web:a' },
+            { region: 'us-east5' }
+          )
+        )
+      ).toBe(true);
+    });
+
+    it('should return false for telemetry export and unrelated URLs', () => {
+      expect(
+        isClientConfigUrl('https://clienttelemetry.googleapis.com/v1/logs')
+      ).toBe(false);
+      expect(
+        isClientConfigUrl('https://firebasetelemetry.googleapis.com/v1/logs')
+      ).toBe(false);
+      expect(
+        isClientConfigUrl(
+          'https://firebasetelemetry.googleapis.com.attacker.com/v1alpha/projects/p/locations/global/apps/a/clientConfig'
+        )
+      ).toBe(false);
+      expect(
+        isClientConfigUrl(
+          'https://example.com/?url=https://firebasetelemetry.googleapis.com/v1alpha/projects/p/locations/global/apps/a/clientConfig'
+        )
+      ).toBe(false);
+    });
+
+    it('should handle undefined or non-string inputs safely', () => {
+      expect(isClientConfigUrl(undefined)).toBe(false);
+      expect(isClientConfigUrl(null)).toBe(false);
+      expect(isClientConfigUrl(12345)).toBe(false);
+      expect(isClientConfigUrl('')).toBe(false);
     });
   });
 });
