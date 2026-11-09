@@ -46,6 +46,9 @@ function stripTypeExportsPlugin() {
   return {
     name: 'strip-type-exports',
     enforce: 'pre',
+    watchChange() {
+      program = null;
+    },
     transform(code, id) {
       const cleanId = id.split('?')[0];
       if (!cleanId.endsWith('.ts') || !code.includes('export {')) {

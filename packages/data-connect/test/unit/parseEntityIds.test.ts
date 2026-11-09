@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+/* eslint-disable camelcase */
 import { OpResult, SOURCE_SERVER } from '../../src';
 import { parseEntityIds } from '../../src/cache/cacheUtils';
 describe('parseEntityIds', () => {
