@@ -426,6 +426,22 @@ describe('generateContent()', () => {
       JSON.stringify(fakeWireRequestParams)
     );
   });
+  it('blocked prompt without safetyRatings (googleAI)', async () => {
+    const mockResponse = getMockResponse(
+      'googleAI',
+      'unary-failure-only-prompt-feedback.json'
+    );
+    vi.spyOn(mockRequest, 'makeRequest').mockResolvedValue(
+      mockResponse as Response
+    );
+    const result = await generateContent(fakeGoogleAIApiSettings, 'model', {
+      contents: [{ role: 'user', parts: [{ type: 'text', text: 'hello' }] }]
+    });
+    expect(result.response.text).to.throw();
+    expect(result.response.promptFeedback?.blockReasonMessage).to.equal(
+      'Message'
+    );
+  });
   it('finishReason safety', async () => {
     const mockResponse = getMockResponse(
       'vertexAI',

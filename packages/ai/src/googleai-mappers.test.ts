@@ -228,12 +228,24 @@ describe('Google AI Mappers', () => {
       expect(mappedResponse.promptFeedback?.blockReason).to.equal(
         BlockReason.SAFETY
       );
-      expect(mappedResponse.promptFeedback?.safetyRatings[0].category).to.equal(
-        HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT
+      expect(
+        mappedResponse.promptFeedback?.safetyRatings?.[0]?.category
+      ).to.equal(HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT);
+      expect(
+        mappedResponse.promptFeedback?.safetyRatings?.[0]?.severity
+      ).to.equal(HarmSeverity.HARM_SEVERITY_UNSUPPORTED);
+    });
+
+    it('should map promptFeedback when safetyRatings is omitted', () => {
+      const googleAIResponse = {
+        candidates: [],
+        promptFeedback: { blockReasonMessage: 'Message' }
+      } as unknown as GoogleAIGenerateContentResponse;
+      const mappedResponse = mapGenerateContentResponse(googleAIResponse);
+      expect(mappedResponse.promptFeedback?.blockReasonMessage).to.equal(
+        'Message'
       );
-      expect(mappedResponse.promptFeedback?.safetyRatings[0].severity).to.equal(
-        HarmSeverity.HARM_SEVERITY_UNSUPPORTED
-      );
+      expect(mappedResponse.promptFeedback?.safetyRatings).to.deep.equal([]);
     });
   });
 
