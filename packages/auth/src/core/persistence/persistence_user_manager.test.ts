@@ -206,6 +206,30 @@ describe('core/persistence/persistence_user_manager', () => {
       expect((await out.getCurrentUser())!.uid).toBe(user.uid);
     });
 
+    it('skips _remove on persistence whose _isAvailable timed out', async () => {
+      const a = makePersistence(PersistenceType.NONE, true);
+      const b = makePersistence(PersistenceType.NONE, true);
+      const search = [a.persistence, b.persistence];
+      const auth = await testAuth();
+      const user = testUser(auth, 'uid');
+      a.stub._isAvailable.mockImplementation(async () => {
+        (a.persistence as { _lastProbeTimedOut?: boolean })._lastProbeTimedOut =
+          true;
+        return false;
+      });
+      b.stub._isAvailable.mockResolvedValue(true);
+      a.stub._get.mockResolvedValue(user.toJSON());
+      b.stub._get.mockResolvedValue(null);
+
+      const out = await PersistenceUserManager.create(auth, search);
+      expect(b.stub._set).toHaveBeenCalledExactlyOnceWith(
+        'firebase:authUser:test-api-key:test-app',
+        user.toJSON()
+      );
+      expect(a.stub._remove).not.toHaveBeenCalled();
+      expect(out.persistence).toBe(b.persistence);
+    });
+
     it('uses default user key if none provided', async () => {
       const { stub, persistence } = makePersistence();
       stub._isAvailable.mockResolvedValue(true);
@@ -242,6 +266,115 @@ describe('core/persistence/persistence_user_manager', () => {
       expect(a.stub._get).toHaveBeenCalledTimes(1);
       expect(b.stub._get).toHaveBeenCalledTimes(1);
       expect(c.stub._get).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back to next available persistence, loads user, and skips _remove on primary when primary _get throws', async () => {
+      const brokenPrimary = makePersistence(PersistenceType.LOCAL, true);
+      const fallbackSecondary = makePersistence(PersistenceType.LOCAL, true);
+      const thirdPersistence = makePersistence(PersistenceType.LOCAL, true);
+      const user = testUser(auth, 'fallback-uid');
+
+      brokenPrimary.stub._isAvailable.mockRejectedValue(
+        new Error('IndexedDB open failed')
+      );
+      brokenPrimary.stub._get.mockRejectedValue(
+        new Error('IndexedDB read failed')
+      );
+      brokenPrimary.stub._remove.mockRejectedValue(
+        new Error('IndexedDB remove failed')
+      );
+
+      fallbackSecondary.stub._isAvailable.mockResolvedValue(true);
+      fallbackSecondary.stub._get.mockResolvedValue(user.toJSON());
+      thirdPersistence.stub._isAvailable.mockResolvedValue(true);
+
+      const out = await PersistenceUserManager.create(auth, [
+        brokenPrimary.persistence,
+        fallbackSecondary.persistence,
+        thirdPersistence.persistence
+      ]);
+
+      expect(out.persistence).toBe(fallbackSecondary.persistence);
+      expect((await out.getCurrentUser())?.uid).toBe('fallback-uid');
+      // Never delete from a persistence store whose _get threw
+      expect(brokenPrimary.stub._remove).not.toHaveBeenCalled();
+      expect(thirdPersistence.stub._remove).toHaveBeenCalledTimes(1);
+    });
+
+    it('skips _remove on persistence whose _get threw even when _isAvailable succeeded and no user is found anywhere', async () => {
+      const brokenPrimary = makePersistence(PersistenceType.LOCAL, true);
+      const fallbackSecondary = makePersistence(PersistenceType.LOCAL, true);
+      const thirdPersistence = makePersistence(PersistenceType.LOCAL, true);
+
+      brokenPrimary.stub._isAvailable.mockResolvedValue(true);
+      brokenPrimary.stub._get.mockRejectedValue(new Error('DB_TIMEOUT'));
+
+      fallbackSecondary.stub._isAvailable.mockResolvedValue(true);
+      fallbackSecondary.stub._get.mockResolvedValue(null);
+      thirdPersistence.stub._isAvailable.mockResolvedValue(true);
+      thirdPersistence.stub._get.mockResolvedValue(null);
+
+      const out = await PersistenceUserManager.create(auth, [
+        fallbackSecondary.persistence,
+        brokenPrimary.persistence,
+        thirdPersistence.persistence
+      ]);
+
+      expect(out.persistence).toBe(fallbackSecondary.persistence);
+      expect(await out.getCurrentUser()).toBeNull();
+      // Never delete from a store we couldn't read, while still cleaning readable non-selected stores
+      expect(brokenPrimary.stub._remove).not.toHaveBeenCalled();
+      expect(thirdPersistence.stub._remove).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps persistence with user when _shouldAllowMigration is true but no other migration target is available', async () => {
+      const a = makePersistence(PersistenceType.LOCAL, true);
+      const user = testUser(auth, 'existing-local-uid');
+
+      // Simulate #10540 with single [indexedDBLocalPersistence] where readwrite (_isAvailable)
+      // fails due to a suspended background tab, while readonly (_get) still succeeds.
+      a.stub._isAvailable.mockResolvedValue(false);
+      a.stub._get.mockResolvedValue(user.toJSON());
+
+      const out = await PersistenceUserManager.create(auth, [a.persistence]);
+      // Should keep `a.persistence` rather than polluting the shared inMemoryPersistence singleton
+      expect(out.persistence).toBe(a.persistence);
+      expect((await out.getCurrentUser())?.uid).toBe('existing-local-uid');
+    });
+
+    it('reads user via _get before probing _isAvailable so a readwrite probe cannot block readonly user discovery (#10540)', async () => {
+      const a = makePersistence(PersistenceType.LOCAL, true);
+      const b = makePersistence(PersistenceType.LOCAL, true);
+      const user = testUser(auth, 'pre-probe-uid');
+
+      // Simulate real browser IndexedDB FIFO lock manager: once `_isAvailable()` queues a
+      // `readwrite` transaction behind a frozen tab's `readonly` transaction, subsequent
+      // `readonly` (`_get`) transactions on that store also block/fail.
+      let writeProbeQueued = false;
+      a.stub._isAvailable.mockImplementation(async () => {
+        writeProbeQueued = true;
+        return false;
+      });
+      a.stub._get.mockImplementation(async () => {
+        if (writeProbeQueued) {
+          throw new Error('DB_TIMEOUT');
+        }
+        return user.toJSON();
+      });
+      b.stub._isAvailable.mockResolvedValue(true);
+
+      let migratedUser: PersistenceValue | null = null;
+      b.stub._set.mockImplementation(async (_, val) => {
+        migratedUser = val;
+      });
+      b.stub._get.mockImplementation(async () => migratedUser);
+
+      const out = await PersistenceUserManager.create(auth, [
+        a.persistence,
+        b.persistence
+      ]);
+      expect(out.persistence).toBe(b.persistence);
+      expect((await out.getCurrentUser())?.uid).toBe('pre-probe-uid');
     });
   });
 
