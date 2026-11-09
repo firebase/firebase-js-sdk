@@ -37,10 +37,7 @@ import { DynamicHeaderProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { CrashlyticsOptions } from '../public-types';
-import {
-  DEFAULT_TELEMETRY_REGION,
-  RESOURCE_ATTRIBUTE_KEYS
-} from '../constants';
+import { DEFAULT_REGION, RESOURCE_ATTRIBUTE_KEYS } from '../constants';
 import { AttributesStore } from '../attributes-store';
 import type { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
 import type { TelemetryStore } from '../telemetry-store';
@@ -76,7 +73,7 @@ export function createLoggerProvider(
   const endpointUrl = getTelemetryEndpointUrl(crashlyticsOptions);
 
   const { projectId, appId, apiKey } = app.options;
-  const region = crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
+  const region = crashlyticsOptions.region || DEFAULT_REGION;
   const otlpEndpoint = `${endpointUrl}/v1/logs`;
 
   const resourceAttributes: Record<string, string> = {
@@ -88,7 +85,7 @@ export function createLoggerProvider(
   if (appId) {
     resourceAttributes[RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_ID] = appId;
   }
-  if (region !== DEFAULT_TELEMETRY_REGION) {
+  if (region !== DEFAULT_REGION) {
     resourceAttributes[RESOURCE_ATTRIBUTE_KEYS.CLOUD_REGION] = region;
   }
   const resource = resourceFromAttributes(resourceAttributes);

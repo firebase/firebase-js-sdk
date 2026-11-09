@@ -43,12 +43,12 @@ import { FirebaseAttributesSpanProcessor } from './attributes-span-processor';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
 import {
-  DEFAULT_TELEMETRY_REGION,
+  DEFAULT_REGION,
   GCP_FIREBASE_DOMAIN,
   RESOURCE_ATTRIBUTE_KEYS
 } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
-import { getTelemetryEndpointUrl } from '../helpers';
+import { getOtlpExportEndpointUrl } from '../helpers';
 
 let unregisterInstrumentations: (() => void) | undefined;
 
@@ -77,10 +77,10 @@ export function createTracingProvider(
   if (typeof window === 'undefined') {
     return { tracingProvider: trace.getTracerProvider() };
   }
-  const endpointUrl = getTelemetryEndpointUrl(crashlyticsOptions);
+  const endpointUrl = getOtlpExportEndpointUrl(crashlyticsOptions);
 
   const { projectId, appId, apiKey } = app.options;
-  const region = crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
+  const region = crashlyticsOptions.region || DEFAULT_REGION;
 
   const resourceAttributes: Record<string, string> = {
     [GCP_FIREBASE_DOMAIN]: window.location.hostname
@@ -91,7 +91,7 @@ export function createTracingProvider(
   if (appId) {
     resourceAttributes[RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_ID] = appId;
   }
-  if (region !== DEFAULT_TELEMETRY_REGION) {
+  if (region !== DEFAULT_REGION) {
     resourceAttributes[RESOURCE_ATTRIBUTE_KEYS.CLOUD_REGION] = region;
   }
   const resource = resourceFromAttributes(resourceAttributes);

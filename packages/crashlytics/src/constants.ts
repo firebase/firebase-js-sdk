@@ -22,11 +22,11 @@ export const CRASHLYTICS_TYPE = 'crashlytics';
 export const CRASHLYTICS_TRACER_NAME = 'firebase.crashlytics';
 
 /** The default endpoint for the Cloud Client Telemetry API. */
-export const DEFAULT_TELEMETRY_ENDPOINT =
+export const DEFAULT_OTLP_EXPORT_ENDPOINT =
   'https://clienttelemetry.googleapis.com';
 
 /** Default region for telemetry data. */
-export const DEFAULT_TELEMETRY_REGION = 'global';
+export const DEFAULT_REGION = 'global';
 
 /**
  * The default endpoint for the Firebase Telemetry API, which serves the client telemetry

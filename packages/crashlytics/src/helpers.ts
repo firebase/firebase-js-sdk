@@ -29,8 +29,8 @@ import {
   ALREADY_LOGGED_FLAG,
   CLIENT_CONFIG_API_VERSION,
   DEFAULT_CLIENT_CONFIG_ENDPOINT,
-  DEFAULT_TELEMETRY_ENDPOINT,
-  DEFAULT_TELEMETRY_REGION
+  DEFAULT_OTLP_EXPORT_ENDPOINT,
+  DEFAULT_REGION
 } from './constants';
 import { recordError } from './api';
 
@@ -284,7 +284,7 @@ export function logVisibilityEvent(
  *
  * @internal
  */
-export function getTelemetryEndpointUrl(
+export function getOtlpExportEndpointUrl(
   crashlyticsOptions: CrashlyticsOptions = {}
 ): string {
   const options = crashlyticsOptions || {};
@@ -295,57 +295,26 @@ export function getTelemetryEndpointUrl(
     }
     return options.endpointUrl.slice(0, end);
   }
-  const region = options.region || DEFAULT_TELEMETRY_REGION;
-  if (region !== DEFAULT_TELEMETRY_REGION) {
+  const region = options.region || DEFAULT_REGION;
+  if (region !== DEFAULT_REGION) {
     return `https://clienttelemetry.${region}.rep.googleapis.com`;
   }
-  return DEFAULT_TELEMETRY_ENDPOINT;
+  return DEFAULT_OTLP_EXPORT_ENDPOINT;
 }
 
-/**
- * Resolves the base Firebase Telemetry API endpoint URL used for `GetClientConfig`, based on the
- * configured region. Uses the regional endpoint (REP) format
- * (`https://firebasetelemetry.{region}.rep.googleapis.com`) when a non-global region is specified,
- * so the configuration is always read from the same location telemetry is exported to.
- *
- * `endpointUrl` is intentionally not honored here: it redirects OTLP export (e.g. to a local
- * collector), while the sampling configuration always lives in Firebase.
- *
- * @internal
- */
-export function getClientConfigEndpointUrl(
+function getClientConfigEndpointUrl(
   crashlyticsOptions: CrashlyticsOptions = {}
 ): string {
-  const region = crashlyticsOptions?.region || DEFAULT_TELEMETRY_REGION;
-  if (region !== DEFAULT_TELEMETRY_REGION) {
+  const region = crashlyticsOptions?.region || DEFAULT_REGION;
+  if (region !== DEFAULT_REGION) {
     return `https://firebasetelemetry.${region}.rep.googleapis.com`;
   }
   return DEFAULT_CLIENT_CONFIG_ENDPOINT;
 }
 
 /**
- * Returns the project number embedded in a Firebase app ID, which has the form
- * `<version>:<project number>:<platform>:<hash>` (e.g. `1:1234567890:web:abcdef`), or `undefined`
- * if the app ID does not have that form.
- */
-function getProjectNumberFromAppId(appId: string): string | undefined {
-  const projectNumber = appId.split(':')[1];
-  return projectNumber && /^\d+$/.test(projectNumber)
-    ? projectNumber
-    : undefined;
-}
-
-/**
  * Builds the fully-qualified `GetClientConfig` URL for an app, or returns `undefined` when the
- * app options do not identify a project and app.
- *
- * `GetClientConfig` is a public, unauthenticated `GET` (no API key or App Check token): the
- * project in the path is the service consumer, so a single edge-cached response serves every
- * user of the app.
- *
- * The project segment is the project number, taken from the app ID so that every client of an app
- * requests the same URL and therefore shares one cached response. The project ID is only used for
- * app IDs that do not embed a project number; the API accepts it as well.
+ * app options are missing the project ID or the app ID.
  *
  * The colons in the app ID are not percent-encoded: they are valid in a URL path, and the API
  * doesn't decode `%3A`.
@@ -357,18 +326,14 @@ export function getClientConfigUrl(
   crashlyticsOptions: CrashlyticsOptions = {}
 ): string | undefined {
   const { projectId, appId } = firebaseOptions;
-  if (!appId) {
+  if (!projectId || !appId) {
     return undefined;
   }
-  const project = getProjectNumberFromAppId(appId) ?? projectId;
-  if (!project) {
-    return undefined;
-  }
-  const region = crashlyticsOptions?.region || DEFAULT_TELEMETRY_REGION;
+  const region = crashlyticsOptions?.region || DEFAULT_REGION;
   const base = getClientConfigEndpointUrl(crashlyticsOptions);
   const app = encodeURIComponent(appId).replace(/%3A/g, ':');
   return (
-    `${base}/${CLIENT_CONFIG_API_VERSION}/projects/${encodeURIComponent(project)}` +
+    `${base}/${CLIENT_CONFIG_API_VERSION}/projects/${encodeURIComponent(projectId)}` +
     `/locations/${encodeURIComponent(region)}/apps/${app}/clientConfig`
   );
 }

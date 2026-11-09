@@ -24,9 +24,8 @@ import {
   startNewSession,
   logVisibilityEvent,
   generateUuid,
-  getClientConfigEndpointUrl,
   getClientConfigUrl,
-  getTelemetryEndpointUrl,
+  getOtlpExportEndpointUrl,
   isTelemetryUrl
 } from './helpers';
 import { AUTO_CONSTANTS } from './auto-constants';
@@ -385,33 +384,33 @@ describe('helpers', () => {
     });
   });
 
-  describe('getTelemetryEndpointUrl', () => {
+  describe('getOtlpExportEndpointUrl', () => {
     it('should return the default global clienttelemetry endpoint when no options are provided', () => {
-      expect(getTelemetryEndpointUrl()).toBe(
+      expect(getOtlpExportEndpointUrl()).toBe(
         'https://clienttelemetry.googleapis.com'
       );
-      expect(getTelemetryEndpointUrl({ region: 'global' })).toBe(
+      expect(getOtlpExportEndpointUrl({ region: 'global' })).toBe(
         'https://clienttelemetry.googleapis.com'
       );
     });
 
     it('should return a regional REP endpoint when a non-global region is provided', () => {
-      expect(getTelemetryEndpointUrl({ region: 'us-east5' })).toBe(
+      expect(getOtlpExportEndpointUrl({ region: 'us-east5' })).toBe(
         'https://clienttelemetry.us-east5.rep.googleapis.com'
       );
-      expect(getTelemetryEndpointUrl({ region: 'europe-west1' })).toBe(
+      expect(getOtlpExportEndpointUrl({ region: 'europe-west1' })).toBe(
         'https://clienttelemetry.europe-west1.rep.googleapis.com'
       );
     });
 
     it('should use custom endpointUrl and strip trailing slashes', () => {
       expect(
-        getTelemetryEndpointUrl({
+        getOtlpExportEndpointUrl({
           endpointUrl: 'https://custom-proxy.internal.net/'
         })
       ).toBe('https://custom-proxy.internal.net');
       expect(
-        getTelemetryEndpointUrl({
+        getOtlpExportEndpointUrl({
           endpointUrl: 'https://custom-proxy.internal.net///'
         })
       ).toBe('https://custom-proxy.internal.net');
@@ -419,12 +418,12 @@ describe('helpers', () => {
         10000
       )}v1`;
       expect(
-        getTelemetryEndpointUrl({
+        getOtlpExportEndpointUrl({
           endpointUrl: `${longSlashesPrefix}///`
         })
       ).toBe(longSlashesPrefix);
       expect(
-        getTelemetryEndpointUrl({
+        getOtlpExportEndpointUrl({
           endpointUrl: 'https://custom-proxy.internal.net',
           region: 'us-east5'
         })
@@ -432,40 +431,15 @@ describe('helpers', () => {
     });
   });
 
-  describe('getClientConfigEndpointUrl', () => {
-    it('should return the global firebasetelemetry endpoint by default', () => {
-      expect(getClientConfigEndpointUrl()).toBe(
-        'https://firebasetelemetry.googleapis.com'
-      );
-      expect(getClientConfigEndpointUrl({ region: 'global' })).toBe(
-        'https://firebasetelemetry.googleapis.com'
-      );
-    });
-
-    it('should return a regional REP endpoint for a non-global region', () => {
-      expect(getClientConfigEndpointUrl({ region: 'us-east5' })).toBe(
-        'https://firebasetelemetry.us-east5.rep.googleapis.com'
-      );
-    });
-
-    it('should not be affected by a custom OTLP endpointUrl', () => {
-      expect(
-        getClientConfigEndpointUrl({
-          endpointUrl: 'https://custom-proxy.internal.net'
-        })
-      ).toBe('https://firebasetelemetry.googleapis.com');
-    });
-  });
-
   describe('getClientConfigUrl', () => {
-    it('should build the GetClientConfig URL from the project number in the app id, region and app id', () => {
+    it('should build the GetClientConfig URL from the project id, region and app id', () => {
       expect(
         getClientConfigUrl({
           projectId: 'my-project',
           appId: '1:123456789012:web:abcdef'
         })
       ).toBe(
-        'https://firebasetelemetry.googleapis.com/v1alpha/projects/123456789012/locations/global/apps/1:123456789012:web:abcdef/clientConfig'
+        'https://firebasetelemetry.googleapis.com/v1alpha/projects/my-project/locations/global/apps/1:123456789012:web:abcdef/clientConfig'
       );
       expect(
         getClientConfigUrl(
@@ -473,7 +447,29 @@ describe('helpers', () => {
           { region: 'us-east5' }
         )
       ).toBe(
-        'https://firebasetelemetry.us-east5.rep.googleapis.com/v1alpha/projects/1/locations/us-east5/apps/1:1:web:a/clientConfig'
+        'https://firebasetelemetry.us-east5.rep.googleapis.com/v1alpha/projects/my-project/locations/us-east5/apps/1:1:web:a/clientConfig'
+      );
+    });
+
+    it('should use the global endpoint for the global region', () => {
+      expect(
+        getClientConfigUrl(
+          { projectId: 'my-project', appId: '1:1:web:a' },
+          { region: 'global' }
+        )
+      ).toBe(
+        'https://firebasetelemetry.googleapis.com/v1alpha/projects/my-project/locations/global/apps/1:1:web:a/clientConfig'
+      );
+    });
+
+    it('should not be affected by a custom OTLP endpointUrl', () => {
+      expect(
+        getClientConfigUrl(
+          { projectId: 'my-project', appId: '1:1:web:a' },
+          { endpointUrl: 'https://custom-proxy.internal.net' }
+        )
+      ).toBe(
+        'https://firebasetelemetry.googleapis.com/v1alpha/projects/my-project/locations/global/apps/1:1:web:a/clientConfig'
       );
     });
 
@@ -483,23 +479,11 @@ describe('helpers', () => {
       );
     });
 
-    it('should not need the project id when the app id embeds the project number', () => {
-      expect(getClientConfigUrl({ appId: '1:123456789012:web:abcdef' })).toBe(
-        'https://firebasetelemetry.googleapis.com/v1alpha/projects/123456789012/locations/global/apps/1:123456789012:web:abcdef/clientConfig'
-      );
-    });
-
-    it('should fall back to the project id when the app id does not embed a project number', () => {
-      expect(
-        getClientConfigUrl({ projectId: 'my-project', appId: 'my-app' })
-      ).toBe(
-        'https://firebasetelemetry.googleapis.com/v1alpha/projects/my-project/locations/global/apps/my-app/clientConfig'
-      );
-    });
-
-    it('should return undefined when the app id or the project is missing', () => {
+    it('should return undefined when the project id or app id is missing', () => {
       expect(getClientConfigUrl({ projectId: 'my-project' })).toBeUndefined();
-      expect(getClientConfigUrl({ appId: 'my-app' })).toBeUndefined();
+      expect(
+        getClientConfigUrl({ appId: '1:123456789012:web:abcdef' })
+      ).toBeUndefined();
       expect(getClientConfigUrl({})).toBeUndefined();
     });
   });

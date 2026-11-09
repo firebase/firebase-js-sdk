@@ -22,7 +22,7 @@ import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { CrashlyticsOptions } from './public-types';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { FirebaseOptions } from '@firebase/app-types';
-import { DEFAULT_TELEMETRY_REGION } from './constants';
+import { DEFAULT_REGION } from './constants';
 
 export const ATTR_KEY_INSTALLATION_ID = 'app.installation.id';
 export const SESSION_STORAGE_SESSION_ID_KEY = 'firebasecrashlytics.sessionid';
@@ -64,7 +64,7 @@ export class AttributesStore {
     installationsProvider?: Provider<'installations-internal'>
   ) {
     this._projectId = firebaseOptions.projectId;
-    this._region = crashlyticsOptions?.region || DEFAULT_TELEMETRY_REGION;
+    this._region = crashlyticsOptions?.region || DEFAULT_REGION;
     this.updateOptions(crashlyticsOptions);
 
     // Get session id from storage, if available
