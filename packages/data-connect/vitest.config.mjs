@@ -43,6 +43,10 @@ function resolveNodeEntryPlugin() {
 
 function stripTypeExportsPlugin() {
   let program;
+  const enableSourceMap =
+    Boolean(process.env.FIREBASE_CI_TEST_START_TIME) ||
+    process.env.COVERAGE === 'true' ||
+    process.argv.some(arg => arg.startsWith('--coverage'));
   return {
     name: 'strip-type-exports',
     enforce: 'pre',
@@ -66,7 +70,8 @@ function stripTypeExportsPlugin() {
           ...parsedConfig.options,
           module: ts.ModuleKind.ESNext,
           target: ts.ScriptTarget.ESNext,
-          sourceMap: false,
+          sourceMap: enableSourceMap,
+          inlineSources: enableSourceMap,
           inlineSourceMap: false
         });
       }
@@ -75,13 +80,16 @@ function stripTypeExportsPlugin() {
         return null;
       }
       let emittedCode = null;
+      let emittedMap = null;
       program.emit(sf, (fileName, data) => {
         if (fileName.endsWith('.js')) {
           emittedCode = data;
+        } else if (fileName.endsWith('.js.map')) {
+          emittedMap = data;
         }
       });
       if (emittedCode !== null) {
-        return { code: emittedCode, map: null };
+        return { code: emittedCode, map: emittedMap };
       }
       return null;
     }
