@@ -21,7 +21,7 @@ import {
   CLIENT_CONFIG_INITIAL_WAIT_MS,
   SESSION_SAMPLING_HASH_BUCKETS
 } from '../constants';
-// Types only, so the runtime import goes one way: client-config imports isPageHidden from here.
+import { isPageHidden } from '../helpers';
 import type { ClientConfig, ClientConfigStore } from './client-config';
 import { isTelemetryDebugEnabled } from './debug-override';
 import { murmurHash3 } from './murmurhash3';
@@ -58,18 +58,6 @@ export function isSessionSampled(sessionId: string, rate: number): boolean {
 }
 
 /**
- * Whether the page is currently hidden. Browsers set `visibilityState` to `hidden` before
- * dispatching `pagehide` when a document is unloaded, so this is also true during the unload flush.
- *
- * @internal
- */
-export function isPageHidden(): boolean {
-  return (
-    typeof document !== 'undefined' && document.visibilityState === 'hidden'
-  );
-}
-
-/**
  * Makes and remembers the session sampling decision for a Crashlytics instance.
  *
  * - The decision is made lazily, at the first telemetry export attempt of the session (not at
@@ -86,7 +74,6 @@ export function isPageHidden(): boolean {
  */
 export class SessionSampler {
   private _decision?: SamplingDecision;
-  private _pendingWait?: Promise<void>;
 
   /**
    * @param _storageKey - `sessionStorage` key under which the decision is persisted. It must be
@@ -146,13 +133,6 @@ export class SessionSampler {
   }
 
   /**
-   * Returns the attribute to stamp on exported telemetry for the current (sampled) session.
-   */
-  getSamplingAttribute(decision: SamplingDecision): Record<string, number> {
-    return { [ATTR_KEY_SESSION_SAMPLING_RATE]: decision.samplingRate };
-  }
-
-  /**
    * Applies the session's sampling decision to a batch of log records or spans about to be
    * exported. Waits for the decision (see {@link SessionSampler.getDecision}); if the session is
    * sampled, stamps `session.sampling.rate` on every record and resolves to `true`. Otherwise
@@ -167,56 +147,44 @@ export class SessionSampler {
     if (!decision.sampled) {
       return false;
     }
-    const samplingAttribute = this.getSamplingAttribute(decision);
     for (const record of records) {
-      Object.assign(record.attributes, samplingAttribute);
+      Object.assign(record.attributes, {
+        [ATTR_KEY_SESSION_SAMPLING_RATE]: decision.samplingRate
+      });
     }
     return true;
   }
 
   /**
    * Refreshes the configuration if needed and resolves when the refresh settles, `initialWaitMs`
-   * elapses, or the page becomes hidden / is being unloaded, whichever happens first. Concurrent
-   * callers (e.g. the log and the trace exporters) share a single wait. The timer and listeners are
-   * removed once it settles.
+   * elapses, or the page becomes hidden / is being unloaded, whichever happens first.
    */
-  private _waitForConfigRefresh(): Promise<void> {
-    if (this._pendingWait) {
-      return this._pendingWait;
-    }
-    const wait = new Promise<void>(resolve => {
-      let settled = false;
-      const hasDom =
-        typeof window !== 'undefined' && typeof document !== 'undefined';
-      const onVisibilityChange = (): void => {
-        if (isPageHidden()) {
-          settle();
-        }
-      };
-      const settle = (): void => {
-        if (settled) {
-          return;
-        }
-        settled = true;
-        clearTimeout(timer);
-        if (hasDom) {
-          document.removeEventListener('visibilitychange', onVisibilityChange);
-          window.removeEventListener('pagehide', settle);
-        }
-        if (this._pendingWait === wait) {
-          this._pendingWait = undefined;
-        }
-        resolve();
-      };
-      const timer = setTimeout(settle, this._initialWaitMs);
-      if (hasDom) {
-        document.addEventListener('visibilitychange', onVisibilityChange);
-        window.addEventListener('pagehide', settle);
-      }
-      this._configStore.refreshIfStale().then(settle, settle);
+  private async _waitForConfigRefresh(): Promise<void> {
+    let release!: () => void;
+    const released = new Promise<void>(resolve => {
+      release = resolve;
     });
-    this._pendingWait = wait;
-    return wait;
+    const onVisibilityChange = (): void => {
+      if (isPageHidden()) {
+        release();
+      }
+    };
+    const hasDom =
+      typeof window !== 'undefined' && typeof document !== 'undefined';
+    const timer = setTimeout(release, this._initialWaitMs);
+    if (hasDom) {
+      document.addEventListener('visibilitychange', onVisibilityChange);
+      window.addEventListener('pagehide', release);
+    }
+    try {
+      await Promise.race([this._configStore.refreshIfStale(), released]);
+    } finally {
+      clearTimeout(timer);
+      if (hasDom) {
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+        window.removeEventListener('pagehide', release);
+      }
+    }
   }
 
   private _computeDecision(
@@ -224,25 +192,19 @@ export class SessionSampler {
     config: ClientConfig
   ): SamplingDecision {
     if (isTelemetryDebugEnabled()) {
-      return {
-        sessionId,
-        sampled: true,
-        samplingRate: 1.0
-      };
+      return { sessionId, sampled: true, samplingRate: 1.0 };
     }
-    if (config.samplingRate <= 0) {
-      return { sessionId, sampled: false, samplingRate: config.samplingRate };
-    }
-    if (!sessionId) {
-      return { sessionId, sampled: false, samplingRate: config.samplingRate };
-    }
-    return {
-      sessionId,
-      sampled: isSessionSampled(sessionId, config.samplingRate),
-      samplingRate: config.samplingRate
-    };
+
+    const sampled =
+      !!sessionId && isSessionSampled(sessionId, config.samplingRate);
+    return { sessionId, sampled, samplingRate: config.samplingRate };
   }
 
+  /**
+   * Returns the decision already made for the current session, from memory or, after a reload,
+   * from `sessionStorage`. An unsampled decision isn't reused while the debug override is on, so
+   * turning the override on mid-session takes effect.// TODO: Consider whether the override should be sticky for the session, so turning it off mid-session doesn't flip the decision back to unsampled.
+   */
   private _cachedDecision(): SamplingDecision | undefined {
     const sessionId = this._attributesStore.sessionId;
     if (this._decision && this._decision.sessionId === sessionId) {

@@ -278,6 +278,18 @@ export function logVisibilityEvent(
 }
 
 /**
+ * Whether the page is currently hidden. Browsers set `visibilityState` to `hidden` before
+ * dispatching `pagehide` when a document is unloaded, so this is also true during the unload flush.
+ *
+ * @internal
+ */
+export function isPageHidden(): boolean {
+  return (
+    typeof document !== 'undefined' && document.visibilityState === 'hidden'
+  );
+}
+
+/**
  * Resolves the base telemetry endpoint URL based on the provided options.
  * Uses the regional endpoint (REP) format (`https://clienttelemetry.{region}.rep.googleapis.com`)
  * when a non-global region is specified and no custom `endpointUrl` override is provided.

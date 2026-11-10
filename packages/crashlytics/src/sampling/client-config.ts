@@ -24,7 +24,7 @@ import {
   CLIENT_CONFIG_MIN_REFRESH_INTERVAL_MS,
   CLIENT_CONFIG_REUSE_WINDOW_MS
 } from '../constants';
-import { isPageHidden } from './session-sampler';
+import { isPageHidden } from '../helpers';
 
 /**
  * Operational telemetry configuration for a Firebase app, as served by the Firebase Telemetry
