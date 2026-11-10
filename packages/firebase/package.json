@@ -20,7 +20,8 @@
     "**/package.json",
     "/firebase*.js",
     "/firebase*.map",
-    "compat/index.d.ts"
+    "compat/index.d.ts",
+    "/typescript-version-check.ts"
   ],
   "exports": {
     "./analytics": {
@@ -555,5 +556,12 @@
     "crashlytics/react",
     "crashlytics/react-router"
   ],
-  "typings": "empty.d.ts"
+  "typings": "empty.d.ts",
+  "typesVersions": {
+    "<4.5": {
+      "*": [
+        "typescript-version-check.ts"
+      ]
+    }
+  }
 }
