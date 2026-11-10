@@ -16,7 +16,6 @@
  */
 
 import type * as firestore from '@firebase/firestore-types';
-import { expect } from 'chai';
 
 import { addEqualityMatcher } from './util/equality_matcher';
 import { EventsAccumulator } from './util/events_accumulator';
@@ -49,7 +48,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .limit(2)
         .get()
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([{ k: 'a' }, { k: 'b' }]);
+          expect(toDataArray(docs)).toEqual([{ k: 'a' }, { k: 'b' }]);
         });
     });
   });
@@ -58,7 +57,7 @@ apiDescribe('Queries', (persistence: boolean) => {
     return withTestCollection(persistence, {}, async collection => {
       const expectedError =
         'limitToLast() queries require specifying at least one orderBy() clause';
-      expect(() => collection.limitToLast(2).get()).to.throw(expectedError);
+      expect(() => collection.limitToLast(2).get()).toThrow(expectedError);
     });
   });
 
@@ -75,7 +74,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .limit(2)
         .get()
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([
+          expect(toDataArray(docs)).toEqual([
             { k: 'd', sort: 2 },
             { k: 'c', sort: 1 }
           ]);
@@ -96,7 +95,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .limitToLast(2)
         .get()
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([
+          expect(toDataArray(docs)).toEqual([
             { k: 'b', sort: 1 },
             { k: 'a', sort: 0 }
           ]);
@@ -119,14 +118,14 @@ apiDescribe('Queries', (persistence: boolean) => {
         .onSnapshot(storeEvent.storeEvent);
 
       let snapshot = await storeEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
+      expect(toDataArray(snapshot)).toEqual([
         { k: 'b', sort: 1 },
         { k: 'a', sort: 0 }
       ]);
 
       await collection.add({ k: 'e', sort: -1 });
       snapshot = await storeEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
+      expect(toDataArray(snapshot)).toEqual([
         { k: 'a', sort: 0 },
         { k: 'e', sort: -1 }
       ]);
@@ -164,12 +163,12 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       // Verify both queries get expected results.
       let snapshot = await storeLimitEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
+      expect(toDataArray(snapshot)).toEqual([
         { k: 'a', sort: 0 },
         { k: 'b', sort: 1 }
       ]);
       snapshot = await storeLimitToLastEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
+      expect(toDataArray(snapshot)).toEqual([
         { k: 'b', sort: 1 },
         { k: 'a', sort: 0 }
       ]);
@@ -183,7 +182,7 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       // Verify `limit` query still works.
       snapshot = await storeLimitEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
+      expect(toDataArray(snapshot)).toEqual([
         { k: 'a', sort: 0 },
         { k: 'b', sort: 1 }
       ]);
@@ -193,12 +192,12 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       // Verify both queries get expected results.
       snapshot = await storeLimitEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
+      expect(toDataArray(snapshot)).toEqual([
         { k: 'e', sort: -1 },
         { k: 'a', sort: 0 }
       ]);
       snapshot = await storeLimitToLastEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
+      expect(toDataArray(snapshot)).toEqual([
         { k: 'a', sort: 0 },
         { k: 'e', sort: -1 }
       ]);
@@ -213,12 +212,12 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       // Verify both queries get expected results.
       snapshot = await storeLimitEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
+      expect(toDataArray(snapshot)).toEqual([
         { k: 'a', sort: -2 },
         { k: 'e', sort: -1 }
       ]);
       snapshot = await storeLimitToLastEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
+      expect(toDataArray(snapshot)).toEqual([
         { k: 'e', sort: -1 },
         { k: 'a', sort: -2 }
       ]);
@@ -255,13 +254,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .orderBy('foo', 'desc')
         .get()
         .then(docs => {
-          expect(docs.docs.map(d => d.id)).to.deep.equal([
-            'g',
-            'f',
-            'c',
-            'b',
-            'a'
-          ]);
+          expect(docs.docs.map(d => d.id)).toEqual(['g', 'f', 'c', 'b', 'a']);
         });
     });
   });
@@ -278,7 +271,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .where('nan', '==', NaN)
         .get()
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([{ null: null, nan: NaN }]);
+          expect(toDataArray(docs)).toEqual([{ null: null, nan: NaN }]);
         });
     });
   });
@@ -293,7 +286,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .where('inf', '==', Infinity)
         .get()
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([{ inf: Infinity }]);
+          expect(toDataArray(docs)).toEqual([{ inf: Infinity }]);
         });
     });
   });
@@ -312,20 +305,14 @@ apiDescribe('Queries', (persistence: boolean) => {
           return storeEvent.awaitEvent();
         })
         .then(querySnap => {
-          expect(toDataArray(querySnap)).to.deep.equal([
-            { v: 'a' },
-            { v: 'b' }
-          ]);
+          expect(toDataArray(querySnap)).toEqual([{ v: 'a' }, { v: 'b' }]);
           return coll.doc('a').set({ v: 'a1' });
         })
         .then(() => {
           return storeEvent.awaitEvent();
         })
         .then(querySnap => {
-          expect(toDataArray(querySnap)).to.deep.equal([
-            { v: 'a1' },
-            { v: 'b' }
-          ]);
+          expect(toDataArray(querySnap)).toEqual([{ v: 'a1' }, { v: 'b' }]);
           return storeEvent.assertNoAdditionalEvents();
         })
         .then(() => {
@@ -347,7 +334,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .awaitEvent()
         .then(querySnapshot => {
           const changes = querySnapshot.docChanges();
-          expect(changes.length).to.equal(3);
+          expect(changes.length).toBe(3);
           verifyDocumentChange(changes[0], 'a', -1, 0, 'added');
           verifyDocumentChange(changes[1], 'b', -1, 1, 'added');
           verifyDocumentChange(changes[2], 'c', -1, 2, 'added');
@@ -356,14 +343,14 @@ apiDescribe('Queries', (persistence: boolean) => {
         .then(() => accumulator.awaitEvent())
         .then(querySnapshot => {
           const changes = querySnapshot.docChanges();
-          expect(changes.length).to.equal(1);
+          expect(changes.length).toBe(1);
           verifyDocumentChange(changes[0], 'b', 1, 2, 'modified');
         })
         .then(() => coll.doc('c').delete())
         .then(() => accumulator.awaitEvent())
         .then(querySnapshot => {
           const changes = querySnapshot.docChanges();
-          expect(changes.length).to.equal(1);
+          expect(changes.length).toBe(1);
           verifyDocumentChange(changes[0], 'c', 1, -1, 'removed');
         });
 
@@ -385,17 +372,11 @@ apiDescribe('Queries', (persistence: boolean) => {
       return storeEvent
         .awaitEvent()
         .then(querySnap => {
-          expect(toDataArray(querySnap)).to.deep.equal([
-            { v: 'a' },
-            { v: 'b' }
-          ]);
+          expect(toDataArray(querySnap)).toEqual([{ v: 'a' }, { v: 'b' }]);
           return storeEventFull.awaitEvent();
         })
         .then(async querySnap => {
-          expect(toDataArray(querySnap)).to.deep.equal([
-            { v: 'a' },
-            { v: 'b' }
-          ]);
+          expect(toDataArray(querySnap)).toEqual([{ v: 'a' }, { v: 'b' }]);
           if (querySnap.metadata.fromCache) {
             // We might receive an additional event if the first query snapshot
             // was served from cache.
@@ -409,27 +390,18 @@ apiDescribe('Queries', (persistence: boolean) => {
         .then(events => {
           // Expect two events for the write, once from latency compensation
           // and once from the acknowledgment from the server.
-          expect(toDataArray(events[0])).to.deep.equal([
-            { v: 'a1' },
-            { v: 'b' }
-          ]);
-          expect(toDataArray(events[1])).to.deep.equal([
-            { v: 'a1' },
-            { v: 'b' }
-          ]);
+          expect(toDataArray(events[0])).toEqual([{ v: 'a1' }, { v: 'b' }]);
+          expect(toDataArray(events[1])).toEqual([{ v: 'a1' }, { v: 'b' }]);
           const localResult = events[0].docs;
-          expect(localResult[0].metadata.hasPendingWrites).to.equal(true);
+          expect(localResult[0].metadata.hasPendingWrites).toBe(true);
           const syncedResults = events[1].docs;
-          expect(syncedResults[0].metadata.hasPendingWrites).to.equal(false);
+          expect(syncedResults[0].metadata.hasPendingWrites).toBe(false);
 
           return storeEvent.awaitEvent();
         })
         .then(querySnap => {
           // Expect only one event for the write.
-          expect(toDataArray(querySnap)).to.deep.equal([
-            { v: 'a1' },
-            { v: 'b' }
-          ]);
+          expect(toDataArray(querySnap)).toEqual([{ v: 'a1' }, { v: 'b' }]);
           return storeEvent.assertNoAdditionalEvents();
         })
         .then(() => {
@@ -441,26 +413,17 @@ apiDescribe('Queries', (persistence: boolean) => {
         })
         .then(querySnap => {
           // Expect only one event from the second write
-          expect(toDataArray(querySnap)).to.deep.equal([
-            { v: 'a1' },
-            { v: 'b1' }
-          ]);
+          expect(toDataArray(querySnap)).toEqual([{ v: 'a1' }, { v: 'b1' }]);
           return storeEventFull.awaitEvents(2);
         })
         .then(events => {
           // Expect 2 events from the second write.
-          expect(toDataArray(events[0])).to.deep.equal([
-            { v: 'a1' },
-            { v: 'b1' }
-          ]);
-          expect(toDataArray(events[1])).to.deep.equal([
-            { v: 'a1' },
-            { v: 'b1' }
-          ]);
+          expect(toDataArray(events[0])).toEqual([{ v: 'a1' }, { v: 'b1' }]);
+          expect(toDataArray(events[1])).toEqual([{ v: 'a1' }, { v: 'b1' }]);
           const localResults = events[0].docs;
-          expect(localResults[1].metadata.hasPendingWrites).to.equal(true);
+          expect(localResults[1].metadata.hasPendingWrites).toBe(true);
           const syncedResults = events[1].docs;
-          expect(syncedResults[1].metadata.hasPendingWrites).to.equal(false);
+          expect(syncedResults[1].metadata.hasPendingWrites).toBe(false);
           return storeEvent.assertNoAdditionalEvents();
         })
         .then(() => {
@@ -495,11 +458,11 @@ apiDescribe('Queries', (persistence: boolean) => {
         const docs1 = results[0];
         const docs2 = results[1];
 
-        expect(toDataArray(docs1)).to.deep.equal([
+        expect(toDataArray(docs1)).toEqual([
           { id: '2', date: Timestamp.fromDate(date2) },
           { id: '3', date: Timestamp.fromDate(date3) }
         ]);
-        expect(toDataArray(docs2)).to.deep.equal([
+        expect(toDataArray(docs2)).toEqual([
           { id: '3', date: Timestamp.fromDate(date3) }
         ]);
       });
@@ -518,7 +481,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       const accum = new EventsAccumulator<firestore.QuerySnapshot>();
       let unlisten2: () => void;
       const unlisten1 = query.onSnapshot(result => {
-        expect(toDataArray(result)).to.deep.equal([
+        expect(toDataArray(result)).toEqual([
           testDocs[1],
           testDocs[2],
           testDocs[3]
@@ -534,14 +497,14 @@ apiDescribe('Queries', (persistence: boolean) => {
       return accum.awaitEvents(2).then(events => {
         const results1 = events[0];
         const results2 = events[1];
-        expect(toDataArray(results1)).to.deep.equal([
+        expect(toDataArray(results1)).toEqual([
           testDocs[1],
           testDocs[2],
           testDocs[3]
         ]);
-        expect(toDataArray(results1)).to.deep.equal(toDataArray(results2));
-        expect(results1.metadata.fromCache).to.equal(true);
-        expect(results2.metadata.fromCache).to.equal(false);
+        expect(toDataArray(results1)).toEqual(toDataArray(results2));
+        expect(results1.metadata.fromCache).toBe(true);
+        expect(results2.metadata.fromCache).toBe(false);
         unlisten1();
         unlisten2();
       });
@@ -564,22 +527,22 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       await accum.awaitEvents(1).then(events => {
         const results1 = events[0];
-        expect(toDataArray(results1)).to.deep.equal([initialDoc['foo']]);
+        expect(toDataArray(results1)).toEqual([initialDoc['foo']]);
       });
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       coll.doc('foo').set(modifiedDoc['foo']);
 
       await accum.awaitEvents(2).then(events => {
         const results1 = events[0];
-        expect(toDataArray(results1)).to.deep.equal([modifiedDoc['foo']]);
-        expect(toChangesArray(results1)).to.deep.equal([modifiedDoc['foo']]);
+        expect(toDataArray(results1)).toEqual([modifiedDoc['foo']]);
+        expect(toChangesArray(results1)).toEqual([modifiedDoc['foo']]);
 
         const results2 = events[1];
-        expect(toDataArray(results2)).to.deep.equal([modifiedDoc['foo']]);
-        expect(toChangesArray(results2)).to.deep.equal([]);
+        expect(toDataArray(results2)).toEqual([modifiedDoc['foo']]);
+        expect(toChangesArray(results2)).toEqual([]);
         expect(
           toChangesArray(results2, { includeMetadataChanges: true })
-        ).to.deep.equal([modifiedDoc['foo']]);
+        ).toEqual([modifiedDoc['foo']]);
       });
 
       unlisten();
@@ -599,7 +562,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .orderBy(FieldPath.documentId())
         .get()
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([
+          expect(toDataArray(docs)).toEqual([
             testDocs['a'],
             testDocs['b'],
             testDocs['c']
@@ -620,17 +583,14 @@ apiDescribe('Queries', (persistence: boolean) => {
         .where(FieldPath.documentId(), '==', 'ab')
         .get()
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([testDocs['ab']]);
+          expect(toDataArray(docs)).toEqual([testDocs['ab']]);
           return coll
             .where(FieldPath.documentId(), '>', 'aa')
             .where(FieldPath.documentId(), '<=', 'ba')
             .get();
         })
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([
-            testDocs['ab'],
-            testDocs['ba']
-          ]);
+          expect(toDataArray(docs)).toEqual([testDocs['ab'], testDocs['ba']]);
         });
     });
   });
@@ -647,17 +607,14 @@ apiDescribe('Queries', (persistence: boolean) => {
         .where(FieldPath.documentId(), '==', coll.doc('ab'))
         .get()
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([testDocs['ab']]);
+          expect(toDataArray(docs)).toEqual([testDocs['ab']]);
           return coll
             .where(FieldPath.documentId(), '>', coll.doc('aa'))
             .where(FieldPath.documentId(), '<=', coll.doc('ba'))
             .get();
         })
         .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([
-            testDocs['ab'],
-            testDocs['ba']
-          ]);
+          expect(toDataArray(docs)).toEqual([testDocs['ab'], testDocs['ba']]);
         });
     });
   });
@@ -699,22 +656,20 @@ apiDescribe('Queries', (persistence: boolean) => {
         .awaitEvent()
         .then(querySnap => {
           // initial event
-          expect(querySnap.docs.map(doc => doc.data())).to.deep.equal([
-            { foo: 1 }
-          ]);
-          expect(querySnap.metadata.fromCache).to.be.false;
+          expect(querySnap.docs.map(doc => doc.data())).toEqual([{ foo: 1 }]);
+          expect(querySnap.metadata.fromCache).toBe(false);
         })
         .then(() => firestore.disableNetwork())
         .then(() => accum.awaitEvent())
         .then(querySnap => {
           // offline event with fromCache = true
-          expect(querySnap.metadata.fromCache).to.be.true;
+          expect(querySnap.metadata.fromCache).toBe(true);
         })
         .then(() => firestore.enableNetwork())
         .then(() => accum.awaitEvent())
         .then(querySnap => {
           // back online event with fromCache = false
-          expect(querySnap.metadata.fromCache).to.be.false;
+          expect(querySnap.metadata.fromCache).toBe(false);
           unregister();
         });
     });
@@ -743,7 +698,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       delete expected.i;
       delete expected.j;
       const snapshot = await coll.where('zip', '!=', 98101).get();
-      expect(toDataArray(snapshot)).to.deep.equal(Object.values(expected));
+      expect(toDataArray(snapshot)).toEqual(Object.values(expected));
 
       // With objects.
       const snapshot2 = await coll.where('zip', '!=', { code: 500 }).get();
@@ -751,14 +706,14 @@ apiDescribe('Queries', (persistence: boolean) => {
       delete expected.h;
       delete expected.i;
       delete expected.j;
-      expect(toDataArray(snapshot2)).to.deep.equal(Object.values(expected));
+      expect(toDataArray(snapshot2)).toEqual(Object.values(expected));
 
       // With null.
       const snapshot3 = await coll.where('zip', '!=', null).get();
       expected = { ...testDocs };
       delete expected.i;
       delete expected.j;
-      expect(toDataArray(snapshot3)).to.deep.equal(Object.values(expected));
+      expect(toDataArray(snapshot3)).toEqual(Object.values(expected));
 
       // With NaN.
       const snapshot4 = await coll.where('zip', '!=', Number.NaN).get();
@@ -766,7 +721,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       delete expected.a;
       delete expected.i;
       delete expected.j;
-      expect(toDataArray(snapshot4)).to.deep.equal(Object.values(expected));
+      expect(toDataArray(snapshot4)).toEqual(Object.values(expected));
     });
   });
 
@@ -782,7 +737,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .where(FieldPath.documentId(), '!=', 'aa')
         .get();
 
-      expect(toDataArray(snapshot)).to.deep.equal([
+      expect(toDataArray(snapshot)).toEqual([
         { key: 'ab' },
         { key: 'ba' },
         { key: 'bb' }
@@ -803,7 +758,7 @@ apiDescribe('Queries', (persistence: boolean) => {
     await withTestCollection(persistence, testDocs, async coll => {
       // Search for 42
       const snapshot = await coll.where('array', 'array-contains', 42).get();
-      expect(toDataArray(snapshot)).to.deep.equal([
+      expect(toDataArray(snapshot)).toEqual([
         { array: [42] },
         { array: ['a', 42, 'c'] },
         { array: [42], array2: ['bingo'] }
@@ -813,13 +768,13 @@ apiDescribe('Queries', (persistence: boolean) => {
       // arrays, so there isn't much of anything else interesting to test.
       // With null.
       const snapshot3 = await coll.where('zip', 'array-contains', null).get();
-      expect(toDataArray(snapshot3)).to.deep.equal([]);
+      expect(toDataArray(snapshot3)).toEqual([]);
 
       // With NaN.
       const snapshot4 = await coll
         .where('zip', 'array-contains', Number.NaN)
         .get();
-      expect(toDataArray(snapshot4)).to.deep.equal([]);
+      expect(toDataArray(snapshot4)).toEqual([]);
     });
   });
 
@@ -840,7 +795,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       const snapshot = await coll
         .where('zip', 'in', [98101, 98103, [98101, 98102]])
         .get();
-      expect(toDataArray(snapshot)).to.deep.equal([
+      expect(toDataArray(snapshot)).toEqual([
         { zip: 98101 },
         { zip: 98103 },
         { zip: [98101, 98102] }
@@ -848,25 +803,25 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       // With objects.
       const snapshot2 = await coll.where('zip', 'in', [{ code: 500 }]).get();
-      expect(toDataArray(snapshot2)).to.deep.equal([{ zip: { code: 500 } }]);
+      expect(toDataArray(snapshot2)).toEqual([{ zip: { code: 500 } }]);
 
       // With null.
       const snapshot3 = await coll.where('zip', 'in', [null]).get();
-      expect(toDataArray(snapshot3)).to.deep.equal([]);
+      expect(toDataArray(snapshot3)).toEqual([]);
 
       // With null and a value.
       const snapshot4 = await coll.where('zip', 'in', [98101, null]).get();
-      expect(toDataArray(snapshot4)).to.deep.equal([{ zip: 98101 }]);
+      expect(toDataArray(snapshot4)).toEqual([{ zip: 98101 }]);
 
       // With NaN.
       const snapshot5 = await coll.where('zip', 'in', [Number.NaN]).get();
-      expect(toDataArray(snapshot5)).to.deep.equal([]);
+      expect(toDataArray(snapshot5)).toEqual([]);
 
       // With NaN and a value.
       const snapshot6 = await coll
         .where('zip', 'in', [98101, Number.NaN])
         .get();
-      expect(toDataArray(snapshot6)).to.deep.equal([{ zip: 98101 }]);
+      expect(toDataArray(snapshot6)).toEqual([{ zip: 98101 }]);
     });
   });
 
@@ -882,10 +837,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .where(FieldPath.documentId(), 'in', ['aa', 'ab'])
         .get();
 
-      expect(toDataArray(snapshot)).to.deep.equal([
-        { key: 'aa' },
-        { key: 'ab' }
-      ]);
+      expect(toDataArray(snapshot)).toEqual([{ key: 'aa' }, { key: 'ab' }]);
     });
   });
 
@@ -916,7 +868,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       const snapshot = await coll
         .where('zip', 'not-in', [98101, 98103, [98101, 98102]])
         .get();
-      expect(toDataArray(snapshot)).to.deep.equal(Object.values(expected));
+      expect(toDataArray(snapshot)).toEqual(Object.values(expected));
 
       // With objects.
       const snapshot2 = await coll
@@ -926,11 +878,11 @@ apiDescribe('Queries', (persistence: boolean) => {
       delete expected.h;
       delete expected.i;
       delete expected.j;
-      expect(toDataArray(snapshot2)).to.deep.equal(Object.values(expected));
+      expect(toDataArray(snapshot2)).toEqual(Object.values(expected));
 
       // With null.
       const snapshot3 = await coll.where('zip', 'not-in', [null]).get();
-      expect(toDataArray(snapshot3)).to.deep.equal([]);
+      expect(toDataArray(snapshot3)).toEqual([]);
 
       // With NaN.
       const snapshot4 = await coll.where('zip', 'not-in', [Number.NaN]).get();
@@ -938,7 +890,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       delete expected.a;
       delete expected.i;
       delete expected.j;
-      expect(toDataArray(snapshot4)).to.deep.equal(Object.values(expected));
+      expect(toDataArray(snapshot4)).toEqual(Object.values(expected));
 
       // With NaN and a number.
       const snapshot5 = await coll
@@ -949,7 +901,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       delete expected.c;
       delete expected.i;
       delete expected.j;
-      expect(toDataArray(snapshot5)).to.deep.equal(Object.values(expected));
+      expect(toDataArray(snapshot5)).toEqual(Object.values(expected));
     });
   });
 
@@ -965,10 +917,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .where(FieldPath.documentId(), 'not-in', ['aa', 'ab'])
         .get();
 
-      expect(toDataArray(snapshot)).to.deep.equal([
-        { key: 'ba' },
-        { key: 'bb' }
-      ]);
+      expect(toDataArray(snapshot)).toEqual([{ key: 'ba' }, { key: 'bb' }]);
     });
   });
 
@@ -989,7 +938,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       const snapshot = await coll
         .where('array', 'array-contains-any', [42, 43])
         .get();
-      expect(toDataArray(snapshot)).to.deep.equal([
+      expect(toDataArray(snapshot)).toEqual([
         { array: [42] },
         { array: ['a', 42, 'c'] },
         { array: [42], array2: ['bingo'] },
@@ -1000,31 +949,31 @@ apiDescribe('Queries', (persistence: boolean) => {
       const snapshot2 = await coll
         .where('array', 'array-contains-any', [{ a: 42 }])
         .get();
-      expect(toDataArray(snapshot2)).to.deep.equal([{ array: [{ a: 42 }] }]);
+      expect(toDataArray(snapshot2)).toEqual([{ array: [{ a: 42 }] }]);
 
       // With null.
       const snapshot3 = await coll
         .where('array', 'array-contains-any', [null])
         .get();
-      expect(toDataArray(snapshot3)).to.deep.equal([]);
+      expect(toDataArray(snapshot3)).toEqual([]);
 
       // With null and a value.
       const snapshot4 = await coll
         .where('array', 'array-contains-any', [43, null])
         .get();
-      expect(toDataArray(snapshot4)).to.deep.equal([{ array: [43] }]);
+      expect(toDataArray(snapshot4)).toEqual([{ array: [43] }]);
 
       // With NaN.
       const snapshot5 = await coll
         .where('array', 'array-contains-any', [Number.NaN])
         .get();
-      expect(toDataArray(snapshot5)).to.deep.equal([]);
+      expect(toDataArray(snapshot5)).toEqual([]);
 
       // With NaN and a value.
       const snapshot6 = await coll
         .where('array', 'array-contains-any', [43, Number.NaN])
         .get();
-      expect(toDataArray(snapshot6)).to.deep.equal([{ array: [43] }]);
+      expect(toDataArray(snapshot6)).toEqual([{ array: [43] }]);
     });
   });
 
@@ -1054,7 +1003,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       await batch.commit();
 
       const querySnapshot = await db.collectionGroup(collectionGroup).get();
-      expect(querySnapshot.docs.map(d => d.id)).to.deep.equal([
+      expect(querySnapshot.docs.map(d => d.id)).toEqual([
         'cg-doc1',
         'cg-doc2',
         'cg-doc3',
@@ -1091,7 +1040,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .startAt(`a/b`)
         .endAt('a/b0')
         .get();
-      expect(querySnapshot.docs.map(d => d.id)).to.deep.equal([
+      expect(querySnapshot.docs.map(d => d.id)).toEqual([
         'cg-doc2',
         'cg-doc3',
         'cg-doc4'
@@ -1103,7 +1052,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .startAfter('a/b')
         .endBefore(`a/b/${collectionGroup}/cg-doc3`)
         .get();
-      expect(querySnapshot.docs.map(d => d.id)).to.deep.equal(['cg-doc2']);
+      expect(querySnapshot.docs.map(d => d.id)).toEqual(['cg-doc2']);
     });
   });
 
@@ -1133,7 +1082,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .where(FieldPath.documentId(), '>=', `a/b`)
         .where(FieldPath.documentId(), '<=', 'a/b0')
         .get();
-      expect(querySnapshot.docs.map(d => d.id)).to.deep.equal([
+      expect(querySnapshot.docs.map(d => d.id)).toEqual([
         'cg-doc2',
         'cg-doc3',
         'cg-doc4'
@@ -1144,7 +1093,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .where(FieldPath.documentId(), '>', `a/b`)
         .where(FieldPath.documentId(), '<', `a/b/${collectionGroup}/cg-doc3`)
         .get();
-      expect(querySnapshot.docs.map(d => d.id)).to.deep.equal(['cg-doc2']);
+      expect(querySnapshot.docs.map(d => d.id)).toEqual(['cg-doc2']);
     });
   });
 
@@ -1176,7 +1125,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       for (let i = 0; i < 2; ++i) {
         const deferred = new Deferred<void>();
         const unsubscribe = query.onSnapshot(snapshot => {
-          expect(snapshot.size).to.equal(1);
+          expect(snapshot.size).toBe(1);
           deferred.resolve();
         });
         await deferred.promise;
@@ -1197,7 +1146,7 @@ apiDescribe('Queries', (persistence: boolean) => {
     return withTestCollection(persistence, testDocs, async coll => {
       await coll.get(); // Populate the cache
       const snapshot = await coll.where('map.nested', '==', 'foo').get();
-      expect(toDataArray(snapshot)).to.deep.equal([{ map: { nested: 'foo' } }]);
+      expect(toDataArray(snapshot)).toEqual([{ map: { nested: 'foo' } }]);
     });
   });
 });
@@ -1209,8 +1158,8 @@ function verifyDocumentChange<T>(
   newIndex: number,
   type: firestore.DocumentChangeType
 ): void {
-  expect(change.doc.id).to.equal(id);
-  expect(change.type).to.equal(type);
-  expect(change.oldIndex).to.equal(oldIndex);
-  expect(change.newIndex).to.equal(newIndex);
+  expect(change.doc.id).toBe(id);
+  expect(change.type).toBe(type);
+  expect(change.oldIndex).toBe(oldIndex);
+  expect(change.newIndex).toBe(newIndex);
 }

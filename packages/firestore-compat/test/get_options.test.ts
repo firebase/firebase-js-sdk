@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import {
   apiDescribe,
   toDataMap,
@@ -29,10 +27,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     const initialData = { key: 'value' };
     return withTestDocAndInitialData(persistence, initialData, docRef => {
       return docRef.get().then(doc => {
-        expect(doc.exists).to.be.true;
-        expect(doc.metadata.fromCache).to.be.false;
-        expect(doc.metadata.hasPendingWrites).to.be.false;
-        expect(doc.data()).to.deep.equal(initialData);
+        expect(doc.exists).toBe(true);
+        expect(doc.metadata.fromCache).toBe(false);
+        expect(doc.metadata.hasPendingWrites).toBe(false);
+        expect(doc.data()).toEqual(initialData);
       });
     });
   });
@@ -45,10 +43,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     };
     return withTestCollection(persistence, initialDocs, colRef => {
       return colRef.get().then(qrySnap => {
-        expect(qrySnap.metadata.fromCache).to.be.false;
-        expect(qrySnap.metadata.hasPendingWrites).to.be.false;
-        expect(qrySnap.docChanges().length).to.equal(3);
-        expect(toDataMap(qrySnap)).to.deep.equal(initialDocs);
+        expect(qrySnap.metadata.fromCache).toBe(false);
+        expect(qrySnap.metadata.hasPendingWrites).toBe(false);
+        expect(qrySnap.docChanges().length).toBe(3);
+        expect(toDataMap(qrySnap)).toEqual(initialDocs);
       });
     });
   });
@@ -64,10 +62,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
         .then(ignored => docRef.firestore.disableNetwork())
         .then(() => docRef.get())
         .then(doc => {
-          expect(doc.exists).to.be.true;
-          expect(doc.metadata.fromCache).to.be.true;
-          expect(doc.metadata.hasPendingWrites).to.be.false;
-          expect(doc.data()).to.deep.equal(initialData);
+          expect(doc.exists).toBe(true);
+          expect(doc.metadata.fromCache).toBe(true);
+          expect(doc.metadata.hasPendingWrites).toBe(false);
+          expect(doc.data()).toEqual(initialData);
         });
     });
   });
@@ -95,11 +93,11 @@ apiDescribe('GetOptions', (persistence: boolean) => {
           return colRef.get();
         })
         .then(qrySnap => {
-          expect(qrySnap.metadata.fromCache).to.be.true;
-          expect(qrySnap.metadata.hasPendingWrites).to.be.true;
+          expect(qrySnap.metadata.fromCache).toBe(true);
+          expect(qrySnap.metadata.hasPendingWrites).toBe(true);
           const docsData = toDataMap(qrySnap);
-          expect(qrySnap.docChanges().length).to.equal(4);
-          expect(docsData).to.deep.equal({
+          expect(qrySnap.docChanges().length).toBe(4);
+          expect(docsData).toEqual({
             doc1: { key1: 'value1' },
             doc2: { key2: 'value2', key2b: 'value2b' },
             doc3: { key3b: 'value3b' },
@@ -119,10 +117,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
         .get()
         .then(ignored => docRef.get({ source: 'cache' }))
         .then(doc => {
-          expect(doc.exists).to.be.true;
-          expect(doc.metadata.fromCache).to.be.true;
-          expect(doc.metadata.hasPendingWrites).to.be.false;
-          expect(doc.data()).to.deep.equal(initialData);
+          expect(doc.exists).toBe(true);
+          expect(doc.metadata.fromCache).toBe(true);
+          expect(doc.metadata.hasPendingWrites).toBe(false);
+          expect(doc.data()).toEqual(initialData);
         });
     });
   });
@@ -141,10 +139,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
         .get()
         .then(ignored => colRef.get({ source: 'cache' }))
         .then(qrySnap => {
-          expect(qrySnap.metadata.fromCache).to.be.true;
-          expect(qrySnap.metadata.hasPendingWrites).to.be.false;
-          expect(qrySnap.docChanges().length).to.equal(3);
-          expect(toDataMap(qrySnap)).to.deep.equal(initialDocs);
+          expect(qrySnap.metadata.fromCache).toBe(true);
+          expect(qrySnap.metadata.hasPendingWrites).toBe(false);
+          expect(qrySnap.docChanges().length).toBe(3);
+          expect(toDataMap(qrySnap)).toEqual(initialDocs);
         });
     });
   });
@@ -161,10 +159,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
         .then(ignored => docRef.firestore.disableNetwork())
         .then(() => docRef.get({ source: 'cache' }))
         .then(doc => {
-          expect(doc.exists).to.be.true;
-          expect(doc.metadata.fromCache).to.be.true;
-          expect(doc.metadata.hasPendingWrites).to.be.false;
-          expect(doc.data()).to.deep.equal(initialData);
+          expect(doc.exists).toBe(true);
+          expect(doc.metadata.fromCache).toBe(true);
+          expect(doc.metadata.hasPendingWrites).toBe(false);
+          expect(doc.data()).toEqual(initialData);
         });
     });
   });
@@ -193,11 +191,11 @@ apiDescribe('GetOptions', (persistence: boolean) => {
           return colRef.get({ source: 'cache' });
         })
         .then(qrySnap => {
-          expect(qrySnap.metadata.fromCache).to.be.true;
-          expect(qrySnap.metadata.hasPendingWrites).to.be.true;
+          expect(qrySnap.metadata.fromCache).toBe(true);
+          expect(qrySnap.metadata.hasPendingWrites).toBe(true);
           const docsData = toDataMap(qrySnap);
-          expect(qrySnap.docChanges().length).to.equal(4);
-          expect(docsData).to.deep.equal({
+          expect(qrySnap.docChanges().length).toBe(4);
+          expect(docsData).toEqual({
             doc1: { key1: 'value1' },
             doc2: { key2: 'value2', key2b: 'value2b' },
             doc3: { key3b: 'value3b' },
@@ -211,10 +209,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     const initialData = { key: 'value' };
     return withTestDocAndInitialData(persistence, initialData, docRef => {
       return docRef.get({ source: 'server' }).then(doc => {
-        expect(doc.exists).to.be.true;
-        expect(doc.metadata.fromCache).to.be.false;
-        expect(doc.metadata.hasPendingWrites).to.be.false;
-        expect(doc.data()).to.deep.equal(initialData);
+        expect(doc.exists).toBe(true);
+        expect(doc.metadata.fromCache).toBe(false);
+        expect(doc.metadata.hasPendingWrites).toBe(false);
+        expect(doc.data()).toEqual(initialData);
       });
     });
   });
@@ -227,10 +225,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     };
     return withTestCollection(persistence, initialDocs, colRef => {
       return colRef.get({ source: 'server' }).then(qrySnap => {
-        expect(qrySnap.metadata.fromCache).to.be.false;
-        expect(qrySnap.metadata.hasPendingWrites).to.be.false;
-        expect(qrySnap.docChanges().length).to.equal(3);
-        expect(toDataMap(qrySnap)).to.deep.equal(initialDocs);
+        expect(qrySnap.metadata.fromCache).toBe(false);
+        expect(qrySnap.metadata.hasPendingWrites).toBe(false);
+        expect(qrySnap.docChanges().length).toBe(3);
+        expect(toDataMap(qrySnap)).toEqual(initialDocs);
       });
     });
   });
@@ -304,18 +302,18 @@ apiDescribe('GetOptions', (persistence: boolean) => {
         })
         .then(() => docRef.get({ source: 'cache' }))
         .then(doc => {
-          expect(doc.exists).to.be.true;
-          expect(doc.metadata.fromCache).to.be.true;
-          expect(doc.metadata.hasPendingWrites).to.be.false;
-          expect(doc.data()).to.deep.equal(initialData);
+          expect(doc.exists).toBe(true);
+          expect(doc.metadata.fromCache).toBe(true);
+          expect(doc.metadata.hasPendingWrites).toBe(false);
+          expect(doc.data()).toEqual(initialData);
           return Promise.resolve();
         })
         .then(() => docRef.get())
         .then(doc => {
-          expect(doc.exists).to.be.true;
-          expect(doc.metadata.fromCache).to.be.true;
-          expect(doc.metadata.hasPendingWrites).to.be.false;
-          expect(doc.data()).to.deep.equal(initialData);
+          expect(doc.exists).toBe(true);
+          expect(doc.metadata.fromCache).toBe(true);
+          expect(doc.metadata.hasPendingWrites).toBe(false);
+          expect(doc.data()).toEqual(initialData);
           return Promise.resolve();
         })
         .then(() => docRef.get({ source: 'server' }))
@@ -368,11 +366,11 @@ apiDescribe('GetOptions', (persistence: boolean) => {
           })
           .then(() => colRef.get({ source: 'cache' }))
           .then(qrySnap => {
-            expect(qrySnap.metadata.fromCache).to.be.true;
-            expect(qrySnap.metadata.hasPendingWrites).to.be.true;
+            expect(qrySnap.metadata.fromCache).toBe(true);
+            expect(qrySnap.metadata.hasPendingWrites).toBe(true);
             const docsData = toDataMap(qrySnap);
-            expect(qrySnap.docChanges().length).to.equal(4);
-            expect(docsData).to.deep.equal({
+            expect(qrySnap.docChanges().length).toBe(4);
+            expect(docsData).toEqual({
               doc1: { key1: 'value1' },
               doc2: { key2: 'value2', key2b: 'value2b' },
               doc3: { key3b: 'value3b' },
@@ -381,11 +379,11 @@ apiDescribe('GetOptions', (persistence: boolean) => {
           })
           .then(() => colRef.get())
           .then(qrySnap => {
-            expect(qrySnap.metadata.fromCache).to.be.true;
-            expect(qrySnap.metadata.hasPendingWrites).to.be.true;
+            expect(qrySnap.metadata.fromCache).toBe(true);
+            expect(qrySnap.metadata.hasPendingWrites).toBe(true);
             const docsData = toDataMap(qrySnap);
-            expect(qrySnap.docChanges().length).to.equal(4);
-            expect(docsData).to.deep.equal({
+            expect(qrySnap.docChanges().length).toBe(4);
+            expect(docsData).toEqual({
               doc1: { key1: 'value1' },
               doc2: { key2: 'value2', key2b: 'value2b' },
               doc3: { key3b: 'value3b' },
@@ -406,9 +404,9 @@ apiDescribe('GetOptions', (persistence: boolean) => {
   it('get nonexistent doc while online with default get options', () => {
     return withTestDocAndInitialData(persistence, null, docRef => {
       return docRef.get().then(doc => {
-        expect(doc.exists).to.be.false;
-        expect(doc.metadata.fromCache).to.be.false;
-        expect(doc.metadata.hasPendingWrites).to.be.false;
+        expect(doc.exists).toBe(false);
+        expect(doc.metadata.fromCache).toBe(false);
+        expect(doc.metadata.hasPendingWrites).toBe(false);
       });
     });
   });
@@ -417,10 +415,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     return withTestCollection(persistence, {}, colRef => {
       return colRef.get().then(qrySnap => {
         //expect(qrySnap.count).to.equal(0);
-        expect(qrySnap.empty).to.be.true;
-        expect(qrySnap.docChanges().length).to.equal(0);
-        expect(qrySnap.metadata.fromCache).to.be.false;
-        expect(qrySnap.metadata.hasPendingWrites).to.be.false;
+        expect(qrySnap.empty).toBe(true);
+        expect(qrySnap.docChanges().length).toBe(0);
+        expect(qrySnap.metadata.fromCache).toBe(false);
+        expect(qrySnap.metadata.hasPendingWrites).toBe(false);
       });
     });
   });
@@ -453,10 +451,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
         .then(() => docRef.firestore.disableNetwork())
         .then(() => docRef.get())
         .then(doc => {
-          expect(doc.exists).to.be.false;
-          expect(doc.data()).to.be.undefined;
-          expect(doc.metadata.fromCache).to.be.true;
-          expect(doc.metadata.hasPendingWrites).to.be.false;
+          expect(doc.exists).toBe(false);
+          expect(doc.data()).toBeUndefined();
+          expect(doc.metadata.fromCache).toBe(true);
+          expect(doc.metadata.hasPendingWrites).toBe(false);
         });
     });
   });
@@ -467,10 +465,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
         .disableNetwork()
         .then(() => colRef.get())
         .then(qrySnap => {
-          expect(qrySnap.empty).to.be.true;
-          expect(qrySnap.docChanges().length).to.equal(0);
-          expect(qrySnap.metadata.fromCache).to.be.true;
-          expect(qrySnap.metadata.hasPendingWrites).to.be.false;
+          expect(qrySnap.empty).toBe(true);
+          expect(qrySnap.docChanges().length).toBe(0);
+          expect(qrySnap.metadata.fromCache).toBe(true);
+          expect(qrySnap.metadata.hasPendingWrites).toBe(false);
         });
     });
   });
@@ -490,10 +488,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
   it('get nonexistent collection while online with source=cache', () => {
     return withTestCollection(persistence, {}, colRef => {
       return colRef.get({ source: 'cache' }).then(qrySnap => {
-        expect(qrySnap.empty).to.be.true;
-        expect(qrySnap.docChanges().length).to.equal(0);
-        expect(qrySnap.metadata.fromCache).to.be.true;
-        expect(qrySnap.metadata.hasPendingWrites).to.be.false;
+        expect(qrySnap.empty).toBe(true);
+        expect(qrySnap.docChanges().length).toBe(0);
+        expect(qrySnap.metadata.fromCache).toBe(true);
+        expect(qrySnap.metadata.hasPendingWrites).toBe(false);
       });
     });
   });
@@ -528,10 +526,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
             // Should get a document with exists=false, fromCache=true
             .then(() => docRef.get({ source: 'cache' }))
             .then(doc => {
-              expect(doc.exists).to.be.false;
-              expect(doc.data()).to.be.undefined;
-              expect(doc.metadata.fromCache).to.be.true;
-              expect(doc.metadata.hasPendingWrites).to.be.false;
+              expect(doc.exists).toBe(false);
+              expect(doc.data()).toBeUndefined();
+              expect(doc.metadata.fromCache).toBe(true);
+              expect(doc.metadata.hasPendingWrites).toBe(false);
             })
         );
       });
@@ -544,10 +542,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
         .disableNetwork()
         .then(() => colRef.get({ source: 'cache' }))
         .then(qrySnap => {
-          expect(qrySnap.empty).to.be.true;
-          expect(qrySnap.docChanges().length).to.equal(0);
-          expect(qrySnap.metadata.fromCache).to.be.true;
-          expect(qrySnap.metadata.hasPendingWrites).to.be.false;
+          expect(qrySnap.empty).toBe(true);
+          expect(qrySnap.docChanges().length).toBe(0);
+          expect(qrySnap.metadata.fromCache).toBe(true);
+          expect(qrySnap.metadata.hasPendingWrites).toBe(false);
         });
     });
   });
@@ -555,9 +553,9 @@ apiDescribe('GetOptions', (persistence: boolean) => {
   it('get nonexistent doc while online with source=server', () => {
     return withTestDocAndInitialData(persistence, null, docRef => {
       return docRef.get({ source: 'server' }).then(doc => {
-        expect(doc.exists).to.be.false;
-        expect(doc.metadata.fromCache).to.be.false;
-        expect(doc.metadata.hasPendingWrites).to.be.false;
+        expect(doc.exists).toBe(false);
+        expect(doc.metadata.fromCache).toBe(false);
+        expect(doc.metadata.hasPendingWrites).toBe(false);
       });
     });
   });
@@ -565,10 +563,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
   it('get nonexistent collection while online with source=server', () => {
     return withTestCollection(persistence, {}, colRef => {
       return colRef.get({ source: 'server' }).then(qrySnap => {
-        expect(qrySnap.empty).to.be.true;
-        expect(qrySnap.docChanges().length).to.equal(0);
-        expect(qrySnap.metadata.fromCache).to.be.false;
-        expect(qrySnap.metadata.hasPendingWrites).to.be.false;
+        expect(qrySnap.empty).toBe(true);
+        expect(qrySnap.docChanges().length).toBe(0);
+        expect(qrySnap.metadata.fromCache).toBe(false);
+        expect(qrySnap.metadata.hasPendingWrites).toBe(false);
       });
     });
   });

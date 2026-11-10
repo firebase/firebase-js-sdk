@@ -16,7 +16,6 @@
  */
 
 import type * as firestore from '@firebase/firestore-types';
-import { expect } from 'chai';
 
 import { EventsAccumulator } from './util/events_accumulator';
 import * as firebaseExport from './util/firebase_export';
@@ -44,14 +43,18 @@ apiDescribe('Numeric Transforms:', (persistence: boolean) => {
     await docRef.set(initialData);
     await accumulator.awaitLocalEvent();
     const snapshot = await accumulator.awaitRemoteEvent();
-    expect(snapshot.data()).to.deep.equal(initialData);
+    expect(snapshot.data()).toEqual(initialData);
   }
 
   async function expectLocalAndRemoteValue(expectedSum: number): Promise<void> {
     const localSnap = await accumulator.awaitLocalEvent();
-    expect(localSnap.get('sum')).to.be.closeTo(expectedSum, DOUBLE_EPSILON);
+    expect(Math.abs(localSnap.get('sum') - expectedSum)).toBeLessThanOrEqual(
+      DOUBLE_EPSILON
+    );
     const remoteSnap = await accumulator.awaitRemoteEvent();
-    expect(remoteSnap.get('sum')).to.be.closeTo(expectedSum, DOUBLE_EPSILON);
+    expect(Math.abs(remoteSnap.get('sum') - expectedSum)).toBeLessThanOrEqual(
+      DOUBLE_EPSILON
+    );
   }
 
   /**
@@ -69,7 +72,7 @@ apiDescribe('Numeric Transforms:', (persistence: boolean) => {
 
       // wait for initial null snapshot to avoid potential races.
       const snapshot = await accumulator.awaitRemoteEvent();
-      expect(snapshot.exists).to.be.false;
+      expect(snapshot.exists).toBe(false);
       await test();
       unsubscribe();
     });
@@ -158,16 +161,24 @@ apiDescribe('Numeric Transforms:', (persistence: boolean) => {
       /* eslint-enable @typescript-eslint/no-floating-promises */
 
       let snap = await accumulator.awaitLocalEvent();
-      expect(snap.get('sum')).to.be.closeTo(0.1, DOUBLE_EPSILON);
+      expect(Math.abs(snap.get('sum') - 0.1)).toBeLessThanOrEqual(
+        DOUBLE_EPSILON
+      );
       snap = await accumulator.awaitLocalEvent();
-      expect(snap.get('sum')).to.be.closeTo(0.11, DOUBLE_EPSILON);
+      expect(Math.abs(snap.get('sum') - 0.11)).toBeLessThanOrEqual(
+        DOUBLE_EPSILON
+      );
       snap = await accumulator.awaitLocalEvent();
-      expect(snap.get('sum')).to.be.closeTo(0.111, DOUBLE_EPSILON);
+      expect(Math.abs(snap.get('sum') - 0.111)).toBeLessThanOrEqual(
+        DOUBLE_EPSILON
+      );
 
       await docRef.firestore.enableNetwork();
 
       snap = await accumulator.awaitRemoteEvent();
-      expect(snap.get('sum')).to.be.closeTo(0.111, DOUBLE_EPSILON);
+      expect(Math.abs(snap.get('sum') - 0.111)).toBeLessThanOrEqual(
+        DOUBLE_EPSILON
+      );
     });
   });
 
@@ -209,16 +220,16 @@ apiDescribe('Numeric Transforms:', (persistence: boolean) => {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       docRef.set({ val: FieldValue.serverTimestamp() });
       let snap = await accumulator.awaitLocalEvent();
-      expect(snap.get('val', { serverTimestamps: 'estimate' })).to.not.be.null;
+      expect(snap.get('val', { serverTimestamps: 'estimate' })).not.toBeNull();
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       docRef.set({ val: FieldValue.increment(1) });
       snap = await accumulator.awaitLocalEvent();
-      expect(snap.get('val')).to.equal(1);
+      expect(snap.get('val')).toBe(1);
 
       await docRef.firestore.enableNetwork();
 
       snap = await accumulator.awaitRemoteEvent();
-      expect(snap.get('val')).to.equal(1);
+      expect(snap.get('val')).toBe(1);
     });
   });
 });
