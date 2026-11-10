@@ -17,10 +17,13 @@ packages/webchannel-wrapper  @firebase/firestore-js-team @firebase/jssdk-global-
 packages/firestore-types  @firebase/firestore-js-team @firebase/jssdk-global-approvers
 integration/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers
 
+# Crashlytics Code
+packages/crashlytics  @firebase/jssdk-global-approvers @andrewbrook @tonybaroneee @MaesterChestnut
+
 # Documentation Changes
 packages/firebase/compat/index.d.ts @firebase/firebase-techwriters @firebase/jssdk-global-approvers
 scripts/docgen/content-sources/ @firebase/firebase-techwriters @firebase/jssdk-global-approvers
 docs-devsite/ @firebase/firebase-techwriters
 
 # Changeset
-.changeset @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers
+.changeset @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers @andrewbrook @tonybaroneee @MaesterChestnut
