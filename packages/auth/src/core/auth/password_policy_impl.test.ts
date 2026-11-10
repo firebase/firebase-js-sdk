@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2023 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import sinonChai from 'sinon-chai';
 import {
   PasswordPolicy,
   PasswordValidationStatus
@@ -25,10 +22,6 @@ import {
 import { PasswordPolicyImpl } from './password_policy_impl';
 import { GetPasswordPolicyResponse } from '../../api/password_policy/get_password_policy';
 import { PasswordPolicyInternal } from '../../model/password_policy';
-
-use(sinonChai);
-use(chaiAsPromised);
-
 describe('core/auth/password_policy_impl', () => {
   const TEST_MIN_PASSWORD_LENGTH = 6;
   const TEST_MAX_PASSWORD_LENGTH = 12;
@@ -126,21 +119,21 @@ describe('core/auth/password_policy_impl', () => {
   };
   const TEST_EMPTY_PASSWORD = '';
 
-  context('#PasswordPolicyImpl', () => {
+  describe('#PasswordPolicyImpl', () => {
     it('can construct the password policy from the backend response', () => {
       const policy: PasswordPolicyInternal = new PasswordPolicyImpl(
         PASSWORD_POLICY_RESPONSE_REQUIRE_ALL
       );
-      expect(policy.customStrengthOptions).to.eql(
+      expect(policy.customStrengthOptions).toEqual(
         PASSWORD_POLICY_REQUIRE_ALL.customStrengthOptions
       );
-      expect(policy.allowedNonAlphanumericCharacters).to.eql(
+      expect(policy.allowedNonAlphanumericCharacters).toEqual(
         PASSWORD_POLICY_REQUIRE_ALL.allowedNonAlphanumericCharacters
       );
-      expect(policy.enforcementState).to.eql(
+      expect(policy.enforcementState).toEqual(
         PASSWORD_POLICY_REQUIRE_ALL.enforcementState
       );
-      expect(policy.schemaVersion).to.eql(
+      expect(policy.schemaVersion).toEqual(
         PASSWORD_POLICY_RESPONSE_REQUIRE_ALL.schemaVersion
       );
     });
@@ -149,58 +142,62 @@ describe('core/auth/password_policy_impl', () => {
       const policy: PasswordPolicyInternal = new PasswordPolicyImpl(
         PASSWORD_POLICY_RESPONSE_REQUIRE_LENGTH
       );
-      expect(policy.customStrengthOptions).to.eql(
+      expect(policy.customStrengthOptions).toEqual(
         PASSWORD_POLICY_REQUIRE_LENGTH.customStrengthOptions
       );
-      expect(policy.allowedNonAlphanumericCharacters).to.eql(
+      expect(policy.allowedNonAlphanumericCharacters).toEqual(
         PASSWORD_POLICY_REQUIRE_LENGTH.allowedNonAlphanumericCharacters
       );
-      expect(policy.enforcementState).to.eql(
+      expect(policy.enforcementState).toEqual(
         PASSWORD_POLICY_REQUIRE_LENGTH.enforcementState
       );
-      expect(policy.schemaVersion).to.eql(
+      expect(policy.schemaVersion).toEqual(
         PASSWORD_POLICY_RESPONSE_REQUIRE_LENGTH.schemaVersion
       );
       // Requirements that are not in the response should be undefined.
-      expect(policy.customStrengthOptions.containsLowercaseLetter).to.be
-        .undefined;
-      expect(policy.customStrengthOptions.containsUppercaseLetter).to.be
-        .undefined;
-      expect(policy.customStrengthOptions.containsNumericCharacter).to.be
-        .undefined;
-      expect(policy.customStrengthOptions.containsNonAlphanumericCharacter).to
-        .be.undefined;
+      expect(
+        policy.customStrengthOptions.containsLowercaseLetter
+      ).toBeUndefined();
+      expect(
+        policy.customStrengthOptions.containsUppercaseLetter
+      ).toBeUndefined();
+      expect(
+        policy.customStrengthOptions.containsNumericCharacter
+      ).toBeUndefined();
+      expect(
+        policy.customStrengthOptions.containsNonAlphanumericCharacter
+      ).toBeUndefined();
     });
 
     it("assigns 'OFF' as the enforcement state when it is unspecified", () => {
       const policy: PasswordPolicyInternal = new PasswordPolicyImpl(
         PASSWORD_POLICY_RESPONSE_UNSPECIFIED_ENFORCEMENT_STATE
       );
-      expect(policy.enforcementState).to.eql(TEST_ENFORCEMENT_STATE_OFF);
+      expect(policy.enforcementState).toEqual(TEST_ENFORCEMENT_STATE_OFF);
     });
 
     it('assigns false to forceUpgradeOnSignin when it is undefined in the response', () => {
       const policy: PasswordPolicyInternal = new PasswordPolicyImpl(
         PASSWORD_POLICY_RESPONSE_REQUIRE_NUMERIC
       );
-      expect(policy.forceUpgradeOnSignin).to.be.false;
+      expect(policy.forceUpgradeOnSignin).toBe(false);
     });
 
     it('assigns an empty string as the allowed non-alphanumeric characters when they are undefined in the response', () => {
       const policy: PasswordPolicyInternal = new PasswordPolicyImpl(
         PASSWORD_POLICY_RESPONSE_NO_NON_ALPHANUMERIC_CHARS
       );
-      expect(policy.allowedNonAlphanumericCharacters).to.eql('');
+      expect(policy.allowedNonAlphanumericCharacters).toEqual('');
     });
 
     it('assigns a default minimum length if it is undefined in the response', () => {
       const policy: PasswordPolicyInternal = new PasswordPolicyImpl(
         PASSWORD_POLICY_RESPONSE_NO_MIN_LENGTH
       );
-      expect(policy.customStrengthOptions.minPasswordLength).to.eql(6);
+      expect(policy.customStrengthOptions.minPasswordLength).toEqual(6);
     });
 
-    context('#validatePassword', () => {
+    describe('#validatePassword', () => {
       const PASSWORD_POLICY_IMPL_REQUIRE_ALL = new PasswordPolicyImpl(
         PASSWORD_POLICY_RESPONSE_REQUIRE_ALL
       );
@@ -225,7 +222,7 @@ describe('core/auth/password_policy_impl', () => {
         };
 
         const status = policy.validatePassword('P4ss!');
-        expect(status).to.eql(expectedValidationStatus);
+        expect(status).toEqual(expectedValidationStatus);
       });
 
       it('password that is too long is considered invalid', async () => {
@@ -242,7 +239,7 @@ describe('core/auth/password_policy_impl', () => {
         };
 
         const status = policy.validatePassword('Password01234!');
-        expect(status).to.eql(expectedValidationStatus);
+        expect(status).toEqual(expectedValidationStatus);
       });
 
       it('password that does not contain a lowercase character is considered invalid', async () => {
@@ -259,7 +256,7 @@ describe('core/auth/password_policy_impl', () => {
         };
 
         const status = policy.validatePassword('P4SSWORD!');
-        expect(status).to.eql(expectedValidationStatus);
+        expect(status).toEqual(expectedValidationStatus);
       });
 
       it('password that does not contain an uppercase character is considered invalid', async () => {
@@ -276,7 +273,7 @@ describe('core/auth/password_policy_impl', () => {
         };
 
         const status = policy.validatePassword('p4ssword!');
-        expect(status).to.eql(expectedValidationStatus);
+        expect(status).toEqual(expectedValidationStatus);
       });
 
       it('password that does not contain a numeric character is considered invalid', async () => {
@@ -293,7 +290,7 @@ describe('core/auth/password_policy_impl', () => {
         };
 
         const status = policy.validatePassword('Password!');
-        expect(status).to.eql(expectedValidationStatus);
+        expect(status).toEqual(expectedValidationStatus);
       });
 
       it('password that does not contain a non-alphanumeric character is considered invalid', async () => {
@@ -310,11 +307,11 @@ describe('core/auth/password_policy_impl', () => {
         };
 
         let status = policy.validatePassword('P4ssword');
-        expect(status).to.eql(expectedValidationStatus);
+        expect(status).toEqual(expectedValidationStatus);
 
         // Characters not in allowedNonAlphanumericCharacters should not be considered valid.
         status = policy.validatePassword('P4sswo*d');
-        expect(status).to.eql(expectedValidationStatus);
+        expect(status).toEqual(expectedValidationStatus);
       });
 
       it('passwords that only partially meet requirements are considered invalid', async () => {
@@ -331,7 +328,7 @@ describe('core/auth/password_policy_impl', () => {
         };
 
         let status = policy.validatePassword('password01234');
-        expect(status).to.eql(expectedValidationStatus);
+        expect(status).toEqual(expectedValidationStatus);
 
         expectedValidationStatus = {
           isValid: false,
@@ -345,7 +342,7 @@ describe('core/auth/password_policy_impl', () => {
         };
 
         status = policy.validatePassword('P@SS');
-        expect(status).to.eql(expectedValidationStatus);
+        expect(status).toEqual(expectedValidationStatus);
       });
 
       it('should only include statuses for requirements included in the policy', async () => {
@@ -358,11 +355,11 @@ describe('core/auth/password_policy_impl', () => {
         };
 
         let status = policy.validatePassword('password');
-        expect(status).to.eql(expectedValidationStatus);
-        expect(status.containsLowercaseLetter).to.be.undefined;
-        expect(status.containsUppercaseLetter).to.be.undefined;
-        expect(status.containsNumericCharacter).to.be.undefined;
-        expect(status.containsNonAlphanumericCharacter).to.be.undefined;
+        expect(status).toEqual(expectedValidationStatus);
+        expect(status.containsLowercaseLetter).toBeUndefined();
+        expect(status.containsUppercaseLetter).toBeUndefined();
+        expect(status.containsNumericCharacter).toBeUndefined();
+        expect(status.containsNonAlphanumericCharacter).toBeUndefined();
 
         expectedValidationStatus = {
           isValid: false,
@@ -372,11 +369,11 @@ describe('core/auth/password_policy_impl', () => {
         };
 
         status = policy.validatePassword('pass');
-        expect(status).to.eql(expectedValidationStatus);
-        expect(status.containsLowercaseLetter).to.be.undefined;
-        expect(status.containsUppercaseLetter).to.be.undefined;
-        expect(status.containsNumericCharacter).to.be.undefined;
-        expect(status.containsNonAlphanumericCharacter).to.be.undefined;
+        expect(status).toEqual(expectedValidationStatus);
+        expect(status.containsLowercaseLetter).toBeUndefined();
+        expect(status.containsUppercaseLetter).toBeUndefined();
+        expect(status.containsNumericCharacter).toBeUndefined();
+        expect(status.containsNonAlphanumericCharacter).toBeUndefined();
       });
 
       it('should include statuses for requirements included in the policy when the password is an empty string', async () => {
@@ -393,7 +390,7 @@ describe('core/auth/password_policy_impl', () => {
         };
 
         let status = policy.validatePassword(TEST_EMPTY_PASSWORD);
-        expect(status).to.eql(expectedValidationStatus);
+        expect(status).toEqual(expectedValidationStatus);
 
         policy = PASSWORD_POLICY_IMPL_REQUIRE_NUMERIC;
         expectedValidationStatus = {
@@ -405,10 +402,10 @@ describe('core/auth/password_policy_impl', () => {
         };
 
         status = policy.validatePassword(TEST_EMPTY_PASSWORD);
-        expect(status).to.eql(expectedValidationStatus);
-        expect(status.containsLowercaseLetter).to.be.undefined;
-        expect(status.containsUppercaseLetter).to.be.undefined;
-        expect(status.containsNonAlphanumericCharacter).to.be.undefined;
+        expect(status).toEqual(expectedValidationStatus);
+        expect(status.containsLowercaseLetter).toBeUndefined();
+        expect(status.containsUppercaseLetter).toBeUndefined();
+        expect(status.containsNonAlphanumericCharacter).toBeUndefined();
       });
 
       it("should consider a password invalid if it does not meet all requirements even if the enforcement state is 'OFF'", async () => {
@@ -422,7 +419,7 @@ describe('core/auth/password_policy_impl', () => {
         };
 
         const status = policy.validatePassword('p4ss');
-        expect(status).to.eql(expectedValidationStatus);
+        expect(status).toEqual(expectedValidationStatus);
       });
     });
   });

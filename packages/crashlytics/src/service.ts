@@ -1,0 +1,86 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { _FirebaseService, FirebaseApp } from '@firebase/app';
+import { Crashlytics, CrashlyticsOptions } from './public-types';
+import { LoggerProvider } from '@opentelemetry/sdk-logs';
+import type { TracerProvider } from '@opentelemetry/api';
+import { AttributesStore } from './attributes-store';
+import type { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
+import type { OnErrorSpanProcessor } from './tracing/on-error-span-processor';
+import type { TelemetryStore } from './telemetry-store';
+import { getBreadcrumbsFeature } from './helpers';
+
+export class CrashlyticsService implements Crashlytics, _FirebaseService {
+  private _options?: CrashlyticsOptions;
+  private _unsubscribeListeners?: () => void;
+
+  constructor(
+    public app: FirebaseApp,
+    public loggerProvider: LoggerProvider,
+    public tracingProvider: TracerProvider | null,
+    public attributesStore: AttributesStore,
+    public telemetryStore?: TelemetryStore,
+    public onErrorLogRecordProcessor?: OnErrorLogRecordProcessor,
+    public onErrorSpanProcessor?: OnErrorSpanProcessor
+  ) {}
+
+  unsubscribeListeners(unsubscribe: () => void): void {
+    this._unsubscribeListeners = unsubscribe;
+  }
+
+  async _delete(): Promise<void> {
+    if (this._unsubscribeListeners) {
+      this._unsubscribeListeners();
+    }
+    getBreadcrumbsFeature(this._options)?.unregisterInstrumentations();
+
+    const promises: Array<Promise<void>> = [];
+    if (
+      this.loggerProvider &&
+      typeof this.loggerProvider.shutdown === 'function'
+    ) {
+      promises.push(
+        this.loggerProvider.shutdown().catch(err => {
+          console.warn('Error shutting down logger provider:', err);
+        })
+      );
+    }
+    if (this.tracingProvider) {
+      const shutdownProvider = this.tracingProvider as unknown as {
+        shutdown?: () => Promise<void>;
+      };
+      if (typeof shutdownProvider.shutdown === 'function') {
+        promises.push(
+          shutdownProvider.shutdown().catch(err => {
+            console.warn('Error shutting down tracing provider:', err);
+          })
+        );
+      }
+    }
+    await Promise.all(promises);
+  }
+
+  set options(optionsToSet: CrashlyticsOptions) {
+    this._options = optionsToSet;
+    this.attributesStore.updateOptions(optionsToSet);
+  }
+
+  get options(): CrashlyticsOptions | undefined {
+    return this._options;
+  }
+}

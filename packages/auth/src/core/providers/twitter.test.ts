@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/**
- * @license
- * Copyright 2020 Twitter LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-import { expect } from 'chai';
 
 import { OperationType, ProviderId, SignInMethod } from '../../model/enums';
 
@@ -47,10 +28,10 @@ import { _createError } from '../util/assert';
 describe('core/providers/twitter', () => {
   it('generates the correct type of oauth credential', () => {
     const cred = TwitterAuthProvider.credential('token', 'secret');
-    expect(cred.accessToken).to.eq('token');
-    expect(cred.secret).to.eq('secret');
-    expect(cred.providerId).to.eq(ProviderId.TWITTER);
-    expect(cred.signInMethod).to.eq(SignInMethod.TWITTER);
+    expect(cred.accessToken).toBe('token');
+    expect(cred.secret).toBe('secret');
+    expect(cred.providerId).toBe(ProviderId.TWITTER);
+    expect(cred.signInMethod).toBe(SignInMethod.TWITTER);
   });
 
   it('credentialFromResult creates the cred from a tagged result', async () => {
@@ -66,10 +47,10 @@ describe('core/providers/twitter', () => {
       operationType: OperationType.SIGN_IN
     });
     const cred = TwitterAuthProvider.credentialFromResult(userCred)!;
-    expect(cred.accessToken).to.eq('access-token');
-    expect(cred.secret).to.eq('token-secret');
-    expect(cred.providerId).to.eq(ProviderId.TWITTER);
-    expect(cred.signInMethod).to.eq(SignInMethod.TWITTER);
+    expect(cred.accessToken).toBe('access-token');
+    expect(cred.secret).toBe('token-secret');
+    expect(cred.providerId).toBe(ProviderId.TWITTER);
+    expect(cred.signInMethod).toBe(SignInMethod.TWITTER);
   });
 
   it('credentialFromError creates the cred from a tagged error', () => {
@@ -83,9 +64,9 @@ describe('core/providers/twitter', () => {
     };
 
     const cred = TwitterAuthProvider.credentialFromError(error)!;
-    expect(cred.accessToken).to.eq('access-token');
-    expect(cred.secret).to.eq('token-secret');
-    expect(cred.providerId).to.eq(ProviderId.TWITTER);
-    expect(cred.signInMethod).to.eq(SignInMethod.TWITTER);
+    expect(cred.accessToken).toBe('access-token');
+    expect(cred.secret).toBe('token-secret');
+    expect(cred.providerId).toBe(ProviderId.TWITTER);
+    expect(cred.signInMethod).toBe(SignInMethod.TWITTER);
   });
 });

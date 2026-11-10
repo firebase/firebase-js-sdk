@@ -44,11 +44,7 @@ jobs:
       - name: Set up Node (24)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 24.19.0
-      - name: install Chrome stable
-        run: |
-          sudo apt-get update
-          sudo apt-get install google-chrome-stable
+          node-version: 24.22.1
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
@@ -91,11 +87,7 @@ jobs:
       - name: Set up Node (24)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 24.19.0
-      - name: install Chrome stable
-        run: |
-          sudo apt-get update
-          sudo apt-get install google-chrome-stable
+          node-version: 24.22.1
       - name: Download build archive
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
         with:
@@ -119,11 +111,7 @@ jobs:
       - name: Set up Node (24)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 24.19.0
-      - name: install Chrome stable
-        run: |
-          sudo apt-get update
-          sudo apt-get install google-chrome-stable
+          node-version: 24.22.1
       - name: Download build archive
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
         with:
@@ -149,11 +137,7 @@ jobs:
       - name: Set up Node (24)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 24.19.0
-      - name: install Chrome stable
-        run: |
-          sudo apt-get update
-          sudo apt-get install google-chrome-stable
+          node-version: 24.22.1
       - name: Download build archive
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
         with:
@@ -177,12 +161,10 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
-      - name: install Firefox stable
-        run: npx @puppeteer/browsers install firefox@stable
       - name: Set up Node (24)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 24.19.0
+          node-version: 24.22.1
       - name: Download build archive
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
         with:
@@ -190,7 +172,9 @@ jobs:
       - name: Unzip build artifact
         run: tar xf build.tar.gz
       - name: Test setup and yarn install
-        run: cp config/ci.config.json config/project.json
+        run: |
+          cp config/ci.config.json config/project.json
+          npx playwright install firefox
       - name: Run compat tests
         run: cd packages/firestore-compat && xvfb-run yarn run test:ci
         env:
@@ -214,7 +198,7 @@ jobs:
       - name: Set up Node (24)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 24.19.0
+          node-version: 24.22.1
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
@@ -234,7 +218,7 @@ jobs:
       - name: Set up Node (24)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 24.19.0
+          node-version: 24.22.1
       - name: Download build archive
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
         with:
@@ -244,6 +228,7 @@ jobs:
       - name: Test setup
         run: |
           cp config/ci.config.json config/project.json
+          yarn --check-files
           npx playwright install webkit
       - name: Run compat tests
         run: cd packages/firestore-compat && yarn run test:ci
@@ -271,7 +256,7 @@ jobs:
       - name: Set up Node (24)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
-          node-version: 24.19.0
+          node-version: 24.22.1
       - name: Test setup
         run: |
           cp config/ci.config.json config/project.json

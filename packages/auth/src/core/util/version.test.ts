@@ -16,32 +16,31 @@
  */
 
 import { SDK_VERSION } from '@firebase/app';
-import { expect } from 'chai';
 import { ClientPlatform, _getClientVersion } from './version';
 import { getUA, isNode } from '@firebase/util';
 import { _getBrowserName } from './browser';
 
 describe('core/util/_getClientVersion', () => {
   if (isNode()) {
-    context('node', () => {
+    describe('node', () => {
       it('should set the correct version', () => {
-        expect(_getClientVersion(ClientPlatform.NODE)).to.eq(
+        expect(_getClientVersion(ClientPlatform.NODE)).toBe(
           `Node/JsCore/${SDK_VERSION}/FirebaseCore-web`
         );
       });
     });
   } else {
-    context('browser', () => {
+    describe('browser', () => {
       it('should set the correct version', () => {
-        expect(_getClientVersion(ClientPlatform.BROWSER)).to.eq(
+        expect(_getClientVersion(ClientPlatform.BROWSER)).toBe(
           `${_getBrowserName(getUA())}/JsCore/${SDK_VERSION}/FirebaseCore-web`
         );
       });
     });
 
-    context('worker', () => {
+    describe('worker', () => {
       it('should set the correct version', () => {
-        expect(_getClientVersion(ClientPlatform.WORKER)).to.eq(
+        expect(_getClientVersion(ClientPlatform.WORKER)).toBe(
           `${_getBrowserName(
             getUA()
           )}-Worker/JsCore/${SDK_VERSION}/FirebaseCore-web`
@@ -49,17 +48,17 @@ describe('core/util/_getClientVersion', () => {
       });
     });
 
-    context('React Native', () => {
+    describe('React Native', () => {
       it('should set the correct version', () => {
-        expect(_getClientVersion(ClientPlatform.REACT_NATIVE)).to.eq(
+        expect(_getClientVersion(ClientPlatform.REACT_NATIVE)).toBe(
           `ReactNative/JsCore/${SDK_VERSION}/FirebaseCore-web`
         );
       });
     });
 
-    context('Web Extension', () => {
+    describe('Web Extension', () => {
       it('should set the correct version', () => {
-        expect(_getClientVersion(ClientPlatform.WEB_EXTENSION)).to.eq(
+        expect(_getClientVersion(ClientPlatform.WEB_EXTENSION)).toBe(
           `WebExtension/JsCore/${SDK_VERSION}/FirebaseCore-web`
         );
       });

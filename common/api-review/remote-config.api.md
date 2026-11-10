@@ -125,7 +125,9 @@ export interface RemoteConfig {
 
 // @public
 export interface RemoteConfigOptions {
+    // @deprecated
     initialFetchResponse?: FetchResponse;
+    // @deprecated
     templateId?: string;
 }
 
@@ -154,6 +156,5 @@ export interface Value {
 
 // @public
 export type ValueSource = 'static' | 'default' | 'remote';
-
 
 ```

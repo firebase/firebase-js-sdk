@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
-
 import {
   _generateCallbackName,
   _loadJS,
@@ -26,15 +22,12 @@ import {
 } from './load_js';
 import { _createError } from '../core/util/assert';
 import { AuthErrorCode } from '../core/errors';
-
-use(sinonChai);
-
 describe('platform-browser/load_js', () => {
-  afterEach(() => sinon.restore());
+  afterEach(() => vi.restoreAllMocks());
 
   describe('_generateCallbackName', () => {
     it('generates a callback with a prefix and a number', () => {
-      expect(_generateCallbackName('foo')).to.match(/__foo\d+/);
+      expect(_generateCallbackName('foo')).toMatch(/__foo\d+/);
     });
   });
 
@@ -60,17 +53,17 @@ describe('platform-browser/load_js', () => {
         recaptchaEnterpriseScript: 'https://recaptchaEnterpriseScript'
       });
       const el = document.createElement('script');
-      sinon.stub(el); // Prevent actually setting the src attribute
-      sinon.stub(document, 'createElement').returns(el);
+      vi.spyOn(el, 'setAttribute');
+      vi.spyOn(document, 'createElement').mockReturnValue(el);
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       _loadJS('http://localhost/url');
-      expect(el.setAttribute).to.have.been.calledWith(
+      expect(el.setAttribute).toHaveBeenCalledWith(
         'src',
         'http://localhost/url'
       );
-      expect(el.type).to.eq('text/javascript');
-      expect(el.charset).to.eq('UTF-8');
+      expect(el.type).toBe('text/javascript');
+      expect(el.charset).toBe('UTF-8');
     });
   });
 });

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import sinonChai from 'sinon-chai';
-
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 
 import {
@@ -30,10 +26,6 @@ import {
 import { isV2, isEnterprise, RecaptchaConfig } from './recaptcha';
 import { GetRecaptchaConfigResponse } from '../../api/authentication/recaptcha';
 import { EnforcementState, RecaptchaAuthProvider } from '../../api/index';
-
-use(chaiAsPromised);
-use(sinonChai);
-
 describe('platform_browser/recaptcha/recaptcha', () => {
   let auth: TestAuth;
   let recaptchaV2: MockReCaptcha;
@@ -93,7 +85,7 @@ describe('platform_browser/recaptcha/recaptcha', () => {
     GET_RECAPTCHA_CONFIG_RESPONSE_ENFORCE_AND_OFF
   );
 
-  context('#verify', () => {
+  describe('#verify', () => {
     beforeEach(async () => {
       auth = await testAuth();
       recaptchaV2 = new MockReCaptcha(auth);
@@ -102,35 +94,37 @@ describe('platform_browser/recaptcha/recaptcha', () => {
     });
 
     it('isV2', async () => {
-      expect(isV2(undefined)).to.be.false;
-      expect(isV2(recaptchaV2)).to.be.true;
-      expect(isV2(recaptchaV3)).to.be.false;
-      expect(isV2(recaptchaEnterprise)).to.be.false;
+      expect(isV2(undefined)).toBe(false);
+      expect(isV2(recaptchaV2)).toBe(true);
+      expect(isV2(recaptchaV3)).toBe(false);
+      expect(isV2(recaptchaEnterprise)).toBe(false);
     });
 
     it('isEnterprise', async () => {
-      expect(isEnterprise(undefined)).to.be.false;
-      expect(isEnterprise(recaptchaV2)).to.be.false;
-      expect(isEnterprise(recaptchaV3)).to.be.false;
-      expect(isEnterprise(recaptchaEnterprise)).to.be.true;
+      expect(isEnterprise(undefined)).toBe(false);
+      expect(isEnterprise(recaptchaV2)).toBe(false);
+      expect(isEnterprise(recaptchaV3)).toBe(false);
+      expect(isEnterprise(recaptchaEnterprise)).toBe(true);
     });
   });
 
-  context('#RecaptchaConfig', () => {
+  describe('#RecaptchaConfig', () => {
     it('should construct the recaptcha config from the backend response', () => {
-      expect(recaptchaConfig.siteKey).to.eq(TEST_SITE_KEY);
-      expect(recaptchaConfig.recaptchaEnforcementState[0]).to.eql({
+      expect(recaptchaConfig.siteKey).toBe(TEST_SITE_KEY);
+      expect(recaptchaConfig.recaptchaEnforcementState[0]).toEqual({
         provider: RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER,
         enforcementState: EnforcementState.ENFORCE
       });
-      expect(recaptchaConfig.recaptchaEnforcementState[1]).to.eql({
+      expect(recaptchaConfig.recaptchaEnforcementState[1]).toEqual({
         provider: RecaptchaAuthProvider.PHONE_PROVIDER,
         enforcementState: EnforcementState.AUDIT
       });
-      expect(recaptchaConfigEnforceAndOff.recaptchaEnforcementState[1]).to.eql({
-        provider: RecaptchaAuthProvider.PHONE_PROVIDER,
-        enforcementState: EnforcementState.OFF
-      });
+      expect(recaptchaConfigEnforceAndOff.recaptchaEnforcementState[1]).toEqual(
+        {
+          provider: RecaptchaAuthProvider.PHONE_PROVIDER,
+          enforcementState: EnforcementState.OFF
+        }
+      );
     });
 
     it('#getProviderEnforcementState should return the correct enforcement state of the provider', () => {
@@ -138,19 +132,20 @@ describe('platform_browser/recaptcha/recaptcha', () => {
         recaptchaConfig.getProviderEnforcementState(
           RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
         )
-      ).to.eq(EnforcementState.ENFORCE);
+      ).toBe(EnforcementState.ENFORCE);
       expect(
         recaptchaConfig.getProviderEnforcementState(
           RecaptchaAuthProvider.PHONE_PROVIDER
         )
-      ).to.eq(EnforcementState.AUDIT);
+      ).toBe(EnforcementState.AUDIT);
       expect(
         recaptchaConfigEnforceAndOff.getProviderEnforcementState(
           RecaptchaAuthProvider.PHONE_PROVIDER
         )
-      ).to.eq(EnforcementState.OFF);
-      expect(recaptchaConfig.getProviderEnforcementState('invalid-provider')).to
-        .be.null;
+      ).toBe(EnforcementState.OFF);
+      expect(
+        recaptchaConfig.getProviderEnforcementState('invalid-provider')
+      ).toBeNull();
     });
 
     it('#isProviderEnabled should return the enablement state of the provider', () => {
@@ -158,22 +153,22 @@ describe('platform_browser/recaptcha/recaptcha', () => {
         recaptchaConfig.isProviderEnabled(
           RecaptchaAuthProvider.EMAIL_PASSWORD_PROVIDER
         )
-      ).to.be.true;
+      ).toBe(true);
       expect(
         recaptchaConfig.isProviderEnabled(RecaptchaAuthProvider.PHONE_PROVIDER)
-      ).to.be.true;
+      ).toBe(true);
       expect(
         recaptchaConfigEnforceAndOff.isProviderEnabled(
           RecaptchaAuthProvider.PHONE_PROVIDER
         )
-      ).to.be.false;
-      expect(recaptchaConfig.isProviderEnabled('invalid-provider')).to.be.false;
+      ).toBe(false);
+      expect(recaptchaConfig.isProviderEnabled('invalid-provider')).toBe(false);
     });
 
     it('#isAnyProviderEnabled should return true if at least one provider is enabled', () => {
-      expect(recaptchaConfig.isAnyProviderEnabled()).to.be.true;
-      expect(recaptchaConfigEnforceAndOff.isAnyProviderEnabled()).to.be.true;
-      expect(recaptchaConfigOff.isAnyProviderEnabled()).to.be.false;
+      expect(recaptchaConfig.isAnyProviderEnabled()).toBe(true);
+      expect(recaptchaConfigEnforceAndOff.isAnyProviderEnabled()).toBe(true);
+      expect(recaptchaConfigOff.isAnyProviderEnabled()).toBe(false);
     });
   });
 });

@@ -1,0 +1,13 @@
+{
+  "extends": "../../../../config/api-extractor.json",
+  "mainEntryPointFilePath": "<projectFolder>/dist/react/index.d.ts",
+  "dtsRollup": {
+    "enabled": false
+  },
+  "docModel": {
+    "apiJsonFilePath": "<projectFolder>/temp/crashlytics-react.api.json"
+  },
+  "apiReport": {
+    "enabled": false
+  }
+}

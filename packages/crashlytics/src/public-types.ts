@@ -1,0 +1,118 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { FirebaseApp } from '@firebase/app';
+import { AnyValueMap } from '@opentelemetry/api-logs';
+
+/**
+ * An instance of the Firebase Crashlytics SDK.
+ *
+ * Do not create this instance directly. Instead, use {@link getCrashlytics | getCrashlytics()}.
+ *
+ * @beta
+ */
+export interface Crashlytics {
+  /**
+   * The {@link @firebase/app#FirebaseApp} this {@link Crashlytics} instance is associated with.
+   */
+  app: FirebaseApp;
+}
+
+/**
+ * <b>(EXPERIMENTAL)</b> An opaque feature plugin object returned by Crashlytics feature factory functions
+ * such as {@link breadcrumbs}.
+ *
+ * @public
+ */
+export interface CrashlyticsFeature {}
+
+/**
+ * Options for initializing the Crashlytics service using {@link getCrashlytics | getCrashlytics()}.
+ *
+ * @beta
+ */
+export interface CrashlyticsOptions {
+  /**
+   * The URL for the endpoint to which Crashlytics data should be sent, in the OpenTelemetry format.
+   * By default, data will be sent to Firebase.
+   */
+  endpointUrl?: string;
+
+  /**
+   * The Google Cloud region where the Crashlytics data should be sent.
+   *
+   * By default, data will be sent to the "global" region.
+   *
+   * Refer to https://cloud.google.com/logging/docs/regions for the list of available regions.
+   */
+  region?: string;
+
+  /**
+   * The version of the application. This should be a unique string that identifies the snapshot of
+   * code to be deployed, such as "1.0.2". If not specified, other default locations will be checked
+   * for an identifier. Setting a value here takes precedence over any other values.
+   */
+  appVersion?: string;
+
+  /**
+   * Base set of custom attributes to send with automatic error collection.
+   * Key-value pairs defined here will be sent with all error logs.
+   * If custom attributes are also specified in `recordError()` or `log()`, those values will
+   * take precedence over the base set defined here.
+   */
+  customAttributes?: AnyValueMap;
+
+  /**
+   * Whether to register the underlying OpenTelemetry LoggerProvider globally with the OpenTelemetry API
+   * (`logs.setGlobalLoggerProvider()`).
+   *
+   * When enabled, other OpenTelemetry instrumentations (such as Core Web Vitals, Console, or Fetch)
+   * and custom application loggers can automatically route logs through Firebase Crashlytics.
+   *
+   * Defaults to `false`.
+   */
+  registerGlobalLoggerProvider?: boolean;
+
+  /**
+   * Automatically capture uncaught browser exceptions ('error' and
+   * 'unhandledrejection' window events).
+   *
+   * Defaults to `true`.
+   */
+  captureUnhandledErrors?: boolean;
+
+  /**
+   * <b>(EXPERIMENTAL)</b> Optional list of Crashlytics features (such as {@link breadcrumbs}) to enable.
+   *
+   * When {@link breadcrumbs} is included, Crashlytics collects OpenTelemetry spans (such as Fetch,
+   * XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals,
+   * user actions, and visibility lifecycle events), buffering them in memory and exporting them
+   * when an error occurs.
+   *
+   * @example
+   * ```ts
+   * import { getCrashlytics, breadcrumbs } from 'firebase/crashlytics';
+   *
+   * const crashlytics = getCrashlytics(app, {
+   *   features: [breadcrumbs()]
+   * });
+   * ```
+   *
+   * @public
+   */
+  features?: CrashlyticsFeature[];
+}

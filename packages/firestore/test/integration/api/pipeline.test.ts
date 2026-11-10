@@ -6114,7 +6114,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         ]
       });
 
-      void expect(
+      await expect(
         execute(
           firestore
             .pipeline()

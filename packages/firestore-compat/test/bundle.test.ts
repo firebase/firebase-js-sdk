@@ -16,7 +16,6 @@
  */
 
 import type * as firestore from '@firebase/firestore-types';
-import { expect } from 'chai';
 
 import { EventsAccumulator } from './util/events_accumulator';
 import {
@@ -29,19 +28,19 @@ import {
 export const encoder = new TextEncoder();
 
 function verifySuccessProgress(p: firestore.LoadBundleTaskProgress): void {
-  expect(p.taskState).to.equal('Success');
-  expect(p.bytesLoaded).to.be.equal(p.totalBytes);
-  expect(p.documentsLoaded).to.equal(p.totalDocuments);
+  expect(p.taskState).toBe('Success');
+  expect(p.bytesLoaded).toBe(p.totalBytes);
+  expect(p.documentsLoaded).toBe(p.totalDocuments);
 }
 
 function verifyInProgress(
   p: firestore.LoadBundleTaskProgress,
   expectedDocuments: number
 ): void {
-  expect(p.taskState).to.equal('Running');
-  expect(p.bytesLoaded <= p.totalBytes).to.be.true;
-  expect(p.documentsLoaded <= p.totalDocuments).to.be.true;
-  expect(p.documentsLoaded).to.equal(expectedDocuments);
+  expect(p.taskState).toBe('Running');
+  expect(p.bytesLoaded <= p.totalBytes).toBe(true);
+  expect(p.documentsLoaded <= p.totalDocuments).toBe(true);
+  expect(p.documentsLoaded).toBe(expectedDocuments);
 }
 
 // This template is generated from bundleWithTestDocsAndQueries in '../util/internal_helpers.ts',
@@ -58,7 +57,7 @@ const BUNDLE_TEMPLATE = [
 
 apiDescribe('Bundles', (persistence: boolean) => {
   function verifySnapEqualsTestDocs(snap: firestore.QuerySnapshot): void {
-    expect(toDataArray(snap)).to.deep.equal([
+    expect(toDataArray(snap)).toEqual([
       { k: 'a', bar: 1 },
       { k: 'b', bar: 2 }
     ]);
@@ -110,13 +109,13 @@ apiDescribe('Bundles', (persistence: boolean) => {
         fulfillProgress = progress;
       });
 
-      expect(completeCalled).to.be.true;
-      expect(progressEvents.length).to.equal(4);
+      expect(completeCalled).toBe(true);
+      expect(progressEvents.length).toBe(4);
       verifyInProgress(progressEvents[0], 0);
       verifyInProgress(progressEvents[1], 1);
       verifyInProgress(progressEvents[2], 2);
       verifySuccessProgress(progressEvents[3]);
-      expect(fulfillProgress!).to.deep.equal(progressEvents[3]);
+      expect(fulfillProgress!).toEqual(progressEvents[3]);
 
       // Read from cache. These documents do not exist in backend, so they can
       // only be read from cache.
@@ -126,12 +125,12 @@ apiDescribe('Bundles', (persistence: boolean) => {
       snap = await (await db.namedQuery('limit'))!.get({
         source: 'cache'
       });
-      expect(toDataArray(snap)).to.deep.equal([{ k: 'b', bar: 2 }]);
+      expect(toDataArray(snap)).toEqual([{ k: 'b', bar: 2 }]);
 
       snap = await (await db.namedQuery('limit-to-last'))!.get({
         source: 'cache'
       });
-      expect(toDataArray(snap)).to.deep.equal([{ k: 'a', bar: 1 }]);
+      expect(toDataArray(snap)).toEqual([{ k: 'a', bar: 1 }]);
     });
   });
 
@@ -169,10 +168,10 @@ apiDescribe('Bundles', (persistence: boolean) => {
       );
       await task;
 
-      expect(completeCalled).to.be.true;
+      expect(completeCalled).toBe(true);
       // No loading actually happened in the second `loadBundle` call only the
       // success progress is recorded.
-      expect(progressEvents.length).to.equal(1);
+      expect(progressEvents.length).toBe(1);
       verifySuccessProgress(progressEvents[0]);
 
       // Read from cache. These documents do not exist in backend, so they can
@@ -203,10 +202,10 @@ apiDescribe('Bundles', (persistence: boolean) => {
       await accumulator.assertNoAdditionalEvents();
 
       let snap = await (await db.namedQuery('limit'))!.get();
-      expect(toDataArray(snap)).to.deep.equal([{ k: 'b', bar: 0 }]);
+      expect(toDataArray(snap)).toEqual([{ k: 'b', bar: 0 }]);
 
       snap = await (await db.namedQuery('limit-to-last'))!.get();
-      expect(toDataArray(snap)).to.deep.equal([{ k: 'a', bar: 0 }]);
+      expect(toDataArray(snap)).toEqual([{ k: 'a', bar: 0 }]);
     });
   });
 
@@ -219,7 +218,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
 
       // Read a different collection, this will trigger GC.
       let snap = await db.collection('coll-other').get();
-      expect(snap.empty).to.be.true;
+      expect(snap.empty).toBe(true);
 
       // Read the loaded documents, expecting document in cache. With memory
       // GC, the documents would get GC-ed if we did not hold the document keys
@@ -232,7 +231,7 @@ apiDescribe('Bundles', (persistence: boolean) => {
   it('load with documents from other projects fails', () => {
     return withTestDb(persistence, async db => {
       return withAlternateTestDb(persistence, async otherDb => {
-        await expect(otherDb.loadBundle(bundleString(db))).to.be.rejectedWith(
+        await expect(otherDb.loadBundle(bundleString(db))).rejects.toThrow(
           'Tried to deserialize key from different project'
         );
 
