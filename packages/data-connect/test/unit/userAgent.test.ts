@@ -16,19 +16,15 @@
  */
 
 import { deleteApp, initializeApp, FirebaseApp } from '@firebase/app';
-import { expect, use } from 'chai';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 
 import { DataConnect, executeQuery, getDataConnect, queryRef } from '../../src';
 import { SDK_VERSION } from '../../src/core/version';
 import { initializeFetch } from '../../src/network/rest';
 
-use(sinonChai);
 const json = {
   message: 'unauthorized'
 };
-const fakeFetchImpl = sinon.stub().returns(
+const fakeFetchImpl = vi.fn().mockReturnValue(
   Promise.resolve({
     json: () => {
       return Promise.resolve(json);
@@ -53,27 +49,27 @@ describe('User Agent Tests', () => {
     dc._useGeneratedSdk();
     // @ts-ignore
     await executeQuery(queryRef(dc, '')).catch(() => {});
-    expect(fakeFetchImpl).to.be.calledWithMatch(
+    expect(fakeFetchImpl).toHaveBeenCalledWith(
       'https://firebasedataconnect.googleapis.com/v1/projects/p/locations/l/services/s/connectors/c:executeQuery',
-      {
-        headers: {
+      expect.objectContaining({
+        headers: expect.objectContaining({
           ['X-Goog-Api-Client']: 'gl-js/ fire/' + SDK_VERSION + ' js/gen',
           ['X-Client-Version']: 'web/' + SDK_VERSION
-        }
-      }
+        })
+      })
     );
   });
   it('should send a request with the corresponding user agent if not using the generated SDK', async () => {
     // @ts-ignore
     await executeQuery(queryRef(dc, '')).catch(() => {});
-    expect(fakeFetchImpl).to.be.calledWithMatch(
+    expect(fakeFetchImpl).toHaveBeenCalledWith(
       'https://firebasedataconnect.googleapis.com/v1/projects/p/locations/l/services/s/connectors/c:executeQuery',
-      {
-        headers: {
+      expect.objectContaining({
+        headers: expect.objectContaining({
           ['X-Goog-Api-Client']: 'gl-js/ fire/' + SDK_VERSION,
           ['X-Client-Version']: 'web/' + SDK_VERSION
-        }
-      }
+        })
+      })
     );
   });
 });

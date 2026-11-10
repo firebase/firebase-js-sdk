@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
+import type { Mock, MockedObject } from 'vitest';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
 import { Code } from '../../src/core/error';
@@ -31,9 +28,6 @@ import { DataConnectTransportManager } from '../../src/network/manager';
 import { RESTTransport } from '../../src/network/rest';
 import { AbstractDataConnectStreamTransport } from '../../src/network/stream/streamTransport';
 import { WebSocketTransport } from '../../src/network/stream/websocket';
-
-use(chaiAsPromised);
-use(sinonChai);
 
 /** Interface that exposes private fields of stream transport for testing purposes. */
 interface StreamTransportWithInternals {
@@ -81,7 +75,7 @@ describe('DataConnectTransportManager', () => {
   });
 
   afterEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
   });
 
   interface TestVariables {
@@ -102,43 +96,43 @@ describe('DataConnectTransportManager', () => {
 
   describe('stream transport initialization', () => {
     it('initStreamTransport should initialize stream transport only once', () => {
-      expect(manager.streamTransport).to.be.undefined;
+      expect(manager.streamTransport).toBeUndefined();
 
       const transport1 = manager.initStreamTransport();
-      expect(transport1).to.exist;
-      expect(manager.streamTransport).to.equal(transport1);
+      expect(transport1).toBeDefined();
+      expect(manager.streamTransport).toBe(transport1);
 
       const transport2 = manager.initStreamTransport();
-      expect(transport2).to.equal(transport1);
+      expect(transport2).toBe(transport1);
     });
   });
 
   describe('default transport routing', () => {
-    let stubRestTransport: sinon.SinonStubbedInstance<RESTTransport>;
-    let stubStreamTransport: sinon.SinonStubbedInstance<WebSocketTransport>;
-    let initStreamStub: sinon.SinonStub;
+    let stubRestTransport: MockedObject<RESTTransport>;
+    let stubStreamTransport: MockedObject<WebSocketTransport>;
+    let initStreamStub: Mock;
     beforeEach(() => {
       stubRestTransport = {
-        invokeQuery: sinon.stub(),
-        invokeMutation: sinon.stub(),
-        invokeSubscribe: sinon.stub(),
-        invokeUnsubscribe: sinon.stub(),
-        useEmulator: sinon.stub(),
-        onAuthTokenChanged: sinon.stub()
-      } as unknown as sinon.SinonStubbedInstance<RESTTransport>;
+        invokeQuery: vi.fn(),
+        invokeMutation: vi.fn(),
+        invokeSubscribe: vi.fn(),
+        invokeUnsubscribe: vi.fn(),
+        useEmulator: vi.fn(),
+        onAuthTokenChanged: vi.fn()
+      } as unknown as MockedObject<RESTTransport>;
       stubStreamTransport = {
-        invokeQuery: sinon.stub(),
-        invokeMutation: sinon.stub(),
-        invokeSubscribe: sinon.stub(),
-        invokeUnsubscribe: sinon.stub(),
-        useEmulator: sinon.stub(),
-        onAuthTokenChanged: sinon.stub(),
+        invokeQuery: vi.fn(),
+        invokeMutation: vi.fn(),
+        invokeSubscribe: vi.fn(),
+        invokeUnsubscribe: vi.fn(),
+        useEmulator: vi.fn(),
+        onAuthTokenChanged: vi.fn(),
         hasActiveSubscriptions: false
-      } as unknown as sinon.SinonStubbedInstance<WebSocketTransport>;
+      } as unknown as MockedObject<WebSocketTransport>;
       manager.restTransport = stubRestTransport as unknown as RESTTransport;
-      initStreamStub = sinon
-        .stub(manager, 'initStreamTransport')
-        .callsFake(() => {
+      initStreamStub = vi
+        .spyOn(manager, 'initStreamTransport')
+        .mockImplementation(() => {
           manager.streamTransport =
             stubStreamTransport as unknown as AbstractDataConnectStreamTransport;
           return stubStreamTransport as unknown as AbstractDataConnectStreamTransport;
@@ -146,36 +140,36 @@ describe('DataConnectTransportManager', () => {
     });
 
     it('stream transport should not be initialized by default', () => {
-      expect(manager.streamTransport).to.be.undefined;
-      expect(initStreamStub).to.not.have.been.called;
+      expect(manager.streamTransport).toBeUndefined();
+      expect(initStreamStub).not.toHaveBeenCalled();
     });
 
     it('invokeQuery should route to REST by default and not initialize stream transport', async () => {
-      stubRestTransport.invokeQuery.resolves(testResponse);
+      stubRestTransport.invokeQuery.mockResolvedValue(testResponse);
       await manager.invokeQuery<TestData, TestVariables>(
         queryName1,
         variables1
       );
-      expect(stubRestTransport.invokeQuery).to.have.been.calledWith(
+      expect(stubRestTransport.invokeQuery).toHaveBeenCalledWith(
         queryName1,
         variables1
       );
-      expect(manager.streamTransport).to.be.undefined;
-      expect(initStreamStub).to.not.have.been.called;
+      expect(manager.streamTransport).toBeUndefined();
+      expect(initStreamStub).not.toHaveBeenCalled();
     });
 
     it('invokeMutation should route to REST by default and not initialize stream transport', async () => {
-      stubRestTransport.invokeMutation.resolves(testResponse);
+      stubRestTransport.invokeMutation.mockResolvedValue(testResponse);
       await manager.invokeMutation<TestData, TestVariables>(
         mutationName1,
         variables1
       );
-      expect(stubRestTransport.invokeMutation).to.have.been.calledWith(
+      expect(stubRestTransport.invokeMutation).toHaveBeenCalledWith(
         mutationName1,
         variables1
       );
-      expect(manager.streamTransport).to.be.undefined;
-      expect(initStreamStub).to.not.have.been.called;
+      expect(manager.streamTransport).toBeUndefined();
+      expect(initStreamStub).not.toHaveBeenCalled();
     });
 
     it('invokeSubscribe should route to streaming by default and initialize stream transport', () => {
@@ -189,27 +183,27 @@ describe('DataConnectTransportManager', () => {
         queryName1,
         variables1
       );
-      expect(stubRestTransport.invokeSubscribe).to.not.have.been.called;
-      expect(stubStreamTransport.invokeSubscribe).to.have.been.calledWith(
+      expect(stubRestTransport.invokeSubscribe).not.toHaveBeenCalled();
+      expect(stubStreamTransport.invokeSubscribe).toHaveBeenCalledWith(
         observer,
         queryName1,
         variables1
       );
-      expect(manager.streamTransport).to.exist;
-      expect(initStreamStub).to.have.been.called;
+      expect(manager.streamTransport).toBeDefined();
+      expect(initStreamStub).toHaveBeenCalled();
     });
 
     it('invokeUnsubscribe should route to streaming by default when stream transport is already initialized and not initialize stream transport', () => {
       manager.invokeUnsubscribe(queryName1, variables1);
-      expect(manager.streamTransport).to.be.undefined;
-      expect(initStreamStub).to.not.have.been.called;
-      expect(stubRestTransport.invokeUnsubscribe).to.not.have.been.called;
-      expect(stubStreamTransport.invokeUnsubscribe).to.not.have.been.called;
+      expect(manager.streamTransport).toBeUndefined();
+      expect(initStreamStub).not.toHaveBeenCalled();
+      expect(stubRestTransport.invokeUnsubscribe).not.toHaveBeenCalled();
+      expect(stubStreamTransport.invokeUnsubscribe).not.toHaveBeenCalled();
 
       manager.initStreamTransport();
       manager.invokeUnsubscribe(queryName1, variables1);
-      expect(stubRestTransport.invokeUnsubscribe).to.not.have.been.called;
-      expect(stubStreamTransport.invokeUnsubscribe).to.have.been.calledWith(
+      expect(stubRestTransport.invokeUnsubscribe).not.toHaveBeenCalled();
+      expect(stubStreamTransport.invokeUnsubscribe).toHaveBeenCalledWith(
         queryName1,
         variables1
       );
@@ -220,12 +214,12 @@ describe('DataConnectTransportManager', () => {
 
       manager.useEmulator('localhost', 9000, false);
 
-      expect(stubRestTransport.useEmulator).to.have.been.calledOnceWith(
+      expect(stubRestTransport.useEmulator).toHaveBeenCalledExactlyOnceWith(
         'localhost',
         9000,
         false
       );
-      expect(stubStreamTransport.useEmulator).to.have.been.calledOnceWith(
+      expect(stubStreamTransport.useEmulator).toHaveBeenCalledExactlyOnceWith(
         'localhost',
         9000,
         false
@@ -237,225 +231,306 @@ describe('DataConnectTransportManager', () => {
 
       manager.onAuthTokenChanged('new-token');
 
-      expect(stubRestTransport.onAuthTokenChanged).to.have.been.calledOnceWith(
-        'new-token'
-      );
+      expect(
+        stubRestTransport.onAuthTokenChanged
+      ).toHaveBeenCalledExactlyOnceWith('new-token');
       expect(
         stubStreamTransport.onAuthTokenChanged
-      ).to.have.been.calledOnceWith('new-token');
+      ).toHaveBeenCalledExactlyOnceWith('new-token');
     });
   });
 
   describe('dynamic transport routing', () => {
     it('executeShouldUseStream should return false if streamTransport is not initialized', () => {
-      expect(manager.executeShouldUseStream()).to.be.false;
+      expect(manager.executeShouldUseStream()).toBe(false);
     });
 
     it('executeShouldUseStream should return true only when all stream conditions are met', () => {
       const streamTransport = manager.initStreamTransport();
 
       // Default state: not ready, no subs, no pending close
-      const streamIsReadyStub = sinon
-        .stub(streamTransport, 'streamIsReady')
-        .get(() => false);
-      const hasActiveSubscriptionsStub = sinon
-        .stub(streamTransport, 'hasActiveSubscriptions')
-        .get(() => false);
-      const isPendingCloseStub = sinon
-        .stub(streamTransport, 'isPendingClose')
-        .get(() => false);
+      const streamIsReadyStub = vi
+        .spyOn(streamTransport, 'streamIsReady', 'get')
+        .mockReturnValue(false);
+      const hasActiveSubscriptionsStub = vi
+        .spyOn(streamTransport, 'hasActiveSubscriptions', 'get')
+        .mockReturnValue(false);
+      const isPendingCloseStub = vi
+        .spyOn(streamTransport, 'isPendingClose', 'get')
+        .mockReturnValue(false);
 
-      expect(manager.executeShouldUseStream()).to.be.false;
+      expect(manager.executeShouldUseStream()).toBe(false);
 
       // make stream ready, but still no active subscriptions
-      streamIsReadyStub.get(() => true);
-      expect(manager.executeShouldUseStream()).to.be.false;
+      streamIsReadyStub.mockReturnValue(true);
+      expect(manager.executeShouldUseStream()).toBe(false);
 
       // add active subscriptions
-      hasActiveSubscriptionsStub.get(() => true);
-      expect(manager.executeShouldUseStream()).to.be.true;
+      hasActiveSubscriptionsStub.mockReturnValue(true);
+      expect(manager.executeShouldUseStream()).toBe(true);
 
       // pending close overrides readiness / active subscriptions
-      isPendingCloseStub.get(() => true);
-      expect(manager.executeShouldUseStream()).to.be.false;
+      isPendingCloseStub.mockReturnValue(true);
+      expect(manager.executeShouldUseStream()).toBe(false);
     });
 
     describe('invokeQuery dynamic routing', () => {
       it('invokeQuery should route to stream if executeShouldUseStream returns true', async () => {
         const streamTransport = manager.initStreamTransport();
-        sinon.stub(streamTransport, 'streamIsReady').get(() => true);
-        sinon.stub(streamTransport, 'isPendingClose').get(() => false);
-        sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
-        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
+        vi.spyOn(streamTransport, 'streamIsReady', 'get').mockReturnValue(true);
+        vi.spyOn(streamTransport, 'isPendingClose', 'get').mockReturnValue(
+          false
+        );
+        vi.spyOn(
+          streamTransport,
+          'hasActiveSubscriptions',
+          'get'
+        ).mockReturnValue(true);
+        vi.spyOn(streamTransport, 'isUnableToConnect', 'get').mockReturnValue(
+          false
+        );
 
-        const restSpy = sinon.stub(manager.restTransport, 'invokeQuery');
-        const streamSpy = sinon
-          .stub(streamTransport, 'invokeQuery')
-          .resolves(testResponse);
+        const restSpy = vi.spyOn(manager.restTransport, 'invokeQuery');
+        const streamSpy = vi
+          .spyOn(streamTransport, 'invokeQuery')
+          .mockResolvedValue(testResponse);
 
         await manager.invokeQuery(queryName1, variables1);
 
-        expect(streamSpy).to.have.been.calledOnceWith(queryName1, variables1);
-        expect(restSpy).to.have.not.been.called;
+        expect(streamSpy).toHaveBeenCalledExactlyOnceWith(
+          queryName1,
+          variables1
+        );
+        expect(restSpy).not.toHaveBeenCalled();
       });
 
       it('invokeQuery should throw an error if stream transport throws an error and executeShouldUseStream remains true', async () => {
         const streamTransport = manager.initStreamTransport();
-        sinon.stub(streamTransport, 'streamIsReady').get(() => true);
-        sinon.stub(streamTransport, 'isPendingClose').get(() => false);
-        sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
-        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
+        vi.spyOn(streamTransport, 'streamIsReady', 'get').mockReturnValue(true);
+        vi.spyOn(streamTransport, 'isPendingClose', 'get').mockReturnValue(
+          false
+        );
+        vi.spyOn(
+          streamTransport,
+          'hasActiveSubscriptions',
+          'get'
+        ).mockReturnValue(true);
+        vi.spyOn(streamTransport, 'isUnableToConnect', 'get').mockReturnValue(
+          false
+        );
 
-        const streamStub = sinon
-          .stub(streamTransport, 'invokeQuery')
-          .rejects(expectedError);
-        const restStub = sinon
-          .stub(manager.restTransport, 'invokeQuery')
-          .resolves(testResponse);
+        const streamStub = vi
+          .spyOn(streamTransport, 'invokeQuery')
+          .mockRejectedValue(expectedError);
+        const restStub = vi
+          .spyOn(manager.restTransport, 'invokeQuery')
+          .mockResolvedValue(testResponse);
 
         await expect(
           manager.invokeQuery(queryName1, variables1)
-        ).to.be.rejectedWith(expectedError);
+        ).rejects.toThrow(expectedError);
 
-        expect(streamStub).to.have.been.calledOnceWith(queryName1, variables1);
-        expect(restStub).to.not.have.been.called;
+        expect(streamStub).toHaveBeenCalledExactlyOnceWith(
+          queryName1,
+          variables1
+        );
+        expect(restStub).not.toHaveBeenCalled();
       });
 
       it('invokeQuery should fallback to REST if stream transport throws an error and then executeShouldUseStream becomes false', async () => {
         const streamTransport = manager.initStreamTransport();
-        sinon.stub(streamTransport, 'streamIsReady').get(() => true);
-        sinon.stub(streamTransport, 'isPendingClose').get(() => false);
-        sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
-        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
+        vi.spyOn(streamTransport, 'streamIsReady', 'get').mockReturnValue(true);
+        vi.spyOn(streamTransport, 'isPendingClose', 'get').mockReturnValue(
+          false
+        );
+        vi.spyOn(
+          streamTransport,
+          'hasActiveSubscriptions',
+          'get'
+        ).mockReturnValue(true);
+        vi.spyOn(streamTransport, 'isUnableToConnect', 'get').mockReturnValue(
+          false
+        );
 
-        const streamStub = sinon
-          .stub(streamTransport, 'invokeQuery')
-          .callsFake(async () => {
-            sinon.stub(streamTransport, 'isUnableToConnect').get(() => true);
+        const streamStub = vi
+          .spyOn(streamTransport, 'invokeQuery')
+          .mockImplementation(async () => {
+            vi.spyOn(
+              streamTransport,
+              'isUnableToConnect',
+              'get'
+            ).mockReturnValue(true);
             throw expectedError;
           });
-        const restStub = sinon
-          .stub(manager.restTransport, 'invokeQuery')
-          .resolves(testResponse);
+        const restStub = vi
+          .spyOn(manager.restTransport, 'invokeQuery')
+          .mockResolvedValue(testResponse);
 
         await manager.invokeQuery(queryName1, variables1);
 
-        expect(streamStub).to.have.been.calledOnceWith(queryName1, variables1);
-        expect(restStub).to.have.been.calledOnceWith(queryName1, variables1);
+        expect(streamStub).toHaveBeenCalledExactlyOnceWith(
+          queryName1,
+          variables1
+        );
+        expect(restStub).toHaveBeenCalledExactlyOnceWith(
+          queryName1,
+          variables1
+        );
       });
     });
 
     describe('invokeMutation dynamic routing', () => {
       it('invokeMutation should route to stream if executeShouldUseStream() returns true', async () => {
         const streamTransport = manager.initStreamTransport();
-        sinon.stub(streamTransport, 'streamIsReady').get(() => true);
-        sinon.stub(streamTransport, 'isPendingClose').get(() => false);
-        sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
-        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
+        vi.spyOn(streamTransport, 'streamIsReady', 'get').mockReturnValue(true);
+        vi.spyOn(streamTransport, 'isPendingClose', 'get').mockReturnValue(
+          false
+        );
+        vi.spyOn(
+          streamTransport,
+          'hasActiveSubscriptions',
+          'get'
+        ).mockReturnValue(true);
+        vi.spyOn(streamTransport, 'isUnableToConnect', 'get').mockReturnValue(
+          false
+        );
 
-        const restSpy = sinon.stub(manager.restTransport, 'invokeMutation');
-        const streamSpy = sinon
-          .stub(streamTransport, 'invokeMutation')
-          .resolves(testResponse);
+        const restSpy = vi.spyOn(manager.restTransport, 'invokeMutation');
+        const streamSpy = vi
+          .spyOn(streamTransport, 'invokeMutation')
+          .mockResolvedValue(testResponse);
 
         await manager.invokeMutation(mutationName1, variables1);
 
-        expect(streamSpy).to.have.been.calledOnceWith(
+        expect(streamSpy).toHaveBeenCalledExactlyOnceWith(
           mutationName1,
           variables1
         );
-        expect(restSpy).to.have.not.been.called;
+        expect(restSpy).not.toHaveBeenCalled();
       });
 
       it('invokeMutation should throw an error if stream transport throws an error and executeShouldUseStream remains true', async () => {
         const streamTransport = manager.initStreamTransport();
-        sinon.stub(streamTransport, 'streamIsReady').get(() => true);
-        sinon.stub(streamTransport, 'isPendingClose').get(() => false);
-        sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
-        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
+        vi.spyOn(streamTransport, 'streamIsReady', 'get').mockReturnValue(true);
+        vi.spyOn(streamTransport, 'isPendingClose', 'get').mockReturnValue(
+          false
+        );
+        vi.spyOn(
+          streamTransport,
+          'hasActiveSubscriptions',
+          'get'
+        ).mockReturnValue(true);
+        vi.spyOn(streamTransport, 'isUnableToConnect', 'get').mockReturnValue(
+          false
+        );
 
-        const streamStub = sinon
-          .stub(streamTransport, 'invokeMutation')
-          .rejects(expectedError);
-        const restStub = sinon
-          .stub(manager.restTransport, 'invokeMutation')
-          .resolves(testResponse);
+        const streamStub = vi
+          .spyOn(streamTransport, 'invokeMutation')
+          .mockRejectedValue(expectedError);
+        const restStub = vi
+          .spyOn(manager.restTransport, 'invokeMutation')
+          .mockResolvedValue(testResponse);
 
         await expect(
           manager.invokeMutation(mutationName1, variables1)
-        ).to.be.rejectedWith(expectedError);
+        ).rejects.toThrow(expectedError);
 
-        expect(streamStub).to.have.been.calledOnceWith(
+        expect(streamStub).toHaveBeenCalledExactlyOnceWith(
           mutationName1,
           variables1
         );
-        expect(restStub).to.not.have.been.called;
+        expect(restStub).not.toHaveBeenCalled();
       });
 
       it('invokeMutation should fallback to REST if stream transport throws an error and then executeShouldUseStream becomes false', async () => {
         const streamTransport = manager.initStreamTransport();
-        sinon.stub(streamTransport, 'streamIsReady').get(() => true);
-        sinon.stub(streamTransport, 'isPendingClose').get(() => false);
-        sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
-        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
+        vi.spyOn(streamTransport, 'streamIsReady', 'get').mockReturnValue(true);
+        vi.spyOn(streamTransport, 'isPendingClose', 'get').mockReturnValue(
+          false
+        );
+        vi.spyOn(
+          streamTransport,
+          'hasActiveSubscriptions',
+          'get'
+        ).mockReturnValue(true);
+        vi.spyOn(streamTransport, 'isUnableToConnect', 'get').mockReturnValue(
+          false
+        );
 
-        const streamStub = sinon
-          .stub(streamTransport, 'invokeMutation')
-          .callsFake(async () => {
-            sinon.stub(streamTransport, 'isUnableToConnect').get(() => true);
+        const streamStub = vi
+          .spyOn(streamTransport, 'invokeMutation')
+          .mockImplementation(async () => {
+            vi.spyOn(
+              streamTransport,
+              'isUnableToConnect',
+              'get'
+            ).mockReturnValue(true);
             throw expectedError;
           });
-        const restStub = sinon
-          .stub(manager.restTransport, 'invokeMutation')
-          .resolves(testResponse);
+        const restStub = vi
+          .spyOn(manager.restTransport, 'invokeMutation')
+          .mockResolvedValue(testResponse);
 
         await manager.invokeMutation(mutationName1, variables1);
 
-        expect(streamStub).to.have.been.calledOnceWith(
+        expect(streamStub).toHaveBeenCalledExactlyOnceWith(
           mutationName1,
           variables1
         );
-        expect(restStub).to.have.been.calledOnceWith(mutationName1, variables1);
+        expect(restStub).toHaveBeenCalledExactlyOnceWith(
+          mutationName1,
+          variables1
+        );
       });
 
       it('invokeMutation should fallback to REST for all in-flight mutations if stream fails', async () => {
         const streamTransport = manager.initStreamTransport();
-        sinon.stub(streamTransport, 'streamIsReady').get(() => true);
-        sinon.stub(streamTransport, 'isPendingClose').get(() => false);
-        sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
-        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
+        vi.spyOn(streamTransport, 'streamIsReady', 'get').mockReturnValue(true);
+        vi.spyOn(streamTransport, 'isPendingClose', 'get').mockReturnValue(
+          false
+        );
+        vi.spyOn(
+          streamTransport,
+          'hasActiveSubscriptions',
+          'get'
+        ).mockReturnValue(true);
+        vi.spyOn(streamTransport, 'isUnableToConnect', 'get').mockReturnValue(
+          false
+        );
 
         let rejectStream!: (reason: unknown) => void;
         const streamPromise = new Promise((_, reject) => {
           rejectStream = reject;
         });
 
-        const streamStub = sinon
-          .stub(streamTransport, 'invokeMutation')
-          .returns(
+        const streamStub = vi
+          .spyOn(streamTransport, 'invokeMutation')
+          .mockReturnValue(
             streamPromise as unknown as Promise<DataConnectResponse<unknown>>
           );
 
-        const restStub = sinon
-          .stub(manager.restTransport, 'invokeMutation')
-          .resolves(testResponse);
+        const restStub = vi
+          .spyOn(manager.restTransport, 'invokeMutation')
+          .mockResolvedValue(testResponse);
 
         const p1 = manager.invokeMutation(mutationName1, variables1);
         const p2 = manager.invokeMutation('mutation2', { key: 'two' });
 
         // Verify both called stream transport and are pending
-        expect(streamStub).to.have.been.calledTwice;
-        expect(restStub).to.not.have.been.called;
+        expect(streamStub).toHaveBeenCalledTimes(2);
+        expect(restStub).not.toHaveBeenCalled();
 
         // Mark stream as failed BEFORE resolving/rejecting to trigger fallback
-        sinon.stub(streamTransport, 'isUnableToConnect').get(() => true);
+        vi.spyOn(streamTransport, 'isUnableToConnect', 'get').mockReturnValue(
+          true
+        );
 
         // Fail the stream
         rejectStream(expectedError);
 
         await Promise.all([p1, p2]);
 
-        expect(restStub).to.have.been.calledTwice;
+        expect(restStub).toHaveBeenCalledTimes(2);
       });
     });
 
@@ -467,21 +542,23 @@ describe('DataConnectTransportManager', () => {
           onError: () => {}
         };
         const streamTransport = manager.initStreamTransport();
-        sinon.stub(streamTransport, 'isUnableToConnect').get(() => true);
+        vi.spyOn(streamTransport, 'isUnableToConnect', 'get').mockReturnValue(
+          true
+        );
 
-        const streamStub = sinon
-          .stub(streamTransport, 'invokeSubscribe')
-          .rejects(expectedError);
-        const restStub = sinon
-          .stub(manager.restTransport, 'invokeSubscribe')
-          .resolves(testResponse);
+        const streamStub = vi
+          .spyOn(streamTransport, 'invokeSubscribe')
+          .mockRejectedValue(expectedError);
+        const restStub = vi
+          .spyOn(manager.restTransport, 'invokeSubscribe')
+          .mockResolvedValue(testResponse);
 
         expect(() =>
           manager.invokeSubscribe(observer, queryName1, variables1)
-        ).to.throw('Subscriptions are unavailable');
+        ).toThrow('Subscriptions are unavailable');
 
-        expect(streamStub).to.not.have.been.called;
-        expect(restStub).to.not.have.been.called;
+        expect(streamStub).not.toHaveBeenCalled();
+        expect(restStub).not.toHaveBeenCalled();
       });
     });
   });
@@ -489,15 +566,21 @@ describe('DataConnectTransportManager', () => {
   describe('disconnects', () => {
     it('subscriber onDisconnect should be called when stream fails during active subscription', async () => {
       const observer: SubscribeObserver<TestData> = {
-        onData: sinon.stub(),
-        onDisconnect: sinon.stub(),
-        onError: sinon.stub()
+        onData: vi.fn(),
+        onDisconnect: vi.fn(),
+        onError: vi.fn()
       };
       const streamTransport = manager.initStreamTransport();
-      sinon.stub(streamTransport, 'streamIsReady').get(() => true);
-      sinon.stub(streamTransport, 'isPendingClose').get(() => false);
-      sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
-      sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
+      vi.spyOn(streamTransport, 'streamIsReady', 'get').mockReturnValue(true);
+      vi.spyOn(streamTransport, 'isPendingClose', 'get').mockReturnValue(false);
+      vi.spyOn(
+        streamTransport,
+        'hasActiveSubscriptions',
+        'get'
+      ).mockReturnValue(true);
+      vi.spyOn(streamTransport, 'isUnableToConnect', 'get').mockReturnValue(
+        false
+      );
 
       // Add observer directly to tracking map to verify onDisconnect propagation
       const transportWithInternals = streamTransport as unknown as {
@@ -513,36 +596,35 @@ describe('DataConnectTransportManager', () => {
         'Stream disconnected with code 1006: Abnormal Closure'
       );
 
-      expect(observer.onDisconnect).to.have.been.calledOnceWith(
+      expect(observer.onDisconnect).toHaveBeenCalledExactlyOnceWith(
         Code.OTHER,
         'Stream disconnected with code 1006: Abnormal Closure'
       );
     });
 
     describe('idle timeout', () => {
-      let clock: sinon.SinonFakeTimers;
       let streamTransport: WebSocketTransport;
-      let restInvokeQuerySpy: sinon.SinonStub;
+      let restInvokeQuerySpy: Mock;
 
       const IDLE_CONNECTION_TIMEOUT_MS = 15 * 1000; // 15 seconds, copied from real implementation
 
       beforeEach(() => {
-        clock = sinon.useFakeTimers();
+        vi.useFakeTimers();
         streamTransport = manager.initStreamTransport() as WebSocketTransport;
         const streamTransportPublic = streamTransport as unknown as {
           openConnection(): Promise<void>;
           sendMessage(payload: unknown): Promise<void>;
         };
-        sinon.stub(streamTransportPublic, 'openConnection').resolves();
-        sinon.stub(streamTransportPublic, 'sendMessage').resolves();
-        sinon.stub(streamTransport, 'streamIsReady').get(() => true);
-        restInvokeQuerySpy = sinon
-          .stub(manager.restTransport, 'invokeQuery')
-          .resolves(testResponse);
+        vi.spyOn(streamTransportPublic, 'openConnection').mockResolvedValue();
+        vi.spyOn(streamTransportPublic, 'sendMessage').mockResolvedValue();
+        vi.spyOn(streamTransport, 'streamIsReady', 'get').mockReturnValue(true);
+        restInvokeQuerySpy = vi
+          .spyOn(manager.restTransport, 'invokeQuery')
+          .mockResolvedValue(testResponse);
       });
 
       afterEach(() => {
-        clock.restore();
+        vi.useRealTimers();
       });
 
       it('should route to REST during idle timeout and disconnect after grace period', async () => {
@@ -553,20 +635,20 @@ describe('DataConnectTransportManager', () => {
         };
 
         manager.invokeSubscribe(observer, queryName1, variables1);
-        expect(manager.executeShouldUseStream()).to.be.true;
+        expect(manager.executeShouldUseStream()).toBe(true);
 
         manager.invokeUnsubscribe(queryName1, variables1);
-        expect(manager.executeShouldUseStream()).to.be.false;
+        expect(manager.executeShouldUseStream()).toBe(false);
 
         // without active streams, should route to REST
-        restInvokeQuerySpy.resetHistory();
+        restInvokeQuerySpy.mockClear();
         await manager.invokeQuery(queryName1, variables1);
-        expect(restInvokeQuerySpy).to.have.been.calledOnce;
+        expect(restInvokeQuerySpy).toHaveBeenCalledOnce();
 
-        expect(manager.streamTransport).to.exist;
+        expect(manager.streamTransport).toBeDefined();
 
-        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS + 100);
-        expect(manager.streamTransport).to.be.undefined;
+        await vi.advanceTimersByTimeAsync(IDLE_CONNECTION_TIMEOUT_MS + 100);
+        expect(manager.streamTransport).toBeUndefined();
       });
 
       it('should route to REST after stream automatically closes', async () => {
@@ -579,12 +661,12 @@ describe('DataConnectTransportManager', () => {
         manager.invokeSubscribe(observer, queryName1, variables1);
         manager.invokeUnsubscribe(queryName1, variables1);
 
-        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS + 100);
-        expect(manager.streamTransport).to.be.undefined;
+        await vi.advanceTimersByTimeAsync(IDLE_CONNECTION_TIMEOUT_MS + 100);
+        expect(manager.streamTransport).toBeUndefined();
 
-        restInvokeQuerySpy.resetHistory();
+        restInvokeQuerySpy.mockClear();
         await manager.invokeQuery(queryName1, variables1);
-        expect(restInvokeQuerySpy).to.have.been.calledOnce;
+        expect(restInvokeQuerySpy).toHaveBeenCalledOnce();
       });
 
       it('should route back to stream after reconnect', async () => {
@@ -597,8 +679,8 @@ describe('DataConnectTransportManager', () => {
         manager.invokeSubscribe(observer, queryName1, variables1);
         manager.invokeUnsubscribe(queryName1, variables1);
 
-        await clock.tickAsync(IDLE_CONNECTION_TIMEOUT_MS + 100);
-        expect(manager.streamTransport).to.be.undefined;
+        await vi.advanceTimersByTimeAsync(IDLE_CONNECTION_TIMEOUT_MS + 100);
+        expect(manager.streamTransport).toBeUndefined();
 
         manager.invokeSubscribe(observer, queryName1, variables1);
         const newStreamTransport = manager.streamTransport!;
@@ -606,15 +688,20 @@ describe('DataConnectTransportManager', () => {
           openConnection(): Promise<void>;
           sendMessage(payload: unknown): Promise<void>;
         };
-        sinon.stub(newStreamTransportPublic, 'openConnection').resolves();
-        sinon.stub(newStreamTransportPublic, 'sendMessage').resolves();
-        sinon.stub(newStreamTransport, 'streamIsReady').get(() => true);
-        const streamExecuteQueryStub = sinon
-          .stub(newStreamTransport, 'invokeQuery')
-          .resolves(testResponse);
+        vi.spyOn(
+          newStreamTransportPublic,
+          'openConnection'
+        ).mockResolvedValue();
+        vi.spyOn(newStreamTransportPublic, 'sendMessage').mockResolvedValue();
+        vi.spyOn(newStreamTransport, 'streamIsReady', 'get').mockReturnValue(
+          true
+        );
+        const streamExecuteQueryStub = vi
+          .spyOn(newStreamTransport, 'invokeQuery')
+          .mockResolvedValue(testResponse);
         await manager.invokeQuery(queryName1, variables1);
-        expect(streamExecuteQueryStub).to.have.been.calledOnce;
-        expect(restInvokeQuerySpy).to.have.not.been.called;
+        expect(streamExecuteQueryStub).toHaveBeenCalledOnce();
+        expect(restInvokeQuerySpy).not.toHaveBeenCalled();
       });
     });
   });

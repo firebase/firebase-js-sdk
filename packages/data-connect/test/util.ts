@@ -23,7 +23,8 @@ import {
   makeMemoryCacheProvider
 } from '../src';
 
-export const EMULATOR_PORT = process.env.DC_EMULATOR_PORT;
+export const EMULATOR_PORT =
+  typeof process !== 'undefined' ? process.env.DC_EMULATOR_PORT : undefined;
 const USE_EMULATOR = !!EMULATOR_PORT;
 export const CONNECTOR_NAME = 'tests';
 export const LOCATION_NAME = 'us-west2';

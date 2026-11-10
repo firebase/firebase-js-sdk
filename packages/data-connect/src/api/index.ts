@@ -16,19 +16,19 @@
  */
 
 export * from '../network';
-export {
-  ExecuteQueryOptions,
-  QueryFetchPolicy
-} from '../core/query/queryOptions';
-export {
+export type { ExecuteQueryOptions } from '../core/query/queryOptions';
+export { QueryFetchPolicy } from '../core/query/queryOptions';
+export type {
   CacheSettings,
-  validateDCOptions,
   ConnectorConfig,
-  DataConnect,
   DataConnectOptions,
   DataConnectSettings,
+  TransportOptions
+} from './DataConnect';
+export {
+  validateDCOptions,
+  DataConnect,
   StorageType,
-  TransportOptions,
   areTransportOptionsEqual,
   connectDataConnectEmulator,
   getDataConnect,
@@ -40,11 +40,13 @@ export * from './Mutation';
 export * from './query';
 export { setLogLevel } from '../logger';
 export { validateArgs, validateArgsWithOptions } from '../util/validateArgs';
-export {
+export type {
   DataConnectErrorCode,
-  Code,
-  DataConnectError,
-  DataConnectOperationError,
   DataConnectOperationFailureResponse,
   DataConnectOperationFailureResponseErrorInfo
+} from '../core/error';
+export {
+  Code,
+  DataConnectError,
+  DataConnectOperationError
 } from '../core/error';

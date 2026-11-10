@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import * as chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
+import type { MockInstance } from 'vitest';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
 import { Code } from '../../src/core/error';
@@ -34,8 +30,9 @@ import { DataConnectResponse } from '../../src/network/transport';
 
 import { expectIsNotSettled, MockWebSocket } from './testUtils';
 
-chai.use(sinonChai);
-chai.use(chaiAsPromised);
+// `vi.spyOn` cannot replace an ESM named export in browser mode, so mock the
+// logger module (keeping its real implementation) to make `logError` spyable.
+vi.mock('../../src/logger', { spy: true });
 
 /** Interface that exposes some private fields and methods of WebSocketTransport for testing purposes. */
 interface TransportWithInternals {
@@ -70,7 +67,7 @@ describe('WebSocketTransport', () => {
 
   afterEach(() => {
     initializeWebSocket(WebSocket);
-    sinon.restore();
+    vi.restoreAllMocks();
   });
 
   const connectionError = new Error('Test connection error');
@@ -80,57 +77,57 @@ describe('WebSocketTransport', () => {
       const openPromise = transport.openConnection();
       await expectIsNotSettled(openPromise);
       await transport.connection!.simulateOpen();
-      await expect(openPromise).to.be.fulfilled;
+      await expect(openPromise).resolves.toBeUndefined();
     });
 
     it('should reject when onerror fires', async () => {
       const openPromise = transport.openConnection();
       await expectIsNotSettled(openPromise);
       await transport.connection!.simulateError(connectionError);
-      await expect(openPromise).to.be.rejectedWith(/Failed to open connection/);
+      await expect(openPromise).rejects.toThrow(/Failed to open connection/);
     });
 
     it('should de-duplicate calls when already connected', async () => {
       const openPromise1 = transport.openConnection();
-      const onOpenSpy = sinon.spy(transport.connection!, 'onopen');
+      const onOpenSpy = vi.spyOn(transport.connection!, 'onopen');
       await transport.connection!.simulateOpen();
       await openPromise1;
       const previousConnection = transport.connection;
       const openPromise2 = transport.openConnection();
       await openPromise2;
-      expect(transport.connection).to.equal(previousConnection);
-      expect(onOpenSpy).to.have.been.calledOnce;
+      expect(transport.connection).toBe(previousConnection);
+      expect(onOpenSpy).toHaveBeenCalledOnce();
     });
 
     it('should de-duplicate calls when open connection is pending', async () => {
       const openPromise1 = transport.openConnection();
-      const onOpenSpy = sinon.spy(transport.connection!, 'onopen');
+      const onOpenSpy = vi.spyOn(transport.connection!, 'onopen');
       await expectIsNotSettled(openPromise1);
       const openPromise2 = transport.openConnection();
       await expectIsNotSettled(openPromise2);
       await transport.connection!.simulateOpen();
-      await expect(openPromise1).to.be.fulfilled;
-      await expect(openPromise2).to.be.fulfilled;
-      expect(onOpenSpy).to.have.been.calledOnce;
+      await expect(openPromise1).resolves.toBeUndefined();
+      await expect(openPromise2).resolves.toBeUndefined();
+      expect(onOpenSpy).toHaveBeenCalledOnce();
     });
   });
 
   describe('streamIsReady', () => {
     it('should be false initially', () => {
-      expect(transport.streamIsReady).to.be.false;
+      expect(transport.streamIsReady).toBe(false);
     });
 
     it('should be false while connecting', async () => {
       const openPromise = transport.openConnection();
       await expectIsNotSettled(openPromise);
-      expect(transport.streamIsReady).to.be.false;
+      expect(transport.streamIsReady).toBe(false);
     });
 
     it('should be true when connected', async () => {
       const openPromise = transport.openConnection();
       await transport.connection!.simulateOpen();
       await openPromise;
-      expect(transport.streamIsReady).to.be.true;
+      expect(transport.streamIsReady).toBe(true);
     });
 
     it('should be false after disconnected', async () => {
@@ -138,7 +135,7 @@ describe('WebSocketTransport', () => {
       await transport.connection!.simulateOpen();
       await openPromise;
       await transport.connection!.simulateClose();
-      expect(transport.streamIsReady).to.be.false;
+      expect(transport.streamIsReady).toBe(false);
     });
   });
 
@@ -149,12 +146,12 @@ describe('WebSocketTransport', () => {
       await openPromise;
       const mockWs = transport.connection!;
       await transport.closeConnection();
-      expect(mockWs.close).to.have.been.calledOnce;
-      expect(transport.connection).to.be.undefined;
+      expect(mockWs.close).toHaveBeenCalledOnce();
+      expect(transport.connection).toBeUndefined();
     });
 
     it('should be idempotent if connection is already closed', async () => {
-      await expect(transport.closeConnection()).to.be.fulfilled;
+      await expect(transport.closeConnection()).resolves.toBeUndefined();
     });
 
     it('should return rejected promise and clean up if ws.close() throws', async () => {
@@ -162,11 +159,13 @@ describe('WebSocketTransport', () => {
       await transport.connection!.simulateOpen();
       await openPromise;
       const mockWs = transport.connection!;
-      mockWs.close = sinon.stub().throws(connectionError);
-      await expect(transport.closeConnection()).to.be.rejectedWith(
+      mockWs.close = vi.fn().mockImplementation(() => {
+        throw connectionError;
+      });
+      await expect(transport.closeConnection()).rejects.toThrow(
         connectionError
       );
-      expect(transport.connection).to.be.undefined;
+      expect(transport.connection).toBeUndefined();
     });
   });
 
@@ -175,10 +174,10 @@ describe('WebSocketTransport', () => {
       const openPromise = transport.openConnection();
       await transport.connection!.simulateOpen();
       await openPromise;
-      expect(transport.connection).to.not.be.undefined;
+      expect(transport.connection).not.toBeUndefined();
       // simulate server drop / unexpected closure
       await transport.connection!.simulateClose();
-      expect(transport.connection).to.be.undefined;
+      expect(transport.connection).toBeUndefined();
     });
 
     it('should call rejectAllRequests and clean up when closed externally', async () => {
@@ -186,13 +185,13 @@ describe('WebSocketTransport', () => {
       await transport.connection!.simulateOpen();
       await openPromise;
 
-      const rejectSpy = sinon.spy(transport, 'rejectAllRequests');
+      const rejectSpy = vi.spyOn(transport, 'rejectAllRequests');
 
       await transport.connection!.simulateClose();
 
-      expect(rejectSpy).to.have.been.calledOnce;
-      expect(rejectSpy.firstCall.args[0]).to.equal(Code.OTHER);
-      expect(rejectSpy.firstCall.args[1]).to.equal(
+      expect(rejectSpy).toHaveBeenCalledOnce();
+      expect(rejectSpy.mock.calls[0][0]).toBe(Code.OTHER);
+      expect(rejectSpy.mock.calls[0][1]).toBe(
         `Stream disconnected while idle with code ${WEBSOCKET_CLOSE_CODE}: Normal Closure`
       );
     });
@@ -209,23 +208,24 @@ describe('WebSocketTransport', () => {
       await expectIsNotSettled(sendPromise);
       await transport.connection!.simulateOpen();
       await sendPromise;
-      expect(transport.connection!.send).to.have.been.calledOnce;
+      expect(transport.connection!.send).toHaveBeenCalledOnce();
     });
 
     it('should send stringified json payload', async () => {
       const sendPromise = transport.sendMessage(payload);
       await transport.connection!.simulateOpen();
       await sendPromise;
-      expect(transport.connection!.send).to.have.been.calledOnceWith(
+      expect(transport.connection!.send).toHaveBeenCalledExactlyOnceWith(
         JSON.stringify(payload)
       );
     });
   });
 
   describe('handleWebSocketMessage', () => {
-    let logErrorStub: sinon.SinonStub;
+    let logErrorStub: MockInstance;
     beforeEach(() => {
-      logErrorStub = sinon.stub(logger, 'logError');
+      logErrorStub = vi.mocked(logger.logError);
+      logErrorStub.mockReset();
     });
 
     const messageWithExtensions = {
@@ -246,9 +246,9 @@ describe('WebSocketTransport', () => {
     };
 
     it('should correctly parse incoming JSON and handle response', async () => {
-      const handleResponseStub = sinon
-        .stub(transport, 'handleResponse')
-        .resolves();
+      const handleResponseStub = vi
+        .spyOn(transport, 'handleResponse')
+        .mockResolvedValue(undefined);
 
       const openPromise = transport.openConnection();
       await transport.connection!.simulateOpen();
@@ -258,25 +258,23 @@ describe('WebSocketTransport', () => {
         JSON.stringify(messageWithExtensions)
       );
 
-      expect(handleResponseStub).to.have.been.calledOnce;
+      expect(handleResponseStub).toHaveBeenCalledOnce();
       const [calledRequestId, calledResponse] =
-        handleResponseStub.firstCall.args;
-      expect(calledRequestId).to.equal(messageWithExtensions.result.requestId);
-      expect(calledResponse.data).to.deep.equal(
-        messageWithExtensions.result.data
-      );
-      expect(calledResponse.errors).to.deep.equal(
+        handleResponseStub.mock.calls[0];
+      expect(calledRequestId).toBe(messageWithExtensions.result.requestId);
+      expect(calledResponse.data).toEqual(messageWithExtensions.result.data);
+      expect(calledResponse.errors).toEqual(
         messageWithExtensions.result.errors
       );
-      expect(calledResponse.extensions).to.deep.equal(
+      expect(calledResponse.extensions).toEqual(
         messageWithExtensions.result.extensions
       );
     });
 
     it('should map extensions to empty array if not strictly provided', async () => {
-      const handleResponseStub = sinon
-        .stub(transport, 'handleResponse')
-        .resolves();
+      const handleResponseStub = vi
+        .spyOn(transport, 'handleResponse')
+        .mockResolvedValue(undefined);
 
       const openPromise = transport.openConnection();
       await transport.connection!.simulateOpen();
@@ -286,9 +284,9 @@ describe('WebSocketTransport', () => {
         JSON.stringify(messageWithoutExtensions)
       );
 
-      expect(handleResponseStub).to.have.been.calledOnce;
-      const calledResponse = handleResponseStub.firstCall.args[1];
-      expect(calledResponse.extensions).to.deep.equal({ dataConnect: [] });
+      expect(handleResponseStub).toHaveBeenCalledOnce();
+      const calledResponse = handleResponseStub.mock.calls[0][1];
+      expect(calledResponse.extensions).toEqual({ dataConnect: [] });
     });
 
     it('should close connection with error if message is not an object', async () => {
@@ -301,13 +299,13 @@ describe('WebSocketTransport', () => {
         JSON.stringify('this is a string, not an object')
       );
 
-      expect(mockWs.close).to.have.been.calledOnceWith(
+      expect(mockWs.close).toHaveBeenCalledExactlyOnceWith(
         WEBSOCKET_CLOSE_CODE,
         'WebSocket message is not an object'
       );
-      expect(logErrorStub).to.have.been.calledOnce;
-      expect(logErrorStub).to.have.been.calledWithMatch(
-        'DataConnect WebSocket error, closing stream'
+      expect(logErrorStub).toHaveBeenCalledOnce();
+      expect(logErrorStub).toHaveBeenCalledWith(
+        expect.stringContaining('DataConnect WebSocket error, closing stream')
       );
     });
 
@@ -321,13 +319,13 @@ describe('WebSocketTransport', () => {
 
       await mockWs.simulateMessage(JSON.stringify(invalidData));
 
-      expect(mockWs.close).to.have.been.calledOnceWith(
+      expect(mockWs.close).toHaveBeenCalledExactlyOnceWith(
         WEBSOCKET_CLOSE_CODE,
         'WebSocket message from emulator did not include result'
       );
-      expect(logErrorStub).to.have.been.calledOnce;
-      expect(logErrorStub).to.have.been.calledWithMatch(
-        'DataConnect WebSocket error, closing stream'
+      expect(logErrorStub).toHaveBeenCalledOnce();
+      expect(logErrorStub).toHaveBeenCalledWith(
+        expect.stringContaining('DataConnect WebSocket error, closing stream')
       );
     });
 
@@ -341,13 +339,13 @@ describe('WebSocketTransport', () => {
 
       await mockWs.simulateMessage(JSON.stringify(invalidData));
 
-      expect(mockWs.close).to.have.been.calledOnceWith(
+      expect(mockWs.close).toHaveBeenCalledExactlyOnceWith(
         WEBSOCKET_CLOSE_CODE,
         'WebSocket message result is not an object'
       );
-      expect(logErrorStub).to.have.been.calledOnce;
-      expect(logErrorStub).to.have.been.calledWithMatch(
-        'DataConnect WebSocket error, closing stream'
+      expect(logErrorStub).toHaveBeenCalledOnce();
+      expect(logErrorStub).toHaveBeenCalledWith(
+        expect.stringContaining('DataConnect WebSocket error, closing stream')
       );
     });
 
@@ -361,13 +359,13 @@ describe('WebSocketTransport', () => {
 
       await mockWs.simulateMessage(JSON.stringify(invalidData));
 
-      expect(mockWs.close).to.have.been.calledOnceWith(
+      expect(mockWs.close).toHaveBeenCalledExactlyOnceWith(
         WEBSOCKET_CLOSE_CODE,
         'WebSocket message did not include requestId'
       );
-      expect(logErrorStub).to.have.been.calledOnce;
-      expect(logErrorStub).to.have.been.calledWithMatch(
-        'DataConnect WebSocket error, closing stream'
+      expect(logErrorStub).toHaveBeenCalledOnce();
+      expect(logErrorStub).toHaveBeenCalledWith(
+        expect.stringContaining('DataConnect WebSocket error, closing stream')
       );
     });
   });

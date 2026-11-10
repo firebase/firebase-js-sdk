@@ -15,12 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import * as chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-
-chai.use(chaiAsPromised);
+import type { Mock } from 'vitest';
 
 /**
  * Asserts that a promise does not settle within the given timeout.
@@ -45,9 +40,8 @@ export async function expectIsNotSettled(
       setTimeout(() => resolve(unsettled), timeout);
     })
   ]);
-  expect(result).to.equal(
-    unsettled,
-    `expected promise to not settle within ${timeout}ms!`
+  expect(result, `expected promise to not settle within ${timeout}ms!`).toBe(
+    unsettled
   );
 }
 
@@ -84,8 +78,8 @@ export class MockWebSocket {
   static readonly CLOSED = WebSocket.CLOSED;
 
   readyState: number = MockWebSocket.CONNECTING;
-  send: sinon.SinonSpy = sinon.spy();
-  close: sinon.SinonSpy = sinon.spy();
+  send: Mock = vi.fn();
+  close: Mock = vi.fn();
 
   onopen: (() => void | Promise<void>) | null = null;
   onerror: ((err: Error) => void | Promise<void>) | null = null;
