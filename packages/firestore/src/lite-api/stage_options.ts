@@ -138,7 +138,11 @@ export type AddFieldsStageOptions = StageOptions & {
 };
 
 /**
+ * @beta
+ *
  * Defines a document-count based window frame relative to the position of the current document in the group.
+ *
+ * Window Functions SDK features are in preview until the backend feature launches. Look for launch announcement at: https://docs.cloud.google.com/firestore/docs/release-notes
  *
  * Specifying `sort` on the enclosing {@link @firebase/firestore/pipelines#WindowSpec} is optional for `documents` window frames; if no `sort` expressions are specified, documents are processed in incoming stream (fetch) order.
  */
@@ -165,7 +169,11 @@ export interface DocumentWindowFrame {
 }
 
 /**
+ * @beta
+ *
  * Defines a range-value based window frame relative to the sort value(s) of the current document.
+ *
+ * Window Functions SDK features are in preview until the backend feature launches. Look for launch announcement at: https://docs.cloud.google.com/firestore/docs/release-notes
  *
  * One or more `sort` expressions must be specified on the enclosing {@link @firebase/firestore/pipelines#WindowSpec} when using a `range` window frame.
  * Range frames with numeric or time-unit offsets require a single numeric or timestamp `sort` expression, whereas frames bounded only by `'current'` and `'unbounded'` support multiple `sort` expressions and non-numeric sort values (such as strings or booleans).
@@ -209,7 +217,11 @@ export interface RangeWindowFrame {
 }
 
 /**
+ * @beta
+ *
  * A type that specifies a window frame, over which a window function will be evaluated.
+ *
+ * Window Functions SDK features are in preview until the backend feature launches. Look for launch announcement at: https://docs.cloud.google.com/firestore/docs/release-notes
  *
  * Default frame behavior:
  * - If `sort` is not specified, the default frame is `documents` from `'unbounded'` preceding to `'unbounded'` following (the entire partition/group).
@@ -254,7 +266,11 @@ export type WindowSpec = {
 }>;
 
 /**
+ * @beta
+ *
  * Options defining how an AddWindowFieldsStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(addWindowFields:1)}.
+ *
+ * Window Functions SDK features are in preview until the backend feature launches. Look for launch announcement at: https://docs.cloud.google.com/firestore/docs/release-notes
  */
 export type AddWindowFieldsStageOptions = StageOptions & {
   /**

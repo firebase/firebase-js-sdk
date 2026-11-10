@@ -274,7 +274,11 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
+   * @beta
+   *
    * Adds window function results to the output documents of the pipeline.
+   *
+   * Window Functions SDK features are in preview until the backend feature launches. Look for launch announcement at: https://docs.cloud.google.com/firestore/docs/release-notes
    *
    * Window functions evaluate expressions over a subset of documents (a "window frame") relative to the
    * current document:
@@ -366,7 +370,11 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   ): Pipeline;
 
   /**
+   * @beta
+   *
    * Adds window function results to the output documents of the pipeline using options.
+   *
+   * Window Functions SDK features are in preview until the backend feature launches. Look for launch announcement at: https://docs.cloud.google.com/firestore/docs/release-notes
    *
    * @example
    * ```typescript
