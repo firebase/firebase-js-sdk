@@ -286,6 +286,133 @@ describe('AbstractTokenProvider', () => {
       await expect(tokenPromise).resolves.toEqual({ token: 'delayed-token' });
       expect(resolved).toBe(true);
     });
+
+    it('uses a one-time startup latch so subsequent getToken() calls do not schedule setTimeout when uninitialized', async () => {
+      const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+      try {
+        const rawProvider = registerMockComponent(browserApp, 'test-service');
+        const tokenProvider = new ConcreteTestTokenProvider(rawProvider);
+        expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
+
+        await expect(tokenProvider.getToken()).resolves.toBeNull();
+        expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
+
+        vi.useFakeTimers();
+        // Once the initial startup tick has settled, subsequent requests must resolve on
+        // microtasks alone without advancing macrotask timers.
+        for (let i = 0; i < 5; i++) {
+          await expect(tokenProvider.getToken()).resolves.toBeNull();
+        }
+        expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
+      } finally {
+        vi.useRealTimers();
+        setTimeoutSpy.mockRestore();
+      }
+    });
+
+    it('cancels the startup timer immediately when onInit fires during the startup window', async () => {
+      vi.useFakeTimers();
+      const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+      try {
+        const mockComponent: TestComponent = {
+          getToken: vi.fn().mockResolvedValue({ token: 'eager-delayed-token' }),
+          addListener: vi.fn(),
+          removeListener: vi.fn()
+        };
+        const rawProvider = registerMockComponent(
+          browserApp,
+          'test-service',
+          mockComponent,
+          { explicit: true }
+        );
+        const tokenProvider = new ConcreteTestTokenProvider(rawProvider);
+        expect(vi.getTimerCount()).toBe(1);
+        const tokenPromise = tokenProvider.getToken();
+
+        rawProvider.initialize();
+        expect(clearTimeoutSpy).toHaveBeenCalledTimes(1);
+        expect(vi.getTimerCount()).toBe(0);
+
+        // Resolves via microtasks without advancing fake timers.
+        await expect(tokenPromise).resolves.toEqual({
+          token: 'eager-delayed-token'
+        });
+      } finally {
+        clearTimeoutSpy.mockRestore();
+        vi.useRealTimers();
+      }
+    });
+
+    it('cancels the startup timer and settles pending getToken() when terminate() is called during startup', async () => {
+      vi.useFakeTimers();
+      const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+      try {
+        const rawProvider = registerMockComponent(browserApp, 'test-service');
+        const tokenProvider = new ConcreteTestTokenProvider(rawProvider);
+        expect(vi.getTimerCount()).toBe(1);
+        const tokenPromise = tokenProvider.getToken();
+
+        tokenProvider.terminate();
+        expect(clearTimeoutSpy).toHaveBeenCalledTimes(1);
+        expect(vi.getTimerCount()).toBe(0);
+        await expect(tokenPromise).resolves.toBeNull();
+      } finally {
+        clearTimeoutSpy.mockRestore();
+        vi.useRealTimers();
+      }
+    });
+
+    it('continues listening for lazy component initialization after the startup latch expires', async () => {
+      const mockComponent: TestComponent = {
+        getToken: vi.fn().mockResolvedValue({ token: 'lazy-loaded-token' }),
+        addListener: vi.fn(),
+        removeListener: vi.fn()
+      };
+      const rawProvider = registerMockComponent(
+        browserApp,
+        'test-service',
+        mockComponent,
+        { explicit: true }
+      );
+      const tokenProvider = new ConcreteTestTokenProvider(
+        rawProvider,
+        'static-jwt'
+      );
+
+      // First call waits out the initial startup tick and falls back to static token.
+      await expect(tokenProvider.getToken()).resolves.toEqual({
+        token: 'converted:static-jwt'
+      });
+
+      // Lazy initialization occurring later in the app lifecycle still updates the provider.
+      rawProvider.initialize();
+      await expect(tokenProvider.getToken()).resolves.toEqual({
+        token: 'lazy-loaded-token'
+      });
+    });
+
+    it('picks up component via getImmediate({ optional: true }) when startup tick fires prior to onInit', async () => {
+      const mockComponent: TestComponent = {
+        getToken: vi.fn().mockResolvedValue({ token: 'immediate-on-tick' }),
+        addListener: vi.fn(),
+        removeListener: vi.fn()
+      };
+      let availableComponent: TestComponent | null = null;
+      const customProvider = {
+        getImmediate: vi.fn(() => availableComponent),
+        onInit: vi.fn(() => () => {})
+      } as unknown as Provider<Name>;
+
+      const listener: TestListener = vi.fn();
+      const tokenProvider = new ConcreteTestTokenProvider(customProvider);
+      tokenProvider.addTokenChangeListener(listener);
+      availableComponent = mockComponent;
+
+      await expect(tokenProvider.getToken()).resolves.toEqual({
+        token: 'immediate-on-tick'
+      });
+      expect(mockComponent.addListener).toHaveBeenCalledWith(listener);
+    });
   });
 
   describe('de-duplication of concurrent token requests', () => {

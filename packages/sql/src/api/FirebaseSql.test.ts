@@ -40,8 +40,8 @@ import {
 import { SqlServiceSettings } from '../core/settings';
 import type { SqlClientState } from '../core/state';
 import { SDK_VERSION, setSDKVersion } from '../core/version';
-import { LOWERCASE_DISALLOWED_HEADER_KEYS } from '../network/headers';
 import { registerSql } from '../register';
+import { LOWERCASE_DISALLOWED_HEADER_KEYS } from '../util/constants';
 
 import * as FirebaseSql from './FirebaseSql';
 

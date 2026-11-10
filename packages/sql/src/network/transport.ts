@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { decode, isCloudWorkstation } from '@firebase/util';
 
@@ -31,9 +32,90 @@ import type {
 } from '../core/state';
 import { AppCheckTokenProvider } from '../core/tokenProviders/AppCheckTokenProvider';
 import { FirebaseAuthTokenProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
+import { SDK_VERSION } from '../core/version';
+import { FORBIDDEN_HEADERS, FirebaseHeaders } from '../util/constants';
 
 import { Fetch, getFetch } from './fetch';
-import { FirebaseHeaders, resolveRequestHeaders } from './headers';
+
+/**
+ * Returns the {@linkcode FirebaseHeaders.GOOG_API_CLIENT | 'x-goog-api-client'} header value.
+ * @internal
+ */
+export function getGoogApiClientValue(): string {
+  return 'gl-js/ fire/' + SDK_VERSION;
+}
+
+/**
+ * Merges headers from any valid `HeadersInit` source into a target `Headers` instance.
+ * Normalizes across `Headers` instances, plain records, and tuple arrays using the standard
+ * `Headers` constructor.
+ *
+ * @param target - The destination `Headers` instance to mutate.
+ * @param source - Source headers in any valid `HeadersInit` format.
+ * @returns The mutated `target` `Headers` instance for convenient chaining.
+ * @internal
+ */
+export function mergeHeadersInit(
+  target: Headers,
+  source?: HeadersInit
+): Headers {
+  if (source) {
+    new Headers(source).forEach((value, key) => {
+      target.set(key, value);
+    });
+  }
+  return target;
+}
+
+/**
+ * Resolves and normalizes wire-level request headers from request init options,
+ * telemetry, and SDK auth / App Check providers.
+ * @internal
+ */
+export function resolveRequestHeaders(
+  authToken: FirebaseAuthTokenData | null,
+  appCheckToken: AppCheckTokenResult | null,
+  init?: RequestInit,
+  _appId?: string
+): Record<string, string> {
+  const headers = new Headers();
+
+  mergeHeadersInit(headers, init?.headers);
+
+  for (const key of FORBIDDEN_HEADERS) {
+    headers.delete(key);
+  }
+
+  // Firebase token headers
+  // user-supplied authorization headers are overwritten
+  if (authToken?.accessToken) {
+    headers.set(FirebaseHeaders.FIREBASE_AUTH_TOKEN, authToken.accessToken);
+  } else {
+    headers.delete(FirebaseHeaders.FIREBASE_AUTH_TOKEN);
+  }
+
+  if (appCheckToken?.token) {
+    headers.set(FirebaseHeaders.FIREBASE_APPCHECK, appCheckToken.token);
+  } else {
+    headers.delete(FirebaseHeaders.FIREBASE_APPCHECK);
+  }
+
+  // Telemetry headers
+  headers.set(FirebaseHeaders.GOOG_API_CLIENT, getGoogApiClientValue());
+  headers.set(FirebaseHeaders.CLIENT_VERSION, 'web/' + SDK_VERSION);
+  if (_appId !== undefined) {
+    headers.set(FirebaseHeaders.FIREBASE_GMPID, _appId);
+  } else {
+    headers.delete(FirebaseHeaders.FIREBASE_GMPID);
+  }
+
+  // Normalize headers
+  const headersRecord: Record<string, string> = {};
+  headers.forEach((value, key) => {
+    headersRecord[key] = value;
+  });
+  return headersRecord;
+}
 
 /**
  * Extracts the user UID from an Auth ID token's `sub` claim.
@@ -273,10 +355,10 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
       const fetchImpl = getFetch();
 
       let authToken: FirebaseAuthTokenData | null = null;
-      let appCheckToken: { token: string } | null = null;
+      let appCheckToken: AppCheckTokenResult | null = null;
 
       try {
-        const [authData, appCheckData] = await Promise.all([
+        [authToken, appCheckToken] = await Promise.all([
           authProvider
             ? authProvider.getToken({ forceRefresh: false })
             : Promise.resolve(null),
@@ -286,8 +368,6 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
                 .catch(() => null)
             : Promise.resolve(null)
         ]);
-        authToken = authData;
-        appCheckToken = appCheckData;
       } catch (err) {
         if (this._state && this._state.active === null) {
           throw new FirebaseSqlError(

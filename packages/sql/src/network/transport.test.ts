@@ -44,15 +44,18 @@ import {
 import { SqlServiceSettings } from '../core/settings';
 import type { BuilderExecutionTracker, SqlClientState } from '../core/state';
 import { TokenOptions } from '../core/tokenProviders/AbstractTokenProvider';
-import { FirebaseAuthProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
+import { AppCheckProvider } from '../core/tokenProviders/AppCheckTokenProvider';
+import { FirebaseAuthProvider, FirebaseAuthTokenProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
 import { SDK_VERSION, setSDKVersion } from '../core/version';
+import { FirebaseHeaders } from '../util/constants';
 
-import { FirebaseHeaders, getGoogApiClientValue } from './headers';
 import {
   FirebaseSqlTransport,
   composeSignals,
   createBuilderFetch,
   getAuthUidFromToken,
+  getGoogApiClientValue,
+  resolveRequestHeaders,
   toAbortError
 } from './transport';
 
@@ -274,6 +277,62 @@ describe('FirebaseSqlTransport', () => {
             'my-appcheck-token'
           );
           expect(headers.get('x-custom-header')).toBe('my-custom-value');
+        });
+
+        it('fetches Auth and App Check tokens concurrently via Promise.all and avoids per-request setTimeout after initial startup latch', async () => {
+          let resolveAuth!: (value: FirebaseAuthTokenData | null) => void;
+          const authGate = new Promise<FirebaseAuthTokenData | null>(
+            resolve => {
+              resolveAuth = resolve;
+            }
+          );
+          const authProvider = new MockAuthProvider();
+          authProvider.getToken.mockReturnValueOnce(authGate);
+          const appCheckProvider = new MockAppCheckProvider('concurrent-ac');
+
+          const concurrentTransport = new FirebaseSqlTransport({
+            settings: BASE_SETTINGS,
+            authTokenProvider: authProvider,
+            appCheckTokenProvider: appCheckProvider
+          });
+
+          const opPromise =
+            concurrentTransport.invokePostgrestOperation(TEST_URL);
+          // Both getToken calls must be initiated synchronously in parallel before authGate resolves.
+          expect(authProvider.getToken).toHaveBeenCalledTimes(1);
+          expect(appCheckProvider.getToken).toHaveBeenCalledTimes(1);
+
+          resolveAuth({ accessToken: 'concurrent-auth' });
+          await opPromise;
+
+          const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+          try {
+            const app = initializeApp({ projectId: 'startup-latch-test' });
+            const realAuth = new FirebaseAuthProvider(
+              app,
+              _getProvider(app, 'auth-internal')
+            );
+            const realAppCheck = new AppCheckProvider(
+              app,
+              _getProvider(app, 'app-check-internal')
+            );
+            // Exactly 2 startup timers (1 for Auth, 1 for AppCheck) scheduled at construction.
+            expect(setTimeoutSpy).toHaveBeenCalledTimes(2);
+
+            const realTransport = new FirebaseSqlTransport({
+              settings: BASE_SETTINGS,
+              authTokenProvider: realAuth,
+              appCheckTokenProvider: realAppCheck
+            });
+
+            await realTransport.invokePostgrestOperation(TEST_URL);
+            await realTransport.invokePostgrestOperation(TEST_URL);
+            await realTransport.invokePostgrestOperation(TEST_URL);
+
+            expect(setTimeoutSpy).toHaveBeenCalledTimes(2);
+          } finally {
+            setTimeoutSpy.mockRestore();
+          }
         });
 
         it('omits token headers when auth and App Check providers are omitted', async () => {
@@ -951,7 +1010,7 @@ describe('FirebaseSqlTransport', () => {
 
     it('aborts the combined signal and rejects the operation when terminationSignal aborts in flight', async () => {
       const terminationController = new AbortController();
-      let fetchSignal: AbortSignal | undefined;
+      let fetchSignal: AbortSignal | null | undefined;
       mockFetch.mockImplementation(async (_url: string, init?: RequestInit) => {
         fetchSignal = init?.signal;
         return new Promise<Response>((_resolve, reject) => {
@@ -1262,6 +1321,106 @@ describe('FirebaseSqlTransport', () => {
 
       expect(tracker.clientError?.code).toBe(Code.NOT_INITIALIZED);
       expect(mockFetch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('resolveRequestHeaders()', () => {
+    it('attaches auth and App Check tokens when provided', () => {
+      const result = resolveRequestHeaders(
+        { accessToken: 'my-auth-token' },
+        { token: 'my-appcheck-token' }
+      );
+
+      expect(result[FirebaseHeaders.FIREBASE_AUTH_TOKEN]).toBe('my-auth-token');
+      expect(result[FirebaseHeaders.FIREBASE_APPCHECK]).toBe(
+        'my-appcheck-token'
+      );
+    });
+
+    it('omits token headers when tokens are null', () => {
+      const result = resolveRequestHeaders(null, null);
+      expect(result[FirebaseHeaders.FIREBASE_AUTH_TOKEN]).toBeUndefined();
+      expect(result[FirebaseHeaders.FIREBASE_APPCHECK]).toBeUndefined();
+    });
+
+    it('overwrites caller-supplied auth and App Check tokens with SDK tokens', () => {
+      const result = resolveRequestHeaders(
+        { accessToken: 'sdk-auth-token' },
+        { token: 'sdk-appcheck-token' },
+        {
+          headers: {
+            [FirebaseHeaders.FIREBASE_AUTH_TOKEN]: 'caller-auth-token',
+            [FirebaseHeaders.FIREBASE_APPCHECK]: 'caller-appcheck-token'
+          }
+        }
+      );
+
+      expect(result[FirebaseHeaders.FIREBASE_AUTH_TOKEN]).toBe(
+        'sdk-auth-token'
+      );
+      expect(result[FirebaseHeaders.FIREBASE_APPCHECK]).toBe(
+        'sdk-appcheck-token'
+      );
+    });
+
+    it('omits token headers when tokens are empty strings', () => {
+      const result = resolveRequestHeaders(
+        { accessToken: '' },
+        { token: '' },
+        {
+          headers: {
+            [FirebaseHeaders.FIREBASE_AUTH_TOKEN]: 'caller-auth-token',
+            [FirebaseHeaders.FIREBASE_APPCHECK]: 'caller-appcheck-token'
+          }
+        }
+      );
+      expect(result[FirebaseHeaders.FIREBASE_AUTH_TOKEN]).toBeUndefined();
+      expect(result[FirebaseHeaders.FIREBASE_APPCHECK]).toBeUndefined();
+    });
+
+    it('strips forbidden headers supplied by caller', () => {
+      const result = resolveRequestHeaders(null, null, {
+        headers: {
+          'x-firebase-sqlconnect-affinity': 'affinity-val',
+          'X-Goog-Request-Params': 'params-val',
+          'x-firebase-client': 'client-val',
+          'X-Firebase-Client-Log-Type': 'log-val',
+          Authorization: 'Bearer secret-jwt',
+          'x-custom-header': 'custom-val'
+        }
+      });
+
+      expect(result['x-firebase-sqlconnect-affinity']).toBeUndefined();
+      expect(result['x-goog-request-params']).toBeUndefined();
+      expect(result['x-firebase-client']).toBeUndefined();
+      expect(result['x-firebase-client-log-type']).toBeUndefined();
+      expect(result['authorization']).toBeUndefined();
+      expect(result['x-custom-header']).toBe('custom-val');
+    });
+
+    it('attaches default telemetry', () => {
+      const result = resolveRequestHeaders(null, null, undefined, 'app-123');
+      expect(result[FirebaseHeaders.GOOG_API_CLIENT]).toBe('gl-js/ fire/1.2.3');
+      expect(result[FirebaseHeaders.CLIENT_VERSION]).toBe('web/1.2.3');
+      expect(result[FirebaseHeaders.FIREBASE_GMPID]).toBe('app-123');
+    });
+
+    it('overwrites caller-supplied telemetry headers', () => {
+      const result = resolveRequestHeaders(
+        null,
+        null,
+        {
+          headers: {
+            [FirebaseHeaders.GOOG_API_CLIENT]: 'custom-client/9.9',
+            [FirebaseHeaders.CLIENT_VERSION]: 'custom-client-version',
+            [FirebaseHeaders.FIREBASE_GMPID]: 'custom-gmpid'
+          }
+        },
+        'app-123'
+      );
+      expect(result[FirebaseHeaders.GOOG_API_CLIENT]).toBe('gl-js/ fire/1.2.3');
+      expect(result[FirebaseHeaders.CLIENT_VERSION]).toBe('web/1.2.3');
+      expect(result[FirebaseHeaders.FIREBASE_GMPID]).toBe('app-123');
     });
   });
 });

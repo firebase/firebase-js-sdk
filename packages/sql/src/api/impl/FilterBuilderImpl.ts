@@ -22,6 +22,7 @@ import {
   FirebaseSqlError,
   FirebaseSqlErrorCategory
 } from '../../core/error';
+import { validateHeaderName } from '../../core/settings';
 import type {
   BuilderExecutionTracker,
   CreateBuilderFetch,
@@ -32,7 +33,6 @@ import type {
   UntypedClientOptions,
   UntypedSchema
 } from '../../core/untypedSchema';
-import { validateHeaderName } from '../../network/headers';
 import type {
   Builder,
   CheckMatchingArrayTypes,

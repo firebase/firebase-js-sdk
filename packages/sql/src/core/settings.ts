@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { validateHeaders } from '../network/headers';
+import { LOWERCASE_DISALLOWED_HEADER_KEYS } from '../util/constants';
 
 import { FirebaseSqlErrorCategory, Code, FirebaseSqlError } from './error';
 
@@ -64,6 +64,48 @@ export function freezeSqlServiceSettings(
     Object.freeze(settingsCopy.headers);
   }
   return Object.freeze(settingsCopy);
+}
+
+/**
+ * Validates that the given header name is not a protected header key (case-insensitive).
+ * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and
+ * `FirebaseSqlErrorCategory.SQL_CLIENT` if the header name is a protected
+ * header key.
+ * @internal
+ */
+export function validateHeaderName(name: string): string {
+  // Coerce to a string exactly once. Header validation is a security boundary
+  // guarding protected wire headers (e.g. auth and telemetry). Single coercion
+  // prevents untyped JS callers from bypassing validation with stateful
+  // toString() / [Symbol.toPrimitive] objects that return an allowed name
+  // during validation and a forbidden name when applied downstream.
+  const headerName = String(name);
+  if (LOWERCASE_DISALLOWED_HEADER_KEYS.has(headerName.trim().toLowerCase())) {
+    throw new FirebaseSqlError(
+      Code.INVALID_ARGUMENT,
+      `Cannot set protected header ${headerName}.`,
+      FirebaseSqlErrorCategory.SQL_CLIENT
+    );
+  }
+  return headerName;
+}
+
+/**
+ * Validates that the given headers do not contain any protected header keys (case-insensitive).
+ * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and
+ * `FirebaseSqlErrorCategory.SQL_CLIENT` if the headers contain any protected
+ * header keys.
+ * @internal
+ */
+export function validateInitializationHeaders(
+  headers?: Record<string, string> | undefined
+): void {
+  if (!headers) {
+    return;
+  }
+  for (const key of Object.keys(headers)) {
+    validateHeaderName(key);
+  }
 }
 
 /**
@@ -121,6 +163,6 @@ export function validateSqlServiceSettings(
     );
   }
   validatePort(settings.port);
-  validateHeaders(settings.headers);
+  validateInitializationHeaders(settings.headers);
   return freezeSqlServiceSettings(settings);
 }

@@ -67,6 +67,15 @@ export abstract class AbstractTokenProvider<
   private onInitUnsubscribe?: (() => void) | undefined = undefined;
 
   /**
+   * One-time startup latch giving Auth or AppCheck a single macrotask turn to initialize
+   * after SQL client creation without incurring `setTimeout(..., 0)` on subsequent requests.
+   */
+  private startupPromise?: Promise<void> | undefined = undefined;
+  private resolveStartupPromise?: (() => void) | undefined = undefined;
+  private startupTimerId?: ReturnType<typeof setTimeout> | undefined =
+    undefined;
+
+  /**
    * Array of token change listeners registered on this provider.
    * Used to cleanup listeners when the instance is deleted.
    */
@@ -84,17 +93,51 @@ export abstract class AbstractTokenProvider<
   ) {
     this.component =
       (provider?.getImmediate({ optional: true }) as Component) ?? undefined;
-    if (!this.component) {
-      this.onInitUnsubscribe = provider?.onInit(component => {
-        this.component = component as Component;
-        const n = this.queuedListeners.length;
-        for (let i = 0; i < n; i++) {
-          const oldestListener = this.queuedListeners.shift();
-          oldestListener && this.addTokenChangeListener(oldestListener);
-        }
-        this.cancelOnInit();
+    if (!this.component && provider) {
+      this.startupPromise = new Promise<void>(resolve => {
+        this.resolveStartupPromise = resolve;
+        this.startupTimerId = setTimeout(() => {
+          this.startupTimerId = undefined;
+          if (!this.component) {
+            const immediate =
+              (provider.getImmediate({ optional: true }) as Component) ??
+              undefined;
+            if (immediate) {
+              this.onComponentInitialized(immediate);
+              return;
+            }
+          }
+          this.cleanupStartupPromise();
+        }, 0);
+      });
+      this.onInitUnsubscribe = provider.onInit(component => {
+        this.onComponentInitialized(component as Component);
       });
     }
+  }
+
+  private onComponentInitialized(component: Component): void {
+    if (this.component) {
+      return;
+    }
+    this.component = component;
+    const n = this.queuedListeners.length;
+    for (let i = 0; i < n; i++) {
+      const oldestListener = this.queuedListeners.shift();
+      oldestListener && this.addTokenChangeListener(oldestListener);
+    }
+    this.cancelOnInit();
+  }
+
+  private cleanupStartupPromise(): void {
+    if (this.startupTimerId !== undefined) {
+      clearTimeout(this.startupTimerId);
+      this.startupTimerId = undefined;
+    }
+    const resolve = this.resolveStartupPromise;
+    this.resolveStartupPromise = undefined;
+    this.startupPromise = undefined;
+    resolve?.();
   }
 
   /**
@@ -143,7 +186,7 @@ export abstract class AbstractTokenProvider<
 
   /**
    * Invoke the underlying service to fetch a token.
-   * Allows for delayed initialization.
+   * Waits for the one-time startup latch if still in the initial startup turn.
    */
   private requestToken(
     options: TokenOptions = { forceRefresh: false }
@@ -152,27 +195,22 @@ export abstract class AbstractTokenProvider<
       return this.fetchToken(this.component, options);
     }
 
-    if (!this.provider) {
-      if (this.serverAppToken && !options.forceRefresh) {
-        return Promise.resolve(this.convertServerAppToken(this.serverAppToken));
-      }
-      return Promise.resolve(null);
+    if (this.startupPromise) {
+      return this.startupPromise.then(() => {
+        if (this.component) {
+          return this.fetchToken(this.component, options);
+        }
+        if (this.serverAppToken && !options.forceRefresh) {
+          return this.convertServerAppToken(this.serverAppToken);
+        }
+        return null;
+      });
     }
 
-    return new Promise<Token | null>((resolve, reject) => {
-      // Support delayed initialization. This allows our customers to initialize
-      // the Firebase SQL SDK before initializing Auth or AppCheck and ensures that
-      // all requests are authenticated if a token becomes available before the timeout expires.
-      setTimeout(() => {
-        if (this.component) {
-          this.requestToken(options).then(resolve, reject);
-        } else if (this.serverAppToken && !options.forceRefresh) {
-          resolve(this.convertServerAppToken(this.serverAppToken));
-        } else {
-          resolve(null);
-        }
-      }, 0);
-    });
+    if (this.serverAppToken && !options.forceRefresh) {
+      return Promise.resolve(this.convertServerAppToken(this.serverAppToken));
+    }
+    return Promise.resolve(null);
   }
 
   /**
@@ -245,6 +283,7 @@ export abstract class AbstractTokenProvider<
    * @internal
    */
   protected cancelOnInit(): void {
+    this.cleanupStartupPromise();
     this.onInitUnsubscribe?.();
     this.onInitUnsubscribe = undefined;
     this.queuedListeners = [];
