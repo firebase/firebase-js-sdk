@@ -47,6 +47,7 @@ import {
   getDoc
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection, withTestDbs } from '../util/helpers';
+import { expectResults } from '../util/pipeline_assertions';
 import {
   array,
   mod,
@@ -193,7 +194,6 @@ import {
   score,
   documentMatches
 } from '../util/pipeline_export';
-import { expectResults } from '../util/pipeline_assertions';
 import {
   getRunEnterpriseTests,
   getTargetBackend,

@@ -26,6 +26,7 @@ import {
   Firestore
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection } from '../util/helpers';
+import { expectResults } from '../util/pipeline_assertions';
 import {
   sum,
   descending,
@@ -48,7 +49,6 @@ import {
   countDistinct,
   rank
 } from '../util/pipeline_export';
-import { expectResults } from '../util/pipeline_assertions';
 import {
   getRunComprehensiveTests,
   getTargetBackend,
