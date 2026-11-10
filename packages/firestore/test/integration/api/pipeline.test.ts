@@ -193,7 +193,7 @@ import {
   score,
   documentMatches
 } from '../util/pipeline_export';
-import { expectResults } from '../util/pipeline_helpers';
+import { expectResults } from '../util/pipeline_assertions';
 import {
   getRunEnterpriseTests,
   getTargetBackend,
