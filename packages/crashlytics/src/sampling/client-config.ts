@@ -33,22 +33,15 @@ import { isPageHidden } from './session-sampler';
  * @internal
  */
 export interface ClientConfig {
-  /** Whether telemetry collection is enabled for the app. */
-  enabled: boolean;
   /**
-   * Session sampling rate in `[0.0, 1.0]`. `0.0` pauses collection (nothing is exported). The
-   * device applies it as served.
+   * Session sampling rate in `[0.0, 1.0]`. `0.0` pauses collection (nothing is exported), which is
+   * also how an app with telemetry disabled is represented. The device applies it as served.
    */
   samplingRate: number;
 }
 
-/**
- * Configuration used when nothing has been fetched or cached yet: collect everything.
- *
- * @internal
- */
-export const DEFAULT_CLIENT_CONFIG: ClientConfig = Object.freeze({
-  enabled: true,
+/** Configuration used when nothing has been fetched or cached yet: collect everything. */
+const DEFAULT_CLIENT_CONFIG: ClientConfig = Object.freeze({
   samplingRate: 1.0
 });
 
@@ -57,11 +50,9 @@ const ENABLEMENT_STATE_DISABLED = 'TELEMETRY_ENABLEMENT_STATE_DISABLED';
 
 /**
  * Returns `rate` if it is a valid session sampling rate in `[0.0, 1.0]`, otherwise `1.0`
- * (keep all sessions), matching what the backend does with an unset or out-of-range value.
- *
- * @internal
+ * (keep all sessions).
  */
-export function normalizeSamplingRate(rate: unknown): number {
+function normalizeSamplingRate(rate: unknown): number {
   const value = typeof rate === 'string' ? Number(rate) : rate;
   if (
     typeof value !== 'number' ||
@@ -77,26 +68,23 @@ export function normalizeSamplingRate(rate: unknown): number {
 /**
  * Parses a `GetClientConfig` JSON response body into a {@link ClientConfig}.
  *
- * The response only contains `enablementState` and `samplingRate`. Unknown enablement states are
- * treated as enabled, and a missing or invalid sampling rate as `1.0`, mirroring the backend.
- *
- * @internal
+ * The response only contains `enablementState` and `samplingRate`. A disabled app is returned as a
+ * sampling rate of `0.0`, since the device handles both the same way: it exports nothing.
  */
-export function parseClientConfigResponse(body: unknown): ClientConfig {
+function parseClientConfigResponse(body: unknown): ClientConfig {
   const response = (body ?? {}) as Record<string, unknown>;
-  return {
-    enabled: response['enablementState'] !== ENABLEMENT_STATE_DISABLED,
-    samplingRate: normalizeSamplingRate(response['samplingRate'])
-  };
+  if (response['enablementState'] === ENABLEMENT_STATE_DISABLED) {
+    return { samplingRate: 0 };
+  }
+  return { samplingRate: normalizeSamplingRate(response['samplingRate']) };
 }
 
 /**
  * Returns how long a long-running page waits before re-fetching the configuration, given the
  * `Cache-Control` header of the last `GetClientConfig` response: its `max-age` plus
  * `stale-while-revalidate`.
- * @internal
  */
-export function getRefreshIntervalMs(cacheControl: string | null): number {
+function getRefreshIntervalMs(cacheControl: string | null): number {
   const directives = new Map<string, string>();
   for (const directive of (cacheControl ?? '').split(',')) {
     const [name, value = ''] = directive.trim().toLowerCase().split('=', 2);
@@ -108,7 +96,8 @@ export function getRefreshIntervalMs(cacheControl: string | null): number {
   if (
     directives.has('no-store') ||
     directives.has('no-cache') ||
-    !(maxAgeSeconds > 0)
+    !Number.isFinite(maxAgeSeconds) ||
+    maxAgeSeconds <= 0
   ) {
     return CLIENT_CONFIG_FALLBACK_REFRESH_INTERVAL_MS;
   }
@@ -126,10 +115,7 @@ function isValidStoredConfig(value: unknown): value is ClientConfig {
     return false;
   }
   const config = value as Record<string, unknown>;
-  return (
-    typeof config['enabled'] === 'boolean' &&
-    typeof config['samplingRate'] === 'number'
-  );
+  return typeof config['samplingRate'] === 'number';
 }
 
 /**
@@ -172,7 +158,7 @@ export class ClientConfigStore {
 
   /**
    * @param _url - Fully-qualified `GetClientConfig` URL, or `undefined` when the configuration
-   *   cannot be fetched (e.g. missing app ID). In that case the store only ever serves the cached
+   *   cannot be fetched. In that case the store only ever serves the cached
    *   or default configuration.
    * @param _storageKey - `localStorage` key.
    */
@@ -193,10 +179,11 @@ export class ClientConfigStore {
 
   /**
    * Kicks off the background fetch and periodic refreshes. Safe to call more than once; subsequent
-   * calls are no-ops. Does nothing outside of a browser or when no URL is configured.
+   * calls are no-ops. Does nothing when the configuration can't be fetched here: no URL is
+   * configured, it isn't running in a browser, or `fetch` isn't available.
    */
   start(): void {
-    if (this._started || !this._url || typeof window === 'undefined') {
+    if (this._started || !this._canFetch()) {
       return;
     }
     this._started = true;
@@ -223,17 +210,13 @@ export class ClientConfigStore {
   }
 
   /**
-   * Returns the refresh started less than `reuseWindowMs` ago, whether it is still in flight,
-   * succeeded or failed, or starts a new one. Never rejects.
-   *
-   * @param reuseWindowMs - Exposed for tests.
+   * Returns the refresh started less than `CLIENT_CONFIG_REUSE_WINDOW_MS` (1 minute) ago, whether
+   * it is still in flight, succeeded or failed, or starts a new one. Never rejects.
    */
-  refreshIfStale(
-    reuseWindowMs: number = CLIENT_CONFIG_REUSE_WINDOW_MS
-  ): Promise<void> {
+  refreshIfStale(): Promise<void> {
     if (
       this._latestRefresh &&
-      Date.now() - this._latestRefreshStartedAt < reuseWindowMs
+      Date.now() - this._latestRefreshStartedAt < CLIENT_CONFIG_REUSE_WINDOW_MS
     ) {
       return this._latestRefresh;
     }
@@ -246,7 +229,11 @@ export class ClientConfigStore {
   refresh(): Promise<void> {
     this._latestRefreshStartedAt = Date.now();
     const refresh = this._fetchAndStore().then(refreshIntervalMs => {
-      if (this._started && this._latestRefresh === refresh) {
+      if (
+        refreshIntervalMs !== undefined &&
+        this._started &&
+        this._latestRefresh === refresh
+      ) {
         this._scheduleRefresh(refreshIntervalMs);
       }
     });
@@ -276,17 +263,23 @@ export class ClientConfigStore {
     }
   };
 
+  /** Whether the configuration can be fetched here: a URL is configured, in a browser with `fetch`. */
+  private _canFetch(): boolean {
+    return (
+      !!this._url &&
+      typeof window !== 'undefined' &&
+      typeof fetch === 'function'
+    );
+  }
+
   /**
    * Fetches `GetClientConfig` and, on success, updates the in-memory configuration and the local
-   * cache. Resolves with the delay until the next periodic refresh. Never rejects.
+   * cache. Resolves with the delay until the next periodic refresh, or `undefined` when the
+   * configuration can't be fetched at all (see `_canFetch`). Never rejects.
    */
-  private async _fetchAndStore(): Promise<number> {
-    if (
-      !this._url ||
-      typeof window === 'undefined' ||
-      typeof fetch !== 'function'
-    ) {
-      return CLIENT_CONFIG_FALLBACK_REFRESH_INTERVAL_MS;
+  private async _fetchAndStore(): Promise<number | undefined> {
+    if (!this._canFetch()) {
+      return undefined;
     }
     const abortController = new AbortController();
     const timeout = setTimeout(
@@ -294,12 +287,10 @@ export class ClientConfigStore {
       CLIENT_CONFIG_FETCH_TIMEOUT_MS
     );
     try {
-      const url = this._url;
-      // Suppress tracing so the Fetch instrumentation does not record a span for this request.
       const response = await context.with(
         suppressTracing(context.active()),
         () =>
-          fetch(url, {
+          fetch(this._url!, {
             method: 'GET',
             mode: 'cors',
             credentials: 'omit',
@@ -340,10 +331,7 @@ export class ClientConfigStore {
       if (!isValidStoredConfig(parsed)) {
         return undefined;
       }
-      return {
-        enabled: parsed.enabled,
-        samplingRate: normalizeSamplingRate(parsed.samplingRate)
-      };
+      return { samplingRate: normalizeSamplingRate(parsed.samplingRate) };
     } catch (e) {
       // Ignore errors accessing localStorage (e.g. security restrictions) or corrupt entries.
       return undefined;

@@ -316,10 +316,6 @@ function getClientConfigEndpointUrl(
  * Builds the fully-qualified `GetClientConfig` URL for an app, or returns `undefined` when the
  * app options are missing the project ID or the app ID.
  *
- * The project ID, region and app ID are used as-is: they only contain characters that are valid
- * in a URL path. In particular, the colons in the app ID must stay unencoded, because the API
- * doesn't decode `%3A`.
- *
  * @internal
  */
 export function getClientConfigUrl(

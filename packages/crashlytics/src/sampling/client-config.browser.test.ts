@@ -21,17 +21,14 @@ import {
   CLIENT_CONFIG_MIN_REFRESH_INTERVAL_MS,
   CLIENT_CONFIG_REUSE_WINDOW_MS
 } from '../constants';
-import {
-  ClientConfigStore,
-  DEFAULT_CLIENT_CONFIG,
-  getRefreshIntervalMs,
-  normalizeSamplingRate,
-  parseClientConfigResponse
-} from './client-config';
+import { ClientConfig, ClientConfigStore } from './client-config';
 
 const URL =
   'https://firebasetelemetry.googleapis.com/v1alpha/projects/123/locations/global/apps/1:123:web:abc/clientConfig';
 const STORAGE_KEY = 'firebasecrashlytics.clientconfig:test';
+
+/** The configuration used when nothing has been fetched or cached yet: collect everything. */
+const DEFAULT_CONFIG: ClientConfig = { samplingRate: 1 };
 
 /** The `Cache-Control` header the server sends by default. */
 const DEFAULT_CACHE_CONTROL = 'public, max-age=900, stale-while-revalidate=60';
@@ -41,7 +38,7 @@ const DEFAULT_REFRESH_INTERVAL_MS = 960 * 1000;
 function jsonResponse(
   body: unknown,
   status = 200,
-  cacheControl?: string
+  cacheControl?: string | null
 ): Response {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json'
@@ -51,113 +48,6 @@ function jsonResponse(
   }
   return new Response(JSON.stringify(body), { status, headers });
 }
-
-describe('normalizeSamplingRate', () => {
-  it('returns valid rates unchanged', () => {
-    expect(normalizeSamplingRate(0)).toBe(0);
-    expect(normalizeSamplingRate(0.25)).toBe(0.25);
-    expect(normalizeSamplingRate(1)).toBe(1);
-  });
-
-  it('accepts numeric strings', () => {
-    expect(normalizeSamplingRate('0.5')).toBe(0.5);
-  });
-
-  it('falls back to 1.0 for missing or invalid values', () => {
-    expect(normalizeSamplingRate(undefined)).toBe(1);
-    expect(normalizeSamplingRate(null)).toBe(1);
-    expect(normalizeSamplingRate(-0.1)).toBe(1);
-    expect(normalizeSamplingRate(1.5)).toBe(1);
-    expect(normalizeSamplingRate(NaN)).toBe(1);
-    expect(normalizeSamplingRate(Infinity)).toBe(1);
-    expect(normalizeSamplingRate('abc')).toBe(1);
-    expect(normalizeSamplingRate({})).toBe(1);
-  });
-});
-
-describe('parseClientConfigResponse', () => {
-  it('parses an enabled config with a sampling rate', () => {
-    expect(
-      parseClientConfigResponse({
-        enablementState: 'TELEMETRY_ENABLEMENT_STATE_ENABLED',
-        samplingRate: 0.25
-      })
-    ).toEqual({ enabled: true, samplingRate: 0.25 });
-  });
-
-  it('parses a disabled config', () => {
-    const config = parseClientConfigResponse({
-      enablementState: 'TELEMETRY_ENABLEMENT_STATE_DISABLED',
-      samplingRate: 1
-    });
-    expect(config.enabled).toBe(false);
-  });
-
-  it('keeps an explicit 0.0 (paused) sampling rate', () => {
-    expect(
-      parseClientConfigResponse({
-        enablementState: 'TELEMETRY_ENABLEMENT_STATE_ENABLED',
-        samplingRate: 0
-      }).samplingRate
-    ).toBe(0);
-  });
-
-  it('treats unknown enablement states and missing rates as enabled / 1.0', () => {
-    expect(parseClientConfigResponse({})).toMatchObject({
-      enabled: true,
-      samplingRate: 1
-    });
-    expect(parseClientConfigResponse(null)).toMatchObject({
-      enabled: true,
-      samplingRate: 1
-    });
-    expect(
-      parseClientConfigResponse({
-        enablementState: 'TELEMETRY_ENABLEMENT_STATE_UNSPECIFIED',
-        samplingRate: 7
-      })
-    ).toMatchObject({ enabled: true, samplingRate: 1 });
-  });
-});
-
-describe('getRefreshIntervalMs', () => {
-  it('waits for max-age plus stale-while-revalidate', () => {
-    expect(getRefreshIntervalMs(DEFAULT_CACHE_CONTROL)).toBe(
-      DEFAULT_REFRESH_INTERVAL_MS
-    );
-    expect(getRefreshIntervalMs('max-age=300')).toBe(300 * 1000);
-    expect(
-      getRefreshIntervalMs(
-        ' Public , MAX-AGE="120", Stale-While-Revalidate=30 '
-      )
-    ).toBe(150 * 1000);
-  });
-
-  it('falls back to the default interval when the response may not be cached', () => {
-    for (const cacheControl of [
-      null,
-      '',
-      'no-store',
-      'public, max-age=0',
-      'max-age=900, no-cache',
-      's-maxage=900',
-      'max-age=abc'
-    ]) {
-      expect(getRefreshIntervalMs(cacheControl)).toBe(
-        CLIENT_CONFIG_FALLBACK_REFRESH_INTERVAL_MS
-      );
-    }
-  });
-
-  it('clamps the interval', () => {
-    expect(getRefreshIntervalMs('max-age=1')).toBe(
-      CLIENT_CONFIG_MIN_REFRESH_INTERVAL_MS
-    );
-    expect(getRefreshIntervalMs('max-age=31536000')).toBe(
-      CLIENT_CONFIG_MAX_REFRESH_INTERVAL_MS
-    );
-  });
-});
 
 describe('ClientConfigStore', () => {
   let fetchStub: ReturnType<typeof vi.fn>;
@@ -173,11 +63,19 @@ describe('ClientConfigStore', () => {
   /** Answers every fetch with a fresh copy of the given response. */
   function respondWith(
     body: unknown,
-    cacheControl: string = DEFAULT_CACHE_CONTROL
+    cacheControl: string | null = DEFAULT_CACHE_CONTROL
   ): void {
     fetchStub.mockImplementation(() =>
       Promise.resolve(jsonResponse(body, 200, cacheControl))
     );
+  }
+
+  /** Fetches the configuration from a new store that is answered with `body`. */
+  async function configFromResponse(body: unknown): Promise<ClientConfig> {
+    respondWith(body);
+    const store = createStore();
+    await store.refreshIfStale();
+    return store.config;
   }
 
   beforeEach(() => {
@@ -195,28 +93,22 @@ describe('ClientConfigStore', () => {
   });
 
   it('starts with the default config when nothing is cached', () => {
-    expect(createStore().config).toEqual(DEFAULT_CLIENT_CONFIG);
+    expect(createStore().config).toEqual(DEFAULT_CONFIG);
   });
 
   it('loads a cached config from localStorage synchronously', () => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ enabled: false, samplingRate: 0.3 })
-    );
-    expect(createStore().config).toEqual({ enabled: false, samplingRate: 0.3 });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ samplingRate: 0.3 }));
+    expect(createStore().config).toEqual({ samplingRate: 0.3 });
   });
 
   it('ignores corrupt or out-of-range cached configs', () => {
     localStorage.setItem(STORAGE_KEY, '{not json');
-    expect(createStore().config).toEqual(DEFAULT_CLIENT_CONFIG);
+    expect(createStore().config).toEqual(DEFAULT_CONFIG);
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ samplingRate: 0.5 }));
-    expect(createStore().config).toEqual(DEFAULT_CLIENT_CONFIG);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ enabled: true }));
+    expect(createStore().config).toEqual(DEFAULT_CONFIG);
 
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ enabled: true, samplingRate: 5 })
-    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ samplingRate: 5 }));
     expect(createStore().config.samplingRate).toBe(1);
   });
 
@@ -243,18 +135,14 @@ describe('ClientConfigStore', () => {
     );
     expect(init.body).toBeUndefined();
 
-    expect(store.config).toEqual({ enabled: true, samplingRate: 0.2 });
+    expect(store.config).toEqual({ samplingRate: 0.2 });
     expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual({
-      enabled: true,
       samplingRate: 0.2
     });
   });
 
   it('keeps the previous config when the fetch fails', async () => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ enabled: true, samplingRate: 0.4 })
-    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ samplingRate: 0.4 }));
     fetchStub.mockRejectedValue(new TypeError('network down'));
     const store = createStore();
     store.start();
@@ -267,7 +155,7 @@ describe('ClientConfigStore', () => {
     const store = createStore();
     store.start();
     await store.refreshIfStale();
-    expect(store.config).toEqual(DEFAULT_CLIENT_CONFIG);
+    expect(store.config).toEqual(DEFAULT_CONFIG);
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
   });
 
@@ -276,16 +164,28 @@ describe('ClientConfigStore', () => {
     const store = createStore();
     store.start();
     await store.refreshIfStale();
-    expect(store.config).toEqual(DEFAULT_CLIENT_CONFIG);
+    expect(store.config).toEqual(DEFAULT_CONFIG);
   });
 
-  it('does not fetch when no URL is configured', async () => {
+  it('does not fetch or schedule refreshes when no URL is configured', async () => {
+    vi.useFakeTimers();
     const store = new ClientConfigStore(undefined, STORAGE_KEY);
     stores.push(store);
     store.start();
     await store.refreshIfStale();
     expect(fetchStub).not.toHaveBeenCalled();
-    expect(store.config).toEqual(DEFAULT_CLIENT_CONFIG);
+    expect(vi.getTimerCount()).toBe(0);
+    expect(store.config).toEqual(DEFAULT_CONFIG);
+  });
+
+  it('does not schedule refreshes when fetch is not available', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('fetch', undefined);
+    const store = createStore();
+    store.start();
+    await store.refreshIfStale();
+    expect(vi.getTimerCount()).toBe(0);
+    expect(store.config).toEqual(DEFAULT_CONFIG);
   });
 
   it('aborts a fetch that exceeds the timeout', async () => {
@@ -303,7 +203,61 @@ describe('ClientConfigStore', () => {
     const refresh = store.refreshIfStale();
     await vi.advanceTimersByTimeAsync(5000);
     await expect(refresh).resolves.toBeUndefined();
-    expect(store.config).toEqual(DEFAULT_CLIENT_CONFIG);
+    expect(store.config).toEqual(DEFAULT_CONFIG);
+  });
+
+  describe('parsing the response', () => {
+    it('uses the sampling rate of an enabled config', async () => {
+      expect(
+        await configFromResponse({
+          enablementState: 'TELEMETRY_ENABLEMENT_STATE_ENABLED',
+          samplingRate: 0.25
+        })
+      ).toEqual({ samplingRate: 0.25 });
+    });
+
+    it('uses a sampling rate of 0.0 for a disabled config, whatever its rate', async () => {
+      expect(
+        await configFromResponse({
+          enablementState: 'TELEMETRY_ENABLEMENT_STATE_DISABLED',
+          samplingRate: 1
+        })
+      ).toEqual({ samplingRate: 0 });
+    });
+
+    it('keeps an explicit 0.0 (paused) sampling rate', async () => {
+      expect(
+        await configFromResponse({
+          enablementState: 'TELEMETRY_ENABLEMENT_STATE_ENABLED',
+          samplingRate: 0
+        })
+      ).toEqual({ samplingRate: 0 });
+    });
+
+    it('accepts numeric strings', async () => {
+      expect(await configFromResponse({ samplingRate: '0.5' })).toEqual({
+        samplingRate: 0.5
+      });
+    });
+
+    it('treats unknown enablement states as enabled and missing or invalid rates as 1.0', async () => {
+      for (const body of [
+        {},
+        null,
+        {
+          enablementState: 'TELEMETRY_ENABLEMENT_STATE_UNSPECIFIED',
+          samplingRate: 7
+        },
+        { samplingRate: -0.1 },
+        { samplingRate: 1.5 },
+        { samplingRate: 'NaN' },
+        { samplingRate: 'Infinity' },
+        { samplingRate: 'abc' },
+        { samplingRate: {} }
+      ]) {
+        expect(await configFromResponse(body)).toEqual(DEFAULT_CONFIG);
+      }
+    });
   });
 
   describe('refreshIfStale', () => {
@@ -341,6 +295,26 @@ describe('ClientConfigStore', () => {
   });
 
   describe('periodic refresh', () => {
+    /**
+     * Checks that a started store fetches again exactly `intervalMs` after its first response,
+     * which carries the given `Cache-Control` header.
+     */
+    async function expectRefreshAfter(
+      cacheControl: string | null,
+      intervalMs: number
+    ): Promise<void> {
+      fetchStub.mockClear();
+      respondWith({ samplingRate: 0.5 }, cacheControl);
+      const store = createStore();
+      store.start();
+      await store.refreshIfStale();
+      await vi.advanceTimersByTimeAsync(intervalMs - 1);
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(fetchStub).toHaveBeenCalledTimes(2);
+      store.stop();
+    }
+
     it("is idempotent on start() and refreshes after each response's cache lifetime", async () => {
       vi.useFakeTimers();
       respondWith({ samplingRate: 0.5 });
@@ -368,19 +342,42 @@ describe('ClientConfigStore', () => {
       expect(fetchStub).toHaveBeenCalledTimes(3);
     });
 
+    it('parses the Cache-Control header leniently', async () => {
+      vi.useFakeTimers();
+      await expectRefreshAfter('max-age=300', 300 * 1000);
+      await expectRefreshAfter(
+        ' Public , MAX-AGE="120", Stale-While-Revalidate=30 ',
+        150 * 1000
+      );
+    });
+
     it('falls back to the default interval when the response may not be cached', async () => {
       vi.useFakeTimers();
-      respondWith({ samplingRate: 0.5 }, 'no-store');
-      const store = createStore();
-      store.start();
-      await store.refreshIfStale();
+      for (const cacheControl of [
+        null,
+        'no-store',
+        'public, max-age=0',
+        'max-age=900, no-cache',
+        's-maxage=900',
+        'max-age=abc'
+      ]) {
+        await expectRefreshAfter(
+          cacheControl,
+          CLIENT_CONFIG_FALLBACK_REFRESH_INTERVAL_MS
+        );
+      }
+    });
 
-      await vi.advanceTimersByTimeAsync(
-        CLIENT_CONFIG_FALLBACK_REFRESH_INTERVAL_MS - 1
+    it('clamps the interval', async () => {
+      vi.useFakeTimers();
+      await expectRefreshAfter(
+        'max-age=1',
+        CLIENT_CONFIG_MIN_REFRESH_INTERVAL_MS
       );
-      expect(fetchStub).toHaveBeenCalledTimes(1);
-      await vi.advanceTimersByTimeAsync(1);
-      expect(fetchStub).toHaveBeenCalledTimes(2);
+      await expectRefreshAfter(
+        'max-age=31536000',
+        CLIENT_CONFIG_MAX_REFRESH_INTERVAL_MS
+      );
     });
 
     it('does not retry a failed fetch before the default interval', async () => {

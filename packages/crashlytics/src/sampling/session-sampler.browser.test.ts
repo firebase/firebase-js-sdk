@@ -39,7 +39,7 @@ class FakeConfigStore {
   ready: Promise<void> = Promise.resolve();
   refreshCount = 0;
   constructor(config: Partial<ClientConfig> = {}) {
-    this.config = { enabled: true, samplingRate: 1, ...config };
+    this.config = { samplingRate: 1, ...config };
   }
   refreshIfStale(): Promise<void> {
     this.refreshCount++;
@@ -145,12 +145,7 @@ describe('SessionSampler', () => {
     });
   });
 
-  it('drops everything when telemetry is disabled', async () => {
-    const { sampler } = createSampler({ enabled: false }, SESSION_LOW);
-    expect((await sampler.getDecision()).sampled).toBe(false);
-  });
-
-  it('drops everything when the rate is 0.0 (paused)', async () => {
+  it('drops everything when the rate is 0.0 (paused or disabled)', async () => {
     const { sampler } = createSampler({ samplingRate: 0 }, SESSION_LOW);
     expect((await sampler.getDecision()).sampled).toBe(false);
   });
@@ -187,7 +182,7 @@ describe('SessionSampler', () => {
     expect(first.sampled).toBe(true);
 
     // Lowering the rate below the session's bucket does not flip the session.
-    store.config = { enabled: true, samplingRate: 0.05 };
+    store.config = { samplingRate: 0.05 };
     expect(await sampler.getDecision()).toEqual(first);
     expect(sampler.decide()).toEqual(first);
   });
@@ -199,7 +194,7 @@ describe('SessionSampler', () => {
     );
     expect((await sampler.getDecision()).sampled).toBe(true);
 
-    store.config = { enabled: true, samplingRate: 0.9 };
+    store.config = { samplingRate: 0.9 };
     attrs.setSessionId(SESSION_MID);
     expect(await sampler.getDecision()).toEqual({
       sessionId: SESSION_MID,
@@ -285,7 +280,7 @@ describe('SessionSampler', () => {
 
     const pending = sampler.getDecision();
     expect(store.refreshCount).toBe(1);
-    store.config = { enabled: true, samplingRate: 0.5 };
+    store.config = { samplingRate: 0.5 };
     resolveFetch();
 
     expect(await pending).toMatchObject({ sampled: false, samplingRate: 0.5 });
@@ -456,7 +451,7 @@ describe('SessionSampler', () => {
       const spans = sampler.getDecision();
       expect(vi.getTimerCount()).toBe(1);
 
-      store.config = { enabled: true, samplingRate: 0.5 };
+      store.config = { samplingRate: 0.5 };
       resolveFetch();
 
       const [logsDecision, spansDecision] = await Promise.all([logs, spans]);
@@ -491,10 +486,7 @@ describe('SessionSampler', () => {
 
     it('forces sampling via the sessionStorage marker and stamps 1.0', async () => {
       sessionStorage.setItem(SESSION_STORAGE_DEBUG_KEY, 'true');
-      const { sampler } = createSampler(
-        { enabled: false, samplingRate: 0.25 },
-        SESSION_HIGH
-      );
+      const { sampler } = createSampler({ samplingRate: 0.25 }, SESSION_HIGH);
       expect(await sampler.getDecision()).toEqual({
         sessionId: SESSION_HIGH,
         sampled: true,

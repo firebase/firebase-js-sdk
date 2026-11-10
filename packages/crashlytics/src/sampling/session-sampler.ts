@@ -230,7 +230,7 @@ export class SessionSampler {
         samplingRate: 1.0
       };
     }
-    if (!config.enabled || config.samplingRate <= 0) {
+    if (config.samplingRate <= 0) {
       return { sessionId, sampled: false, samplingRate: config.samplingRate };
     }
     if (!sessionId) {
