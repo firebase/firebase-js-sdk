@@ -16,36 +16,32 @@
  */
 
 import { deleteApp, initializeApp, FirebaseApp } from '@firebase/app';
-import { expect, use } from 'chai';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 
 import { DataConnect, executeQuery, getDataConnect, queryRef } from '../../src';
 import { SDK_VERSION } from '../../src/core/version';
 import { initializeFetch } from '../../src/network/rest';
 
-use(sinonChai);
 const json = {
   message: 'unauthorized'
 };
-const fakeFetchImpl = sinon.stub().returns(
-  Promise.resolve({
-    json: () => {
-      return Promise.resolve(json);
-    },
-    status: 401
-  } as Response)
-);
+const fakeFetchImpl = vi.fn();
 
 describe('User Agent Tests', () => {
   let dc: DataConnect;
   let app: FirebaseApp;
   beforeEach(() => {
+    fakeFetchImpl.mockResolvedValue({
+      json: () => {
+        return Promise.resolve(json);
+      },
+      status: 401
+    } as Response);
     initializeFetch(fakeFetchImpl);
     app = initializeApp({ projectId: 'p' }, 'abc'); // TODO(mtewani): Replace with util function
     dc = getDataConnect(app, { connector: 'c', location: 'l', service: 's' });
   });
   afterEach(async () => {
+    initializeFetch(globalThis.fetch);
     await dc._delete();
     await deleteApp(app);
   });
@@ -53,27 +49,27 @@ describe('User Agent Tests', () => {
     dc._useGeneratedSdk();
     // @ts-ignore
     await executeQuery(queryRef(dc, '')).catch(() => {});
-    expect(fakeFetchImpl).to.be.calledWithMatch(
+    expect(fakeFetchImpl).toHaveBeenCalledWith(
       'https://firebasedataconnect.googleapis.com/v1/projects/p/locations/l/services/s/connectors/c:executeQuery',
-      {
-        headers: {
+      expect.objectContaining({
+        headers: expect.objectContaining({
           ['X-Goog-Api-Client']: 'gl-js/ fire/' + SDK_VERSION + ' js/gen',
           ['X-Client-Version']: 'web/' + SDK_VERSION
-        }
-      }
+        })
+      })
     );
   });
   it('should send a request with the corresponding user agent if not using the generated SDK', async () => {
     // @ts-ignore
     await executeQuery(queryRef(dc, '')).catch(() => {});
-    expect(fakeFetchImpl).to.be.calledWithMatch(
+    expect(fakeFetchImpl).toHaveBeenCalledWith(
       'https://firebasedataconnect.googleapis.com/v1/projects/p/locations/l/services/s/connectors/c:executeQuery',
-      {
-        headers: {
+      expect.objectContaining({
+        headers: expect.objectContaining({
           ['X-Goog-Api-Client']: 'gl-js/ fire/' + SDK_VERSION,
           ['X-Client-Version']: 'web/' + SDK_VERSION
-        }
-      }
+        })
+      })
     );
   });
 });

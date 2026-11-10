@@ -33,10 +33,11 @@
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:emulator",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
-    "test:all": "run-p --npm-path npm lint test:browser test:node",
-    "test:browser": "karma start",
-    "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
-    "test:unit": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/unit/**/*.test.ts' --file src/index.node.ts --config ../../config/mocharc.node.js",
+    "test:all": "vitest run",
+    "test:browser": "vitest run --project=browser",
+    "test:browser:debug": "vitest --project=browser --browser.headless=false",
+    "test:node": "vitest run --project=node",
+    "test:unit": "vitest run test/unit",
     "test:emulator": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/dataconnect-test-runner.ts",
     "api-report": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' ts-node ../../repo-scripts/prune-dts/extract-public-api.ts --package data-connect --packageRoot . --typescriptDts ./dist/src/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/public.d.ts && yarn api-report:api-json",
     "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
@@ -68,11 +69,5 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/src/index.d.ts",
-  "nyc": {
-    "extension": [
-      ".ts"
-    ],
-    "reportDir": "./coverage/node"
-  }
+  "typings": "dist/src/index.d.ts"
 }

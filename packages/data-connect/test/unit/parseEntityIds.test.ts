@@ -16,8 +16,6 @@
  */
 
 /* eslint-disable camelcase */
-import { expect } from 'chai';
-
 import { OpResult, SOURCE_SERVER } from '../../src';
 import { parseEntityIds } from '../../src/cache/cacheUtils';
 describe('parseEntityIds', () => {
@@ -85,20 +83,20 @@ describe('parseEntityIds', () => {
     };
     const actual = parseEntityIds(response);
     // @ts-ignore
-    expect(actual.posts[0].author._id).to.eq('idForAuthorOfPost1');
+    expect(actual.posts[0].author._id).toBe('idForAuthorOfPost1');
     // @ts-ignore
-    expect(actual.posts[1].author._id).to.eq('idForAuthorOfPost2');
+    expect(actual.posts[1].author._id).toBe('idForAuthorOfPost2');
     // @ts-ignore
-    expect(actual.posts[0]._id).to.eq('idForPost1GoesHere');
+    expect(actual.posts[0]._id).toBe('idForPost1GoesHere');
     // @ts-ignore
-    expect(actual.posts[1]._id).to.eq('idForPost2GoesHere');
+    expect(actual.posts[1]._id).toBe('idForPost2GoesHere');
     // @ts-ignore
-    expect(actual.posts[0].comments_on_post[0]._id).to.eq('idForPost1Comment1');
+    expect(actual.posts[0].comments_on_post[0]._id).toBe('idForPost1Comment1');
     // @ts-ignore
-    expect(actual.posts[0].comments_on_post[1]._id).to.eq('idForPost1Comment2');
+    expect(actual.posts[0].comments_on_post[1]._id).toBe('idForPost1Comment2');
     // @ts-ignore
-    expect(actual.posts[1].comments_on_post[0]._id).to.eq('idForPost2Comment1');
+    expect(actual.posts[1].comments_on_post[0]._id).toBe('idForPost2Comment1');
     // @ts-ignore
-    expect(actual.posts[1].comments_on_post[1]._id).to.eq('idForPost2Comment2');
+    expect(actual.posts[1].comments_on_post[1]._id).toBe('idForPost2Comment2');
   });
 });
