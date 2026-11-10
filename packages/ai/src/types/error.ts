@@ -84,6 +84,12 @@ export const AIErrorCode = {
   /** An error due to the Firebase API not being enabled in the Console. */
   API_NOT_ENABLED: 'api-not-enabled',
 
+  /**
+   * An error occurred because {@link getAI | getAI()} was called with options that conflict with
+   * those of an existing {@link AI} instance for the same app and backend.
+   */
+  ALREADY_INITIALIZED: 'already-initialized',
+
   /** An error due to invalid Schema input.  */
   INVALID_SCHEMA: 'invalid-schema',
 

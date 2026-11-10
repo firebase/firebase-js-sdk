@@ -87,6 +87,7 @@ jobs:
         run: |
           cp config/ci.config.json config/project.json
           yarn
+          npx playwright install firefox
       - name: build
         run: yarn build:changed auth
       - name: Run tests on auth changed packages

@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { use } from 'chai';
-
 /**
  * Duck-typed interface for objects that have an isEqual() method.
  *
@@ -38,8 +36,8 @@ export interface CustomMatcher<T> {
 
 /**
  * @file This file provides a helper function to add a matcher that matches
- * based on an objects isEqual method.  If the isEqual method is present one
- * either object it is used to determine equality, else mocha's default isEqual
+ * based on an objects isEqual method. If the isEqual method is present on
+ * either object it is used to determine equality, else default isEqual
  * implementation is used.
  */
 
@@ -56,6 +54,18 @@ function customDeepEqual(
     ) {
       return customMatcher.equalsFn(left, right);
     }
+  }
+  // Delegate to asymmetric matchers (e.g. `expect.anything()`, `expect.objectContaining()`).
+  if (
+    typeof right === 'object' &&
+    right !== null &&
+    'asymmetricMatch' in right &&
+    typeof (right as { asymmetricMatch: unknown }).asymmetricMatch ===
+      'function'
+  ) {
+    return (
+      right as { asymmetricMatch: (v: unknown) => boolean }
+    ).asymmetricMatch(left);
   }
   if (left && typeof left === 'object' && right && typeof right === 'object') {
     // The `isEqual` check below returns true if firestore-exp types are
@@ -98,7 +108,7 @@ function customDeepEqual(
   if (typeof left !== typeof right) {
     return false;
   } // needed for structurally different objects
-  if (Object(left) !== left) {
+  if (Object(left) !== left || Object(right) !== right) {
     return false;
   } // primitive values
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -122,56 +132,35 @@ function customDeepEqual(
   return true;
 }
 
-/** The original equality function passed in by chai(). */
-let originalFunction: ((r: unknown, l: unknown) => boolean) | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const activeMatcherSets: Array<Array<CustomMatcher<any>>> = [];
+let vitestTesterRegistered = false;
 
 export function addEqualityMatcher(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ...customMatchers: Array<CustomMatcher<any>>
 ): void {
-  let isActive = true;
+  if (!vitestTesterRegistered) {
+    vitestTesterRegistered = true;
+    expect.addEqualityTesters([
+      (left: unknown, right: unknown) => {
+        if (activeMatcherSets.length === 0) {
+          return undefined;
+        }
+        const mergedMatchers = activeMatcherSets.flat();
+        return customDeepEqual(mergedMatchers, left, right);
+      }
+    ]);
+  }
 
-  before(() => {
-    use((chai, utils) => {
-      const Assertion = chai.Assertion;
-
-      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-      const assertEql = (_super: (r: unknown, l: unknown) => boolean) => {
-        originalFunction = originalFunction || _super;
-        return function (
-          this: Chai.Assertion,
-          expected?: unknown,
-          msg?: unknown
-        ): void {
-          if (isActive) {
-            utils.flag(this, 'message', msg);
-            const actual = utils.flag(this, 'object');
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const assertion = new (chai.Assertion as any)();
-            utils.transferFlags(this, assertion, /*includeAll=*/ true);
-            // NOTE: Unlike the top-level chai assert() method, Assertion.assert()
-            // takes the expected value before the actual value.
-            assertion.assert(
-              customDeepEqual(customMatchers, actual, expected),
-              'expected #{act} to roughly deeply equal #{exp}',
-              'expected #{act} to not roughly deeply equal #{exp}',
-              expected,
-              actual,
-              /*showDiff=*/ true
-            );
-          } else if (originalFunction) {
-            originalFunction.call(this, expected, msg);
-          }
-        };
-      };
-
-      Assertion.overwriteMethod('eql', assertEql);
-      Assertion.overwriteMethod('eqls', assertEql);
-    });
+  beforeAll(() => {
+    activeMatcherSets.push(customMatchers);
   });
 
-  after(() => {
-    isActive = false;
+  afterAll(() => {
+    const idx = activeMatcherSets.lastIndexOf(customMatchers);
+    if (idx !== -1) {
+      activeMatcherSets.splice(idx, 1);
+    }
   });
 }
