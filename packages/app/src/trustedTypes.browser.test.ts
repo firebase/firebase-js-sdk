@@ -130,6 +130,9 @@ describe('Trusted Types', () => {
       const loggerError = vi
         .spyOn(logger, 'error')
         .mockImplementation(() => {});
+      // Load an allowed script first so that the policy creation fails and the
+      // blocked state is set before the untrusted URL is tried.
+      _setTrustedScriptSrc(document.createElement('script'), GAPI_URL);
       const script = document.createElement('script');
       expect(() =>
         _setTrustedScriptSrc(script, 'https://evil.example/script.js')
