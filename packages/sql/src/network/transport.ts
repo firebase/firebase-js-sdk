@@ -181,6 +181,10 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
   protected appCheckProvider?: AppCheckTokenProvider;
   protected _terminationSignal?: AbortSignal;
   protected _state?: SqlClientState;
+  private _activeToFetchContext: {
+    authRejected: boolean;
+    authError: unknown;
+  } | null = null;
 
   constructor(options: FirebaseSqlTransportOptions = {}) {
     this.settings = options.settings;
@@ -198,6 +202,9 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
     input: RequestInfo | URL,
     init?: RequestInit
   ): Promise<Response> {
+    const toFetchContext = this._activeToFetchContext;
+    this._activeToFetchContext = null;
+
     if (this._state && this._state.active === null) {
       throw new FirebaseSqlError(
         Code.NOT_INITIALIZED,
@@ -298,6 +305,10 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
         }
         if (effectiveSignal?.aborted) {
           throw toAbortError(effectiveSignal, err);
+        }
+        if (toFetchContext !== null) {
+          toFetchContext.authRejected = true;
+          toFetchContext.authError = err;
         }
         throw err;
       }
@@ -551,9 +562,30 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
       input: RequestInfo | URL,
       init?: RequestInit
     ): Promise<Response> => {
+      const callContext: { authRejected: boolean; authError: unknown } = {
+        authRejected: false,
+        authError: undefined
+      };
+      this._activeToFetchContext = callContext;
+      let operationPromise: Promise<Response>;
       try {
-        return await this.invokePostgrestOperation(input, init);
+        operationPromise = this.invokePostgrestOperation(input, init);
+      } finally {
+        this._activeToFetchContext = null;
+      }
+      try {
+        return await operationPromise;
       } catch (err) {
+        const isAuthTokenRejection =
+          callContext.authRejected && Object.is(callContext.authError, err);
+        const rawAuthMessage =
+          err instanceof Error
+            ? err.message
+            : typeof err === 'string'
+              ? err
+              : err !== undefined && err !== null
+                ? String(err)
+                : '';
         const errorToTrack =
           this._state && this._state.active === null
             ? new FirebaseSqlError(
@@ -563,7 +595,20 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
               )
             : err instanceof FirebaseSqlError
               ? err
-              : null;
+              : isAuthTokenRejection
+                ? new FirebaseSqlError(
+                    Code.OTHER,
+                    rawAuthMessage.length > 0
+                      ? rawAuthMessage
+                      : 'Failed to retrieve Auth token.',
+                    FirebaseSqlErrorCategory.SQL_CLIENT,
+                    err instanceof Error &&
+                      typeof err.stack === 'string' &&
+                      err.stack.length > 0
+                      ? err.stack
+                      : undefined
+                  )
+                : null;
 
         if (tracker && errorToTrack) {
           tracker.clientError = errorToTrack;

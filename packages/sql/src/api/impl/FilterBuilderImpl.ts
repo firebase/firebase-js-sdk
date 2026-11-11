@@ -33,6 +33,7 @@ import type {
   UntypedSchema
 } from '../../core/untypedSchema';
 import { validateHeaderName } from '../../network/headers';
+import { composeSignals } from '../../network/transport';
 import type {
   Builder,
   CheckMatchingArrayTypes,
@@ -520,64 +521,85 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
 
   private _execute(): PromiseLike<OperationResult<T>> {
     // Bind a fresh per-execution tracker synchronously before invoking `this._delegate.then(...)`.
-    // PostgrestFilterBuilder snapshots `this.fetch` synchronously on entry before yielding microtasks.
+    // PostgrestFilterBuilder snapshots `this.fetch` and `this.signal` synchronously on entry before yielding microtasks.
     // Dynamic per-execution binding ensures concurrent executions of the same builder instance
     // (e.g. `Promise.all([query, query])`) each receive an isolated `BuilderExecutionTracker`
-    // closure, preventing cross-talk between concurrent error/success attributions.
+    // closure and a composed abort signal that interrupts retry sleeps on `terminate()`.
     const tracker: BuilderExecutionTracker = { clientError: null };
+    const previousSignal = Reflect.get(this._delegate, 'signal') as
+      | AbortSignal
+      | undefined;
+    const { signal: effectiveSignal, cleanup: cleanupSignal } = composeSignals(
+      previousSignal,
+      this._state.terminationSignal
+    );
     Reflect.set(
       this._delegate,
       'fetch',
       this._createFetch(this._state, tracker)
     );
+    if (effectiveSignal !== undefined) {
+      Reflect.set(this._delegate, 'signal', effectiveSignal);
+    }
     try {
-      return this._delegate.then(raw => {
-        // Re-check state.active and tracker.clientError after _delegate settles in case terminate()
-        // was called in-flight or the transport recorded a pre-flight/token error and aborted fetchWithRetry.
-        if (this._state.active === null) {
-          return this._fail(
-            new FirebaseSqlError(
-              Code.NOT_INITIALIZED,
-              'FirebaseSql instance has been terminated.',
-              FirebaseSqlErrorCategory.SQL_CLIENT
-            ),
-            0,
-            ''
-          );
-        }
+      return this._delegate.then(
+        raw => {
+          cleanupSignal();
+          // Re-check state.active and tracker.clientError after _delegate settles in case terminate()
+          // was called in-flight or the transport recorded a pre-flight/token error and aborted fetchWithRetry.
+          if (this._state.active === null) {
+            return this._fail(
+              new FirebaseSqlError(
+                Code.NOT_INITIALIZED,
+                'FirebaseSql instance has been terminated.',
+                FirebaseSqlErrorCategory.SQL_CLIENT
+              ),
+              0,
+              ''
+            );
+          }
 
-        if (tracker.clientError !== null) {
-          return this._fail(tracker.clientError, 0, '');
-        }
+          if (tracker.clientError !== null) {
+            return this._fail(tracker.clientError, 0, '');
+          }
 
-        // @supabase/postgrest-js sets `success: error === null` after `JSON.parse(body)`,
-        // so non-2xx responses with a `"null"` JSON body arrive with `raw.success === true`
-        // and `raw.error === null` (whereas empty `404` rewrites normalize status to `200`/`204`).
-        if (
-          !raw.success ||
-          raw.error !== null ||
-          raw.status < 200 ||
-          raw.status >= 300
-        ) {
-          return this._fail(
-            this._mapError(raw.error, raw.status, raw.statusText),
-            raw.status,
-            raw.statusText
-          );
-        }
+          // @supabase/postgrest-js sets `success: error === null` after `JSON.parse(body)`,
+          // so non-2xx responses with a `"null"` JSON body arrive with `raw.success === true`
+          // and `raw.error === null` (whereas empty `404` rewrites normalize status to `200`/`204`).
+          if (
+            !raw.success ||
+            raw.error !== null ||
+            raw.status < 200 ||
+            raw.status >= 300
+          ) {
+            return this._fail(
+              this._mapError(raw.error, raw.status, raw.statusText),
+              raw.status,
+              raw.statusText
+            );
+          }
 
-        const success: OperationSuccess<T> = {
-          success: true,
-          error: null,
-          data: raw.data as T,
-          count: raw.count,
-          status: raw.status,
-          statusText: raw.statusText
-        };
-        return success;
-      });
+          const success: OperationSuccess<T> = {
+            success: true,
+            error: null,
+            data: raw.data as T,
+            count: raw.count,
+            status: raw.status,
+            statusText: raw.statusText
+          };
+          return success;
+        },
+        err => {
+          cleanupSignal();
+          throw err;
+        }
+      );
+    } catch (err) {
+      cleanupSignal();
+      throw err;
     } finally {
       Reflect.set(this._delegate, 'fetch', undefined);
+      Reflect.set(this._delegate, 'signal', previousSignal);
     }
   }
 }

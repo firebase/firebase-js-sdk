@@ -943,6 +943,26 @@ describe('FirebaseSql end-to-end operations', () => {
         ]
       ).toBe('refreshed-jwt');
     });
+
+    it('does not retry failed Auth getToken() calls in postgrest-js and fails immediately after 1 attempt', async () => {
+      const app = initializeApp({ projectId: 'proj-auth-fail' });
+      const getTokenMock = registerAuthMock(app, async () => {
+        throw new Error('auth/network-request-failed');
+      });
+      const sql = FirebaseSql.getSql(app, defaultSettings);
+      const mockFetch = vi.fn<typeof fetch>();
+      vi.stubGlobal('fetch', mockFetch);
+
+      const res = await sql.from('users').select();
+      expect(res.success).toBe(false);
+      expect(res.status).toBe(0);
+      expect(res.error).toBeInstanceOf(FirebaseSqlError);
+      expect(res.error?.code).toBe(Code.OTHER);
+      expect(res.error?.category).toBe(FirebaseSqlErrorCategory.SQL_CLIENT);
+      expect(res.error?.message).toContain('auth/network-request-failed');
+      expect(getTokenMock).toHaveBeenCalledTimes(1);
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
   });
 
   describe('error mapping, Preserve404, RawSync, and throwOnError()', () => {
@@ -1133,6 +1153,67 @@ describe('FirebaseSql end-to-end operations', () => {
       );
 
       expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('immediately aborts an in-flight postgrest-js retry sleep when terminate() is called and preserves caller abortSignal()', async () => {
+      const app = initializeApp({ projectId: 'proj-retry-term' });
+      const sql = FirebaseSql.getSql(app, defaultSettings);
+
+      const mockFetch = vi.fn<typeof fetch>();
+      vi.stubGlobal('fetch', mockFetch);
+
+      // Caller-supplied already-aborted AbortSignal while client is still active
+      const abortedController = new AbortController();
+      abortedController.abort(new Error('caller cancelled'));
+      const abortedRes = await sql
+        .from('users')
+        .select()
+        .abortSignal(abortedController.signal);
+      expect(abortedRes.success).toBe(false);
+      expect(abortedRes.status).toBe(0);
+      expect(abortedRes.error?.code).toBe(Code.OTHER);
+      expect(abortedRes.error?.category).toBe(
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+      expect(mockFetch).not.toHaveBeenCalled();
+
+      let enteredFirstAttempts = 0;
+      let resolveFirstAttempts!: () => void;
+      const firstAttemptsReturned = new Promise<void>(resolve => {
+        resolveFirstAttempts = resolve;
+      });
+
+      mockFetch.mockImplementation(async () => {
+        enteredFirstAttempts++;
+        if (enteredFirstAttempts === 2) {
+          resolveFirstAttempts();
+        }
+        return new Response('Service Unavailable', {
+          status: 503,
+          headers: { 'Retry-After': '60' }
+        });
+      });
+
+      const startedAt = Date.now();
+      const sharedBuilder = sql.from('users').select();
+      const pending = Promise.all([
+        sharedBuilder.then(r => r),
+        sharedBuilder.then(r => r)
+      ]);
+      await firstAttemptsReturned;
+      // Yield a macrotask so fetchWithRetry drains res.text() and enters sleep(60000, signal)
+      await new Promise(resolve => setTimeout(resolve, 10));
+      await FirebaseSql.terminate(sql);
+
+      const [res1, res2] = await pending;
+      const elapsedMs = Date.now() - startedAt;
+      for (const res of [res1, res2]) {
+        expect(res.success).toBe(false);
+        expect(res.error?.code).toBe(Code.NOT_INITIALIZED);
+        expect(res.error?.category).toBe(FirebaseSqlErrorCategory.SQL_CLIENT);
+      }
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(elapsedMs).toBeLessThan(1000);
     });
   });
 });

@@ -1045,6 +1045,62 @@ describe('FirebaseSqlTransport', () => {
         expect(tracker.clientError?.code).toBe(Code.NOT_INITIALIZED);
       });
 
+      it('populates tracker.clientError with Code.OTHER and throws AbortError when authProvider.getToken() rejects with an Error or primitive value', async () => {
+        const authError = new Error('auth/network-request-failed');
+        const rejectingAuth = new MockAuthProvider();
+        rejectingAuth.getToken.mockRejectedValueOnce(authError);
+        rejectingAuth.getToken.mockRejectedValueOnce(
+          'auth/primitive-rejection'
+        );
+        rejectingAuth.getToken.mockRejectedValueOnce('');
+        const tracker: BuilderExecutionTracker = { clientError: null };
+        const transport = new FirebaseSqlTransport({
+          settings: BASE_SETTINGS,
+          authTokenProvider: rejectingAuth
+        });
+        const invokeSpy = vi.spyOn(transport, 'invokePostgrestOperation');
+        const boundFetch = transport.toFetch(tracker);
+
+        await expect(boundFetch(TEST_URL)).rejects.toMatchObject({
+          name: 'AbortError',
+          message: 'auth/network-request-failed'
+        });
+        expect(invokeSpy).toHaveBeenCalledTimes(1);
+
+        expect(tracker.clientError).toBeInstanceOf(FirebaseSqlError);
+        expect(tracker.clientError?.code).toBe(Code.OTHER);
+        expect(tracker.clientError?.category).toBe(
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        );
+        expect(tracker.clientError?.message).toBe(
+          'auth/network-request-failed'
+        );
+
+        const primitiveTracker: BuilderExecutionTracker = { clientError: null };
+        const primitiveFetch = transport.toFetch(primitiveTracker);
+        await expect(primitiveFetch(TEST_URL)).rejects.toMatchObject({
+          name: 'AbortError',
+          message: 'auth/primitive-rejection'
+        });
+        expect(primitiveTracker.clientError).toBeInstanceOf(FirebaseSqlError);
+        expect(primitiveTracker.clientError?.code).toBe(Code.OTHER);
+        expect(primitiveTracker.clientError?.message).toBe(
+          'auth/primitive-rejection'
+        );
+
+        const emptyTracker: BuilderExecutionTracker = { clientError: null };
+        const emptyFetch = transport.toFetch(emptyTracker);
+        await expect(emptyFetch(TEST_URL)).rejects.toMatchObject({
+          name: 'AbortError',
+          message: 'Failed to retrieve Auth token.'
+        });
+        expect(emptyTracker.clientError?.code).toBe(Code.OTHER);
+        expect(emptyTracker.clientError?.message).toBe(
+          'Failed to retrieve Auth token.'
+        );
+        expect(mockFetch).not.toHaveBeenCalled();
+      });
+
       it('throws original error without AbortError wrapping when no tracker is provided', async () => {
         const state: SqlClientState = { active: null };
         const transport = new FirebaseSqlTransport({ state });
@@ -1053,6 +1109,40 @@ describe('FirebaseSqlTransport', () => {
         await expect(boundFetch(TEST_URL)).rejects.toBeInstanceOf(
           FirebaseSqlError
         );
+      });
+
+      it('does not leak auth rejection state from a direct invokePostgrestOperation call into a concurrent toFetch call', async () => {
+        const sharedError = new Error('transient network failure');
+        const authProvider = new MockAuthProvider('token-1');
+        authProvider.getToken
+          .mockResolvedValueOnce({ accessToken: 'token-1' })
+          .mockRejectedValueOnce(sharedError);
+
+        let rejectNetworkFetch!: (err: unknown) => void;
+        mockFetch.mockImplementationOnce(
+          () =>
+            new Promise<Response>((_resolve, reject) => {
+              rejectNetworkFetch = reject;
+            })
+        );
+
+        const transport = new FirebaseSqlTransport({
+          settings: BASE_SETTINGS,
+          authTokenProvider: authProvider
+        });
+        const tracker: BuilderExecutionTracker = { clientError: null };
+        const boundFetch = transport.toFetch(tracker);
+
+        const inFlightToFetch = boundFetch(TEST_URL);
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        await expect(transport.invokePostgrestOperation(TEST_URL)).rejects.toBe(
+          sharedError
+        );
+
+        rejectNetworkFetch(sharedError);
+        await expect(inFlightToFetch).rejects.toBe(sharedError);
+        expect(tracker.clientError).toBeNull();
       });
     });
   });
