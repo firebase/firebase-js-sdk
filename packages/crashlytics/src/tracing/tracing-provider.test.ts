@@ -258,23 +258,16 @@ describe('createTracingProvider', () => {
     expect(xhrConfig.semconvStabilityOptIn).toBe('http');
   });
 
-  it('should register DocumentLoadInstrumentation with appropriate config', () => {
+  it('should enable DocumentLoadInstrumentation', () => {
     if (typeof window === 'undefined') {
       return;
     }
 
-    const documentLoadInstrumentationSpy = vi.spyOn(
-      DocumentLoadInstrumentation.prototype,
-      'setConfig'
-    );
+    const enableSpy = vi.spyOn(DocumentLoadInstrumentation.prototype, 'enable');
 
     createTracingProvider(mockApp, {}, mockAttributesStore, mockTelemetryStore);
 
-    expect(documentLoadInstrumentationSpy).toHaveBeenCalled();
-    const documentLoadConfig = documentLoadInstrumentationSpy.mock.calls[
-      documentLoadInstrumentationSpy.mock.calls.length - 1
-    ][0] as any;
-    expect(documentLoadConfig.semconvStabilityOptIn).toBe('http');
+    expect(enableSpy).toHaveBeenCalled();
   });
 
   it('should populate resource attributes with gcp.firebase.domain, gcp.project_id, and gcp.firebase.app_id', () => {

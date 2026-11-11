@@ -29,6 +29,7 @@ import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
 import { OTLPTraceExporter as OTLPStandardTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import {
+  ExporterMetrics,
   OTLPExporterBase,
   OTLPExporterConfigBase,
   createOtlpNetworkExportDelegate
@@ -40,7 +41,10 @@ import { AttributesStore } from '../attributes-store';
 import { TelemetryStore } from '../telemetry-store';
 import { OnErrorSpanProcessor } from './on-error-span-processor';
 import { FirebaseAttributesSpanProcessor } from './attributes-span-processor';
-import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
+import {
+  JsonTraceSerializer,
+  TraceExporterMetricsHelper
+} from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
 import {
   DEFAULT_TELEMETRY_REGION,
@@ -163,9 +167,7 @@ export function createTracingProvider(
     instrumentations: [
       new FetchInstrumentation(networkInstrumentationConfig),
       new XMLHttpRequestInstrumentation(networkInstrumentationConfig),
-      new DocumentLoadInstrumentation({
-        semconvStabilityOptIn: 'http'
-      })
+      new DocumentLoadInstrumentation()
     ]
   });
 
@@ -190,6 +192,13 @@ export class OTLPTraceExporter
           compression: 'none'
         },
         JsonTraceSerializer,
+        new ExporterMetrics({
+          componentType: 'otlp_http_span_exporter',
+          metricsHelper: TraceExporterMetricsHelper,
+          url: config.url,
+          meterProvider: undefined,
+          responseAttributesFromError: () => ({})
+        }),
         new FetchTransport({
           url: config.url!,
           headers: new Headers(

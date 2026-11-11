@@ -26,9 +26,13 @@ import {
 import { logs } from '@opentelemetry/api-logs';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { resourceFromAttributes } from '@opentelemetry/resources';
-import { JsonLogsSerializer } from '@opentelemetry/otlp-transformer';
+import {
+  JsonLogsSerializer,
+  LogsExporterMetricsHelper
+} from '@opentelemetry/otlp-transformer';
 import type { OTLPExporterConfigBase } from '@opentelemetry/otlp-exporter-base';
 import {
+  ExporterMetrics,
   OTLPExporterBase,
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
@@ -163,6 +167,13 @@ class OTLPLogExporter
           compression: 'none'
         },
         JsonLogsSerializer,
+        new ExporterMetrics({
+          componentType: 'otlp_http_log_exporter',
+          metricsHelper: LogsExporterMetricsHelper,
+          url: config.url,
+          meterProvider: undefined,
+          responseAttributesFromError: () => ({})
+        }),
         new FetchTransport({
           url: config.url!,
           headers: new Headers(
