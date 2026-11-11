@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 1.13.10
+
+### Patch Changes
+
+- [`adfab71`](https://github.com/firebase/firebase-js-sdk/commit/adfab71e85b11ec4ed01d1a59a0acef50beb67dd) [#10553](https://github.com/firebase/firebase-js-sdk/pull/10553) (fixes [#10540](https://github.com/firebase/firebase-js-sdk/issues/10540)) - Prevent a suspended background tab holding an IndexedDB `readonly` poll transaction from blocking Auth startup (`onAuthStateChanged` / `authStateReady()`) or clearing `currentUser` in other tabs (#10540).
+
 ## 1.13.9
 
 ### Patch Changes
