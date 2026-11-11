@@ -23,6 +23,7 @@ import { Code, FirebaseSqlError, FirebaseSqlErrorCategory } from './error';
 import {
   copySqlServiceSettings,
   SqlServiceSettings,
+  validateHeaderName,
   validateInitializationHeaders
 } from './settings';
 
@@ -71,7 +72,52 @@ describe('SqlServiceSettings', () => {
     });
   });
 
-  describe('validateHeaders', () => {
+  describe('validateHeaderName', () => {
+    it('returns the coerced string for allowed header names', () => {
+      expect(validateHeaderName('X-Custom-Header')).toBe('X-Custom-Header');
+      expect(validateHeaderName('content-type-custom')).toBe(
+        'content-type-custom'
+      );
+    });
+
+    it('rejects disallowed header keys case-insensitively and with whitespace', () => {
+      for (const disallowedKey of LOWERCASE_DISALLOWED_HEADER_KEYS) {
+        const paddedKey = `  ${disallowedKey.toUpperCase()}  `;
+        let caught: unknown;
+        try {
+          validateHeaderName(paddedKey);
+        } catch (err) {
+          caught = err;
+        }
+        expect(caught).toBeInstanceOf(FirebaseSqlError);
+        const sqlErr = caught as FirebaseSqlError;
+        expect(sqlErr.code).toBe(Code.INVALID_ARGUMENT);
+        expect(sqlErr.category).toBe(FirebaseSqlErrorCategory.SQL_CLIENT);
+        expect(sqlErr.message).toBe(
+          `Cannot set protected header ${paddedKey}.`
+        );
+      }
+    });
+
+    it('enforces single-coercion security invariant', () => {
+      let callCount = 0;
+      const statefulHeader = {
+        toString(): string {
+          callCount++;
+          if (callCount === 1) {
+            return 'X-Allowed-Header';
+          }
+          return 'authorization';
+        }
+      };
+
+      const result = validateHeaderName(statefulHeader as unknown as string);
+      expect(callCount).toBe(1);
+      expect(result).toBe('X-Allowed-Header');
+    });
+  });
+
+  describe('validateInitializationHeaders', () => {
     it('allows undefined or custom headers and rejects all LOWERCASE_DISALLOWED_HEADER_KEYS case-insensitively', () => {
       expect(() => validateInitializationHeaders(undefined)).not.toThrow();
       expect(() =>

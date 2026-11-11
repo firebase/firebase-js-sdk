@@ -45,7 +45,10 @@ import { SqlServiceSettings } from '../core/settings';
 import type { BuilderExecutionTracker, SqlClientState } from '../core/state';
 import { TokenOptions } from '../core/tokenProviders/AbstractTokenProvider';
 import { AppCheckProvider } from '../core/tokenProviders/AppCheckTokenProvider';
-import { FirebaseAuthProvider, FirebaseAuthTokenProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
+import {
+  FirebaseAuthProvider,
+  FirebaseAuthTokenProvider
+} from '../core/tokenProviders/FirebaseAuthTokenProvider';
 import { SDK_VERSION, setSDKVersion } from '../core/version';
 import { FirebaseHeaders } from '../util/constants';
 
@@ -55,6 +58,7 @@ import {
   createBuilderFetch,
   getAuthUidFromToken,
   getGoogApiClientValue,
+  mergeHeadersInit,
   resolveRequestHeaders,
   toAbortError
 } from './transport';
@@ -316,8 +320,6 @@ describe('FirebaseSqlTransport', () => {
               app,
               _getProvider(app, 'app-check-internal')
             );
-            // Exactly 2 startup timers (1 for Auth, 1 for AppCheck) scheduled at construction.
-            expect(setTimeoutSpy).toHaveBeenCalledTimes(2);
 
             const realTransport = new FirebaseSqlTransport({
               settings: BASE_SETTINGS,
@@ -325,11 +327,13 @@ describe('FirebaseSqlTransport', () => {
               appCheckTokenProvider: realAppCheck
             });
 
+            setTimeoutSpy.mockClear();
+
             await realTransport.invokePostgrestOperation(TEST_URL);
             await realTransport.invokePostgrestOperation(TEST_URL);
             await realTransport.invokePostgrestOperation(TEST_URL);
 
-            expect(setTimeoutSpy).toHaveBeenCalledTimes(2);
+            expect(setTimeoutSpy).not.toHaveBeenCalled();
           } finally {
             setTimeoutSpy.mockRestore();
           }
@@ -1421,6 +1425,66 @@ describe('FirebaseSqlTransport', () => {
       expect(result[FirebaseHeaders.GOOG_API_CLIENT]).toBe('gl-js/ fire/1.2.3');
       expect(result[FirebaseHeaders.CLIENT_VERSION]).toBe('web/1.2.3');
       expect(result[FirebaseHeaders.FIREBASE_GMPID]).toBe('app-123');
+    });
+
+    it('deletes caller-supplied x-firebase-gmpid header when appId is undefined', () => {
+      const result = resolveRequestHeaders(
+        null,
+        null,
+        {
+          headers: {
+            [FirebaseHeaders.FIREBASE_GMPID]: 'caller-supplied-gmpid'
+          }
+        },
+        undefined
+      );
+      expect(result[FirebaseHeaders.FIREBASE_GMPID]).toBeUndefined();
+    });
+  });
+
+  describe('mergeHeadersInit()', () => {
+    it('merges Headers instance source and returns target instance', () => {
+      const target = new Headers({ 'x-target-key': 'target-val' });
+      const source = new Headers({ 'x-source-key': 'source-val' });
+
+      const returned = mergeHeadersInit(target, source);
+
+      expect(returned).toBe(target);
+      expect(target.get('x-target-key')).toBe('target-val');
+      expect(target.get('x-source-key')).toBe('source-val');
+    });
+
+    it('merges [string, string][] tuple array source', () => {
+      const target = new Headers({ 'x-original': 'orig' });
+      const source: Array<[string, string]> = [
+        ['x-first', '1'],
+        ['x-second', '2']
+      ];
+
+      const returned = mergeHeadersInit(target, source);
+
+      expect(returned).toBe(target);
+      expect(target.get('x-original')).toBe('orig');
+      expect(target.get('x-first')).toBe('1');
+      expect(target.get('x-second')).toBe('2');
+    });
+
+    it('handles undefined source gracefully without mutating target', () => {
+      const target = new Headers({ 'x-preserve': 'val' });
+
+      const returned = mergeHeadersInit(target, undefined);
+
+      expect(returned).toBe(target);
+      expect(target.get('x-preserve')).toBe('val');
+    });
+
+    it('supports fluent chaining and overwrites existing target keys', () => {
+      const target = new Headers({ 'x-shared': 'initial' });
+
+      mergeHeadersInit(target, { 'x-shared': 'updated', 'x-extra': 'added' });
+
+      expect(target.get('x-shared')).toBe('updated');
+      expect(target.get('x-extra')).toBe('added');
     });
   });
 });

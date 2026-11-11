@@ -226,6 +226,81 @@ describe('AbstractTokenProvider', () => {
       expect(tokenProvider.getComponent()).toBeUndefined();
       expect(mockComponent.addListener).not.toHaveBeenCalled();
     });
+
+    it('cleans up onInitUnsubscribe when provider.onInit fires synchronously and covers startup forceRefresh/rejection/duplicate init', async () => {
+      let rejectDelayedToken!: (err: Error) => void;
+      const delayedRejectionPromise = new Promise<TestToken>((_, reject) => {
+        rejectDelayedToken = reject;
+      });
+      const mockComponent: TestComponent = {
+        getToken: vi
+          .fn()
+          .mockResolvedValueOnce({ token: 'forced-startup-token' })
+          .mockReturnValueOnce(delayedRejectionPromise),
+        addListener: vi.fn(),
+        removeListener: vi.fn()
+      };
+      const secondComponent: TestComponent = {
+        getToken: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn()
+      };
+
+      const unsubscribeSpy = vi.fn();
+      let capturedOnInitCallback: ((comp: TestComponent) => void) | undefined;
+      const syncOnInitProvider = {
+        getImmediate: vi.fn(() => null),
+        onInit: vi.fn((cb: (comp: TestComponent) => void) => {
+          capturedOnInitCallback = cb;
+          cb(mockComponent);
+          return unsubscribeSpy;
+        })
+      } as unknown as Provider<Name>;
+
+      const syncTokenProvider = new ConcreteTestTokenProvider(
+        syncOnInitProvider
+      );
+      expect(syncTokenProvider.getComponent()).toBe(mockComponent);
+      expect(unsubscribeSpy).toHaveBeenCalledTimes(1);
+      expect(syncTokenProvider.getOnInitUnsubscribe()).toBeUndefined();
+
+      // Duplicate onComponentInitialized invocation must be ignored.
+      capturedOnInitCallback?.(secondComponent);
+      expect(syncTokenProvider.getComponent()).toBe(mockComponent);
+
+      // Startup window forceRefresh forwarding and rejection cleanup:
+      const rawProvider = registerMockComponent(
+        browserApp,
+        'test-service',
+        mockComponent,
+        { explicit: true }
+      );
+      const delayedProvider = new ConcreteTestTokenProvider(rawProvider);
+      const forcedStartupPromise = delayedProvider.getToken({
+        forceRefresh: true
+      });
+      rawProvider.initialize();
+      await expect(forcedStartupPromise).resolves.toEqual({
+        token: 'forced-startup-token'
+      });
+      expect(mockComponent.getToken).toHaveBeenCalledWith(true);
+
+      // Rejection during startup window resets activeGetTokenPromise
+      const rawProvider2 = registerMockComponent(
+        browserApp,
+        'test-service-2',
+        mockComponent,
+        { explicit: true }
+      );
+      const rejectingProvider = new ConcreteTestTokenProvider(rawProvider2);
+      const failingStartupPromise = rejectingProvider.getToken();
+      rawProvider2.initialize();
+      rejectDelayedToken(new Error('startup-fetch-failed'));
+      await expect(failingStartupPromise).rejects.toThrow(
+        'startup-fetch-failed'
+      );
+      expect(rejectingProvider.getActiveGetTokenPromise()).toBeUndefined();
+    });
   });
 
   describe('getToken', () => {
@@ -398,9 +473,10 @@ describe('AbstractTokenProvider', () => {
         removeListener: vi.fn()
       };
       let availableComponent: TestComponent | null = null;
+      const unsubscribeSpy = vi.fn();
       const customProvider = {
         getImmediate: vi.fn(() => availableComponent),
-        onInit: vi.fn(() => () => {})
+        onInit: vi.fn(() => unsubscribeSpy)
       } as unknown as Provider<Name>;
 
       const listener: TestListener = vi.fn();
@@ -412,6 +488,8 @@ describe('AbstractTokenProvider', () => {
         token: 'immediate-on-tick'
       });
       expect(mockComponent.addListener).toHaveBeenCalledWith(listener);
+      expect(unsubscribeSpy).toHaveBeenCalledTimes(1);
+      expect(tokenProvider.getOnInitUnsubscribe()).toBeUndefined();
     });
   });
 
@@ -824,6 +902,34 @@ describe('AbstractTokenProvider', () => {
 
       await expect(tokenProvider.getToken()).resolves.toBeNull();
     });
+
+    it('preserves serverAppToken fallback for concurrent unforced getToken({ forceRefresh: false }) when forceRefresh is in flight', async () => {
+      const rawProvider = registerMockComponent(browserApp, 'test-service');
+      const tokenProvider = new ConcreteTestTokenProvider(
+        rawProvider,
+        'static-jwt'
+      );
+
+      // 1. During startup window: forceRefresh called first, then unforced called second
+      const forcedStartup = tokenProvider.getToken({ forceRefresh: true });
+      const unforcedStartup = tokenProvider.getToken({ forceRefresh: false });
+
+      await expect(forcedStartup).resolves.toBeNull();
+      await expect(unforcedStartup).resolves.toEqual({
+        token: 'converted:static-jwt'
+      });
+
+      // 2. After startup window: forceRefresh called first, then unforced called second
+      const forcedPostStartup = tokenProvider.getToken({ forceRefresh: true });
+      const unforcedPostStartup = tokenProvider.getToken({
+        forceRefresh: false
+      });
+
+      await expect(forcedPostStartup).resolves.toBeNull();
+      await expect(unforcedPostStartup).resolves.toEqual({
+        token: 'converted:static-jwt'
+      });
+    });
   });
 
   describe('listeners', () => {
@@ -1177,6 +1283,78 @@ describe('AbstractTokenProvider', () => {
       expect(mockComponent.addListener).toHaveBeenNthCalledWith(2, listener2);
       expect(errors).toHaveLength(1);
       expect(errors[0]).toContain('init-add-failed');
+    });
+
+    it('settles startup state before draining queued listeners and handles re-entrant removeTokenChangeListener during drain', () => {
+      vi.useFakeTimers();
+      try {
+        const listener2: TestListener = vi.fn();
+        const duplicateListener: TestListener = vi.fn();
+        let duplicateInvokeCount = 0;
+        let timerCountDuringDrain: number | undefined;
+        let onInitUnsubscribeDuringDrain: (() => void) | undefined;
+
+        const mockComponent: TestComponent = {
+          getToken: vi.fn().mockResolvedValue({ token: 'live-token' }),
+          addListener: vi.fn(),
+          removeListener: vi.fn()
+        };
+
+        const rawProvider = registerMockComponent(
+          browserApp,
+          'test-service',
+          mockComponent,
+          { explicit: true }
+        );
+        const tokenProvider = new ConcreteTestTokenProvider(rawProvider);
+
+        const listener1: TestListener = vi.fn(() => {
+          timerCountDuringDrain = vi.getTimerCount();
+          onInitUnsubscribeDuringDrain = tokenProvider.getOnInitUnsubscribe();
+
+          // Removing a still-queued listener (listener2) during drain must remove it
+          // from the queue without calling removeListener on the component.
+          tokenProvider.removeTokenChangeListener(listener2);
+        });
+
+        vi.mocked(mockComponent.addListener).mockImplementation(
+          (listener: TestListener) => {
+            if (listener === listener1) {
+              listener1('initial-token');
+            } else if (listener === duplicateListener) {
+              duplicateInvokeCount++;
+              if (duplicateInvokeCount === 1) {
+                // Removing a duplicate listener once during drain must only remove
+                // a single registration, leaving the second queued registration intact.
+                tokenProvider.removeTokenChangeListener(duplicateListener);
+              }
+            }
+          }
+        );
+
+        tokenProvider.addTokenChangeListener(listener1);
+        tokenProvider.addTokenChangeListener(listener2);
+        tokenProvider.addTokenChangeListener(duplicateListener);
+        tokenProvider.addTokenChangeListener(duplicateListener);
+
+        rawProvider.initialize();
+
+        expect(timerCountDuringDrain).toBe(0);
+        expect(onInitUnsubscribeDuringDrain).toBeUndefined();
+        expect(mockComponent.addListener).toHaveBeenCalledTimes(3);
+        expect(mockComponent.addListener).not.toHaveBeenCalledWith(listener2);
+        expect(mockComponent.removeListener).toHaveBeenCalledTimes(1);
+        expect(mockComponent.removeListener).toHaveBeenCalledWith(
+          duplicateListener
+        );
+        expect(tokenProvider.getQueuedListeners()).toEqual([]);
+        expect(tokenProvider.getActiveListeners()).toEqual([
+          listener1,
+          duplicateListener
+        ]);
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 });

@@ -76,7 +76,7 @@ export function resolveRequestHeaders(
   authToken: FirebaseAuthTokenData | null,
   appCheckToken: AppCheckTokenResult | null,
   init?: RequestInit,
-  _appId?: string
+  appId?: string
 ): Record<string, string> {
   const headers = new Headers();
 
@@ -86,7 +86,6 @@ export function resolveRequestHeaders(
     headers.delete(key);
   }
 
-  // Firebase token headers
   // user-supplied authorization headers are overwritten
   if (authToken?.accessToken) {
     headers.set(FirebaseHeaders.FIREBASE_AUTH_TOKEN, authToken.accessToken);
@@ -100,16 +99,14 @@ export function resolveRequestHeaders(
     headers.delete(FirebaseHeaders.FIREBASE_APPCHECK);
   }
 
-  // Telemetry headers
   headers.set(FirebaseHeaders.GOOG_API_CLIENT, getGoogApiClientValue());
   headers.set(FirebaseHeaders.CLIENT_VERSION, 'web/' + SDK_VERSION);
-  if (_appId !== undefined) {
-    headers.set(FirebaseHeaders.FIREBASE_GMPID, _appId);
+  if (appId !== undefined) {
+    headers.set(FirebaseHeaders.FIREBASE_GMPID, appId);
   } else {
     headers.delete(FirebaseHeaders.FIREBASE_GMPID);
   }
 
-  // Normalize headers
   const headersRecord: Record<string, string> = {};
   headers.forEach((value, key) => {
     headersRecord[key] = value;
@@ -326,11 +323,10 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
       if (init?.headers === undefined) {
         mergedHeadersInit = input.headers;
       } else {
-        const combined = new Headers(input.headers);
-        new Headers(init.headers).forEach((value, key) => {
-          combined.set(key, value);
-        });
-        mergedHeadersInit = combined;
+        mergedHeadersInit = mergeHeadersInit(
+          new Headers(input.headers),
+          init.headers
+        );
       }
     }
 

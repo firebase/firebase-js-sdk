@@ -113,22 +113,33 @@ export abstract class AbstractTokenProvider<
       this.onInitUnsubscribe = provider.onInit(component => {
         this.onComponentInitialized(component as Component);
       });
+      if (this.component) {
+        this.cancelOnInit();
+      }
     }
   }
 
+  /**
+   * Handles initialization of the underlying service component, settling the
+   * startup latch and draining any queued token change listeners.
+   */
   private onComponentInitialized(component: Component): void {
     if (this.component) {
       return;
     }
     this.component = component;
-    const n = this.queuedListeners.length;
-    for (let i = 0; i < n; i++) {
+    this.cleanupStartupPromise();
+    this.onInitUnsubscribe?.();
+    this.onInitUnsubscribe = undefined;
+    while (this.queuedListeners.length > 0) {
       const oldestListener = this.queuedListeners.shift();
       oldestListener && this.addTokenChangeListener(oldestListener);
     }
-    this.cancelOnInit();
   }
 
+  /**
+   * Clears the initial startup timer and resolves the one-time startup latch.
+   */
   private cleanupStartupPromise(): void {
     if (this.startupTimerId !== undefined) {
       clearTimeout(this.startupTimerId);
@@ -155,7 +166,13 @@ export abstract class AbstractTokenProvider<
     if (!this.activeForceRefreshPromise && options.forceRefresh) {
       const forcedPromise = this.requestToken(options)
         .then(token => {
-          this.resolveActiveGetTokenPromise?.(token);
+          if (
+            token !== null ||
+            Boolean(this.component) ||
+            !this.serverAppToken
+          ) {
+            this.resolveActiveGetTokenPromise?.(token);
+          }
           return token;
         })
         .finally(() => {
@@ -165,7 +182,10 @@ export abstract class AbstractTokenProvider<
         });
       this.activeForceRefreshPromise = forcedPromise;
     }
-    if (this.activeForceRefreshPromise) {
+    if (
+      this.activeForceRefreshPromise &&
+      (options.forceRefresh || Boolean(this.component) || !this.serverAppToken)
+    ) {
       return this.activeForceRefreshPromise;
     }
 
@@ -196,15 +216,7 @@ export abstract class AbstractTokenProvider<
     }
 
     if (this.startupPromise) {
-      return this.startupPromise.then(() => {
-        if (this.component) {
-          return this.fetchToken(this.component, options);
-        }
-        if (this.serverAppToken && !options.forceRefresh) {
-          return this.convertServerAppToken(this.serverAppToken);
-        }
-        return null;
-      });
+      return this.startupPromise.then(() => this.requestToken(options));
     }
 
     if (this.serverAppToken && !options.forceRefresh) {
@@ -239,14 +251,20 @@ export abstract class AbstractTokenProvider<
    */
   removeTokenChangeListener(listener: Listener): void {
     if (this.component) {
+      if (
+        !removeFirstOccurrenceFromList(listener, this.activeListeners) &&
+        removeFirstOccurrenceFromList(listener, this.queuedListeners)
+      ) {
+        return;
+      }
       try {
-        removeFirstOccurrenceFromList(listener, this.activeListeners);
         this.removeListener(this.component, listener);
       } catch (err) {
         logError(err instanceof Error ? err.message : String(err));
       }
+    } else {
+      removeFirstOccurrenceFromList(listener, this.queuedListeners);
     }
-    removeFirstOccurrenceFromList(listener, this.queuedListeners);
   }
 
   /**
