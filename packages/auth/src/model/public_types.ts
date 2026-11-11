@@ -91,6 +91,10 @@ export interface RecaptchaParameters {
  * @public
  */
 export interface ParsedToken {
+  /** The user's primary email. */
+  'email'?: string;
+  /** The user's email verification status. */
+  'email_verified'?: boolean;
   /** Expiration time of the token. */
   'exp'?: string;
   /** UID of the user. */
@@ -103,7 +107,9 @@ export interface ParsedToken {
   'firebase'?: {
     'sign_in_provider'?: string;
     'sign_in_second_factor'?: string;
-    'identities'?: Record<string, string>;
+    'sign_in_attributes'?: Record<string, unknown>;
+    'identities'?: Record<string, string[]>;
+    'tenant'?: string;
   };
   /** Map of any additional custom claims. */
   [key: string]: unknown;
