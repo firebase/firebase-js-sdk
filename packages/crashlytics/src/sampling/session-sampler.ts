@@ -160,13 +160,14 @@ export class SessionSampler {
     if (!decision.sampled) {
       return false;
     }
+    const samplingAttributes: Record<string, string | number> = {
+      [ATTR_KEY_SESSION_SAMPLING_RATE]: decision.samplingRate
+    };
+    if (decision.reason) {
+      samplingAttributes[ATTR_KEY_SESSION_SAMPLING_REASON] = decision.reason;
+    }
     for (const record of records) {
-      Object.assign(record.attributes, {
-        [ATTR_KEY_SESSION_SAMPLING_RATE]: decision.samplingRate,
-        ...(decision.reason
-          ? { [ATTR_KEY_SESSION_SAMPLING_REASON]: decision.reason }
-          : {})
-      });
+      Object.assign(record.attributes, samplingAttributes);
     }
     return true;
   }
