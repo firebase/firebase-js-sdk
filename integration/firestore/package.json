@@ -16,8 +16,8 @@
     "test:memory:debug": "yarn build:memory && vitest --project=browser --browser.headless=false"
   },
   "dependencies": {
-    "@firebase/app": "0.16.4",
-    "@firebase/firestore": "4.19.0"
+    "@firebase/app": "0.16.5",
+    "@firebase/firestore": "4.19.1"
   },
   "devDependencies": {
     "gulp": "5.0.1",

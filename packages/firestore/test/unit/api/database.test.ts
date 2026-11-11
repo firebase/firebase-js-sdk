@@ -42,6 +42,7 @@ import {
   querySnapshotWithQuery
 } from '../../util/api_helpers';
 import { keys, query as internalQuery, orderBy } from '../../util/helpers';
+import { MULTI_BYTE_VALUES } from '../util/bundle_data';
 
 describe('Bundle', () => {
   it('loadBundle does not throw with an empty bundle string)', async () => {
@@ -373,6 +374,29 @@ describe('DocumentSnapshot', () => {
       }
     }
   });
+
+  // Regression test for https://github.com/firebase/firebase-js-sdk/issues/10557
+  for (const [name, value] of Object.entries(MULTI_BYTE_VALUES)) {
+    // toJSON() only produces a bundle in Node.
+    it.skipIf(!isNode())(
+      `fromJSON round-trips toJSON result containing ${name}`,
+      () => {
+        const path = `coll${value}/doc${value}`;
+        const docSnap = documentSnapshot(
+          path,
+          { v: value, nested: { [`k${value}`]: [value] } },
+          /*fromCache=*/ true
+        );
+        const db = firestore();
+        const docSnapFromJSON = documentSnapshotFromJSON(db, docSnap.toJSON());
+        expect(docSnapFromJSON.ref.path).toBe(path);
+        expect(docSnapFromJSON.data()).toEqual({
+          v: value,
+          nested: { [`k${value}`]: [value] }
+        });
+      }
+    );
+  }
 });
 
 describe('Query', () => {
@@ -747,6 +771,42 @@ describe('QuerySnapshot', () => {
       expect(titles).toEqual(['A', 'B', 'C']);
     }
   });
+
+  // Regression test for https://github.com/firebase/firebase-js-sdk/issues/10557
+  for (const [name, value] of Object.entries(MULTI_BYTE_VALUES)) {
+    // toJSON() only produces a bundle in Node.
+    it.skipIf(!isNode())(
+      `fromJSON round-trips toJSON result containing ${name}`,
+      () => {
+        const collectionPath = `coll${value}`;
+        const snapshot = querySnapshot(
+          collectionPath,
+          {},
+          {
+            [`a${value}`]: { v: value, [`k${value}`]: 'key' },
+            [`b${value}`]: { v: `${value}-${value}`, n: 2 }
+          },
+          keys(), // An empty set of mutated document keys signifies that there are no pending writes.
+          false,
+          false
+        );
+        const db = firestore();
+        const querySnap = querySnapshotFromJSON(db, snapshot.toJSON());
+        expect(querySnap.docs.map(d => d.ref.path)).toEqual([
+          `${collectionPath}/a${value}`,
+          `${collectionPath}/b${value}`
+        ]);
+        expect(querySnap.docs[0].data()).toEqual({
+          v: value,
+          [`k${value}`]: 'key'
+        });
+        expect(querySnap.docs[1].data()).toEqual({
+          v: `${value}-${value}`,
+          n: 2
+        });
+      }
+    );
+  }
 
   it('fromJSON throws when parsing client-side toJSON result', () => {
     if (!isNode()) {

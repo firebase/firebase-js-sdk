@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist/next-navigation",
+    "declarationDir": "dist/next-navigation",
+    "jsx": "react"
+  },
+  "include": ["src/next-navigation/index.ts"]
+}
