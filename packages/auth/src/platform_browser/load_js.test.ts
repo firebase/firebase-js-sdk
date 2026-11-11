@@ -20,9 +20,21 @@ import {
   _loadJS,
   _setExternalJSProvider
 } from './load_js';
-import { _createError } from '../core/util/assert';
-import { AuthErrorCode } from '../core/errors';
+import { _loadJSInBrowser } from './load_js_browser';
+
+const GAPI_URL = 'https://apis.google.com/js/api.js';
+
 describe('platform-browser/load_js', () => {
+  beforeEach(() => {
+    _setExternalJSProvider({
+      loadJS: _loadJSInBrowser,
+      gapiScript: GAPI_URL,
+      recaptchaV2Script: 'https://www.google.com/recaptcha/api.js',
+      recaptchaEnterpriseScript:
+        'https://www.google.com/recaptcha/enterprise.js?render='
+    });
+  });
+
   afterEach(() => vi.restoreAllMocks());
 
   describe('_generateCallbackName', () => {
@@ -33,37 +45,39 @@ describe('platform-browser/load_js', () => {
 
   describe('_loadJS', () => {
     it('sets the appropriate properties', () => {
-      _setExternalJSProvider({
-        loadJS(url: string): Promise<Event> {
-          return new Promise((resolve, reject) => {
-            const el = document.createElement('script');
-            el.setAttribute('src', url);
-            el.onload = resolve;
-            el.onerror = e => {
-              const error = _createError(AuthErrorCode.INTERNAL_ERROR);
-              error.customData = e as unknown as Record<string, unknown>;
-              reject(error);
-            };
-            el.type = 'text/javascript';
-            el.charset = 'UTF-8';
-          });
-        },
-        gapiScript: 'https://gapiScript',
-        recaptchaV2Script: 'https://recaptchaV2Script',
-        recaptchaEnterpriseScript: 'https://recaptchaEnterpriseScript'
-      });
+      const el = document.createElement('script');
+      vi.spyOn(document, 'createElement').mockReturnValue(el);
+      vi.spyOn(document.head, 'appendChild').mockImplementation(node => node);
+
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      _loadJS(`${GAPI_URL}?onload=cb`);
+      expect(el.src).toBe(`${GAPI_URL}?onload=cb`);
+      expect(el.type).toBe('text/javascript');
+      expect(el.charset).toBe('UTF-8');
+      expect(document.head.appendChild).toHaveBeenCalledWith(el);
+    });
+
+    it('does not use setAttribute to set the script src', () => {
       const el = document.createElement('script');
       vi.spyOn(el, 'setAttribute');
       vi.spyOn(document, 'createElement').mockReturnValue(el);
+      vi.spyOn(document.head, 'appendChild').mockImplementation(node => node);
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      _loadJS('http://localhost/url');
-      expect(el.setAttribute).toHaveBeenCalledWith(
-        'src',
-        'http://localhost/url'
-      );
-      expect(el.type).toBe('text/javascript');
-      expect(el.charset).toBe('UTF-8');
+      _loadJS(GAPI_URL);
+      expect(el.setAttribute).not.toHaveBeenCalled();
     });
+
+    it.runIf(typeof window.trustedTypes !== 'undefined')(
+      'rejects untrusted script URLs when Trusted Types are supported',
+      async () => {
+        vi.spyOn(document.head, 'appendChild').mockImplementation(node => node);
+
+        await expect(_loadJS('https://evil.example/script.js')).rejects.toThrow(
+          'Refusing to load untrusted script URL'
+        );
+        expect(document.head.appendChild).not.toHaveBeenCalled();
+      }
+    );
   });
 });

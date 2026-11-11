@@ -145,5 +145,10 @@ export const _serverApps: Map<string, FirebaseServerApp>;
 // @public
 export function setLogLevel(logLevel: LogLevelString): void;
 
+// @internal
+export function _setTrustedScriptSrc(script: HTMLScriptElement, url: string): void;
+
+// @internal
+export const _TRUSTED_TYPES_POLICY_NAME = "firebase-js-sdk-policy";
 
 ```
