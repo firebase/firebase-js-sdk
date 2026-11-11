@@ -13871,9 +13871,9 @@ re2@^1.17.7:
     node-gyp "^13.0.1"
 
 re2js@^2.8.3:
-  version "2.8.3"
-  resolved "https://registry.npmjs.org/re2js/-/re2js-2.8.3.tgz#37d185b949b5da4ce7eb00c5c16e620db2f7e5c3"
-  integrity sha512-lUKeXVwMqU302DM/WaOm33XF2hhzjGUZ8CbLg4zSAMpW2PPkJ2+is25AROevNiw+DytFmKU5gsQ92cB1Kxy+fA==
+  version "2.10.0"
+  resolved "https://registry.npmjs.org/re2js/-/re2js-2.10.0.tgz#1ea3017d011b55335efa109b3b8448dc67cfc6e9"
+  integrity sha512-/P6FNnLbHjXJMRF1dPoZoVTyHvFcuVhbDpzml9DPMlbeErYlZ18GueAaG9GhYhAm/9AN7i7Y6crmDrLX0DeJ4Q==
 
 react-dom@19.1.1:
   version "19.1.1"
