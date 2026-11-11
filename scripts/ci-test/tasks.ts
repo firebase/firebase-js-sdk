@@ -76,7 +76,6 @@ const specialPaths = {
   'scripts/emulator-testing/firestore-test-runner.ts': ['@firebase/firestore'],
   'scripts/emulator-testing/database-test-runner.ts': ['@firebase/database'],
   'packages/firestore': ['firebase-firestore-integration-test'],
-  'packages/messaging': ['firebase-messaging-integration-test'],
   '.github/workflows/test-changed-firestore.yml': [
     '@firebase/firestore',
     '@firebase/firestore-compat'

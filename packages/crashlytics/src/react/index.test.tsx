@@ -1,0 +1,161 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import * as crashlytics from '../api';
+import { registerGlobalErrorListeners } from '../helpers';
+import { FirebaseApp } from '@firebase/app';
+import { Crashlytics } from '../public-types';
+import { FirebaseCrashlytics } from '.';
+import React from 'react';
+import { AttributesStore } from '../attributes-store';
+import { render } from '@testing-library/react';
+import { ALREADY_LOGGED_FLAG } from '../constants';
+import { ErrorWithSymbol } from '../types';
+import type { Mock, MockInstance } from 'vitest';
+
+vi.mock('../api', { spy: true });
+
+class TestErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): { error: Error } {
+    return { error };
+  }
+
+  componentDidCatch(error: Error): void {
+    // We can also log here if needed
+  }
+
+  render(): React.ReactNode {
+    if (this.state.error) {
+      return null;
+    }
+    return this.props.children;
+  }
+}
+
+describe('FirebaseCrashlytics', () => {
+  let getCrashlyticsStub: MockInstance;
+  let emitStub: Mock;
+  let fakeApp: FirebaseApp;
+  let fakeCrashlytics: Crashlytics;
+  let fakeTracer: any;
+  let fakeContextManager: any;
+  let cleanupListeners: (() => void) | undefined;
+
+  beforeEach(() => {
+    fakeApp = { name: 'fakeApp' } as FirebaseApp;
+    emitStub = vi.fn();
+    fakeTracer = {
+      startSpan: vi.fn()
+    };
+    fakeContextManager = {
+      startRootSpan: vi.fn()
+    };
+    const fakeTracingProvider = {
+      getTracer: vi.fn().mockReturnValue(fakeTracer)
+    };
+    fakeCrashlytics = {
+      app: {
+        options: {}
+      },
+      loggerProvider: {
+        getLogger: vi.fn().mockReturnValue({
+          emit: emitStub
+        })
+      },
+      tracingProvider: fakeTracingProvider,
+      attributesStore: new AttributesStore({ projectId: 'fake-project' }),
+      telemetryStore: {
+        clear: vi.fn()
+      }
+    } as unknown as Crashlytics;
+
+    getCrashlyticsStub = vi
+      .spyOn(crashlytics, 'getCrashlytics')
+      .mockImplementation(() => {
+        cleanupListeners = registerGlobalErrorListeners(fakeCrashlytics);
+        return fakeCrashlytics;
+      });
+  });
+
+  afterEach(() => {
+    cleanupListeners?.();
+    cleanupListeners = undefined;
+    vi.restoreAllMocks();
+  });
+
+  it('captures window errors', () => {
+    const prevOnError = window.onerror;
+    window.onerror = () => true;
+
+    render(<FirebaseCrashlytics firebaseApp={fakeApp} />);
+    const error = new Error('test error');
+
+    window.dispatchEvent(new ErrorEvent('error', { error }));
+
+    expect(getCrashlyticsStub).toHaveBeenCalledWith(fakeApp, undefined);
+    expect(emitStub).toHaveBeenCalledTimes(1);
+    const log = emitStub.mock.calls[0][0];
+    expect(log.body).toBe('test error');
+    expect(log.attributes['exception.type']).toBe('Error');
+    expect(typeof log.attributes['exception.stacktrace']).toBe('string');
+    expect(log.attributes['exception.message']).toBe('test error');
+
+    window.onerror = prevOnError;
+  });
+
+  it('captures unhandled promise rejections', () => {
+    render(<FirebaseCrashlytics firebaseApp={fakeApp} />);
+    const reason = new Error('test rejection');
+    const promise = Promise.reject(reason);
+    promise.catch(() => {});
+
+    window.dispatchEvent(
+      new PromiseRejectionEvent('unhandledrejection', { reason, promise })
+    );
+
+    expect(getCrashlyticsStub).toHaveBeenCalledWith(fakeApp, undefined);
+    expect(emitStub).toHaveBeenCalledTimes(1);
+    const log = emitStub.mock.calls[0][0];
+    expect(log.body).toBe('test rejection');
+    expect(log.attributes['exception.type']).toBe('Error');
+    expect(typeof log.attributes['exception.stacktrace']).toBe('string');
+    expect(log.attributes['exception.message']).toBe('test rejection');
+  });
+
+  it('ignores errors that have already been logged by Crashlytics', () => {
+    const prevOnError = window.onerror;
+    window.onerror = () => true;
+
+    render(<FirebaseCrashlytics firebaseApp={fakeApp} />);
+    const error = new Error('already logged error');
+    (error as ErrorWithSymbol)[ALREADY_LOGGED_FLAG] = true;
+
+    window.dispatchEvent(new ErrorEvent('error', { error }));
+
+    expect(emitStub).not.toHaveBeenCalled();
+
+    window.onerror = prevOnError;
+  });
+});

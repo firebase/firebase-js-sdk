@@ -87,7 +87,7 @@ const appBuilds = [
   }
 ];
 
-const componentBuilds = pkg.components
+const componentBuilds = [...pkg.components, ...(pkg.nonCdnComponents || [])]
   // The "app" component is treated differently because it doesn't depend on itself.
   .filter(component => component !== 'app')
   .map(component => {
