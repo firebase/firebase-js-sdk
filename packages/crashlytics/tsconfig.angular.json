@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist/angular",
+    "declarationDir": "dist/angular"
+  },
+  "include": ["src/angular/index.ts"]
+}
