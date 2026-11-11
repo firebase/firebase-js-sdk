@@ -18,6 +18,7 @@
 import { AttributesStore } from '../attributes-store';
 import {
   ATTR_KEY_SESSION_SAMPLING_RATE,
+  ATTR_KEY_SESSION_SAMPLING_REASON,
   CLIENT_CONFIG_INITIAL_WAIT_MS,
   SESSION_SAMPLING_HASH_BUCKETS
 } from '../constants';
@@ -41,6 +42,12 @@ export interface SamplingDecision {
    * as `session.sampling.rate`. Always in `(0.0, 1.0]` for sampled sessions.
    */
   samplingRate: number;
+  /**
+   * Why the session was sampled, if not by the configured rate. Stamped on every exported log
+   * record and span as `session.sampling.reason`. The only reason is `'debug'`: the telemetry debug
+   * override forced the session to be sampled at `1.0`.
+   */
+  reason?: 'debug';
 }
 
 /**
@@ -67,10 +74,12 @@ export function isSessionSampled(sessionId: string, rate: number): boolean {
  *   rate it was made with) is fixed for the rest of the session and persisted in `sessionStorage`
  *   so page reloads within the session do not flip it. Rate changes apply to new sessions only;
  *   downward changes are additionally enforced immediately by the backend.
+ * - The telemetry debug override (see {@link isTelemetryDebugEnabled}) is the one exception: from
+ *   the next export after it is turned on, even mid-session, the session is sampled with a stamped
+ *   rate of `1.0` and `session.sampling.reason = "debug"`, so the server does not re-sample it.
+ *   The session keeps this debug decision even if the override is turned off later.
  * - Once the decision is made or restored, the configuration isn't read again for the session, so
  *   its periodic refresh is stopped (see {@link ClientConfigStore.stop}).
- * - The telemetry debug override (see {@link isTelemetryDebugEnabled}) forces the session to be
- *   sampled on the device with a stamped rate of `1.0`.
  *
  * @internal
  */
@@ -138,8 +147,9 @@ export class SessionSampler {
   /**
    * Applies the session's sampling decision to a batch of log records or spans about to be
    * exported. Waits for the decision (see {@link SessionSampler.getDecision}); if the session is
-   * sampled, stamps `session.sampling.rate` on every record and resolves to `true`. Otherwise
-   * resolves to `false`, and the caller must drop the batch without sending it.
+   * sampled, stamps `session.sampling.rate` (and `session.sampling.reason`, if the decision has
+   * one) on every record and resolves to `true`. Otherwise resolves to `false`, and the caller must
+   * drop the batch without sending it.
    *
    * Shared by the log and trace exporters, so both apply the decision at export time the same way.
    */
@@ -152,7 +162,10 @@ export class SessionSampler {
     }
     for (const record of records) {
       Object.assign(record.attributes, {
-        [ATTR_KEY_SESSION_SAMPLING_RATE]: decision.samplingRate
+        [ATTR_KEY_SESSION_SAMPLING_RATE]: decision.samplingRate,
+        ...(decision.reason
+          ? { [ATTR_KEY_SESSION_SAMPLING_REASON]: decision.reason }
+          : {})
       });
     }
     return true;
@@ -195,7 +208,7 @@ export class SessionSampler {
     config: ClientConfig
   ): SamplingDecision {
     if (isTelemetryDebugEnabled()) {
-      return { sessionId, sampled: true, samplingRate: 1.0 };
+      return { sessionId, sampled: true, samplingRate: 1.0, reason: 'debug' };
     }
 
     const sampled =
@@ -204,21 +217,21 @@ export class SessionSampler {
   }
 
   /**
-   * Returns the current session's decision from memory or `sessionStorage`, if one was made. An
-   * unsampled decision is skipped while the debug override is on, so the session becomes sampled
-   * and stays that way.
+   * Returns the current session's decision from memory or `sessionStorage`, if one was made. A
+   * non-debug decision is skipped while the debug override is on, so the session switches to a
+   * debug decision and keeps it, even after the override is turned off.
    */
   private _cachedDecision(): SamplingDecision | undefined {
     const sessionId = this._attributesStore.sessionId;
     if (this._decision && this._decision.sessionId === sessionId) {
-      if (this._decision.sampled || !isTelemetryDebugEnabled()) {
+      if (this._decision.reason === 'debug' || !isTelemetryDebugEnabled()) {
         return this._decision;
       }
     }
     // Not in memory yet (e.g. the page was reloaded): use the decision saved for this session.
     const persisted = this._loadPersistedDecision();
     if (persisted && persisted.sessionId === sessionId && sessionId) {
-      if (persisted.sampled || !isTelemetryDebugEnabled()) {
+      if (persisted.reason === 'debug' || !isTelemetryDebugEnabled()) {
         this._decision = persisted;
         this._configStore.stop();
         return persisted;

@@ -18,6 +18,7 @@
 import { AttributesStore } from '../attributes-store';
 import {
   ATTR_KEY_SESSION_SAMPLING_RATE,
+  ATTR_KEY_SESSION_SAMPLING_REASON,
   SESSION_STORAGE_DEBUG_KEY,
   TELEMETRY_DEBUG_GLOBAL_FLAG
 } from '../constants';
@@ -356,6 +357,33 @@ describe('SessionSampler', () => {
       expect(await sampler.applySampling(records)).toBe(false);
       expect(records).toEqual([{ attributes: { existing: 'value' } }]);
     });
+
+    it('also stamps session.sampling.reason on every record of a debug session', async () => {
+      (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
+        true;
+      const { sampler } = createSampler({ samplingRate: 0.5 }, SESSION_HIGH);
+      const records = [
+        { attributes: { existing: 'value' } },
+        { attributes: {} }
+      ];
+
+      expect(await sampler.applySampling(records)).toBe(true);
+      expect(records).toEqual([
+        {
+          attributes: {
+            existing: 'value',
+            [ATTR_KEY_SESSION_SAMPLING_RATE]: 1,
+            [ATTR_KEY_SESSION_SAMPLING_REASON]: 'debug'
+          }
+        },
+        {
+          attributes: {
+            [ATTR_KEY_SESSION_SAMPLING_RATE]: 1,
+            [ATTR_KEY_SESSION_SAMPLING_REASON]: 'debug'
+          }
+        }
+      ]);
+    });
   });
 
   describe('waiting for the config refresh', () => {
@@ -499,7 +527,8 @@ describe('SessionSampler', () => {
       expect(await sampler.getDecision()).toEqual({
         sessionId: undefined,
         sampled: true,
-        samplingRate: 1
+        samplingRate: 1,
+        reason: 'debug'
       });
     });
 
@@ -510,7 +539,8 @@ describe('SessionSampler', () => {
       expect(await sampler.getDecision()).toEqual({
         sessionId: SESSION_HIGH,
         sampled: true,
-        samplingRate: 1
+        samplingRate: 1,
+        reason: 'debug'
       });
     });
 
@@ -520,7 +550,8 @@ describe('SessionSampler', () => {
       expect(await sampler.getDecision()).toEqual({
         sessionId: SESSION_HIGH,
         sampled: true,
-        samplingRate: 1
+        samplingRate: 1,
+        reason: 'debug'
       });
     });
 
@@ -530,7 +561,8 @@ describe('SessionSampler', () => {
       const { sampler } = createSampler({ samplingRate: 0 }, SESSION_HIGH);
       expect(await sampler.getDecision()).toMatchObject({
         sampled: true,
-        samplingRate: 1
+        samplingRate: 1,
+        reason: 'debug'
       });
     });
 
@@ -547,7 +579,8 @@ describe('SessionSampler', () => {
       expect(await sampler.getDecision()).toEqual({
         sessionId: SESSION_HIGH,
         sampled: true,
-        samplingRate: 1
+        samplingRate: 1,
+        reason: 'debug'
       });
       expect(store.refreshCount).toBe(0);
     });
@@ -561,8 +594,69 @@ describe('SessionSampler', () => {
       expect(await sampler.getDecision()).toEqual({
         sessionId: SESSION_HIGH,
         sampled: true,
-        samplingRate: 1
+        samplingRate: 1,
+        reason: 'debug'
       });
+    });
+
+    it('overrides a previously cached sampled decision when enabled mid-session', async () => {
+      const { sampler } = createSampler({ samplingRate: 0.5 }, SESSION_LOW);
+      expect(await sampler.getDecision()).toEqual({
+        sessionId: SESSION_LOW,
+        sampled: true,
+        samplingRate: 0.5
+      });
+
+      (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
+        true;
+      expect(await sampler.getDecision()).toEqual({
+        sessionId: SESSION_LOW,
+        sampled: true,
+        samplingRate: 1,
+        reason: 'debug'
+      });
+    });
+
+    it('overrides a decision restored after a reload once the override is on', async () => {
+      const { sampler } = createSampler({ samplingRate: 0.5 }, SESSION_HIGH);
+      expect((await sampler.getDecision()).sampled).toBe(false);
+
+      // E.g. the page is reloaded with `?firebase_telemetry_debug=true`, which sets this marker.
+      sessionStorage.setItem(SESSION_STORAGE_DEBUG_KEY, 'true');
+      const { sampler: reloaded } = createSampler(
+        { samplingRate: 0.5 },
+        SESSION_HIGH
+      );
+      expect(await reloaded.getDecision()).toEqual({
+        sessionId: SESSION_HIGH,
+        sampled: true,
+        samplingRate: 1,
+        reason: 'debug'
+      });
+    });
+
+    it('keeps the debug decision after the override is turned off, including after a reload', async () => {
+      (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
+        true;
+      const { sampler } = createSampler({ samplingRate: 0.5 }, SESSION_HIGH);
+      const debugDecision = await sampler.getDecision();
+      expect(debugDecision).toEqual({
+        sessionId: SESSION_HIGH,
+        sampled: true,
+        samplingRate: 1,
+        reason: 'debug'
+      });
+
+      delete (globalThis as Record<string, unknown>)[
+        TELEMETRY_DEBUG_GLOBAL_FLAG
+      ];
+      expect(await sampler.getDecision()).toEqual(debugDecision);
+
+      const { sampler: reloaded } = createSampler(
+        { samplingRate: 0.5 },
+        SESSION_HIGH
+      );
+      expect(await reloaded.getDecision()).toEqual(debugDecision);
     });
   });
 });
