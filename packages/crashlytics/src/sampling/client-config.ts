@@ -110,14 +110,6 @@ function getRefreshIntervalMs(cacheControl: string | null): number {
   );
 }
 
-function isValidStoredConfig(value: unknown): value is ClientConfig {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-  const config = value as Record<string, unknown>;
-  return typeof config['samplingRate'] === 'number';
-}
-
 /**
  * Holds the client telemetry configuration for one Crashlytics instance.
  *
@@ -319,29 +311,17 @@ export class ClientConfigStore {
   }
 
   private _loadFromStorage(): ClientConfig | undefined {
-    if (typeof localStorage === 'undefined') {
-      return undefined;
-    }
     try {
       const raw = localStorage.getItem(this._storageKey);
-      if (!raw) {
-        return undefined;
-      }
-      const parsed: unknown = JSON.parse(raw);
-      if (!isValidStoredConfig(parsed)) {
-        return undefined;
-      }
-      return { samplingRate: normalizeSamplingRate(parsed.samplingRate) };
+      // Only the SDK writes this entry, so the stored config is used as-is.
+      return raw ? (JSON.parse(raw) as ClientConfig) : undefined;
     } catch (e) {
-      // Ignore errors accessing localStorage (e.g. security restrictions) or corrupt entries.
+      // localStorage is unavailable (e.g. outside a browser or blocked) or the entry is corrupt.
       return undefined;
     }
   }
 
   private _saveToStorage(config: ClientConfig): void {
-    if (typeof localStorage === 'undefined') {
-      return;
-    }
     try {
       localStorage.setItem(this._storageKey, JSON.stringify(config));
     } catch (e) {

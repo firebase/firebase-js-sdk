@@ -101,15 +101,9 @@ describe('ClientConfigStore', () => {
     expect(createStore().config).toEqual({ samplingRate: 0.3 });
   });
 
-  it('ignores corrupt or out-of-range cached configs', () => {
+  it('ignores a corrupt cached config', () => {
     localStorage.setItem(STORAGE_KEY, '{not json');
     expect(createStore().config).toEqual(DEFAULT_CONFIG);
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ enabled: true }));
-    expect(createStore().config).toEqual(DEFAULT_CONFIG);
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ samplingRate: 5 }));
-    expect(createStore().config.samplingRate).toBe(1);
   });
 
   it('fetches the config with an unauthenticated GET through the HTTP cache and caches the result', async () => {

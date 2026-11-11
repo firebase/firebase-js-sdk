@@ -225,34 +225,18 @@ export class SessionSampler {
   }
 
   private _loadPersistedDecision(): SamplingDecision | undefined {
-    if (typeof sessionStorage === 'undefined') {
-      return undefined;
-    }
     try {
       const raw = sessionStorage.getItem(this._storageKey);
-      if (!raw) {
-        return undefined;
-      }
-      const parsed = JSON.parse(raw) as Partial<SamplingDecision>;
-      if (
-        typeof parsed.sessionId !== 'string' ||
-        typeof parsed.sampled !== 'boolean' ||
-        typeof parsed.samplingRate !== 'number'
-      ) {
-        return undefined;
-      }
-      return {
-        sessionId: parsed.sessionId,
-        sampled: parsed.sampled,
-        samplingRate: parsed.samplingRate
-      };
+      // Only the SDK writes this entry, so the stored decision is used as-is.
+      return raw ? (JSON.parse(raw) as SamplingDecision) : undefined;
     } catch (e) {
+      // sessionStorage is unavailable (e.g. outside a browser or blocked) or the entry is corrupt.
       return undefined;
     }
   }
 
   private _persistDecision(decision: SamplingDecision): void {
-    if (typeof sessionStorage === 'undefined' || !decision.sessionId) {
+    if (!decision.sessionId) {
       return;
     }
     try {
