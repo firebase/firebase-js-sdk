@@ -86,8 +86,10 @@ describe('recaptcha', () => {
       const scripts = findgreCAPTCHAScriptsOnPage();
       expect(scripts.length).toBe(1);
       expect(scripts[0].src).toBe(RECAPTCHA_URL);
-      if (typeof TrustedScriptURL !== 'undefined') {
-        expect(srcSetter).toHaveBeenCalledWith(expect.any(TrustedScriptURL));
+      if (typeof window.TrustedScriptURL !== 'undefined') {
+        expect(srcSetter).toHaveBeenCalledWith(
+          expect.any(window.TrustedScriptURL)
+        );
       }
     });
 
@@ -142,8 +144,10 @@ describe('recaptcha', () => {
       expect(scripts[0].src).toBe(
         `${RECAPTCHA_ENTERPRISE_URL}?render=explicit`
       );
-      if (typeof TrustedScriptURL !== 'undefined') {
-        expect(srcSetter).toHaveBeenCalledWith(expect.any(TrustedScriptURL));
+      if (typeof window.TrustedScriptURL !== 'undefined') {
+        expect(srcSetter).toHaveBeenCalledWith(
+          expect.any(window.TrustedScriptURL)
+        );
       }
     });
 

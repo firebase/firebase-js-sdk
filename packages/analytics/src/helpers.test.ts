@@ -50,18 +50,19 @@ describe('Trusted Types', () => {
     removeGtagScripts();
   });
 
-  it.runIf(typeof TrustedScriptURL !== 'undefined')(
-    'insertScriptTag sets the script src to a TrustedScriptURL',
-    () => {
+  if (typeof window.TrustedScriptURL !== 'undefined') {
+    it('insertScriptTag sets the script src to a TrustedScriptURL', () => {
       const srcSetter = vi.spyOn(HTMLScriptElement.prototype, 'src', 'set');
       insertScriptTag('dataLayer', fakeMeasurementId);
-      expect(srcSetter).toHaveBeenCalledWith(expect.any(TrustedScriptURL));
+      expect(srcSetter).toHaveBeenCalledWith(
+        expect.any(window.TrustedScriptURL)
+      );
       const scriptTag = findGtagScriptOnPage('dataLayer');
       expect(scriptTag!.src).toBe(
         `${GTAG_URL}?l=dataLayer&id=${fakeMeasurementId}`
       );
-    }
-  );
+    });
+  }
 });
 
 describe('Gtag wrapping functions', () => {
