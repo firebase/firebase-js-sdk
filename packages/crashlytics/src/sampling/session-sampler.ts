@@ -201,9 +201,9 @@ export class SessionSampler {
   }
 
   /**
-   * Returns the decision already made for the current session, from memory or, after a reload,
-   * from `sessionStorage`. An unsampled decision isn't reused while the debug override is on, so
-   * turning the override on mid-session takes effect.// TODO: Consider whether the override should be sticky for the session, so turning it off mid-session doesn't flip the decision back to unsampled.
+   * Returns the current session's decision from memory or `sessionStorage`, if one was made. An
+   * unsampled decision is skipped while the debug override is on, so the session becomes sampled
+   * and stays that way.
    */
   private _cachedDecision(): SamplingDecision | undefined {
     const sessionId = this._attributesStore.sessionId;
@@ -212,7 +212,7 @@ export class SessionSampler {
         return this._decision;
       }
     }
-    // A new session (or first use after a reload): try the persisted decision.
+    // Not in memory yet (e.g. the page was reloaded): use the decision saved for this session.
     const persisted = this._loadPersistedDecision();
     if (persisted && persisted.sessionId === sessionId && sessionId) {
       if (persisted.sampled || !isTelemetryDebugEnabled()) {
