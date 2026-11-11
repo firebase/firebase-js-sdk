@@ -3246,14 +3246,14 @@
     estree-walker "^2.0.2"
     magic-string "^0.30.3"
 
-"@rollup/plugin-terser@0.4.4":
-  version "0.4.4"
-  resolved "https://registry.npmjs.org/@rollup/plugin-terser/-/plugin-terser-0.4.4.tgz#15dffdb3f73f121aa4fbb37e7ca6be9aeea91962"
-  integrity sha512-XHeJC5Bgvs8LfukDwWZp7yeqin6ns8RTl2B9avbejt6tZqsqvVoWI7ZTQrcNsfKEDWBTnTxM8nMDkO2IFFbd0A==
+"@rollup/plugin-terser@1.0.2":
+  version "1.0.2"
+  resolved "https://registry.npmjs.org/@rollup/plugin-terser/-/plugin-terser-1.0.2.tgz#3686f1685669819874956b4bdb965cf21d9eb2d5"
+  integrity sha512-+UihHnuLnQDQ/9wog7ym+7oawCXkjTIo0WwkK7s//0mkktTN0VhYk6fGVxH+NtGzW064w5RCGgreMDxRVhHCzw==
   dependencies:
-    serialize-javascript "^6.0.1"
+    serialize-javascript "^7.0.3"
     smob "^1.0.0"
-    terser "^5.17.4"
+    terser "^5.49.2"
 
 "@rollup/plugin-virtual@3.0.2":
   version "3.0.2"
@@ -14708,12 +14708,17 @@ serialize-javascript@^2.1.2:
   resolved "https://registry.npmjs.org/serialize-javascript/-/serialize-javascript-2.1.2.tgz#ecec53b0e0317bdc95ef76ab7074b7384785fa61"
   integrity sha512-rs9OggEUF0V4jUSecXazOYsLfu7OGK2qIn3c7IPBiffz32XniEp/TX9Xmc9LQfK2nQ2QKHvZ2oygKUGU0lG4jQ==
 
-serialize-javascript@^6.0.1, serialize-javascript@^6.0.2:
+serialize-javascript@^6.0.2:
   version "6.0.2"
   resolved "https://registry.npmjs.org/serialize-javascript/-/serialize-javascript-6.0.2.tgz#defa1e055c83bf6d59ea805d8da862254eb6a6c2"
   integrity sha512-Saa1xPByTTq2gdeFZYLLo+RFE35NHZkAbqZeWNd3BpzppeVisAqpDjcp8dyf6uIvEqJRd46jemmyA4iFIeVk8g==
   dependencies:
     randombytes "^2.1.0"
+
+serialize-javascript@^7.0.3:
+  version "7.1.4"
+  resolved "https://registry.npmjs.org/serialize-javascript/-/serialize-javascript-7.1.4.tgz#477af55bdec0d831fa3b209245f673217fd27380"
+  integrity sha512-FqlEuoTq/zRmA4Lg6aOqyH3lCHbUtCB0bmHCeFniX2GBdDqMJM3FwdvEhlE5Pim1dlt2FfBdVPmUNNiGhhKqpw==
 
 serve-static@1.16.2:
   version "1.16.2"
@@ -15790,7 +15795,7 @@ terser-webpack-plugin@^5.3.16:
     schema-utils "^4.3.0"
     terser "^5.31.1"
 
-terser@5.37.0, terser@^5.17.4:
+terser@5.37.0:
   version "5.37.0"
   resolved "https://registry.npmjs.org/terser/-/terser-5.37.0.tgz#38aa66d1cfc43d0638fab54e43ff8a4f72a21ba3"
   integrity sha512-B8wRRkmre4ERucLM/uXx4MOV5cbnOlVAqUst+1+iLKPI0dOgFO28f84ptoQt9HEI537PMzfYa/d+GEPKTRXmYA==
@@ -15820,7 +15825,7 @@ terser@^5.31.1:
     commander "^2.20.0"
     source-map-support "~0.5.20"
 
-terser@^5.51.0:
+terser@^5.49.2, terser@^5.51.0:
   version "5.51.2"
   resolved "https://registry.npmjs.org/terser/-/terser-5.51.2.tgz#555912425a7f2ff7737425c3718fa76c7069f6ef"
   integrity sha512-bWnjSNscmuI+GJze6ZupnHP8G/cTcsJF+bXCeQknk2SHQsgbNJnLrqiH9jZ2W4STPVXH2mDKKRX3iwPhc9Cn/Q==
