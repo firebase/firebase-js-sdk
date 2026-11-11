@@ -11,20 +11,20 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all"
   },
   "dependencies": {
-    "@firebase/app": "0.16.5",
-    "@firebase/app-compat": "0.5.21",
+    "@firebase/app": "0.16.6",
+    "@firebase/app-compat": "0.5.22",
     "@firebase/analytics": "0.10.25",
     "@firebase/analytics-compat": "0.2.31",
-    "@firebase/auth": "1.13.9",
-    "@firebase/auth-compat": "0.6.14",
+    "@firebase/auth": "1.13.10",
+    "@firebase/auth-compat": "0.6.15",
     "@firebase/functions": "0.14.0",
     "@firebase/functions-compat": "0.5.0",
     "@firebase/messaging": "0.13.3",
     "@firebase/messaging-compat": "0.2.30",
     "@firebase/performance": "0.7.14",
     "@firebase/performance-compat": "0.2.27",
-    "@firebase/remote-config": "0.9.3",
-    "@firebase/remote-config-compat": "0.2.30"
+    "@firebase/remote-config": "0.10.0",
+    "@firebase/remote-config-compat": "0.2.31"
   },
   "devDependencies": {
     "typescript": "5.5.4"
