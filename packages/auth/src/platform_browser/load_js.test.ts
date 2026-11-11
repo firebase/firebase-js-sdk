@@ -68,16 +68,13 @@ describe('platform-browser/load_js', () => {
       expect(el.setAttribute).not.toHaveBeenCalled();
     });
 
-    it.runIf(typeof window.trustedTypes !== 'undefined')(
-      'rejects untrusted script URLs when Trusted Types are supported',
-      async () => {
-        vi.spyOn(document.head, 'appendChild').mockImplementation(node => node);
+    it('rejects untrusted script URLs', async () => {
+      vi.spyOn(document.head, 'appendChild').mockImplementation(node => node);
 
-        await expect(_loadJS('https://evil.example/script.js')).rejects.toThrow(
-          'Refusing to load untrusted script URL'
-        );
-        expect(document.head.appendChild).not.toHaveBeenCalled();
-      }
-    );
+      await expect(_loadJS('https://evil.example/script.js')).rejects.toThrow(
+        'Refusing to load untrusted script URL'
+      );
+      expect(document.head.appendChild).not.toHaveBeenCalled();
+    });
   });
 });

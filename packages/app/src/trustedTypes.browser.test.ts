@@ -112,6 +112,32 @@ describe('Trusted Types', () => {
       expect(script.src).toBe('');
     });
 
+    it('throws for untrusted URLs when Trusted Types are unavailable', () => {
+      vi.stubGlobal('trustedTypes', undefined);
+      const script = document.createElement('script');
+      expect(() =>
+        _setTrustedScriptSrc(script, 'https://evil.example/script.js')
+      ).toThrow('Refusing to load untrusted script URL');
+      expect(script.src).toBe('');
+    });
+
+    it('throws for untrusted URLs without logging when the policy cannot be created', () => {
+      vi.stubGlobal('trustedTypes', {
+        createPolicy: () => {
+          throw new TypeError('Policy not allowed by CSP');
+        }
+      });
+      const loggerError = vi
+        .spyOn(logger, 'error')
+        .mockImplementation(() => {});
+      const script = document.createElement('script');
+      expect(() =>
+        _setTrustedScriptSrc(script, 'https://evil.example/script.js')
+      ).toThrow('Refusing to load untrusted script URL');
+      expect(script.src).toBe('');
+      expect(loggerError).not.toHaveBeenCalled();
+    });
+
     it('falls back to a plain string if the policy cannot be created', () => {
       vi.stubGlobal('trustedTypes', {
         createPolicy: () => {

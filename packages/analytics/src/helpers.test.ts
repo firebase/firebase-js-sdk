@@ -50,20 +50,12 @@ describe('Trusted Types', () => {
     removeGtagScripts();
   });
 
-  // This must run before any other test in this file inserts a script tag,
-  // because the Firebase Trusted Types policy is only created once.
-  it.runIf(typeof window.trustedTypes !== 'undefined')(
-    'insertScriptTag sets the script src through the Firebase Trusted Types policy',
+  it.runIf(typeof TrustedScriptURL !== 'undefined')(
+    'insertScriptTag sets the script src to a TrustedScriptURL',
     () => {
-      const createPolicy = vi.spyOn(
-        window.trustedTypes as TrustedTypePolicyFactory,
-        'createPolicy'
-      );
+      const srcSetter = vi.spyOn(HTMLScriptElement.prototype, 'src', 'set');
       insertScriptTag('dataLayer', fakeMeasurementId);
-      expect(createPolicy).toHaveBeenCalledWith(
-        'firebase-js-sdk-policy',
-        expect.anything()
-      );
+      expect(srcSetter).toHaveBeenCalledWith(expect.any(TrustedScriptURL));
       const scriptTag = findGtagScriptOnPage('dataLayer');
       expect(scriptTag!.src).toBe(
         `${GTAG_URL}?l=dataLayer&id=${fakeMeasurementId}`

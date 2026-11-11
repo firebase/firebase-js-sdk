@@ -110,8 +110,8 @@ function getTrustedTypesPolicy(): ScriptURLPolicy | null {
  * when Trusted Types are supported, so that Firebase SDKs can load external
  * scripts on pages that enforce Trusted Types.
  *
- * Throws if `url` is not an allowed Firebase script URL (when Trusted Types are
- * supported), or if the browser rejects the assignment.
+ * Throws if `url` is not an allowed Firebase script URL, or if the browser
+ * rejects the assignment.
  *
  * @param script - The script element to update.
  * @param url - The script URL. Must be an allowed Firebase script URL.
@@ -122,6 +122,9 @@ export function _setTrustedScriptSrc(
   script: HTMLScriptElement,
   url: string
 ): void {
+  // Validate the URL even when Trusted Types are unavailable, so that the
+  // allowlist is enforced the same way in every browser.
+  _createTrustedScriptURL(url);
   const policy = getTrustedTypesPolicy();
   if (policy) {
     // HTMLScriptElement.src is typed as a string, but accepts a

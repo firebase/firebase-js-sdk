@@ -27,9 +27,6 @@ import { registerCoreComponents } from './registerCoreComponents';
 export * from './api';
 export * from './internal';
 export * from './public-types';
-export {
-  _setTrustedScriptSrc,
-  _TRUSTED_TYPES_POLICY_NAME
-} from './trustedTypes';
+export { _setTrustedScriptSrc } from './trustedTypes';
 
 registerCoreComponents('__RUNTIME_ENV__');
