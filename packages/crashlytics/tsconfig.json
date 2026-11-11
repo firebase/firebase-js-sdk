@@ -10,6 +10,10 @@
         "node_modules/@opentelemetry/browser-instrumentation/dist/*",
         "../../node_modules/@opentelemetry/browser-instrumentation/dist/*"
       ],
+      "@opentelemetry/browser-api": [
+        "node_modules/@opentelemetry/browser-api/dist/index.d.ts",
+        "../../node_modules/@opentelemetry/browser-api/dist/index.d.ts"
+      ],
       "@opentelemetry/instrumentation": [
         "node_modules/@opentelemetry/instrumentation",
         "../../node_modules/@opentelemetry/instrumentation"

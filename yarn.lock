@@ -2745,10 +2745,17 @@
   dependencies:
     "@octokit/openapi-types" "^24.2.0"
 
-"@opentelemetry/api-logs@0.220.0", "@opentelemetry/api-logs@^0.220.0":
+"@opentelemetry/api-logs@0.220.0":
   version "0.220.0"
   resolved "https://registry.npmjs.org/@opentelemetry/api-logs/-/api-logs-0.220.0.tgz#b2ed235de4b5f3c1769adfa5f3bc247d82cdfbc9"
   integrity sha512-CmVa4ImJ+ynfrPMNaAXHET6Bhb44SwzmfyVJFq9ni2jgXJR/l7C6gfVFddNmHP+ZOkP9cf4f9DBe68qVLTHc9w==
+  dependencies:
+    "@opentelemetry/api" "^1.3.0"
+
+"@opentelemetry/api-logs@^0.223.0":
+  version "0.223.0"
+  resolved "https://registry.npmjs.org/@opentelemetry/api-logs/-/api-logs-0.223.0.tgz#12819b6542fbde1a394a592214b62990a3ad1615"
+  integrity sha512-Oepm6etVPFCn0VWB1t833iOTgz1eYBDUPxcrOR/XvwzD1+Ag9VzSPSrrKAFNJ/haatj+8CXbG47pZXvdNQKDJw==
   dependencies:
     "@opentelemetry/api" "^1.3.0"
 
@@ -2767,16 +2774,22 @@
   resolved "https://registry.npmjs.org/@opentelemetry/api/-/api-1.9.0.tgz#d03eba68273dc0f7509e2a3d5cba21eae10379fe"
   integrity sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==
 
-"@opentelemetry/browser-instrumentation@0.6.0":
-  version "0.6.0"
-  resolved "https://registry.npmjs.org/@opentelemetry/browser-instrumentation/-/browser-instrumentation-0.6.0.tgz#e1a3507d66a389795972469a7391dcdf72603e76"
-  integrity sha512-ZYi3WaiCix1D8K6SY5y+i9zvo0lWsnd/tKKnk5PaqWLLxUhVl0gud8G79RJZ3NApDZvQ57PAvNC7povMHIj7jw==
+"@opentelemetry/browser-api@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.npmjs.org/@opentelemetry/browser-api/-/browser-api-0.1.0.tgz#4d4ffead02b28c8a95e52ffe9a20e5b4f4fd9580"
+  integrity sha512-EA+F9TBWCb48esI8TiQuFA9RscHy2ZAq3n65AHl/FuxxrxG/LgkuRoWnO3TRE2v+yIqvrMUPChDd8FyW3vWb5g==
   dependencies:
-    "@opentelemetry/api-logs" "^0.220.0"
-    "@opentelemetry/core" "^2.9.0"
-    "@opentelemetry/instrumentation" "^0.220.0"
+    "@opentelemetry/api-logs" "^0.223.0"
+
+"@opentelemetry/browser-instrumentation@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.npmjs.org/@opentelemetry/browser-instrumentation/-/browser-instrumentation-0.11.0.tgz#c46b715b59a1a3be036a0f7f3be07f04dd6cae61"
+  integrity sha512-9brrVpA5YQ8k2O2Bq5GwZR2yQ/RXlRzvFUVCJhuBFR4TdAnRRlSP9b6/G7Qv5aXUKjK7EN9PiHPUWteCj3F3SQ==
+  dependencies:
+    "@opentelemetry/api-logs" "^0.223.0"
+    "@opentelemetry/browser-api" "^0.1.0"
     "@opentelemetry/semantic-conventions" "^1.43.0"
-    web-vitals "^5.3.0"
+    web-vitals "^6.2.3"
 
 "@opentelemetry/core@2.10.0":
   version "2.10.0"
@@ -2785,7 +2798,7 @@
   dependencies:
     "@opentelemetry/semantic-conventions" "^1.29.0"
 
-"@opentelemetry/core@2.12.0", "@opentelemetry/core@^2.0.0", "@opentelemetry/core@^2.9.0":
+"@opentelemetry/core@2.12.0", "@opentelemetry/core@^2.0.0":
   version "2.12.0"
   resolved "https://registry.npmjs.org/@opentelemetry/core/-/core-2.12.0.tgz#b44e9806111f066a2df578e37fc88ef46ccdfe20"
   integrity sha512-1HsSAuvT4/my0QrXWsyXFdWjKaPeCHsismKZgEEIb8NK13LP6DrMRlsUbvD/0F9mDWK3xDom9AMv3IscxgOnOQ==
@@ -16896,10 +16909,10 @@ web-vitals@^4.2.4:
   resolved "https://registry.npmjs.org/web-vitals/-/web-vitals-4.2.4.tgz#1d20bc8590a37769bd0902b289550936069184b7"
   integrity sha512-r4DIlprAGwJ7YM11VZp4R884m0Vmgr6EAKe3P+kO0PPj3Unqyvv59rczf6UiGcb9Z8QxZVcqKNwv/g0WNdWwsw==
 
-web-vitals@^5.3.0:
-  version "5.3.0"
-  resolved "https://registry.npmjs.org/web-vitals/-/web-vitals-5.3.0.tgz#a67f57f229fdf68be99eb99d3725946def284ff3"
-  integrity sha512-q6LWsLatGYZp5VGBIOvbTj6JBV2nOmC8KvWztXBmwJcfFAzhwKwbOxhUH306XY3CcaZDUlSmSuNPBsCn0bFu+g==
+web-vitals@^6.2.3:
+  version "6.2.3"
+  resolved "https://registry.npmjs.org/web-vitals/-/web-vitals-6.2.3.tgz#8581188b2a46875d04b9536ab06b352e3a0468b8"
+  integrity sha512-Dmy+vdO1UPMqXiAtZSNayhl4f794Bxfd94W4HIj2HlYtczEQfEOon969memlcpcHrTuOKLa5baFjX7WbgmOq+A==
 
 webidl-conversions@^3.0.0:
   version "3.0.1"
