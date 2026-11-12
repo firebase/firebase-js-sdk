@@ -431,5 +431,26 @@ describe('ClientConfigStore', () => {
       document.dispatchEvent(new Event('visibilitychange'));
       expect(fetchStub).toHaveBeenCalledTimes(1);
     });
+
+    it('does not schedule a refresh when stopped while the fetch is in flight', async () => {
+      vi.useFakeTimers();
+      let respond!: (response: Response) => void;
+      fetchStub.mockImplementation(
+        () =>
+          new Promise<Response>(resolve => {
+            respond = resolve;
+          })
+      );
+      const store = createStore();
+      store.start();
+      // E.g. the session's sampling decision was made before the first fetch returned.
+      store.stop();
+      respond(jsonResponse({ samplingRate: 0.5 }, 200, DEFAULT_CACHE_CONTROL));
+      await store.refreshIfStale();
+      expect(store.config).toEqual({ samplingRate: 0.5 });
+
+      await vi.advanceTimersByTimeAsync(DEFAULT_REFRESH_INTERVAL_MS);
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+    });
   });
 });

@@ -67,6 +67,8 @@ export function isSessionSampled(sessionId: string, rate: number): boolean {
  *   rate it was made with) is fixed for the rest of the session and persisted in `sessionStorage`
  *   so page reloads within the session do not flip it. Rate changes apply to new sessions only;
  *   downward changes are additionally enforced immediately by the backend.
+ * - Once the decision is made or restored, the configuration isn't read again for the session, so
+ *   its periodic refresh is stopped (see {@link ClientConfigStore.stop}).
  * - The telemetry debug override (see {@link isTelemetryDebugEnabled}) forces the session to be
  *   sampled on the device with a stamped rate of `1.0`.
  *
@@ -129,6 +131,7 @@ export class SessionSampler {
     );
     this._decision = decision;
     this._persistDecision(decision);
+    this._configStore.stop();
     return decision;
   }
 
@@ -217,6 +220,7 @@ export class SessionSampler {
     if (persisted && persisted.sessionId === sessionId && sessionId) {
       if (persisted.sampled || !isTelemetryDebugEnabled()) {
         this._decision = persisted;
+        this._configStore.stop();
         return persisted;
       }
     }

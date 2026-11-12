@@ -125,10 +125,10 @@ function getRefreshIntervalMs(cacheControl: string | null): number {
  *   never while the page is hidden; the app itself is never blocked. The wait is usually near zero:
  *   a refresh started in the last minute is reused, and the browser's HTTP cache answers while the
  *   last response is still fresh.
- * - **Periodic refresh**: long-running pages re-fetch once the last response's cache lifetime has
- *   passed (`max-age` + `stale-while-revalidate`), but only while
- *   the page is visible. A page that is hidden when the refresh falls due re-fetches when it
- *   becomes visible again.
+ * - **Periodic refresh**: the configuration is re-fetched each time the last response's cache
+ *   lifetime (`max-age` + `stale-while-revalidate`) passes, deferred while the page is hidden,
+ *   until the session's sampling decision is made; it isn't read after that. Short-lived pages
+ *   unload before the first refresh, so only long-running pages refresh.
  *
  * Fetches go through the browser's HTTP cache (the default `fetch` cache mode), which honors the
  * server's `Cache-Control` and `Age` headers, so a fetch never returns a configuration older than
@@ -188,7 +188,9 @@ export class ClientConfigStore {
     void this.refresh();
   }
 
-  /** Stops periodic refreshes. */
+  /**
+   * Stops periodic refreshes.
+   */
   stop(): void {
     clearTimeout(this._refreshTimer);
     this._refreshTimer = undefined;

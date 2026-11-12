@@ -38,12 +38,16 @@ class FakeConfigStore {
   /** What {@link refreshIfStale} returns, i.e. when the sampler's refresh settles. */
   ready: Promise<void> = Promise.resolve();
   refreshCount = 0;
+  stopCount = 0;
   constructor(config: Partial<ClientConfig> = {}) {
     this.config = { samplingRate: 1, ...config };
   }
   refreshIfStale(): Promise<void> {
     this.refreshCount++;
     return this.ready;
+  }
+  stop(): void {
+    this.stopCount++;
   }
 }
 
@@ -294,6 +298,35 @@ describe('SessionSampler', () => {
       sampled: true,
       samplingRate: 1
     });
+  });
+
+  it('stops the config refresh once the decision is made', async () => {
+    const { sampler, store } = createSampler(
+      { samplingRate: 0.5 },
+      SESSION_LOW
+    );
+    expect(store.stopCount).toBe(0);
+
+    await sampler.getDecision();
+    expect(store.stopCount).toBe(1);
+
+    // Later exports reuse the decision without refreshing or stopping again.
+    await sampler.getDecision();
+    expect(store.refreshCount).toBe(1);
+    expect(store.stopCount).toBe(1);
+  });
+
+  it('stops the config refresh when it restores a saved decision after a reload', async () => {
+    const { sampler } = createSampler({ samplingRate: 0.5 }, SESSION_LOW);
+    await sampler.getDecision();
+
+    const { sampler: reloaded, store: reloadedStore } = createSampler(
+      { samplingRate: 0.5 },
+      SESSION_LOW
+    );
+    await reloaded.getDecision();
+    expect(reloadedStore.refreshCount).toBe(0);
+    expect(reloadedStore.stopCount).toBe(1);
   });
 
   describe('applySampling', () => {
