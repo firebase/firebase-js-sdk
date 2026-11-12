@@ -16,7 +16,7 @@ You can configure the sampling rate for your web app to a value from **0% to 100
 ### How Session Sampling Works
 
 - **Whole sessions, decided on the device**: When a session first exports telemetry, the SDK decides whether to keep it, using a deterministic hash of the session ID: `MurmurHash3(session.id) % 10000 / 10000 < sampling_rate`. The decision is saved in `sessionStorage` and kept until the session ends (when the tab is closed), including across page reloads. Telemetry from unsampled sessions is dropped on the device and never sent.
-- **Sampling attributes**: Every log record and span from a sampled session carries `session.sampling.rate`, the rate the session was sampled at. Crashlytics weights each event by `1 / session.sampling.rate` to extrapolate dashboard metrics. Debug sessions also carry `session.sampling.reason = "debug"` (see [Force 100% Sampling for Debugging](#force-100-sampling-for-debugging-overrides)).
+- **Sampling attributes**: Every log record and span from a sampled session carries `session.sampling.rate`, the rate the session was sampled at. Crashlytics weights each event by `1 / session.sampling.rate` to extrapolate dashboard metrics. Debug sessions also carry `session.sampling.forced = true` (see [Force 100% Sampling for Debugging](#force-100-sampling-for-debugging-overrides)).
 - **Configuration**: The SDK fetches the sampling configuration with an unauthenticated `GET` request to the Firebase Telemetry API (`firebasetelemetry.googleapis.com`, or `firebasetelemetry.{region}.rep.googleapis.com` when you set a `region`) and caches it in `localStorage`. The request itself is never recorded as telemetry. It fetches when the SDK starts and right before a session's decision, and refreshes periodically while the page is visible until that decision is made. Your app is never blocked: only the session's first export waits for the configuration, for at most 2 seconds. Until a configuration is available, every session is collected; if a fetch fails, the last known configuration stays in effect.
 - **Rate changes**: Configuration responses can be cached for up to 16 minutes (15 minutes plus 1 minute of revalidation), so a new rate applies to sessions that start about 16 minutes after you change it. Sessions in progress keep their decision.
   - **Lowering the rate** also takes effect immediately on the server, which re-checks the same hash against the new rate and drops sessions that no longer qualify.
@@ -141,7 +141,7 @@ To reproduce or investigate an issue during development or QA testing, you can c
 
 - **For a user's session**: ask them to open your app with the `firebase_telemetry_debug=true` query parameter, for example `https://example.com/?firebase_telemetry_debug=true`. The SDK remembers it in `sessionStorage` for the rest of the browser session, including after in-app navigation.
 
-The override applies from the session's next export, even mid-session, and the session stays fully collected until it ends, even if you turn the override off. Telemetry dropped before then isn't recovered. Debug sessions are sent with `session.sampling.rate = 1.0` and `session.sampling.reason = "debug"`, so the server keeps them in full instead of re-sampling them. While collection is paused or disabled, nothing is collected, even in debug mode.
+The override applies from the session's next export, even mid-session, and the session stays fully collected until it ends, even if you turn the override off. Telemetry dropped before then isn't recovered. Debug sessions are sent with `session.sampling.rate = 1.0` and `session.sampling.forced = true`, so the server keeps them in full instead of re-sampling them. While collection is paused or disabled, nothing is collected, even in debug mode.
 
 ---
 
@@ -287,7 +287,7 @@ Because Crashlytics for Web alerts are built on Google Cloud Monitoring and Clou
 
 ## Log Schema
 
-Here is the schema from a sample log with all of the fields that you can expect to see. With session sampling, `labels` also includes `session.sampling.rate`, plus `session.sampling.reason` for debug sessions:
+Here is the schema from a sample log with all of the fields that you can expect to see. With session sampling, `labels` also includes `session.sampling.rate`, plus `session.sampling.forced` for debug sessions:
 
 ```json
 {
