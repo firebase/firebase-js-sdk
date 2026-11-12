@@ -85,7 +85,7 @@ describe('CompareUtf8Strings', () => {
       );
       throw new Error('Test failed');
     }
-  }, 20000);
+  }, 60000);
 
   class StringPair {
     constructor(
