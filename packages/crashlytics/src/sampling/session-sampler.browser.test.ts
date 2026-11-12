@@ -17,8 +17,8 @@
 
 import { AttributesStore } from '../attributes-store';
 import {
+  ATTR_KEY_SESSION_SAMPLING_FORCED,
   ATTR_KEY_SESSION_SAMPLING_RATE,
-  ATTR_KEY_SESSION_SAMPLING_REASON,
   SESSION_STORAGE_DEBUG_KEY,
   TELEMETRY_DEBUG_GLOBAL_FLAG
 } from '../constants';
@@ -358,7 +358,7 @@ describe('SessionSampler', () => {
       expect(records).toEqual([{ attributes: { existing: 'value' } }]);
     });
 
-    it('also stamps session.sampling.reason on every record of a debug session', async () => {
+    it('also stamps session.sampling.forced on every record of a debug session', async () => {
       (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
         true;
       const { sampler } = createSampler({ samplingRate: 0.5 }, SESSION_HIGH);
@@ -373,13 +373,13 @@ describe('SessionSampler', () => {
           attributes: {
             existing: 'value',
             [ATTR_KEY_SESSION_SAMPLING_RATE]: 1,
-            [ATTR_KEY_SESSION_SAMPLING_REASON]: 'debug'
+            [ATTR_KEY_SESSION_SAMPLING_FORCED]: true
           }
         },
         {
           attributes: {
             [ATTR_KEY_SESSION_SAMPLING_RATE]: 1,
-            [ATTR_KEY_SESSION_SAMPLING_REASON]: 'debug'
+            [ATTR_KEY_SESSION_SAMPLING_FORCED]: true
           }
         }
       ]);
@@ -528,7 +528,7 @@ describe('SessionSampler', () => {
         sessionId: undefined,
         sampled: true,
         samplingRate: 1,
-        reason: 'debug'
+        forced: true
       });
     });
 
@@ -540,7 +540,7 @@ describe('SessionSampler', () => {
         sessionId: SESSION_HIGH,
         sampled: true,
         samplingRate: 1,
-        reason: 'debug'
+        forced: true
       });
     });
 
@@ -551,7 +551,7 @@ describe('SessionSampler', () => {
         sessionId: SESSION_HIGH,
         sampled: true,
         samplingRate: 1,
-        reason: 'debug'
+        forced: true
       });
     });
 
@@ -562,7 +562,7 @@ describe('SessionSampler', () => {
       expect(await sampler.getDecision()).toMatchObject({
         sampled: true,
         samplingRate: 1,
-        reason: 'debug'
+        forced: true
       });
     });
 
@@ -580,7 +580,7 @@ describe('SessionSampler', () => {
         sessionId: SESSION_HIGH,
         sampled: true,
         samplingRate: 1,
-        reason: 'debug'
+        forced: true
       });
       expect(store.refreshCount).toBe(0);
     });
@@ -595,7 +595,7 @@ describe('SessionSampler', () => {
         sessionId: SESSION_HIGH,
         sampled: true,
         samplingRate: 1,
-        reason: 'debug'
+        forced: true
       });
     });
 
@@ -613,7 +613,7 @@ describe('SessionSampler', () => {
         sessionId: SESSION_LOW,
         sampled: true,
         samplingRate: 1,
-        reason: 'debug'
+        forced: true
       });
     });
 
@@ -631,7 +631,7 @@ describe('SessionSampler', () => {
         sessionId: SESSION_HIGH,
         sampled: true,
         samplingRate: 1,
-        reason: 'debug'
+        forced: true
       });
     });
 
@@ -644,7 +644,7 @@ describe('SessionSampler', () => {
         sessionId: SESSION_HIGH,
         sampled: true,
         samplingRate: 1,
-        reason: 'debug'
+        forced: true
       });
 
       delete (globalThis as Record<string, unknown>)[

@@ -99,12 +99,11 @@ export const TELEMETRY_DEBUG_QUERY_PARAM = 'firebase_telemetry_debug';
 export const ATTR_KEY_SESSION_SAMPLING_RATE = 'session.sampling.rate';
 
 /**
- * Attribute stamped on every exported log record and span of a session sampled for a reason other
- * than the configured rate; absent otherwise. The only value is `debug` (the telemetry debug
- * override): the server keeps these sessions instead of re-sampling them, but still drops them
- * while collection is paused or disabled.
+ * Attribute stamped as `true` on every exported log record and span of a session whose sampling
+ * was forced by the telemetry debug override; absent otherwise. The server keeps these sessions
+ * instead of re-sampling them, but still drops them while collection is paused or disabled.
  */
-export const ATTR_KEY_SESSION_SAMPLING_REASON = 'session.sampling.reason';
+export const ATTR_KEY_SESSION_SAMPLING_FORCED = 'session.sampling.forced';
 
 /**
  * Number of hash buckets used by the deterministic session sampling decision. The server
