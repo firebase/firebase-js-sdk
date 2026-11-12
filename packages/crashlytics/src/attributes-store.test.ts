@@ -28,7 +28,6 @@ import { diag } from '@opentelemetry/api';
 
 describe('AttributesStore', () => {
   describe('getInstallationIdAttribute', () => {
-
     afterEach(() => {
       vi.restoreAllMocks();
     });
