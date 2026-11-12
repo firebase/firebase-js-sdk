@@ -42,6 +42,7 @@ const responseLineRE = /^data: (.*?)(?:\n|$)/;
 interface HttpResponse {
   status: number;
   json: HttpResponseBody | null;
+  error?: unknown;
 }
 /**
  * Describes the shape of the HttpResponse body.
@@ -262,7 +263,8 @@ async function postJSON(
   body: unknown,
   headers: { [key: string]: string },
   fetchImpl: typeof fetch,
-  functionsInstance: FunctionsService
+  functionsInstance: FunctionsService,
+  signal?: AbortSignal
 ): Promise<HttpResponse> {
   headers['Content-Type'] = 'application/json';
 
@@ -272,27 +274,50 @@ async function postJSON(
       method: 'POST',
       body: JSON.stringify(body),
       headers,
+      signal,
       credentials: getCredentials(functionsInstance)
     });
   } catch (e) {
+    if ((e instanceof Error && e.name === 'AbortError') || signal?.aborted) {
+      throw new FunctionsError(
+        'cancelled',
+        'Request was cancelled.',
+        undefined,
+        url,
+        e
+      );
+    }
     // This could be an unhandled error on the backend, or it could be a
     // network error. There's no way to know, since an unhandled error on the
     // backend will fail to set the proper CORS header, and thus will be
     // treated as a network error by fetch.
     return {
       status: 0,
-      json: null
+      json: null,
+      error: e
     };
   }
   let json: HttpResponseBody | null = null;
+  let parseError: unknown = undefined;
   try {
     json = await response.json();
   } catch (e) {
+    if ((e instanceof Error && e.name === 'AbortError') || signal?.aborted) {
+      throw new FunctionsError(
+        'cancelled',
+        'Request was cancelled.',
+        undefined,
+        url,
+        e
+      );
+    }
     // If we fail to parse JSON, it will fail the same as an empty body.
+    parseError = e;
   }
   return {
     status: response.status,
-    json
+    json,
+    error: parseError
   };
 }
 
@@ -359,20 +384,24 @@ async function callAtURL(
   const timeout = options.timeout || 70000;
 
   const failAfterHandle = failAfter(timeout);
-  const response = await Promise.race([
-    postJSON(
-      url,
-      body,
-      headers,
-      functionsInstance.fetchImpl,
-      functionsInstance
-    ),
-    failAfterHandle.promise,
-    functionsInstance.cancelAllRequests
-  ]);
-
-  // Always clear the failAfter timeout
-  failAfterHandle.cancel();
+  let response: HttpResponse | void;
+  try {
+    response = await Promise.race([
+      postJSON(
+        url,
+        body,
+        headers,
+        functionsInstance.fetchImpl,
+        functionsInstance,
+        options.signal
+      ),
+      failAfterHandle.promise,
+      functionsInstance.cancelAllRequests
+    ]);
+  } finally {
+    // Always clear the failAfter timeout
+    failAfterHandle.cancel();
+  }
 
   // If service was deleted, interrupted response throws an error.
   if (!response) {
@@ -383,7 +412,12 @@ async function callAtURL(
   }
 
   // Check for an error status, regardless of http status.
-  const error = _errorForResponse(response.status, response.json, url);
+  const error = _errorForResponse(
+    response.status,
+    response.json,
+    url,
+    response.error
+  );
   if (error) {
     throw error;
   }
@@ -393,7 +427,8 @@ async function callAtURL(
       'internal',
       'Response is not valid JSON object.',
       undefined,
-      url
+      url,
+      response.error
     );
   }
 
@@ -466,8 +501,17 @@ async function streamAtURL(
       credentials: getCredentials(functionsInstance)
     });
   } catch (e) {
-    if (e instanceof Error && e.name === 'AbortError') {
-      const error = new FunctionsError('cancelled', 'Request was cancelled.');
+    if (
+      (e instanceof Error && e.name === 'AbortError') ||
+      options?.signal?.aborted
+    ) {
+      const error = new FunctionsError(
+        'cancelled',
+        'Request was cancelled.',
+        undefined,
+        url,
+        e
+      );
       return {
         data: Promise.reject(error),
         stream: {
@@ -485,7 +529,7 @@ async function streamAtURL(
     // network error. There's no way to know, since an unhandled error on the
     // backend will fail to set the proper CORS header, and thus will be
     // treated as a network error by fetch.
-    const error = _errorForResponse(0, null, url);
+    const error = _errorForResponse(0, null, url, e);
     return {
       data: Promise.reject(error),
       // Return an empty async iterator
@@ -643,7 +687,7 @@ function createResponseStream(
           const functionsError =
             error instanceof FunctionsError
               ? error
-              : _errorForResponse(0, null, url);
+              : _errorForResponse(0, null, url, error);
           controller.error(functionsError);
           resultRejecter(functionsError);
         }

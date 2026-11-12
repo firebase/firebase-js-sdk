@@ -72,6 +72,11 @@ export interface HttpsCallableOptions {
    * replay protection enabled. By default, this is false.
    */
   limitedUseAppCheckTokens?: boolean;
+  /**
+   * An `AbortSignal` that can be used to cancel the callable function request. When the signal is
+   * aborted, the underlying HTTP connection will be terminated.
+   */
+  signal?: AbortSignal;
 }
 
 /**

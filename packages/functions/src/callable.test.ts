@@ -51,7 +51,8 @@ async function expectError(
   code: FunctionsErrorCodeCore,
   message: string,
   httpStatus?: number,
-  details?: any
+  details?: any,
+  cause?: unknown
 ): Promise<void> {
   let failed = false;
   try {
@@ -67,6 +68,9 @@ async function expectError(
       expect(error.message).toBe(message);
     }
     expect(error.details).toEqual(details);
+    if (cause !== undefined) {
+      expect(error.cause).toBe(cause);
+    }
   }
   if (!failed) {
     expect(false, 'Promise should have failed.').toBe(true);
@@ -313,6 +317,92 @@ describe('Firebase Functions > Call', () => {
     const func = httpsCallable(functions, 'timeoutTestv2', { timeout: 10 });
     await expectError(func(), 'deadline-exceeded', 'deadline-exceeded');
   });
+
+  it('network error preserves cause on internal [0]', async () => {
+    const functions = createTestService(app, region);
+    const networkError = new TypeError('Load failed');
+    const mockFetch = vi
+      .spyOn(functions, 'fetchImpl' as any)
+      .mockRejectedValue(networkError);
+
+    const func = httpsCallable(functions, 'dataTestv2');
+    await expectError(
+      func({}),
+      'internal',
+      'internal',
+      0,
+      undefined,
+      networkError
+    );
+
+    mockFetch.mockRestore();
+  });
+
+  it('aborts in-flight call when AbortSignal is triggered', async () => {
+    const functions = createTestService(app, region);
+    const controller = new AbortController();
+    const abortError = new Error('The operation was aborted');
+    abortError.name = 'AbortError';
+
+    const fetchPromise = new Promise<Response>((_, reject) => {
+      controller.signal.addEventListener('abort', () => {
+        reject(abortError);
+      });
+    });
+    const mockFetch = vi
+      .spyOn(functions, 'fetchImpl' as any)
+      .mockReturnValue(fetchPromise);
+
+    const func = httpsCallable(functions, 'dataTestv2', {
+      signal: controller.signal
+    });
+    const callPromise = func({});
+    controller.abort();
+
+    await expectError(
+      callPromise,
+      'cancelled',
+      'Request was cancelled.',
+      undefined,
+      undefined,
+      abortError
+    );
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [_, options] = mockFetch.mock.calls[0] as [unknown, RequestInit];
+    expect(options.signal).toBe(controller.signal);
+    mockFetch.mockRestore();
+  });
+
+  it('fails immediately when called with pre-aborted AbortSignal', async () => {
+    const functions = createTestService(app, region);
+    const abortError = new Error('The operation was aborted');
+    abortError.name = 'AbortError';
+
+    const mockFetch = vi
+      .spyOn(functions, 'fetchImpl' as any)
+      .mockImplementation((_url: unknown, options: unknown) => {
+        const reqInit = options as RequestInit;
+        if (reqInit.signal?.aborted) {
+          return Promise.reject(abortError);
+        }
+        return Promise.resolve(new Response());
+      });
+
+    const func = httpsCallable(functions, 'dataTestv2', {
+      signal: AbortSignal.abort()
+    });
+    await expectError(
+      func({}),
+      'cancelled',
+      'Request was cancelled.',
+      undefined,
+      undefined,
+      abortError
+    );
+
+    mockFetch.mockRestore();
+  });
 });
 
 describe('Firebase Functions > Stream', () => {
@@ -414,7 +504,8 @@ describe('Firebase Functions > Stream', () => {
   });
 
   it('handles network errors', async () => {
-    mockFetch.mockRejectedValue(new Error('Network error'));
+    const networkError = new Error('Network error');
+    mockFetch.mockRejectedValue(networkError);
 
     const func = httpsCallable<Record<string, any>, string, string>(
       functions,
@@ -425,7 +516,9 @@ describe('Firebase Functions > Stream', () => {
       streamResult.data,
       'internal',
       'internal',
-      0
+      0,
+      undefined,
+      networkError
     );
 
     let errorThrown = false;
@@ -436,6 +529,7 @@ describe('Firebase Functions > Stream', () => {
     } catch (error: unknown) {
       errorThrown = true;
       expect((error as FunctionsError).code).toBe(`${FUNCTIONS_TYPE}/internal`);
+      expect((error as FunctionsError).cause).toBe(networkError);
     }
     expect(errorThrown).toBe(true);
     await dataErrorPromise;

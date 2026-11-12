@@ -29,10 +29,12 @@ describe('Error handling', () => {
       expect(err?.customData?.url).toBe('http://wrong-url.com');
     });
     it('returns internal error and httpStatus if 0', () => {
-      const err = _errorForResponse(0, null, 'http://wrong-url.com');
+      const cause = new TypeError('Failed to fetch');
+      const err = _errorForResponse(0, null, 'http://wrong-url.com', cause);
       expect(err?.message).toBe('internal [0]');
       expect(err?.code).toBe('functions/internal');
       expect(err?.customData?.url).toBe('http://wrong-url.com');
+      expect(err?.cause).toBe(cause);
     });
     it('returns internal error and httpStatus if 500', () => {
       const err = _errorForResponse(500, null, 'http://wrong-url.com');
