@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-import createBaseConfig from '../../config/vitest.base.mjs';
+import createBaseConfig, {
+  applyProjectDefaults
+} from '../../config/vitest.base.mjs';
 
 const config = createBaseConfig(import.meta.url);
 
 // @firebase/installations is a client SDK relying on browser APIs (IndexedDB, crypto).
 // All unit tests run in the browser project (Playwright Chromium).
 // Disable file parallelism because tests share the same IndexedDB database name and key.
-config.test.fileParallelism = false;
 config.test.onUnhandledError = error => {
   if (error?.message?.includes('app-offline')) {
     return false;
@@ -31,11 +32,9 @@ config.test.onUnhandledError = error => {
 config.test.projects = config.test.projects.filter(
   project => project.test?.name === 'browser'
 );
-for (const project of config.test.projects) {
-  project.test.fileParallelism = false;
-  if (project.test?.browser) {
-    project.test.browser.screenshotFailures = false;
-  }
-}
+applyProjectDefaults(config, {
+  fileParallelism: false,
+  screenshotFailures: false
+});
 
 export default config;

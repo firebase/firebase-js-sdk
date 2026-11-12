@@ -39,6 +39,8 @@ jobs:
       run: yarn
     - name: Yarn build
       run: yarn build
+    - name: Type-check packages
+      run: yarn type-check
     - name: Swap in public typings
       run: yarn release:prepare
     - name: Check paths

@@ -41,7 +41,7 @@ import { RecaptchaConfig } from './recaptcha';
 import { AuthErrorCode } from '../../core/errors';
 import { _createError } from '../../core/util/assert';
 import { mockLoadJS } from '../../../test/helpers/mock_loadjs';
-import { MockInstance } from 'vitest';
+import { Mock } from 'vitest';
 
 vi.mock('../load_js', { spy: true });
 
@@ -168,7 +168,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
   describe('#handleRecaptchaFlow', () => {
     let mockAuthInstance: AuthInternal;
     let mockRequest: any;
-    let mockActionMethod: MockInstance;
+    let mockActionMethod: Mock;
 
     beforeEach(async () => {
       mockAuthInstance = await testAuth();

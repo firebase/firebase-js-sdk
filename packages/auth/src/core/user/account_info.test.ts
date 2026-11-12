@@ -24,7 +24,7 @@ import * as fetch from '../../../test/helpers/mock_fetch';
 import { Endpoint } from '../../api';
 import { UserInternal } from '../../model/user';
 import { updateEmail, updatePassword, updateProfile } from './account_info';
-import { MockInstance } from 'vitest';
+import { Mock } from 'vitest';
 const PASSWORD_PROVIDER: UserInfo = {
   providerId: ProviderId.PASSWORD,
   uid: 'uid',
@@ -139,7 +139,7 @@ describe('core/user/profile', () => {
   });
 
   describe('notifications', () => {
-    let idTokenChange: MockInstance;
+    let idTokenChange: Mock;
 
     beforeEach(async () => {
       idTokenChange = vi.fn();

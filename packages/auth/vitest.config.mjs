@@ -17,7 +17,9 @@
 
 import fs from 'fs';
 import path from 'path';
-import createBaseConfig from '../../config/vitest.base.mjs';
+import createBaseConfig, {
+  applyProjectDefaults
+} from '../../config/vitest.base.mjs';
 
 // Ensure `./packages/auth/coverage/lcov.info` exists for the `test-auth` coverage merge step in `.github/workflows/test-all.yml`.
 const coverageDir = path.resolve(import.meta.dirname, 'coverage');
@@ -61,6 +63,11 @@ function projectConfigPlugin() {
   };
 }
 
+applyProjectDefaults(config, {
+  screenshotFailures: false,
+  ...(hasIntegrationArg ? { testTimeout: 20000, fileParallelism: false } : {})
+});
+
 for (const project of config.test.projects) {
   const exclude = [...(project.test.exclude || [])];
   if (!hasIntegrationArg) {
@@ -74,8 +81,6 @@ for (const project of config.test.projects) {
     if (!process.env.FIREBASE_AUTH_EMULATOR_HOST) {
       exclude.push('**/*.local.test.ts');
     }
-    project.test.fileParallelism = false;
-    project.test.testTimeout = 20000;
   }
 
   if (project.test.name === 'node') {
@@ -88,9 +93,6 @@ for (const project of config.test.projects) {
   } else if (project.test.name === 'browser') {
     exclude.push('test/integration/webdriver/**');
     project.test.exclude = exclude;
-    if (project.test.browser) {
-      project.test.browser.screenshotFailures = false;
-    }
     project.define = {
       ...(project.define || {}),
       'process.env': JSON.stringify({

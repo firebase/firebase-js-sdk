@@ -17,19 +17,29 @@
 
 import createBaseConfig from '../../config/vitest.base.mjs';
 
-const config = createBaseConfig(import.meta.url);
+const config = createBaseConfig(
+  import.meta.url,
+  {},
+  {
+    testTimeout: 30000,
+    hookTimeout: 30000,
+    retry: process.env.CI ? 3 : 0,
+    fileParallelism: false,
+    screenshotFailures: false
+  }
+);
 
 for (const project of config.test.projects) {
-  project.test.testTimeout = 30000;
-  project.test.hookTimeout = 30000;
-  project.test.retry = 3;
-  project.test.fileParallelism = false;
   if (project.test.name === 'node') {
     project.test.setupFiles = [
       ...(project.test.setupFiles || []),
       'src/index.node.ts'
     ];
   } else if (project.test.name === 'browser') {
+    project.test.setupFiles = [
+      ...(project.test.setupFiles || []),
+      'src/index.ts'
+    ];
     project.define = {
       ...(project.define || {}),
       'process.env.RTDB_EMULATOR_PORT': JSON.stringify(

@@ -21,7 +21,7 @@ import {
   RemoteConfig as RemoteConfigType,
   LogLevel as RemoteConfigLogLevel
 } from '../src/public_types';
-import type { MockInstance } from 'vitest';
+import type { Mock, MockInstance } from 'vitest';
 import { StorageCache } from '../src/storage/storage_cache';
 import { Storage } from '../src/storage/storage';
 import { RemoteConfig } from '../src/remote_config';
@@ -75,7 +75,7 @@ describe('RemoteConfig', () => {
   let rc: RemoteConfigType;
   let analyticsProvider: Provider<FirebaseAnalyticsInternalName>;
 
-  let getActiveConfigStub: MockInstance;
+  let getActiveConfigStub: Mock<StorageCache['getActiveConfig']>;
   let loggerLogLevelSpy: MockInstance;
 
   beforeEach(() => {
@@ -398,12 +398,18 @@ describe('RemoteConfig', () => {
     ];
 
     let updateActiveExperimentsStub: MockInstance;
-    let getLastSuccessfulFetchResponseStub: MockInstance;
-    let getActiveConfigEtagStub: MockInstance;
-    let getActiveConfigTemplateVersionStub: MockInstance;
-    let setActiveConfigEtagStub: MockInstance;
-    let setActiveConfigStub: MockInstance;
-    let setActiveConfigTemplateVersionStub: MockInstance;
+    let getLastSuccessfulFetchResponseStub: Mock<
+      Storage['getLastSuccessfulFetchResponse']
+    >;
+    let getActiveConfigEtagStub: Mock<Storage['getActiveConfigEtag']>;
+    let getActiveConfigTemplateVersionStub: Mock<
+      Storage['getActiveConfigTemplateVersion']
+    >;
+    let setActiveConfigEtagStub: Mock<Storage['setActiveConfigEtag']>;
+    let setActiveConfigStub: Mock<StorageCache['setActiveConfig']>;
+    let setActiveConfigTemplateVersionStub: Mock<
+      Storage['setActiveConfigTemplateVersion']
+    >;
 
     beforeEach(() => {
       updateActiveExperimentsStub = vi
@@ -443,6 +449,7 @@ describe('RemoteConfig', () => {
 
     it('does not activate if fetched and active etags are the same', async () => {
       getLastSuccessfulFetchResponseStub.mockResolvedValue({
+        status: 200,
         config: {},
         eTag: ETAG,
         templateVersion: TEMPLATE_VERSION
@@ -460,6 +467,7 @@ describe('RemoteConfig', () => {
 
     it('activates if fetched and active etags are different', async () => {
       getLastSuccessfulFetchResponseStub.mockResolvedValue({
+        status: 200,
         config: CONFIG,
         eTag: NEW_ETAG,
         templateVersion: TEMPLATE_VERSION,
@@ -479,6 +487,7 @@ describe('RemoteConfig', () => {
 
     it('activates if fetched is defined but active config is not', async () => {
       getLastSuccessfulFetchResponseStub.mockResolvedValue({
+        status: 200,
         config: CONFIG,
         eTag: NEW_ETAG,
         templateVersion: TEMPLATE_VERSION,

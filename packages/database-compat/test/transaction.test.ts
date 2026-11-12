@@ -455,7 +455,7 @@ describe('Transaction Tests', () => {
 
     const node = nodePair[1];
 
-    return new Promise(resolve => {
+    return new Promise<void>(resolve => {
       node.child('foo').transaction(
         val => {
           if (val === null) {

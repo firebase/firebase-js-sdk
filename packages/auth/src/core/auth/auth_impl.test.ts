@@ -46,7 +46,7 @@ import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../errors';
 import { PasswordValidationStatus } from '../../model/public_types';
 import { PasswordPolicyImpl } from './password_policy_impl';
-import { MockInstance } from 'vitest';
+import { Mock, MockInstance } from 'vitest';
 const FAKE_APP: FirebaseApp = {
   name: 'test-app',
   options: {
@@ -122,7 +122,7 @@ describe('core/auth/auth_impl', () => {
       });
 
       persistenceStub._set.mockImplementation(() => {
-        return new Promise(resolve => {
+        return new Promise<void>(resolve => {
           // Force into the async flow to make this test actually meaningful
           setTimeout(() => resolve(), 1);
         });
@@ -279,9 +279,9 @@ describe('core/auth/auth_impl', () => {
 
     describe('user logs in/out, tokens refresh', () => {
       let user: UserInternal;
-      let authStateCallback: MockInstance;
-      let idTokenCallback: MockInstance;
-      let beforeAuthCallback: MockInstance;
+      let authStateCallback: Mock;
+      let idTokenCallback: Mock;
+      let beforeAuthCallback: Mock;
 
       beforeEach(() => {
         user = testUser(auth, 'uid');
@@ -480,7 +480,7 @@ describe('core/auth/auth_impl', () => {
 
       it('_updateCurrentUser throws if a beforeAuthStateChange callback rejects', async () => {
         await auth._updateCurrentUser(null);
-        const cb1 = vi.fn().mockRejectedValue();
+        const cb1 = vi.fn().mockRejectedValue(undefined);
         const cb2 = vi.fn();
         auth.beforeAuthStateChanged(cb1);
         auth.beforeAuthStateChanged(cb2);
@@ -494,9 +494,9 @@ describe('core/auth/auth_impl', () => {
   });
 
   describe('#_onStorageEvent', () => {
-    let authStateCallback: MockInstance;
-    let idTokenCallback: MockInstance;
-    let beforeStateCallback: MockInstance;
+    let authStateCallback: Mock;
+    let idTokenCallback: Mock;
+    let beforeStateCallback: Mock;
 
     beforeEach(async () => {
       authStateCallback = vi.fn();
@@ -1309,7 +1309,7 @@ describe('core/auth/auth_impl', () => {
         type: PersistenceType.LOCAL,
         _isAvailable: async () => true,
         _set: async () => {},
-        _get: async () => expectedUser.toJSON(),
+        _get: async <T>() => expectedUser.toJSON() as unknown as T,
         _remove: async () => {},
         _addListener: () => {},
         _removeListener: () => {},
@@ -1355,7 +1355,7 @@ describe('core/auth/auth_impl', () => {
         type: PersistenceType.LOCAL,
         _isAvailable: async () => false,
         _set: () => Promise.reject(new Error('DB_TIMEOUT')),
-        _get: async () => expectedUser.toJSON(),
+        _get: async <T>() => expectedUser.toJSON() as unknown as T,
         _remove: removeSpy,
         _addListener: () => {},
         _removeListener: () => {},
@@ -1408,7 +1408,7 @@ describe('core/auth/auth_impl', () => {
         type: PersistenceType.LOCAL,
         _isAvailable: async () => false,
         _set: () => Promise.reject(new Error('DB_TIMEOUT')),
-        _get: async () => invalidatedUser.toJSON(),
+        _get: async <T>() => invalidatedUser.toJSON() as unknown as T,
         _remove: removeSpy,
         _addListener: () => {},
         _removeListener: () => {},
