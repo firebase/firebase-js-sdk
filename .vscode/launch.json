@@ -53,7 +53,14 @@
       "name": "Firestore Unit Tests (Node)",
       "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
       "cwd": "${workspaceFolder}/packages/firestore",
-      "args": ["run", "--project=node", "--no-file-parallelism", "test/unit"],
+      "args": [
+        "run",
+        "--project=node",
+        "--no-file-parallelism",
+        "test/unit",
+        "-t",
+        "${input:grepString}"
+      ],
       "sourceMaps": true
     },
     {
@@ -62,7 +69,14 @@
       "name": "Firestore Unit Tests (Node / Persistence)",
       "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
       "cwd": "${workspaceFolder}/packages/firestore",
-      "args": ["run", "--project=node", "--no-file-parallelism", "test/unit"],
+      "args": [
+        "run",
+        "--project=node",
+        "--no-file-parallelism",
+        "test/unit",
+        "-t",
+        "${input:grepString}"
+      ],
       "env": {
         "USE_MOCK_PERSISTENCE": "YES"
       },
@@ -78,7 +92,9 @@
         "run",
         "--project=node",
         "--no-file-parallelism",
-        "test/integration"
+        "test/integration",
+        "-t",
+        "${input:grepString}"
       ],
       "env": {
         "FIRESTORE_TARGET_BACKEND": "emulator"
@@ -95,7 +111,9 @@
         "run",
         "--project=node",
         "--no-file-parallelism",
-        "test/integration"
+        "test/integration",
+        "-t",
+        "${input:grepString}"
       ],
       "env": {
         "USE_MOCK_PERSISTENCE": "YES",
@@ -135,7 +153,9 @@
       "args": [
         "--project=browser",
         "--browser.headless=false",
-        "test/unit"
+        "test/unit",
+        "-t",
+        "${input:grepString}"
       ]
     },
     {
@@ -147,7 +167,9 @@
       "args": [
         "--project=browser",
         "--browser.headless=false",
-        "test/integration"
+        "test/integration",
+        "-t",
+        "${input:grepString}"
       ],
       "env": {
         "FIRESTORE_TARGET_BACKEND": "emulator"
