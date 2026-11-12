@@ -15,8 +15,11 @@
  * limitations under the License.
  */
 
-import { LogRecordProcessor, SdkLogRecord } from '@opentelemetry/sdk-logs';
-import { AttributeValue, Context, trace } from '@opentelemetry/api';
+import {
+  LogRecordProcessor,
+  ReadWriteLogRecord
+} from '@opentelemetry/sdk-logs';
+import { AnyValue, Context, trace } from '@opentelemetry/api';
 import { AttributesStore, LOG_ATTR_KEY } from '../attributes-store';
 
 /**
@@ -31,7 +34,7 @@ export class FirebaseAttributesLogProcessor implements LogRecordProcessor {
     private projectId?: string
   ) {}
 
-  onEmit(logRecord: SdkLogRecord, context?: Context): void {
+  onEmit(logRecord: ReadWriteLogRecord, context?: Context): void {
     if (!logRecord.attributes) {
       (logRecord as { attributes: Record<string, unknown> }).attributes = {};
     }
@@ -40,7 +43,7 @@ export class FirebaseAttributesLogProcessor implements LogRecordProcessor {
 
     for (const [key, value] of Object.entries(dynamicAttributes)) {
       if (value !== undefined) {
-        logRecord.attributes[key] ??= value as AttributeValue;
+        logRecord.attributes[key] ??= value as AnyValue;
       }
     }
 

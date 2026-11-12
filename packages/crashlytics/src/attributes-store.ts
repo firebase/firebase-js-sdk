@@ -16,8 +16,7 @@
  */
 
 import { Provider } from '@firebase/component';
-import { Attributes, AttributeValue } from '@opentelemetry/api';
-import { AnyValueMap } from '@opentelemetry/api-logs';
+import { AnyValue, Attributes } from '@opentelemetry/api';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { CrashlyticsOptions } from './public-types';
 import { AUTO_CONSTANTS } from './auto-constants';
@@ -43,7 +42,7 @@ export const SPAN_ATTR_KEY = {
   APP_SCREEN_ID: 'app.screen.id'
 };
 
-type Attribute = Record<string, AttributeValue>;
+type Attribute = Record<string, AnyValue>;
 
 /**
  * A store for Crashlytics specific attributes for telemetry data.
@@ -134,8 +133,8 @@ export class AttributesStore {
    * Get the log attributes.
    * @returns The log attributes.
    */
-  getLogAttributes(customAttributes?: Attributes): AnyValueMap {
-    const attributes: AnyValueMap = {};
+  getLogAttributes(customAttributes?: Attributes): Attributes {
+    const attributes: Attributes = {};
     if (this._customAttributes) {
       Object.assign(attributes, this._customAttributes);
     }

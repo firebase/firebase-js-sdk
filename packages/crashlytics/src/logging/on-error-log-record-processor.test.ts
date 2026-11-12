@@ -19,11 +19,11 @@ import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import {
   LogRecordExporter,
   ReadableLogRecord,
-  SdkLogRecord
+  ReadWriteLogRecord
 } from '@opentelemetry/sdk-logs';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
-import { LogAttributes } from '@opentelemetry/api-logs';
+import { Attributes } from '@opentelemetry/api';
 import { TelemetryStore } from '../telemetry-store';
 
 class MockLogRecordExporter implements LogRecordExporter {
@@ -50,22 +50,22 @@ class MockLogRecordExporter implements LogRecordExporter {
 
 function createMockLog(
   body: string,
-  attributes: LogAttributes = {},
+  attributes: Attributes = {},
   resource = resourceFromAttributes({})
-): SdkLogRecord {
+): ReadWriteLogRecord {
   return {
     body,
     attributes,
     resource
-  } as unknown as SdkLogRecord;
+  } as unknown as ReadWriteLogRecord;
 }
 
 describe('OnErrorLogRecordProcessor', () => {
   let mockExporter: MockLogRecordExporter;
   let telemetryStore: TelemetryStore;
   let processor: OnErrorLogRecordProcessor;
-  let mockLog1: SdkLogRecord;
-  let mockLog2: SdkLogRecord;
+  let mockLog1: ReadWriteLogRecord;
+  let mockLog2: ReadWriteLogRecord;
 
   beforeEach(() => {
     mockExporter = new MockLogRecordExporter();

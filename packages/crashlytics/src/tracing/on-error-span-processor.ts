@@ -20,7 +20,7 @@ import {
   SpanExporter,
   ReadableSpan,
   Span
-} from '@opentelemetry/sdk-trace-base';
+} from '@opentelemetry/sdk-trace';
 import { TelemetryStore } from '../telemetry-store';
 
 /**
@@ -31,7 +31,7 @@ export class OnErrorSpanProcessor extends BatchSpanProcessor {
   private _store: TelemetryStore;
 
   constructor(exporter: SpanExporter, store: TelemetryStore) {
-    super(exporter);
+    super({ exporter });
     this._store = store;
   }
 

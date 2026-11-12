@@ -16,7 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app';
-import { AnyValueMap } from '@opentelemetry/api-logs';
+import { Attributes } from '@opentelemetry/api';
 
 /**
  * An instance of the Firebase Crashlytics SDK.
@@ -74,7 +74,7 @@ export interface CrashlyticsOptions {
    * If custom attributes are also specified in `recordError()` or `log()`, those values will
    * take precedence over the base set defined here.
    */
-  customAttributes?: AnyValueMap;
+  customAttributes?: Attributes;
 
   /**
    * Whether to register the underlying OpenTelemetry LoggerProvider globally with the OpenTelemetry API

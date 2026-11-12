@@ -15,9 +15,12 @@
  * limitations under the License.
  */
 
-import { SdkLogRecord } from '@opentelemetry/sdk-logs';
+import { ReadWriteLogRecord } from '@opentelemetry/sdk-logs';
 import { trace, context, SpanContext, TraceFlags } from '@opentelemetry/api';
-import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
+import {
+  StackContextManager,
+  TracerProvider as SdkTracerProvider
+} from '@opentelemetry/sdk-trace';
 import { FirebaseAttributesLogProcessor } from './attributes-log-processor';
 import { AttributesStore, LOG_ATTR_KEY } from '../attributes-store';
 
@@ -38,7 +41,7 @@ describe('FirebaseAttributesLogProcessor', () => {
     );
     const logRecord = {
       attributes: { customKey: 'customValue' }
-    } as unknown as SdkLogRecord;
+    } as unknown as ReadWriteLogRecord;
 
     processor.onEmit(logRecord);
 
@@ -53,7 +56,7 @@ describe('FirebaseAttributesLogProcessor', () => {
     );
     const logRecord = {
       attributes: { appLevel: 'overridden' }
-    } as unknown as SdkLogRecord;
+    } as unknown as ReadWriteLogRecord;
 
     processor.onEmit(logRecord);
 
@@ -71,7 +74,7 @@ describe('FirebaseAttributesLogProcessor', () => {
         traceId: '4bf92f3577b34da6a3ce929d0e0e4736',
         spanId: '00f067aa0ba902b7'
       }
-    } as unknown as SdkLogRecord;
+    } as unknown as ReadWriteLogRecord;
 
     processor.onEmit(logRecord);
 
@@ -90,7 +93,7 @@ describe('FirebaseAttributesLogProcessor', () => {
     );
     const logRecord = {
       attributes: {}
-    } as unknown as SdkLogRecord;
+    } as unknown as ReadWriteLogRecord;
 
     const spanContext: SpanContext = {
       traceId: '1234567890abcdef1234567890abcdef',
@@ -110,8 +113,11 @@ describe('FirebaseAttributesLogProcessor', () => {
   });
 
   it('should correlate trace and span IDs from ambient active span when record and context lack spanContext', async () => {
-    const provider = new WebTracerProvider();
-    provider.register();
+    const provider = new SdkTracerProvider();
+    trace.setGlobalTracerProvider(provider);
+    const contextManager = new StackContextManager();
+    contextManager.enable();
+    context.setGlobalContextManager(contextManager);
 
     const processor = new FirebaseAttributesLogProcessor(
       attributesStore,
@@ -119,7 +125,7 @@ describe('FirebaseAttributesLogProcessor', () => {
     );
     const logRecord = {
       attributes: {}
-    } as unknown as SdkLogRecord;
+    } as unknown as ReadWriteLogRecord;
 
     const spanContext: SpanContext = {
       traceId: 'fedcba0987654321fedcba0987654321',
@@ -133,6 +139,8 @@ describe('FirebaseAttributesLogProcessor', () => {
     });
 
     await provider.shutdown();
+    context.disable();
+    trace.disable();
 
     expect(logRecord.attributes?.[LOG_ATTR_KEY.TRACE]).toBe(
       'projects/test-project/traces/fedcba0987654321fedcba0987654321'
