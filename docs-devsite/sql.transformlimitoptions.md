@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TransformLimitOptions interface
+Options for limiting rows in <code>[TransformBuilder.limit()](./sql.transformbuilder.md#transformbuilderlimit)</code>.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,10 +22,17 @@ export interface TransformLimitOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [foreignTable](./sql.transformlimitoptions.md#transformlimitoptionsforeigntable) | string \| undefined |  |
-|  [referencedTable](./sql.transformlimitoptions.md#transformlimitoptionsreferencedtable) | string \| undefined |  |
+|  [foreignTable](./sql.transformlimitoptions.md#transformlimitoptionsforeigntable) | string \| undefined | Deprecated alias for <code>referencedTable</code>. |
+|  [referencedTable](./sql.transformlimitoptions.md#transformlimitoptionsreferencedtable) | string \| undefined | Embedded related table whose nested array should be limited. |
 
 ## TransformLimitOptions.foreignTable
+
+> Warning: This API is now obsolete.
+> 
+> Use `referencedTable` instead.
+> 
+
+Deprecated alias for `referencedTable`<!-- -->.
 
 <b>Signature:</b>
 
@@ -32,6 +41,8 @@ foreignTable?: string | undefined;
 ```
 
 ## TransformLimitOptions.referencedTable
+
+Embedded related table whose nested array should be limited.
 
 <b>Signature:</b>
 

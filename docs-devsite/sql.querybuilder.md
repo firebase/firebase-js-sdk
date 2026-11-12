@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QueryBuilder interface
+Entry-point builder for selecting or mutating rows on a table or view.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,13 +22,17 @@ export interface QueryBuilder
 
 |  Method | Description |
 |  --- | --- |
-|  [delete(options)](./sql.querybuilder.md#querybuilderdelete) |  |
-|  [insert(values, options)](./sql.querybuilder.md#querybuilderinsert) |  |
-|  [select(columns, options)](./sql.querybuilder.md#querybuilderselect) | Performs a SELECT query on the table.<!-- -->Untyped queries default to returning <code>Array&lt;Record&lt;string, unknown&gt;&gt;</code> for type safety. Call <code>.returns&lt;T[]&gt;()</code> or <code>.overrideTypes&lt;T[]&gt;()</code> on the returned builder to cast rows to a strongly-typed schema. |
-|  [update(values, options)](./sql.querybuilder.md#querybuilderupdate) |  |
-|  [upsert(values, options)](./sql.querybuilder.md#querybuilderupsert) |  |
+|  [delete(options)](./sql.querybuilder.md#querybuilderdelete) | Delete matching rows from the target table or view. |
+|  [insert(values, options)](./sql.querybuilder.md#querybuilderinsert) | Insert one or more rows into the target table or view. |
+|  [select(columns, options)](./sql.querybuilder.md#querybuilderselect) | Select rows from the target table or view. |
+|  [update(values, options)](./sql.querybuilder.md#querybuilderupdate) | Update matching rows in the target table or view. |
+|  [upsert(values, options)](./sql.querybuilder.md#querybuilderupsert) | Insert rows into the target table or update existing rows on conflict. |
 
 ## QueryBuilder.delete()
+
+Delete matching rows from the target table or view.
+
+Always chain a filter (such as `.eq()`<!-- -->) to target specific rows, and chain `.select()` if you need the deleted rows returned.
 
 <b>Signature:</b>
 
@@ -38,13 +44,40 @@ delete(options?: Readonly<QueryDeleteOptions> | undefined): FilterBuilder<null, 
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | Readonly&lt;[QueryDeleteOptions](./sql.querydeleteoptions.md#querydeleteoptions_interface)<!-- -->&gt; \| undefined |  |
+|  options | Readonly&lt;[QueryDeleteOptions](./sql.querydeleteoptions.md#querydeleteoptions_interface)<!-- -->&gt; \| undefined | Optional count settings. |
 
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;null, 'DELETE'&gt;
 
+### Example
+
+Delete a row by ID
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs'),
+  (2, 'Ship SDK');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .delete()
+  .eq('id', 1)
+  .select()
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }]
+
+```
+
 ## QueryBuilder.insert()
+
+Insert one or more rows into the target table or view.
+
+Inserted rows are not returned by default (`data` is `null`<!-- -->). Chain `.select()` to return the inserted rows, and pass an array of objects to insert multiple rows in a single transaction.
 
 <b>Signature:</b>
 
@@ -58,18 +91,37 @@ insert<Row extends NonIterable<object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  values | Row \| readonly Row\[\] |  |
-|  options | Readonly&lt;[QueryInsertOptions](./sql.queryinsertoptions.md#queryinsertoptions_interface)<!-- -->&gt; \| undefined |  |
+|  values | Row \| readonly Row\[\] | Row object or array of row objects to insert. |
+|  options | Readonly&lt;[QueryInsertOptions](./sql.queryinsertoptions.md#queryinsertoptions_interface)<!-- -->&gt; \| undefined | Optional count settings. |
 
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;null, 'POST'&gt;
 
+### Example
+
+Insert a row and return it
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text);
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .insert({ id: 1, title: 'Write docs' })
+  .select()
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }]
+
+```
+
 ## QueryBuilder.select()
 
-Performs a SELECT query on the table.
+Select rows from the target table or view.
 
-Untyped queries default to returning `Array<Record<string, unknown>>` for type safety. Call `.returns<T[]>()` or `.overrideTypes<T[]>()` on the returned builder to cast rows to a strongly-typed schema.
+Untyped queries default to `Array<Record<string, unknown>>` — chain `.returns<T[]>()` or `.overrideTypes<T[]>()` to type the returned rows.
 
 <b>Signature:</b>
 
@@ -81,14 +133,39 @@ select(columns?: string | undefined, options?: Readonly<QuerySelectOptions> | un
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  columns | string \| undefined | The columns to select, separated by commas. Defaults to <code>'*'</code>. |
-|  options | Readonly&lt;[QuerySelectOptions](./sql.queryselectoptions.md#queryselectoptions_interface)<!-- -->&gt; \| undefined | Additional query options. |
+|  columns | string \| undefined | Comma-separated columns to retrieve (defaults to <code>'*'</code>). |
+|  options | Readonly&lt;[QuerySelectOptions](./sql.queryselectoptions.md#queryselectoptions_interface)<!-- -->&gt; \| undefined | Optional head and count settings. |
 
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;Array&lt;Record&lt;string, unknown&gt;&gt;, 'GET'&gt;
 
+### Example
+
+Select specific columns
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text, status text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs', 'open'),
+  (2, 'Ship SDK', 'done');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }, { id: 2, title: 'Ship SDK' }]
+
+```
+
 ## QueryBuilder.update()
+
+Update matching rows in the target table or view.
+
+Always chain a filter (such as `.eq()`<!-- -->) to target specific rows, and chain `.select()` if you need the updated rows returned.
 
 <b>Signature:</b>
 
@@ -102,14 +179,40 @@ update<Row extends NonIterable<object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  values | Row |  |
-|  options | Readonly&lt;[QueryUpdateOptions](./sql.queryupdateoptions.md#queryupdateoptions_interface)<!-- -->&gt; \| undefined |  |
+|  values | Row | Column values to update on matching rows. |
+|  options | Readonly&lt;[QueryUpdateOptions](./sql.queryupdateoptions.md#queryupdateoptions_interface)<!-- -->&gt; \| undefined | Optional count settings. |
 
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;null, 'PATCH'&gt;
 
+### Example
+
+Update a row by ID
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text, status text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs', 'open');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .update({ status: 'done' })
+  .eq('id', 1)
+  .select()
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs', status: 'done' }]
+
+```
+
 ## QueryBuilder.upsert()
+
+Insert rows into the target table or update existing rows on conflict.
+
+Upserted rows are not returned by default (`data` is `null`<!-- -->). Chain `.select()` to return the rows, and set `options.onConflict` when matching on a non-primary-key unique constraint.
 
 <b>Signature:</b>
 
@@ -123,10 +226,31 @@ upsert<Row extends NonIterable<object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  values | Row \| readonly Row\[\] |  |
-|  options | Readonly&lt;[QueryUpsertOptions](./sql.queryupsertoptions.md#queryupsertoptions_interface)<!-- -->&gt; \| undefined |  |
+|  values | Row \| readonly Row\[\] | Row object or array of row objects to upsert. |
+|  options | Readonly&lt;[QueryUpsertOptions](./sql.queryupsertoptions.md#queryupsertoptions_interface)<!-- -->&gt; \| undefined | Optional conflict-resolution and count settings. |
 
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;null, 'POST'&gt;
+
+### Example
+
+Upsert a row by primary key
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text, status text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs', 'open');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .upsert({ id: 1, title: 'Write docs', status: 'done' })
+  .select()
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs', status: 'done' }]
+
+```
 

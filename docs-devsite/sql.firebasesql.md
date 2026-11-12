@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FirebaseSql class
-The Firebase SQL service client instance.
+Client for querying tables, views, and PostgreSQL functions in Firebase SQL.
 
 The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `FirebaseSql` class.
 
@@ -24,19 +24,19 @@ export declare class FirebaseSql
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [app](./sql.firebasesql.md#firebasesqlapp) |  | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The bound FirebaseApp instance. |
-|  [settings](./sql.firebasesql.md#firebasesqlsettings) |  | [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Resolved configuration settings. |
+|  [app](./sql.firebasesql.md#firebasesqlapp) |  | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The <code>FirebaseApp</code> associated with this client. |
+|  [settings](./sql.firebasesql.md#firebasesqlsettings) |  | [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Frozen configuration settings for this client. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [from(table)](./sql.firebasesql.md#firebasesqlfrom) |  |  |
-|  [rpc(fn, params, options)](./sql.firebasesql.md#firebasesqlrpc) |  | Calls a Postgres stored procedure or function (RPC).<!-- -->Untyped RPC results default to <code>unknown</code> for type safety. Call <code>.returns&lt;T&gt;()</code> or <code>.overrideTypes&lt;T&gt;()</code> on the returned builder to specify the expected return type. |
+|  [from(table)](./sql.firebasesql.md#firebasesqlfrom) |  | Start a query or mutation on a table or view. |
+|  [rpc(fn, params, options)](./sql.firebasesql.md#firebasesqlrpc) |  | Call a PostgreSQL function (stored procedure) in the configured schema. |
 
 ## FirebaseSql.app
 
-The bound FirebaseApp instance.
+The `FirebaseApp` associated with this client.
 
 <b>Signature:</b>
 
@@ -46,7 +46,7 @@ readonly app: FirebaseApp;
 
 ## FirebaseSql.settings
 
-Resolved configuration settings.
+Frozen configuration settings for this client.
 
 <b>Signature:</b>
 
@@ -55,6 +55,8 @@ readonly settings: SqlServiceSettings;
 ```
 
 ## FirebaseSql.from()
+
+Start a query or mutation on a table or view.
 
 <b>Signature:</b>
 
@@ -66,17 +68,40 @@ from(table: string): QueryBuilder;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  table | string |  |
+|  table | string | Table or view name in the configured schema. |
 
 <b>Returns:</b>
 
 [QueryBuilder](./sql.querybuilder.md#querybuilder_interface)
 
+A `QueryBuilder` for selecting or mutating rows.
+
+### Example
+
+Query a table
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs'),
+  (2, 'Ship SDK');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }, { id: 2, title: 'Ship SDK' }]
+
+```
+
 ## FirebaseSql.rpc()
 
-Calls a Postgres stored procedure or function (RPC).
+Call a PostgreSQL function (stored procedure) in the configured schema.
 
-Untyped RPC results default to `unknown` for type safety. Call `.returns<T>()` or `.overrideTypes<T>()` on the returned builder to specify the expected return type.
+Untyped calls default to `unknown` — chain `.returns<T>()` or `.overrideTypes<T>()` to type the result.
 
 <b>Signature:</b>
 
@@ -92,11 +117,29 @@ rpc<Args extends object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fn | string | The function name to call. |
-|  params | Args \| undefined | Named arguments to pass to the function. |
-|  options | Readonly&lt;[FirebaseSqlRpcOptions](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptions_interface)<!-- -->&gt; \| undefined | Execution options. |
+|  fn | string | PostgreSQL function name in the configured schema. |
+|  params | Args \| undefined | Optional named arguments object passed to the function. |
+|  options | Readonly&lt;[FirebaseSqlRpcOptions](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptions_interface)<!-- -->&gt; \| undefined | Optional execution and count settings. |
 
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;unknown, 'RPC'&gt;
+
+### Example
+
+Call a PostgreSQL function
+
+```sql
+CREATE FUNCTION add_numbers(a int4, b int4) RETURNS int4
+  LANGUAGE sql IMMUTABLE AS $$ SELECT a + b $$;
+
+```
+
+```ts
+const { data, error } = await sql
+  .rpc('add_numbers', { a: 2, b: 3 })
+  .returns<number>();
+// data: 5
+
+```
 

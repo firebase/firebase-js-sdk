@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # OperationBase interface
+Common HTTP status metadata returned on every operation response.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,10 +22,12 @@ export interface OperationBase
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [status](./sql.operationbase.md#operationbasestatus) | number |  |
-|  [statusText](./sql.operationbase.md#operationbasestatustext) | string |  |
+|  [status](./sql.operationbase.md#operationbasestatus) | number | HTTP status code returned by the server (or <code>0</code> for client-side errors). |
+|  [statusText](./sql.operationbase.md#operationbasestatustext) | string | HTTP status text returned by the server. |
 
 ## OperationBase.status
+
+HTTP status code returned by the server (or `0` for client-side errors).
 
 <b>Signature:</b>
 
@@ -32,6 +36,8 @@ status: number;
 ```
 
 ## OperationBase.statusText
+
+HTTP status text returned by the server.
 
 <b>Signature:</b>
 

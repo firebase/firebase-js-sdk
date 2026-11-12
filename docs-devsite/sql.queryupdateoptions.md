@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QueryUpdateOptions interface
+Options for updating rows in <code>[QueryBuilder.update()](./sql.querybuilder.md#querybuilderupdate)</code>.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,9 +22,11 @@ export interface QueryUpdateOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [count](./sql.queryupdateoptions.md#queryupdateoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined |  |
+|  [count](./sql.queryupdateoptions.md#queryupdateoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined | Row-counting algorithm to return in <code>result.count</code>. |
 
 ## QueryUpdateOptions.count
+
+Row-counting algorithm to return in `result.count`<!-- -->.
 
 <b>Signature:</b>
 

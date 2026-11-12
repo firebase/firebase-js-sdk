@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # Builder interface
+Awaitable terminal builder for executing a Firebase SQL operation and typing or configuring the response.
+
 <b>Signature:</b>
 
 ```typescript
@@ -21,14 +23,18 @@ export interface Builder<T, ThrowOnError extends boolean = false> extends Promis
 
 |  Method | Description |
 |  --- | --- |
-|  [overrideTypes()](./sql.builder.md#builderoverridetypes) |  |
-|  [retry(enabled)](./sql.builder.md#builderretry) |  |
-|  [returns()](./sql.builder.md#builderreturns) |  |
-|  [setHeader(name, value)](./sql.builder.md#buildersetheader) |  |
-|  [stripNulls()](./sql.builder.md#builderstripnulls) |  |
-|  [throwOnError()](./sql.builder.md#builderthrowonerror) |  |
+|  [overrideTypes()](./sql.builder.md#builderoverridetypes) | Override or merge the TypeScript result type for <code>result.data</code>. |
+|  [retry(enabled)](./sql.builder.md#builderretry) | Enable or disable automatic retry with backoff for transient failures on this request. |
+|  [returns()](./sql.builder.md#builderreturns) | Replace the TypeScript result type for <code>result.data</code>. |
+|  [setHeader(name, value)](./sql.builder.md#buildersetheader) | Set a custom HTTP header on this request. |
+|  [stripNulls()](./sql.builder.md#builderstripnulls) | Omit <code>null</code> properties from JSON row objects returned by the server. |
+|  [throwOnError()](./sql.builder.md#builderthrowonerror) | Throw a <code>FirebaseSqlError</code> when the operation fails instead of returning it in <code>result.error</code>. |
 
 ## Builder.overrideTypes()
+
+Override or merge the TypeScript result type for `result.data`<!-- -->.
+
+By default (`{ merge: true }`<!-- -->), `NewResult` fields are merged into the current row type; set `{ merge: false }` for a full type replacement.
 
 <b>Signature:</b>
 
@@ -43,7 +49,29 @@ overrideTypes<NewResult, Options extends {
 
 [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;[IsValidResultOverride](./sql.md#isvalidresultoverride)<!-- -->&lt;T, NewResult, false, false&gt; extends true ? [ContainsNull](./sql.md#containsnull)<!-- -->&lt;T&gt; extends true ? [MergePartialResult](./sql.md#mergepartialresult)<!-- -->&lt;NewResult, NonNullable&lt;T&gt;, Options&gt; \| null : [MergePartialResult](./sql.md#mergepartialresult)<!-- -->&lt;NewResult, T, Options&gt; : [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->&lt;T, NewResult&gt;, ThrowOnError&gt;
 
+### Example
+
+Override specific column types
+
+```sql
+CREATE TABLE orders (id int8 PRIMARY KEY, metadata jsonb);
+INSERT INTO orders VALUES
+  (1, '{"priority":"high"}');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('orders')
+  .select('id, metadata')
+  .overrideTypes<Array<{ metadata: { priority: string } }>>();
+// data: [{ id: 1, metadata: { priority: 'high' } }]
+
+```
+
 ## Builder.retry()
+
+Enable or disable automatic retry with backoff for transient failures on this request.
 
 <b>Signature:</b>
 
@@ -55,13 +83,17 @@ retry(enabled: boolean): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  enabled | boolean |  |
+|  enabled | boolean | Pass <code>false</code> to disable retries for non-idempotent operations, or <code>true</code> to enable retries. |
 
 <b>Returns:</b>
 
 this
 
 ## Builder.returns()
+
+Replace the TypeScript result type for `result.data`<!-- -->.
+
+Array vs. single-object cardinality must match the query shape (use `Row[]` for multi-row queries or `Row` after `.single()`<!-- -->).
 
 <b>Signature:</b>
 
@@ -72,7 +104,31 @@ returns<NewResult>(): Builder<CheckMatchingArrayTypes<T, NewResult>, ThrowOnErro
 
 [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;[CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->&lt;T, NewResult&gt;, ThrowOnError&gt;
 
+### Example
+
+Type a query result
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }]
+
+```
+
 ## Builder.setHeader()
+
+Set a custom HTTP header on this request.
+
+Throws a `FirebaseSqlError` (`'invalid-argument'`<!-- -->) if `name` is a protected auth or SDK header (such as `'authorization'`<!-- -->).
 
 <b>Signature:</b>
 
@@ -84,14 +140,16 @@ setHeader(name: string, value: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  name | string |  |
-|  value | string |  |
+|  name | string | HTTP header name. |
+|  value | string | HTTP header value. |
 
 <b>Returns:</b>
 
 this
 
 ## Builder.stripNulls()
+
+Omit `null` properties from JSON row objects returned by the server.
 
 <b>Signature:</b>
 
@@ -102,7 +160,30 @@ stripNulls(): this;
 
 this
 
+### Example
+
+Strip null fields from returned rows
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text, notes text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs', NULL);
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title, notes')
+  .stripNulls()
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }]
+
+```
+
 ## Builder.throwOnError()
+
+Throw a `FirebaseSqlError` when the operation fails instead of returning it in `result.error`<!-- -->.
 
 <b>Signature:</b>
 
@@ -112,4 +193,17 @@ throwOnError(): Builder<T, true>;
 <b>Returns:</b>
 
 [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;T, true&gt;
+
+### Example
+
+Throw on query failure
+
+```ts
+const { data } = await sql
+  .from('tasks')
+  .select('id, title')
+  .throwOnError()
+  .returns<Task[]>();
+
+```
 

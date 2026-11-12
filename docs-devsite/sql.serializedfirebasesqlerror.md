@@ -22,16 +22,16 @@ export interface SerializedFirebaseSqlError
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [category](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorcategory) | string | Error origin discriminator ('sql-postgrest' \| 'sql-platform' \| 'sql-client'). |
-|  [code](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorcode) | string | PostgREST wire error code or Firebase SQL platform/client error code. |
-|  [details](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrordetails) | string \| undefined | Optional detailed error explanation returned by the server. |
-|  [hint](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorhint) | string \| undefined | Optional remediation hint returned by the server. |
-|  [message](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrormessage) | string | Human-readable error message. |
+|  [category](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorcategory) | string | Origin category (<code>'sql-postgrest'</code>, <code>'sql-platform'</code>, or <code>'sql-client'</code>). |
+|  [code](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorcode) | string | SQLSTATE, PostgREST (<code>'PGRST*'</code>), or client <code>Code</code> identifier. |
+|  [details](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrordetails) | string \| undefined | Optional diagnostic details from the server or client. |
+|  [hint](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorhint) | string \| undefined | Optional remediation hint from the server. |
+|  [message](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrormessage) | string | Descriptive error message. |
 |  [status](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorstatus) | number \| undefined | Optional HTTP status code associated with the failure. |
 
 ## SerializedFirebaseSqlError.category
 
-Error origin discriminator ('sql-postgrest' \| 'sql-platform' \| 'sql-client').
+Origin category (`'sql-postgrest'`<!-- -->, `'sql-platform'`<!-- -->, or `'sql-client'`<!-- -->).
 
 <b>Signature:</b>
 
@@ -41,7 +41,7 @@ category: string;
 
 ## SerializedFirebaseSqlError.code
 
-PostgREST wire error code or Firebase SQL platform/client error code.
+SQLSTATE, PostgREST (`'PGRST*'`<!-- -->), or client `Code` identifier.
 
 <b>Signature:</b>
 
@@ -51,7 +51,7 @@ code: string;
 
 ## SerializedFirebaseSqlError.details
 
-Optional detailed error explanation returned by the server.
+Optional diagnostic details from the server or client.
 
 <b>Signature:</b>
 
@@ -61,7 +61,7 @@ details?: string | undefined;
 
 ## SerializedFirebaseSqlError.hint
 
-Optional remediation hint returned by the server.
+Optional remediation hint from the server.
 
 <b>Signature:</b>
 
@@ -71,7 +71,7 @@ hint?: string | undefined;
 
 ## SerializedFirebaseSqlError.message
 
-Human-readable error message.
+Descriptive error message.
 
 <b>Signature:</b>
 

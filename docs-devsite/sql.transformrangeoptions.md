@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TransformRangeOptions interface
+Options for paginating rows in <code>[TransformBuilder.range()](./sql.transformbuilder.md#transformbuilderrange)</code>.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,10 +22,17 @@ export interface TransformRangeOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [foreignTable](./sql.transformrangeoptions.md#transformrangeoptionsforeigntable) | string \| undefined |  |
-|  [referencedTable](./sql.transformrangeoptions.md#transformrangeoptionsreferencedtable) | string \| undefined |  |
+|  [foreignTable](./sql.transformrangeoptions.md#transformrangeoptionsforeigntable) | string \| undefined | Deprecated alias for <code>referencedTable</code>. |
+|  [referencedTable](./sql.transformrangeoptions.md#transformrangeoptionsreferencedtable) | string \| undefined | Embedded related table whose nested array should be paginated. |
 
 ## TransformRangeOptions.foreignTable
+
+> Warning: This API is now obsolete.
+> 
+> Use `referencedTable` instead.
+> 
+
+Deprecated alias for `referencedTable`<!-- -->.
 
 <b>Signature:</b>
 
@@ -32,6 +41,8 @@ foreignTable?: string | undefined;
 ```
 
 ## TransformRangeOptions.referencedTable
+
+Embedded related table whose nested array should be paginated.
 
 <b>Signature:</b>
 

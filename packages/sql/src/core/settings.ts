@@ -19,28 +19,29 @@ import { validateHeaders } from '../network/headers';
 
 import { FirebaseSqlErrorCategory, Code, FirebaseSqlError } from './error';
 
-/**
- * Service connection settings for configuring a Firebase SQL client instance.
- */
+/** Connection settings for a `FirebaseSql` client instance. */
 export interface SqlServiceSettings {
-  /** Optional PostgreSQL schema name. */
+  /** Optional PostgreSQL schema name (defaults to `'public'`). */
   schemaName?: string | undefined;
-  /** Custom HTTP headers to include with outgoing requests. */
+  /** Optional custom HTTP headers sent with every request. */
   headers?: Record<string, string> | undefined;
   /** Firebase SQL service identifier. */
   serviceId: string;
-  /** Firebase SQL service location identifier. */
+  /** Firebase SQL service region (such as `'us-central1'`). */
   location: string;
-  /** Optional custom host for emulator or proxy routing. */
+  /** Optional custom host override. */
   host?: string | undefined;
-  /** Optional custom port for emulator or proxy routing. Must be a number between `1` and `65535`. */
+  /** Optional custom TCP port (`1`–`65535`). */
   port?: number | undefined;
-  /** Whether SSL is enabled (defaults to true; set to false for local HTTP). */
+  /** Whether to connect over HTTPS (`true` by default). */
   sslEnabled?: boolean | undefined;
 }
 
 /**
- * Creates a deep defensive copy of a `SqlServiceSettings` object.
+ * Create a mutable copy of a `SqlServiceSettings` object, including its `headers` map.
+ *
+ * @param settings - Settings object to clone.
+ * @returns A shallow-cloned, unfrozen `SqlServiceSettings` object.
  */
 export function copySqlServiceSettings(
   settings: SqlServiceSettings

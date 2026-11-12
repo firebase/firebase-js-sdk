@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TransformOrderOptions interface
+Options for sorting query results in <code>[TransformBuilder.order()](./sql.transformbuilder.md#transformbuilderorder)</code>.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,12 +22,14 @@ export interface TransformOrderOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [ascending](./sql.transformorderoptions.md#transformorderoptionsascending) | boolean \| undefined |  |
-|  [foreignTable](./sql.transformorderoptions.md#transformorderoptionsforeigntable) | string \| undefined |  |
-|  [nullsFirst](./sql.transformorderoptions.md#transformorderoptionsnullsfirst) | boolean \| undefined |  |
-|  [referencedTable](./sql.transformorderoptions.md#transformorderoptionsreferencedtable) | string \| undefined |  |
+|  [ascending](./sql.transformorderoptions.md#transformorderoptionsascending) | boolean \| undefined | Sort ascending when <code>true</code> (default) or descending when <code>false</code>. |
+|  [foreignTable](./sql.transformorderoptions.md#transformorderoptionsforeigntable) | string \| undefined | Deprecated alias for <code>referencedTable</code>. |
+|  [nullsFirst](./sql.transformorderoptions.md#transformorderoptionsnullsfirst) | boolean \| undefined | Place <code>NULL</code> values first when <code>true</code> or last when <code>false</code>. |
+|  [referencedTable](./sql.transformorderoptions.md#transformorderoptionsreferencedtable) | string \| undefined | Embedded related table whose nested array should be sorted. |
 
 ## TransformOrderOptions.ascending
+
+Sort ascending when `true` (default) or descending when `false`<!-- -->.
 
 <b>Signature:</b>
 
@@ -35,6 +39,13 @@ ascending?: boolean | undefined;
 
 ## TransformOrderOptions.foreignTable
 
+> Warning: This API is now obsolete.
+> 
+> Use `referencedTable` instead.
+> 
+
+Deprecated alias for `referencedTable`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -43,6 +54,8 @@ foreignTable?: string | undefined;
 
 ## TransformOrderOptions.nullsFirst
 
+Place `NULL` values first when `true` or last when `false`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -50,6 +63,8 @@ nullsFirst?: boolean | undefined;
 ```
 
 ## TransformOrderOptions.referencedTable
+
+Embedded related table whose nested array should be sorted.
 
 <b>Signature:</b>
 

@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # OperationFailure interface
+Failed operation response containing a structured `FirebaseSqlError`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -21,12 +23,14 @@ export interface OperationFailure extends OperationBase
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [count](./sql.operationfailure.md#operationfailurecount) | null |  |
-|  [data](./sql.operationfailure.md#operationfailuredata) | null |  |
-|  [error](./sql.operationfailure.md#operationfailureerror) | [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) |  |
-|  [success](./sql.operationfailure.md#operationfailuresuccess) | false |  |
+|  [count](./sql.operationfailure.md#operationfailurecount) | null | Always <code>null</code> when <code>success</code> is <code>false</code>. |
+|  [data](./sql.operationfailure.md#operationfailuredata) | null | Always <code>null</code> when <code>success</code> is <code>false</code>. |
+|  [error](./sql.operationfailure.md#operationfailureerror) | [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) | Structured error describing the failure. |
+|  [success](./sql.operationfailure.md#operationfailuresuccess) | false | Indicates that the operation failed. |
 
 ## OperationFailure.count
+
+Always `null` when `success` is `false`<!-- -->.
 
 <b>Signature:</b>
 
@@ -36,6 +40,8 @@ count: null;
 
 ## OperationFailure.data
 
+Always `null` when `success` is `false`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -44,6 +50,8 @@ data: null;
 
 ## OperationFailure.error
 
+Structured error describing the failure.
+
 <b>Signature:</b>
 
 ```typescript
@@ -51,6 +59,8 @@ error: FirebaseSqlError;
 ```
 
 ## OperationFailure.success
+
+Indicates that the operation failed.
 
 <b>Signature:</b>
 

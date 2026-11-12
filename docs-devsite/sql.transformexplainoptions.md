@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TransformExplainOptions interface
+Options for inspecting the query plan in <code>[TransformBuilder.explain()](./sql.transformbuilder.md#transformbuilderexplain)</code>.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,14 +22,16 @@ export interface TransformExplainOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [analyze](./sql.transformexplainoptions.md#transformexplainoptionsanalyze) | boolean \| undefined |  |
-|  [buffers](./sql.transformexplainoptions.md#transformexplainoptionsbuffers) | boolean \| undefined |  |
-|  [format](./sql.transformexplainoptions.md#transformexplainoptionsformat) | [TransformExplainFormat](./sql.md#transformexplainformat) \| undefined |  |
-|  [settings](./sql.transformexplainoptions.md#transformexplainoptionssettings) | boolean \| undefined |  |
-|  [verbose](./sql.transformexplainoptions.md#transformexplainoptionsverbose) | boolean \| undefined |  |
-|  [wal](./sql.transformexplainoptions.md#transformexplainoptionswal) | boolean \| undefined |  |
+|  [analyze](./sql.transformexplainoptions.md#transformexplainoptionsanalyze) | boolean \| undefined | Execute the query and include actual run times and row counts when <code>true</code>. |
+|  [buffers](./sql.transformexplainoptions.md#transformexplainoptionsbuffers) | boolean \| undefined | Include shared, local, and temp buffer usage statistics when <code>true</code>. |
+|  [format](./sql.transformexplainoptions.md#transformexplainoptionsformat) | [TransformExplainFormat](./sql.md#transformexplainformat) \| undefined | Output format for the plan (<code>'text'</code> by default or <code>'json'</code>). |
+|  [settings](./sql.transformexplainoptions.md#transformexplainoptionssettings) | boolean \| undefined | Include modified configuration parameters that affect query planning when <code>true</code>. |
+|  [verbose](./sql.transformexplainoptions.md#transformexplainoptionsverbose) | boolean \| undefined | Include output column lists and query identifiers in the plan when <code>true</code>. |
+|  [wal](./sql.transformexplainoptions.md#transformexplainoptionswal) | boolean \| undefined | Include Write-Ahead Logging (WAL) record generation statistics when <code>true</code>. |
 
 ## TransformExplainOptions.analyze
+
+Execute the query and include actual run times and row counts when `true`<!-- -->.
 
 <b>Signature:</b>
 
@@ -37,6 +41,8 @@ analyze?: boolean | undefined;
 
 ## TransformExplainOptions.buffers
 
+Include shared, local, and temp buffer usage statistics when `true`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -44,6 +50,8 @@ buffers?: boolean | undefined;
 ```
 
 ## TransformExplainOptions.format
+
+Output format for the plan (`'text'` by default or `'json'`<!-- -->).
 
 <b>Signature:</b>
 
@@ -53,6 +61,8 @@ format?: TransformExplainFormat | undefined;
 
 ## TransformExplainOptions.settings
 
+Include modified configuration parameters that affect query planning when `true`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -61,6 +71,8 @@ settings?: boolean | undefined;
 
 ## TransformExplainOptions.verbose
 
+Include output column lists and query identifiers in the plan when `true`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -68,6 +80,8 @@ verbose?: boolean | undefined;
 ```
 
 ## TransformExplainOptions.wal
+
+Include Write-Ahead Logging (WAL) record generation statistics when `true`<!-- -->.
 
 <b>Signature:</b>
 

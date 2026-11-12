@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # OperationSuccess interface
+Successful operation response containing `data` and optional row `count`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -21,12 +23,14 @@ export interface OperationSuccess<T> extends OperationBase
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [count](./sql.operationsuccess.md#operationsuccesscount) | number \| null |  |
-|  [data](./sql.operationsuccess.md#operationsuccessdata) | T |  |
-|  [error](./sql.operationsuccess.md#operationsuccesserror) | null |  |
-|  [success](./sql.operationsuccess.md#operationsuccesssuccess) | true |  |
+|  [count](./sql.operationsuccess.md#operationsuccesscount) | number \| null | Total or affected row count when requested via <code>count</code> options, or <code>null</code>. |
+|  [data](./sql.operationsuccess.md#operationsuccessdata) | T | Deserialized response payload (<code>null</code> when no representation is returned). |
+|  [error](./sql.operationsuccess.md#operationsuccesserror) | null | Always <code>null</code> when <code>success</code> is <code>true</code>. |
+|  [success](./sql.operationsuccess.md#operationsuccesssuccess) | true | Indicates that the operation succeeded. |
 
 ## OperationSuccess.count
+
+Total or affected row count when requested via `count` options, or `null`<!-- -->.
 
 <b>Signature:</b>
 
@@ -36,6 +40,8 @@ count: number | null;
 
 ## OperationSuccess.data
 
+Deserialized response payload (`null` when no representation is returned).
+
 <b>Signature:</b>
 
 ```typescript
@@ -44,6 +50,8 @@ data: T;
 
 ## OperationSuccess.error
 
+Always `null` when `success` is `true`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -51,6 +59,8 @@ error: null;
 ```
 
 ## OperationSuccess.success
+
+Indicates that the operation succeeded.
 
 <b>Signature:</b>
 

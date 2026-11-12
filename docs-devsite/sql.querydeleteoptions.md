@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QueryDeleteOptions interface
+Options for deleting rows in <code>[QueryBuilder.delete()](./sql.querybuilder.md#querybuilderdelete)</code>.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,9 +22,11 @@ export interface QueryDeleteOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [count](./sql.querydeleteoptions.md#querydeleteoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined |  |
+|  [count](./sql.querydeleteoptions.md#querydeleteoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined | Row-counting algorithm to return in <code>result.count</code>. |
 
 ## QueryDeleteOptions.count
+
+Row-counting algorithm to return in `result.count`<!-- -->.
 
 <b>Signature:</b>
 

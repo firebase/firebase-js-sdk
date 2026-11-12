@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # SqlServiceSettings interface
-Service connection settings for configuring a Firebase SQL client instance.
+Connection settings for a `FirebaseSql` client instance.
 
 <b>Signature:</b>
 
@@ -22,17 +22,17 @@ export interface SqlServiceSettings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [headers](./sql.sqlservicesettings.md#sqlservicesettingsheaders) | Record&lt;string, string&gt; \| undefined | Custom HTTP headers to include with outgoing requests. |
-|  [host](./sql.sqlservicesettings.md#sqlservicesettingshost) | string \| undefined | Optional custom host for emulator or proxy routing. |
-|  [location](./sql.sqlservicesettings.md#sqlservicesettingslocation) | string | Firebase SQL service location identifier. |
-|  [port](./sql.sqlservicesettings.md#sqlservicesettingsport) | number \| undefined | Optional custom port for emulator or proxy routing. Must be a number between <code>1</code> and <code>65535</code>. |
-|  [schemaName](./sql.sqlservicesettings.md#sqlservicesettingsschemaname) | string \| undefined | Optional PostgreSQL schema name. |
+|  [headers](./sql.sqlservicesettings.md#sqlservicesettingsheaders) | Record&lt;string, string&gt; \| undefined | Optional custom HTTP headers sent with every request. |
+|  [host](./sql.sqlservicesettings.md#sqlservicesettingshost) | string \| undefined | Optional custom host override. |
+|  [location](./sql.sqlservicesettings.md#sqlservicesettingslocation) | string | Firebase SQL service region (such as <code>'us-central1'</code>). |
+|  [port](./sql.sqlservicesettings.md#sqlservicesettingsport) | number \| undefined | Optional custom TCP port (<code>1</code>–<code>65535</code>). |
+|  [schemaName](./sql.sqlservicesettings.md#sqlservicesettingsschemaname) | string \| undefined | Optional PostgreSQL schema name (defaults to <code>'public'</code>). |
 |  [serviceId](./sql.sqlservicesettings.md#sqlservicesettingsserviceid) | string | Firebase SQL service identifier. |
-|  [sslEnabled](./sql.sqlservicesettings.md#sqlservicesettingssslenabled) | boolean \| undefined | Whether SSL is enabled (defaults to true; set to false for local HTTP). |
+|  [sslEnabled](./sql.sqlservicesettings.md#sqlservicesettingssslenabled) | boolean \| undefined | Whether to connect over HTTPS (<code>true</code> by default). |
 
 ## SqlServiceSettings.headers
 
-Custom HTTP headers to include with outgoing requests.
+Optional custom HTTP headers sent with every request.
 
 <b>Signature:</b>
 
@@ -42,7 +42,7 @@ headers?: Record<string, string> | undefined;
 
 ## SqlServiceSettings.host
 
-Optional custom host for emulator or proxy routing.
+Optional custom host override.
 
 <b>Signature:</b>
 
@@ -52,7 +52,7 @@ host?: string | undefined;
 
 ## SqlServiceSettings.location
 
-Firebase SQL service location identifier.
+Firebase SQL service region (such as `'us-central1'`<!-- -->).
 
 <b>Signature:</b>
 
@@ -62,7 +62,7 @@ location: string;
 
 ## SqlServiceSettings.port
 
-Optional custom port for emulator or proxy routing. Must be a number between `1` and `65535`<!-- -->.
+Optional custom TCP port (`1`<!-- -->–`65535`<!-- -->).
 
 <b>Signature:</b>
 
@@ -72,7 +72,7 @@ port?: number | undefined;
 
 ## SqlServiceSettings.schemaName
 
-Optional PostgreSQL schema name.
+Optional PostgreSQL schema name (defaults to `'public'`<!-- -->).
 
 <b>Signature:</b>
 
@@ -92,7 +92,7 @@ serviceId: string;
 
 ## SqlServiceSettings.sslEnabled
 
-Whether SSL is enabled (defaults to true; set to false for local HTTP).
+Whether to connect over HTTPS (`true` by default).
 
 <b>Signature:</b>
 
