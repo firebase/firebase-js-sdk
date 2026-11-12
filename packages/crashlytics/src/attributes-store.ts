@@ -206,7 +206,7 @@ export class AttributesStore {
     try {
       iid = await this._installations.getId();
     } catch (e) {
-      diag.debug(`Failed to retrieve installation id: ${e}`);
+      diag.debug('Failed to retrieve installation id', e);
       return null;
     }
     if (!iid) {
