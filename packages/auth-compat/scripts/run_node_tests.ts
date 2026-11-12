@@ -22,77 +22,41 @@ import * as yargs from 'yargs';
 
 const argv = yargs
   .options({
-    integration: {
-      type: 'boolean'
-    },
     webdriver: {
       type: 'boolean'
     }
   })
   .parseSync();
 
-const nyc = resolve(__dirname, '../../../node_modules/.bin/nyc');
-const mocha = resolve(__dirname, '../../../node_modules/.bin/mocha');
-
-process.env.TS_NODE_COMPILER_OPTIONS =
-  '{"module":"commonjs", "target": "es6", "types": ["node", "mocha"]}';
 process.env.COMPAT_LAYER = 'true';
 
-let testConfig = ['src/**/*.test.ts'];
-
-if (argv.integration) {
-  testConfig = ['test/integration/flows/**.test.ts'];
-} else if (argv.webdriver) {
-  testConfig = ['../auth/test/integration/webdriver/**/*.test.ts', '--delay'];
-}
-
-let args = [
-  '--reporter',
-  'lcovonly',
-  mocha,
-  ...testConfig,
-  '--file',
-  '../auth/src/platform_browser/iframe/gapi.iframes.ts',
-  '--config',
-  '../../config/mocharc.node.js'
-];
-
 // Make sure that the environment variables are present for local test
-if (argv.integration || argv.webdriver) {
-  if (!process.env.GCLOUD_PROJECT || !process.env.FIREBASE_AUTH_EMULATOR_HOST) {
-    console.error(
-      'Local testing against emulator requested, but ' +
-        'GCLOUD_PROJECT and FIREBASE_AUTH_EMULATOR_HOST env variables ' +
-        'are missing'
-    );
-    process.exit(1);
-  }
+if (!process.env.GCLOUD_PROJECT || !process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+  console.error(
+    'Local testing against emulator requested, but ' +
+      'GCLOUD_PROJECT and FIREBASE_AUTH_EMULATOR_HOST env variables ' +
+      'are missing'
+  );
+  process.exit(1);
 }
-
-args = args.concat(argv._ as string[]);
 
 const vitest = resolve(__dirname, '../../../node_modules/.bin/vitest');
 
-const spawned = argv.webdriver
-  ? spawn(
-      vitest,
-      [
-        'run',
-        '--config',
-        resolve(__dirname, '../../auth/vitest.config.mjs'),
-        '--project=node',
-        resolve(__dirname, '../../auth/test/integration/webdriver'),
-        ...(argv._ as string[])
-      ],
-      {
-        stdio: 'inherit',
-        cwd: resolve(__dirname, '../../auth')
-      }
-    )
-  : spawn(nyc, args, {
-      stdio: 'inherit',
-      cwd: process.cwd()
-    });
+const spawned = spawn(
+  vitest,
+  [
+    'run',
+    '--config',
+    resolve(__dirname, '../../auth/vitest.config.mjs'),
+    '--project=node',
+    resolve(__dirname, '../../auth/test/integration/webdriver'),
+    ...(argv._ as string[])
+  ],
+  {
+    stdio: 'inherit',
+    cwd: resolve(__dirname, '../../auth')
+  }
+);
 
 const childProcess = spawned.childProcess;
 spawned.catch(() => {

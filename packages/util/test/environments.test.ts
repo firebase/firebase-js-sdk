@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { isNode } from '../src/environment';
 import { getGlobal } from '../src/global';
 import { FirebaseDefaults } from '../src/defaults';
