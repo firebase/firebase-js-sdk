@@ -8,118 +8,61 @@
       "name": "AI Unit Tests (node)",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/node_modules/.bin/_mocha",
-      "cwd": "${workspaceRoot}/packages/ai",
-      "args": [
-        "--require",
-        "ts-node/register",
-        "--require",
-        "src/index.node.ts",
-        "--timeout",
-        "5000",
-        "'src/**/!(*-browser)*.test.ts"
-      ],
-      "env": {
-        "TS_NODE_COMPILER_OPTIONS": "{\"module\":\"commonjs\"}"
-      },
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "cwd": "${workspaceFolder}/packages/ai",
+      "args": ["run", "--project=node", "--no-file-parallelism"],
       "sourceMaps": true
     },
     {
       "name": "AI Integration Tests (node)",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/node_modules/.bin/_mocha",
-      "cwd": "${workspaceRoot}/packages/ai",
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "cwd": "${workspaceFolder}/packages/ai",
       "args": [
-        "--require",
-        "ts-node/register",
-        "--require",
-        "src/index.node.ts",
-        "--timeout",
-        "5000",
-        "integration/**/*.test.ts",
-        "--grep",
+        "run",
+        "--project=node",
+        "--no-file-parallelism",
+        "integration",
+        "-t",
         "${input:grepString}"
       ],
-      "env": {
-        "TS_NODE_COMPILER_OPTIONS": "{\"module\":\"commonjs\"}"
-      },
       "sourceMaps": true
     },
     {
       "type": "node",
       "request": "launch",
       "name": "Prune .d.ts",
-      "program": "${workspaceRoot}/repo-scripts/prune-dts/node_modules/.bin/_mocha",
-      "cwd": "${workspaceRoot}/repo-scripts/prune-dts",
-      "args": [
-        "--require",
-        "ts-node/register",
-        "--timeout",
-        "5000",
-        "${workspaceFolder}/repo-scripts/prune-dts/*.test.ts"
-      ],
-      "env": {
-        "TS_NODE_COMPILER_OPTIONS": "{\"module\":\"commonjs\"}"
-      },
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "cwd": "${workspaceFolder}/repo-scripts/prune-dts",
+      "args": ["run", "--testTimeout", "60000", "--no-file-parallelism"],
       "sourceMaps": true
     },
     {
       "type": "node",
       "request": "launch",
       "name": "RTDB Unit Tests (Node)",
-      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
-      "cwd": "${workspaceRoot}/packages/database",
-      "args": [
-        "test/{,!(browser)/**/}*.test.ts",
-        "--file",
-        "src/index.node.ts",
-        "--config",
-        "../../config/mocharc.node.js"
-      ],
-      "env": {
-        "TS_NODE_FILES": true,
-        "TS_NODE_CACHE": "NO",
-        "TS_NODE_COMPILER_OPTIONS": "{\"module\":\"commonjs\"}"
-      },
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "cwd": "${workspaceFolder}/packages/database",
+      "args": ["run", "--project=node", "--no-file-parallelism"],
       "sourceMaps": true
     },
     {
       "type": "node",
       "request": "launch",
       "name": "Firestore Unit Tests (Node)",
-      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
-      "cwd": "${workspaceRoot}/packages/firestore",
-      "args": [
-        "--require",
-        "babel-register.js",
-        "--require",
-        "src/index.node.ts",
-        "--timeout",
-        "5000",
-        "test/{,!(browser|integration)/**/}*.test.ts",
-        "--exit"
-      ],
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "cwd": "${workspaceFolder}/packages/firestore",
+      "args": ["run", "--project=node", "--no-file-parallelism", "test/unit"],
       "sourceMaps": true
     },
     {
       "type": "node",
       "request": "launch",
       "name": "Firestore Unit Tests (Node / Persistence)",
-      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
-      "cwd": "${workspaceRoot}/packages/firestore",
-      "args": [
-        "--require",
-        "babel-register.js",
-        "--require",
-        "index.node.ts",
-        "--require",
-        "test/util/node_persistence.ts",
-        "--timeout",
-        "5000",
-        "test/{,!(browser|integration)/**/}*.test.ts",
-        "--exit"
-      ],
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "cwd": "${workspaceFolder}/packages/firestore",
+      "args": ["run", "--project=node", "--no-file-parallelism", "test/unit"],
       "env": {
         "USE_MOCK_PERSISTENCE": "YES"
       },
@@ -129,17 +72,13 @@
       "type": "node",
       "request": "launch",
       "name": "Firestore Integration Tests (Node)",
-      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
-      "cwd": "${workspaceRoot}/packages/firestore",
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "cwd": "${workspaceFolder}/packages/firestore",
       "args": [
-        "--require",
-        "babel-register.js",
-        "--require",
-        "index.node.ts",
-        "--timeout",
-        "5000",
-        "test/{,!(browser|unit)/**/}*.test.ts",
-        "--exit"
+        "run",
+        "--project=node",
+        "--no-file-parallelism",
+        "test/integration"
       ],
       "env": {
         "FIRESTORE_TARGET_BACKEND": "emulator"
@@ -150,19 +89,13 @@
       "type": "node",
       "request": "launch",
       "name": "Firestore Integration Tests (Node / Persistence)",
-      "program": "${workspaceRoot}/node_modules/.bin/_mocha",
-      "cwd": "${workspaceRoot}/packages/firestore",
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "cwd": "${workspaceFolder}/packages/firestore",
       "args": [
-        "--require",
-        "babel-register.js",
-        "--require",
-        "index.node.ts",
-        "--require",
-        "test/util/node_persistence.ts",
-        "--timeout",
-        "5000",
-        "test/{,!(browser|unit)/**/}*.test.ts",
-        "--exit"
+        "run",
+        "--project=node",
+        "--no-file-parallelism",
+        "test/integration"
       ],
       "env": {
         "USE_MOCK_PERSISTENCE": "YES",
@@ -175,8 +108,8 @@
       "type": "node",
       "request": "launch",
       "runtimeArgs": ["-r", "ts-node/register"],
-      "cwd": "${workspaceRoot}/packages/firestore",
-      "program": "${workspaceRoot}/packages/firestore/scripts/run-tests.ts",
+      "cwd": "${workspaceFolder}/packages/firestore",
+      "program": "${workspaceFolder}/packages/firestore/scripts/run-tests.ts",
       "args": [
         "--platform",
         "node_lite",
@@ -197,17 +130,28 @@
       "type": "node",
       "request": "launch",
       "name": "Firestore Unit Tests (Browser)",
-      "program": "${workspaceRoot}/node_modules/.bin/karma",
-      "cwd": "${workspaceRoot}/packages/firestore",
-      "args": ["start", "--auto-watch", "--unit", "--browsers", "Chrome"]
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "cwd": "${workspaceFolder}/packages/firestore",
+      "args": [
+        "--project=browser",
+        "--browser.headless=false",
+        "test/unit"
+      ]
     },
     {
       "type": "node",
       "request": "launch",
       "name": "Firestore Integration Tests (Browser)",
-      "program": "${workspaceRoot}/node_modules/.bin/karma",
-      "cwd": "${workspaceRoot}/packages/firestore",
-      "args": ["start", "--auto-watch", "--integration", "--browsers", "Chrome"]
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "cwd": "${workspaceFolder}/packages/firestore",
+      "args": [
+        "--project=browser",
+        "--browser.headless=false",
+        "test/integration"
+      ],
+      "env": {
+        "FIRESTORE_TARGET_BACKEND": "emulator"
+      }
     }
   ],
   "inputs": [

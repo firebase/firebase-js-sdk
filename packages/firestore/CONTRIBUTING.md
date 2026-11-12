@@ -30,8 +30,8 @@ that it runs on port 8080.
 Testing Firestore is organized along three dimensions:
 
 1.  **Environment**: Where the code runs.
-    - **Node.js**: Fast, V8-based testing using Mocha. Perfect for logic that doesn't require a browser.
-    - **Browsers**: Uses Karma to run tests in real browser engines (Chrome, Firefox, WebKit). Essential for testing IndexedDB and WebChannels.
+    - **Node.js**: Fast, V8-based testing using Vitest. Perfect for logic that doesn't require a browser.
+    - **Browsers**: Uses Vitest Browser Mode (Playwright) to run tests in real browser engines (Chromium, Firefox, WebKit). Essential for testing IndexedDB and WebChannels.
 2.  **SDK Type**: Which version of the SDK is being tested.
     - **Full SDK**: Includes real-time listeners, offline persistence, and caching.
     - **Lite SDK**: A REST-only, lightweight version without persistence or real-time support.
@@ -73,13 +73,13 @@ Use these variables to change the target backend or database:
 - **Browsers**: Persistence (IndexedDB) is tested natively.
 - **Node.js**: Node lacks a native database. Use `yarn test:node:persistence` to enable a mock persistence layer for testing offline logic in Node.
 
-### Filtering Tests (Grep)
+### Filtering Tests
 
-Use the `--grep` flag to run specific tests.
+Use the `-t` flag to run specific tests matching a name pattern.
 
 ```bash
-yarn test:node --grep 'SortedSet'
-yarn test:browser --grep 'Query'
+yarn test:node -t 'SortedSet'
+yarn test:browser -t 'Query'
 ```
 
 ## Testing Firestore Pipelines
@@ -94,7 +94,7 @@ To test Pipeline features that require the Enterprise backend:
 Example: Running Pipeline integration tests against production with an enterprise database:
 
 ```bash
-yarn test:node:prod:enterprise --grep 'Pipeline'
+yarn test:node:prod:enterprise -t 'Pipeline'
 ```
 
 ### Testing Environments for Pipelines

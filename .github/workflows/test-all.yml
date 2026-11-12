@@ -244,7 +244,7 @@ jobs:
     - run: yarn
     - run: yarn build:${{ matrix.persistence }}
       working-directory: integration/firestore
-    - run: xvfb-run yarn karma:singlerun
+    - run: xvfb-run yarn test:browser
       working-directory: integration/firestore
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
