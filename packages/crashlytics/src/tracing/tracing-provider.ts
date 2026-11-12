@@ -214,11 +214,20 @@ export class OTLPTraceExporter
   ): Promise<void> {
     // Session sampling: drop spans of unsampled sessions before transmission and stamp the
     // session sampling rate on spans of sampled sessions.
-    if (
-      this.sessionSampler &&
-      !(await this.sessionSampler.applySampling(spans))
-    ) {
-      resultCallback({ code: ExportResultCode.SUCCESS });
+    try {
+      if (
+        this.sessionSampler &&
+        !(await this.sessionSampler.applySampling(spans))
+      ) {
+        resultCallback({ code: ExportResultCode.SUCCESS });
+        return;
+      }
+    } catch (error) {
+      // The batch processor doesn't await export(), so fail the batch instead of rejecting.
+      resultCallback({
+        code: ExportResultCode.FAILED,
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       return;
     }
 

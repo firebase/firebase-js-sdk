@@ -201,11 +201,20 @@ class OTLPLogExporter
 
     // Session sampling: the decision is made at the first export attempt of the session. Logs of
     // unsampled sessions are dropped here, before any network transmission.
-    if (
-      this.sessionSampler &&
-      !(await this.sessionSampler.applySampling(filteredLogs))
-    ) {
-      resultCallback({ code: ExportResultCode.SUCCESS });
+    try {
+      if (
+        this.sessionSampler &&
+        !(await this.sessionSampler.applySampling(filteredLogs))
+      ) {
+        resultCallback({ code: ExportResultCode.SUCCESS });
+        return;
+      }
+    } catch (error) {
+      // The batch processor doesn't await export(), so fail the batch instead of rejecting.
+      resultCallback({
+        code: ExportResultCode.FAILED,
+        error: error instanceof Error ? error : new Error(String(error))
+      });
       return;
     }
 

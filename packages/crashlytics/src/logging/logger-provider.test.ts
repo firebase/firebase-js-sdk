@@ -390,6 +390,37 @@ describe('createLoggerProvider', () => {
         fetchStub.mockRestore();
       }
     });
+
+    it('should fail the export without a network request when sampling throws', async () => {
+      const fetchStub = vi
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValue(new Response('', { status: 200 }));
+      try {
+        const sampler = createSampler({});
+        vi.mocked(sampler.getDecision).mockRejectedValue(
+          new Error('sampling failed')
+        );
+        const { loggerProvider: provider } = createLoggerProvider(
+          app,
+          {},
+          attributesStore,
+          telemetryStore,
+          [],
+          sampler
+        );
+        provider.getLogger('test').emit({
+          severityNumber: SeverityNumber.ERROR,
+          body: 'one'
+        });
+        // Resolves right away: the batch fails instead of waiting for the export timeout.
+        await provider.forceFlush();
+
+        expect(sampler.getDecision).toHaveBeenCalled();
+        expect(fetchStub).not.toHaveBeenCalled();
+      } finally {
+        fetchStub.mockRestore();
+      }
+    });
   });
 
   describe('BatchLogRecordProcessor auto-flush on document hide', () => {

@@ -25,7 +25,7 @@ import { context, trace } from '@opentelemetry/api';
 import { AttributesStore } from '../attributes-store';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
-import { CompositePropagator } from '@opentelemetry/core';
+import { CompositePropagator, ExportResultCode } from '@opentelemetry/core';
 import { TelemetryStore } from '../telemetry-store';
 import { FirebaseAttributesSpanProcessor } from './attributes-span-processor';
 import { OnErrorSpanProcessor } from './on-error-span-processor';
@@ -559,6 +559,29 @@ describe('createTracingProvider', () => {
       await exportSpans(exporter);
 
       expect(sampler.getDecision).toHaveBeenCalled();
+      expect(fetchStub).not.toHaveBeenCalled();
+    });
+
+    it('should fail the export without a network request when sampling throws', async () => {
+      const error = new Error('sampling failed');
+      const sampler = createSampler({});
+      vi.mocked(sampler.getDecision).mockRejectedValue(error);
+      const exporter = new OTLPTraceExporter(
+        { url: 'http://localhost' },
+        [],
+        undefined,
+        sampler
+      );
+      const resultCallback = vi.fn();
+
+      // The failure is reported through the callback; export() itself doesn't reject.
+      await expect(
+        exporter.export([mockSpan], resultCallback)
+      ).resolves.toBeUndefined();
+      expect(resultCallback).toHaveBeenCalledWith({
+        code: ExportResultCode.FAILED,
+        error
+      });
       expect(fetchStub).not.toHaveBeenCalled();
     });
   });
