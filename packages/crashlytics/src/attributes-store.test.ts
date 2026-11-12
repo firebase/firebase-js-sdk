@@ -28,6 +28,11 @@ import { diag } from '@opentelemetry/api';
 
 describe('AttributesStore', () => {
   describe('getInstallationIdAttribute', () => {
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     it('should cache the installation id after the first call', async () => {
       let callCount = 0;
       const mockInstallations = {
