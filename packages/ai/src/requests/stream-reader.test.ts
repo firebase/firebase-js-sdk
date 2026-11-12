@@ -553,7 +553,8 @@ describe('aggregateResponses', () => {
           usageMetadata: {
             promptTokenCount: 10,
             candidatesTokenCount: 0,
-            totalTokenCount: 10
+            totalTokenCount: 10,
+            thoughtsTokenCount: 5
           }
         },
         {
@@ -569,7 +570,8 @@ describe('aggregateResponses', () => {
       expect(aggregated.usageMetadata).to.deep.equal({
         promptTokenCount: 10,
         candidatesTokenCount: 25,
-        totalTokenCount: 35
+        totalTokenCount: 35,
+        thoughtsTokenCount: 5
       });
     });
   });
