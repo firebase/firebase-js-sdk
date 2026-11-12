@@ -15,10 +15,13 @@ You can configure the sampling rate for your web app to a value from **0% to 100
 
 ### How Session Sampling Works
 
-- **Per-session consistency**: Sampling decisions are made per session on the client device using a deterministic hash of the session ID and app ID. A session is either collected completely or discarded completely on the device before network transmission.
-- **Rate update propagation**:
-  - **Lowering the sampling rate** is enforced on the server **immediately** to stop unwanted ingestion costs right away, and propagates to active client devices within **15 minutes**.
-  - **Raising the sampling rate** takes up to **15 minutes** to propagate to client devices and applies only to newly created sessions.
+- **Whole sessions, decided on the device**: The SDK collects either all of a session's telemetry or none of it. It decides with a deterministic hash of the session ID, `MurmurHash3(session.id) % 10000 / 10000 < sampling_rate`, when the session first exports telemetry. The decision is stored in `sessionStorage` and kept for the rest of the session, including across page reloads in the same tab. Telemetry from sessions that aren't sampled is never sent.
+- **Sampling rate attribute**: Every log record and span from a sampled session carries a `session.sampling.rate` attribute with the rate used for the decision. Crashlytics uses it to extrapolate dashboard metrics (`1 / session.sampling.rate` per event).
+- **Configuration refresh**: The SDK caches the sampling configuration (sampling rate and enablement state) in `localStorage` and refreshes it with an unauthenticated `GET` request to the Firebase Telemetry API (`firebasetelemetry.googleapis.com`, or `firebasetelemetry.{region}.rep.googleapis.com` when a `region` is set). It refreshes when the SDK starts, before each session's sampling decision (waiting at most 2 seconds), and, until that decision is made, periodically while the page is visible. Until a configuration has been fetched, the SDK collects all sessions. Fetch errors don't affect your app; the last known configuration stays in effect.
+- **Propagation**: The configuration can be cached for up to **15 minutes**, plus 1 minute of revalidation, so a new rate applies to sessions that start about 16 minutes after you change it. Sessions in progress keep their decision until they end, when the browser tab is closed.
+  - **Lowering the rate** also takes effect on the server immediately: the server re-evaluates the same hash with the new rate and drops sessions that no longer qualify.
+  - **Raising the rate** applies only to sessions that start after the change has propagated.
+- **Pausing collection**: When the sampling rate is `0.0` or telemetry collection is disabled, the SDK sends nothing for new sessions.
 
 ---
 
@@ -26,7 +29,7 @@ You can configure the sampling rate for your web app to a value from **0% to 100
 
 1. Open the [Firebase Console Crashlytics dashboard](https://console.firebase.google.com/u/0/project/_/crashlytics) and select your web app.
 2. Click **Configure sampling** in the top action bar.
-3. In the **Configure sampling for your app** dialog, use the slider or enter a value from **0% to 100%** to set the percentage of events and sessions collected from clients. Changes take effect automatically.
+3. In the **Configure sampling for your app** dialog, use the slider or enter a value from **0% to 100%** to set the percentage of events and sessions collected from clients. Changes reach your app within about 16 minutes (see [How Session Sampling Works](#how-session-sampling-works)).
 
 ---
 
@@ -131,6 +134,8 @@ When reproducing or investigating a specific issue during local development or Q
 ```javascript
 self.FIREBASE_TELEMETRY_DEBUG = true;
 ```
+
+To do the same for a user's session, ask them to open your app with the `firebase_telemetry_debug=true` query parameter, for example `https://example.com/?firebase_telemetry_debug=true`. The SDK keeps the override in `sessionStorage`, so it stays active for the rest of the browser session, including after in-app navigation.
 
 ---
 
