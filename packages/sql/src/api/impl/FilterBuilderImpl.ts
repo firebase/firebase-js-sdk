@@ -34,6 +34,7 @@ import type {
 } from '../../core/untypedSchema';
 import { validateHeaderName } from '../../network/headers';
 import { composeSignals } from '../../network/transport';
+import { validateQueryParamKey } from '../../util/url';
 import type {
   Builder,
   CheckMatchingArrayTypes,
@@ -74,6 +75,49 @@ export type AnyPostgrestFilterBuilder =
       any
     >;
 /* eslint-enable @typescript-eslint/no-explicit-any */
+
+function validateReferencedTableOption<
+  T extends {
+    readonly referencedTable?: string | undefined;
+    readonly foreignTable?: string | undefined;
+    readonly ascending?: boolean | undefined;
+    readonly nullsFirst?: boolean | undefined;
+  }
+>(
+  options: T | undefined,
+  ignoreEmpty: boolean,
+  includeOrderFields = false
+): T | undefined {
+  if (!options || typeof options !== 'object') {
+    return options;
+  }
+  const rawReferencedTable = options.referencedTable;
+  const rawTable =
+    rawReferencedTable !== undefined
+      ? rawReferencedTable
+      : options.foreignTable;
+  let validatedTable: string | undefined;
+  if (rawTable !== undefined) {
+    validatedTable = String(rawTable);
+    if (!ignoreEmpty || validatedTable.length > 0) {
+      validateQueryParamKey(validatedTable);
+    }
+  }
+  const normalized: {
+    referencedTable: string | undefined;
+    foreignTable: undefined;
+    ascending?: boolean | undefined;
+    nullsFirst?: boolean | undefined;
+  } = {
+    referencedTable: validatedTable,
+    foreignTable: undefined
+  };
+  if (includeOrderFields) {
+    normalized.ascending = options.ascending;
+    normalized.nullsFirst = options.nullsFirst;
+  }
+  return normalized as unknown as T;
+}
 
 export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
   T,
@@ -196,7 +240,8 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
     column: string,
     options?: Readonly<TransformOrderOptions> | undefined
   ): this {
-    void this._delegate.order(column, options);
+    const validatedOptions = validateReferencedTableOption(options, true, true);
+    void this._delegate.order(column, validatedOptions);
     return this;
   }
 
@@ -204,7 +249,8 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
     rows: number,
     options?: Readonly<TransformLimitOptions> | undefined
   ): this {
-    void this._delegate.limit(rows, options);
+    const validatedOptions = validateReferencedTableOption(options, false);
+    void this._delegate.limit(rows, validatedOptions);
     return this;
   }
 
@@ -213,7 +259,8 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
     to: number,
     options?: Readonly<TransformRangeOptions> | undefined
   ): this {
-    void this._delegate.range(from, to, options);
+    const validatedOptions = validateReferencedTableOption(options, false);
+    void this._delegate.range(from, to, validatedOptions);
     return this;
   }
 
@@ -279,92 +326,110 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
   }
 
   eq(column: string, value: NonNullable<unknown>): this {
-    void this._delegate.eq(column, value);
+    const col = validateQueryParamKey(column);
+    void this._delegate.eq(col, value);
     return this;
   }
 
   neq(column: string, value: unknown): this {
-    void this._delegate.neq(column, value);
+    const col = validateQueryParamKey(column);
+    void this._delegate.neq(col, value);
     return this;
   }
 
   gt(column: string, value: unknown): this {
-    void this._delegate.gt(column, value);
+    const col = validateQueryParamKey(column);
+    void this._delegate.gt(col, value);
     return this;
   }
 
   gte(column: string, value: unknown): this {
-    void this._delegate.gte(column, value);
+    const col = validateQueryParamKey(column);
+    void this._delegate.gte(col, value);
     return this;
   }
 
   lt(column: string, value: unknown): this {
-    void this._delegate.lt(column, value);
+    const col = validateQueryParamKey(column);
+    void this._delegate.lt(col, value);
     return this;
   }
 
   lte(column: string, value: unknown): this {
-    void this._delegate.lte(column, value);
+    const col = validateQueryParamKey(column);
+    void this._delegate.lte(col, value);
     return this;
   }
 
   like(column: string, pattern: string): this {
-    void this._delegate.like(column, pattern);
+    const col = validateQueryParamKey(column);
+    void this._delegate.like(col, pattern);
     return this;
   }
 
   likeAllOf(column: string, patterns: readonly string[]): this {
-    void this._delegate.likeAllOf(column, patterns);
+    const col = validateQueryParamKey(column);
+    void this._delegate.likeAllOf(col, patterns);
     return this;
   }
 
   likeAnyOf(column: string, patterns: readonly string[]): this {
-    void this._delegate.likeAnyOf(column, patterns);
+    const col = validateQueryParamKey(column);
+    void this._delegate.likeAnyOf(col, patterns);
     return this;
   }
 
   ilike(column: string, pattern: string): this {
-    void this._delegate.ilike(column, pattern);
+    const col = validateQueryParamKey(column);
+    void this._delegate.ilike(col, pattern);
     return this;
   }
 
   ilikeAllOf(column: string, patterns: readonly string[]): this {
-    void this._delegate.ilikeAllOf(column, patterns);
+    const col = validateQueryParamKey(column);
+    void this._delegate.ilikeAllOf(col, patterns);
     return this;
   }
 
   ilikeAnyOf(column: string, patterns: readonly string[]): this {
-    void this._delegate.ilikeAnyOf(column, patterns);
+    const col = validateQueryParamKey(column);
+    void this._delegate.ilikeAnyOf(col, patterns);
     return this;
   }
 
   regexMatch(column: string, pattern: string): this {
-    void this._delegate.regexMatch(column, pattern);
+    const col = validateQueryParamKey(column);
+    void this._delegate.regexMatch(col, pattern);
     return this;
   }
 
   regexIMatch(column: string, pattern: string): this {
-    void this._delegate.regexIMatch(column, pattern);
+    const col = validateQueryParamKey(column);
+    void this._delegate.regexIMatch(col, pattern);
     return this;
   }
 
   is(column: string, value: boolean | null): this {
-    void this._delegate.is(column, value);
+    const col = validateQueryParamKey(column);
+    void this._delegate.is(col, value);
     return this;
   }
 
   isDistinct(column: string, value: unknown): this {
-    void this._delegate.isDistinct(column, value);
+    const col = validateQueryParamKey(column);
+    void this._delegate.isDistinct(col, value);
     return this;
   }
 
   in(column: string, values: readonly unknown[]): this {
-    void this._delegate.in(column, values);
+    const col = validateQueryParamKey(column);
+    void this._delegate.in(col, values);
     return this;
   }
 
   notIn(column: string, values: readonly unknown[]): this {
-    void this._delegate.notIn(column, values);
+    const col = validateQueryParamKey(column);
+    void this._delegate.notIn(col, values);
     return this;
   }
 
@@ -375,8 +440,9 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
       readonly [Symbol.iterator]?: never;
     } = Record<string, unknown>
   >(column: string, value: string | readonly unknown[] | Value): this {
+    const col = validateQueryParamKey(column);
     void this._delegate.contains(
-      column,
+      col,
       value as string | readonly unknown[] | Record<string, unknown>
     );
     return this;
@@ -389,40 +455,47 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
       readonly [Symbol.iterator]?: never;
     } = Record<string, unknown>
   >(column: string, value: string | readonly unknown[] | Value): this {
+    const col = validateQueryParamKey(column);
     void this._delegate.containedBy(
-      column,
+      col,
       value as string | readonly unknown[] | Record<string, unknown>
     );
     return this;
   }
 
   rangeGt(column: string, range: string): this {
-    void this._delegate.rangeGt(column, range);
+    const col = validateQueryParamKey(column);
+    void this._delegate.rangeGt(col, range);
     return this;
   }
 
   rangeGte(column: string, range: string): this {
-    void this._delegate.rangeGte(column, range);
+    const col = validateQueryParamKey(column);
+    void this._delegate.rangeGte(col, range);
     return this;
   }
 
   rangeLt(column: string, range: string): this {
-    void this._delegate.rangeLt(column, range);
+    const col = validateQueryParamKey(column);
+    void this._delegate.rangeLt(col, range);
     return this;
   }
 
   rangeLte(column: string, range: string): this {
-    void this._delegate.rangeLte(column, range);
+    const col = validateQueryParamKey(column);
+    void this._delegate.rangeLte(col, range);
     return this;
   }
 
   rangeAdjacent(column: string, range: string): this {
-    void this._delegate.rangeAdjacent(column, range);
+    const col = validateQueryParamKey(column);
+    void this._delegate.rangeAdjacent(col, range);
     return this;
   }
 
   overlaps(column: string, value: string | readonly unknown[]): this {
-    void this._delegate.overlaps(column, value);
+    const col = validateQueryParamKey(column);
+    void this._delegate.overlaps(col, value);
     return this;
   }
 
@@ -431,7 +504,8 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
     query: string,
     options?: Readonly<FilterTextSearchOptions> | undefined
   ): this {
-    void this._delegate.textSearch(column, query, options);
+    const col = validateQueryParamKey(column);
+    void this._delegate.textSearch(col, query, options);
     return this;
   }
 
@@ -442,7 +516,19 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
       readonly [Symbol.iterator]?: never;
     } = Record<string, unknown>
   >(query: Query): this {
-    void this._delegate.match(query as Record<string, unknown>);
+    const validatedQuery: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(query)) {
+      if (value !== undefined) {
+        const validatedKey = validateQueryParamKey(key);
+        Object.defineProperty(validatedQuery, validatedKey, {
+          value,
+          enumerable: true,
+          configurable: true,
+          writable: true
+        });
+      }
+    }
+    void this._delegate.match(validatedQuery);
     return this;
   }
 
@@ -463,7 +549,8 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
   ):
     | (FilterBuilder<NarrowResultColumn<T, ColumnName>, Method, false> & this)
     | this {
-    void this._delegate.not(column, operator, value);
+    const col = validateQueryParamKey(column);
+    void this._delegate.not(col, operator, value);
     return this as unknown as FilterBuilder<
       NarrowResultColumn<T, ColumnName>,
       Method,
@@ -473,7 +560,8 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
   }
 
   or(filters: string, options?: Readonly<FilterOrOptions> | undefined): this {
-    void this._delegate.or(filters, options);
+    const validatedOptions = validateReferencedTableOption(options, true);
+    void this._delegate.or(filters, validatedOptions);
     return this;
   }
 
@@ -482,7 +570,8 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
     operator: `${'' | 'not.'}${FilterOperator}` | (string & {}),
     value: unknown
   ): this {
-    void this._delegate.filter(column, operator, value);
+    const col = validateQueryParamKey(column);
+    void this._delegate.filter(col, operator, value);
     return this;
   }
 

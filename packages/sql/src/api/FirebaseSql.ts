@@ -47,7 +47,7 @@ import type {
 import { logDebug } from '../logger';
 import { createBuilderFetch } from '../network/transport';
 import { FIREBASE_SQL_COMPONENT_NAME } from '../util/constants';
-import { resolvePostgrestUrl } from '../util/url';
+import { resolvePostgrestUrl, validateQueryParamKey } from '../util/url';
 
 import type { FilterBuilder } from './FilterBuilder';
 import { FilterBuilderImpl } from './impl/FilterBuilderImpl';
@@ -224,10 +224,53 @@ export class FirebaseSql {
         FirebaseSqlErrorCategory.SQL_CLIENT
       );
     }
+    const normalizedOptions: FirebaseSqlRpcOptions | undefined =
+      options && typeof options === 'object'
+        ? {
+            head: options.head,
+            get: options.get,
+            count: options.count
+          }
+        : options;
+    let validatedParams = params as Record<string, unknown> | undefined;
+    if (
+      (normalizedOptions?.get || normalizedOptions?.head) &&
+      params &&
+      typeof params === 'object'
+    ) {
+      const entries = Object.entries(params);
+      const _isObject = (v: unknown): boolean =>
+        v !== null &&
+        typeof v === 'object' &&
+        (!Array.isArray(v) || v.some(_isObject));
+      const _hasObjectArg =
+        Boolean(normalizedOptions?.head) &&
+        entries.some(([, v]) => _isObject(v));
+      const copy: Record<string, unknown> = {};
+      for (const [key, value] of entries) {
+        if (_hasObjectArg) {
+          Object.defineProperty(copy, key, {
+            value,
+            enumerable: true,
+            configurable: true,
+            writable: true
+          });
+        } else if (value !== undefined) {
+          const validatedKey = validateQueryParamKey(key);
+          Object.defineProperty(copy, validatedKey, {
+            value,
+            enumerable: true,
+            configurable: true,
+            writable: true
+          });
+        }
+      }
+      validatedParams = copy;
+    }
     const delegate = this._postgrestClient.rpc(
       this._encodeResourceSegment(fn, false),
-      params as Record<string, unknown> | undefined,
-      options
+      validatedParams,
+      normalizedOptions
     );
     return new FilterBuilderImpl<unknown, 'RPC'>(
       delegate,

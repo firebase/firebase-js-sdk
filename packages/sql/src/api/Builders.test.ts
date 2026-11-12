@@ -518,6 +518,113 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
       expect(params.get('members.or')).toBe('(role.eq.admin)');
       expect(params.get('score')).toBe('not.lt.50');
     });
+
+    it('rejects $-prefixed filter columns and referencedTable options with Code.INVALID_ARGUMENT while allowing $ in filter values', async () => {
+      const h = createHarness();
+      const qb = h.queryBuilder('events');
+
+      const expectDollarRejected = (fn: () => unknown): void => {
+        let caught: unknown;
+        try {
+          fn();
+        } catch (err) {
+          caught = err;
+        }
+        expect(caught).toBeInstanceOf(FirebaseSqlError);
+        expect((caught as FirebaseSqlError).code).toBe(Code.INVALID_ARGUMENT);
+        expect((caught as FirebaseSqlError).category).toBe(
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        );
+      };
+
+      expectDollarRejected(() => qb.update({ a: 1 }).eq('$id', 1));
+      expectDollarRejected(() => qb.select().neq('$id', 1));
+      expectDollarRejected(() => qb.select().gt('$id', 1));
+      expectDollarRejected(() => qb.select().gte('$id', 1));
+      expectDollarRejected(() => qb.select().lt('$id', 1));
+      expectDollarRejected(() => qb.select().lte('$id', 1));
+      expectDollarRejected(() => qb.select().like('$id', '%a%'));
+      expectDollarRejected(() => qb.select().likeAllOf('$id', ['%a%']));
+      expectDollarRejected(() => qb.select().likeAnyOf('$id', ['%a%']));
+      expectDollarRejected(() => qb.select().ilike('$id', '%a%'));
+      expectDollarRejected(() => qb.select().ilikeAllOf('$id', ['%a%']));
+      expectDollarRejected(() => qb.select().ilikeAnyOf('$id', ['%a%']));
+      expectDollarRejected(() => qb.select().regexMatch('$id', '^a'));
+      expectDollarRejected(() => qb.select().regexIMatch('$id', '^a'));
+      expectDollarRejected(() => qb.select().is('$id', null));
+      expectDollarRejected(() => qb.select().isDistinct('$id', null));
+      expectDollarRejected(() => qb.select().in('$id', [1, 2]));
+      expectDollarRejected(() => qb.select().notIn('$id', [1, 2]));
+      expectDollarRejected(() => qb.select().contains('$id', ['a']));
+      expectDollarRejected(() => qb.select().containedBy('$id', ['a']));
+      expectDollarRejected(() => qb.select().rangeGt('$id', '[1,2)'));
+      expectDollarRejected(() => qb.select().rangeGte('$id', '[1,2)'));
+      expectDollarRejected(() => qb.select().rangeLt('$id', '[1,2)'));
+      expectDollarRejected(() => qb.select().rangeLte('$id', '[1,2)'));
+      expectDollarRejected(() => qb.select().rangeAdjacent('$id', '[1,2)'));
+      expectDollarRejected(() => qb.select().overlaps('$id', ['a']));
+      expectDollarRejected(() => qb.select().textSearch('$id', 'cat'));
+      expectDollarRejected(() => qb.select().match({ id: 1, $secret: 'x' }));
+      expectDollarRejected(() => qb.select().not('$id', 'eq', 1));
+      expectDollarRejected(() => qb.select().filter('$id', 'eq', 1));
+      expectDollarRejected(() =>
+        qb.select().order('id', { referencedTable: '$items' })
+      );
+      expectDollarRejected(() =>
+        qb.select().limit(5, { referencedTable: '$items' })
+      );
+      expectDollarRejected(() =>
+        qb.select().range(0, 5, { referencedTable: '$items' })
+      );
+      expectDollarRejected(() =>
+        qb.select().or('id.eq.1', { referencedTable: '$items' })
+      );
+
+      // Undefined values in match() are ignored by postgrest-js and should not trigger a false error,
+      // and $ inside filter values or non-first character of column names is allowed.
+      const res = await qb
+        .select()
+        .eq('price$', '$100')
+        .match(
+          JSON.parse('{"status":"$active","__proto__":"proto_val"}') as Record<
+            string,
+            unknown
+          >
+        )
+        .match({ $ignored: undefined });
+      expect(res.success).toBe(true);
+      expect(h.requests).toHaveLength(1);
+      expect(h.requests[0].url.searchParams.get('price$')).toBe('eq.$100');
+      expect(h.requests[0].url.searchParams.get('status')).toBe('eq.$active');
+      expect(h.requests[0].url.searchParams.get('__proto__')).toBe(
+        'eq.proto_val'
+      );
+      expect(h.requests[0].url.searchParams.has('$ignored')).toBe(false);
+
+      expect(() =>
+        qb.delete().match(null as unknown as Record<string, unknown>)
+      ).toThrow(TypeError);
+
+      let refReads = 0;
+      const orderOpts = {
+        get referencedTable(): string {
+          refReads++;
+          return refReads === 1 ? 'items' : '$items';
+        }
+      };
+      expect(() => qb.select().order('id', orderOpts)).not.toThrow();
+      expect(refReads).toBe(1);
+
+      let undefinedThenDollarReads = 0;
+      const sneakyLimitOpts = {
+        get referencedTable(): string | undefined {
+          undefinedThenDollarReads++;
+          return undefinedThenDollarReads === 1 ? undefined : '$items';
+        }
+      };
+      expect(() => qb.select().limit(5, sneakyLimitOpts)).not.toThrow();
+      expect(undefinedThenDollarReads).toBe(1);
+    });
   });
 
   describe('TransformBuilder methods', () => {

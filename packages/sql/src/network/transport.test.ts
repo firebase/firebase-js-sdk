@@ -1027,6 +1027,23 @@ describe('FirebaseSqlTransport', () => {
         });
         expect(mockFetch).not.toHaveBeenCalled();
       });
+
+      it('rejects URLs containing $-prefixed query parameters before fetching tokens or calling fetch', async () => {
+        const authProvider = new MockAuthProvider('token-1');
+        const transport = new FirebaseSqlTransport({
+          settings: BASE_SETTINGS,
+          authTokenProvider: authProvider
+        });
+
+        await expect(
+          transport.invokePostgrestOperation(`${TEST_URL}?$id=eq.1`)
+        ).rejects.toMatchObject({
+          code: Code.INVALID_ARGUMENT,
+          category: FirebaseSqlErrorCategory.SQL_CLIENT
+        });
+        expect(authProvider.getToken).not.toHaveBeenCalled();
+        expect(mockFetch).not.toHaveBeenCalled();
+      });
     });
 
     describe('toFetch', () => {
