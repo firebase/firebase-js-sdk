@@ -250,6 +250,16 @@ function getCredentials(
     : undefined;
 }
 
+function isAbortError(e: unknown, signal?: AbortSignal): boolean {
+  return (
+    (e != null &&
+      typeof e === 'object' &&
+      'name' in e &&
+      (e as { name?: unknown }).name === 'AbortError') ||
+    Boolean(signal?.aborted)
+  );
+}
+
 /**
  * Does an HTTP POST and returns the completed response.
  * @param url The url to post to.
@@ -278,7 +288,7 @@ async function postJSON(
       credentials: getCredentials(functionsInstance)
     });
   } catch (e) {
-    if ((e instanceof Error && e.name === 'AbortError') || signal?.aborted) {
+    if (isAbortError(e, signal)) {
       throw new FunctionsError(
         'cancelled',
         'Request was cancelled.',
@@ -302,7 +312,7 @@ async function postJSON(
   try {
     json = await response.json();
   } catch (e) {
-    if ((e instanceof Error && e.name === 'AbortError') || signal?.aborted) {
+    if (isAbortError(e, signal)) {
       throw new FunctionsError(
         'cancelled',
         'Request was cancelled.',
@@ -501,10 +511,7 @@ async function streamAtURL(
       credentials: getCredentials(functionsInstance)
     });
   } catch (e) {
-    if (
-      (e instanceof Error && e.name === 'AbortError') ||
-      options?.signal?.aborted
-    ) {
+    if (isAbortError(e, options?.signal)) {
       const error = new FunctionsError(
         'cancelled',
         'Request was cancelled.',
@@ -546,14 +553,27 @@ async function streamAtURL(
   }
   let resultResolver: (value: unknown) => void;
   let resultRejecter: (reason: unknown) => void;
-  const resultPromise = new Promise<unknown>((resolve, reject) => {
-    resultResolver = resolve;
-    resultRejecter = reject;
-  });
-  options?.signal?.addEventListener('abort', () => {
-    const error = new FunctionsError('cancelled', 'Request was cancelled.');
+  const onAbort = (): void => {
+    const error = new FunctionsError(
+      'cancelled',
+      'Request was cancelled.',
+      undefined,
+      url,
+      options?.signal?.reason
+    );
     resultRejecter(error);
+  };
+  const resultPromise = new Promise<unknown>((resolve, reject) => {
+    resultResolver = value => {
+      options?.signal?.removeEventListener('abort', onAbort);
+      resolve(value);
+    };
+    resultRejecter = reason => {
+      options?.signal?.removeEventListener('abort', onAbort);
+      reject(reason);
+    };
   });
+  options?.signal?.addEventListener('abort', onAbort, { once: true });
   const reader = response.body!.getReader();
   const rstream = createResponseStream(
     reader,
@@ -649,7 +669,10 @@ function createResponseStream(
         if (signal?.aborted) {
           const error = new FunctionsError(
             'cancelled',
-            'Request was cancelled'
+            'Request was cancelled',
+            undefined,
+            url,
+            signal.reason
           );
           controller.error(error);
           resultRejecter(error);
@@ -667,7 +690,10 @@ function createResponseStream(
           if (signal?.aborted) {
             const error = new FunctionsError(
               'cancelled',
-              'Request was cancelled'
+              'Request was cancelled',
+              undefined,
+              url,
+              signal.reason
             );
             controller.error(error);
             resultRejecter(error);
