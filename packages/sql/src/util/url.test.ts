@@ -17,9 +17,18 @@
 
 import { expect } from 'vitest';
 
+import {
+  Code,
+  FirebaseSqlError,
+  FirebaseSqlErrorCategory
+} from '../core/error';
 import { SqlServiceSettings } from '../core/settings';
 
-import { resolvePostgrestUrl } from './url';
+import {
+  resolvePostgrestUrl,
+  validateQueryParamKey,
+  validateUrlQueryParams
+} from './url';
 
 describe('resolvePostgrestUrl', () => {
   const projectId = 'my-project';
@@ -99,5 +108,86 @@ describe('resolvePostgrestUrl', () => {
     expect(url).toBe(
       'https://firebasedataconnect.googleapis.com/v1/projects/my-project/locations/us-central1/services/my-service/postgrest'
     );
+  });
+});
+
+describe('validateQueryParamKey and validateUrlQueryParams', () => {
+  it('allows non-dollar query parameter keys and coerces stateful objects once', () => {
+    expect(validateQueryParamKey('id')).toBe('id');
+    expect(validateQueryParamKey('price$')).toBe('price$');
+    expect(validateQueryParamKey('a$b')).toBe('a$b');
+
+    let calls = 0;
+    const stateful = {
+      toString(): string {
+        calls++;
+        return calls === 1 ? 'safe_col' : '$injected';
+      }
+    };
+    expect(validateQueryParamKey(stateful as unknown as string)).toBe(
+      'safe_col'
+    );
+    expect(calls).toBe(1);
+  });
+
+  it('rejects $-prefixed query parameter keys with Code.INVALID_ARGUMENT and SQL_CLIENT category', () => {
+    for (const invalidKey of ['$id', '$alt', '$.xgafv', '$', '  $key']) {
+      let thrown: unknown;
+      try {
+        validateQueryParamKey(invalidKey);
+      } catch (err) {
+        thrown = err;
+      }
+      expect(thrown).toBeInstanceOf(FirebaseSqlError);
+      expect((thrown as FirebaseSqlError).code).toBe(Code.INVALID_ARGUMENT);
+      expect((thrown as FirebaseSqlError).category).toBe(
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+    }
+  });
+
+  it('validates URL query strings including percent-encoded %24 and semicolon-delimited keys while allowing $ in values and fragments', () => {
+    expect(() =>
+      validateUrlQueryParams(
+        'https://firebasedataconnect.googleapis.com/v1/postgrest/items?id=eq.1&price=eq.$100&$frag_in_val=ok'.replace(
+          '&$frag_in_val=ok',
+          '#$id=1'
+        )
+      )
+    ).not.toThrow();
+    expect(() =>
+      validateUrlQueryParams(
+        new URL(
+          'https://firebasedataconnect.googleapis.com/v1/postgrest/items?select=id,price$'
+        )
+      )
+    ).not.toThrow();
+    expect(() =>
+      validateUrlQueryParams(
+        'https://firebasedataconnect.googleapis.com/v1/postgrest/items#section?$id=1'
+      )
+    ).not.toThrow();
+
+    for (const badUrl of [
+      'https://firebasedataconnect.googleapis.com/v1/postgrest/items?$id=eq.1',
+      'https://firebasedataconnect.googleapis.com/v1/postgrest/items?select=id&%24key=secret',
+      'https://firebasedataconnect.googleapis.com/v1/postgrest/items?select=id;$alt=json',
+      'https://firebasedataconnect.googleapis.com/v1/postgrest/items?+$id=eq.1',
+      'https://firebasedataconnect.googleapis.com/v1/postgrest/items?%24id%ZZ=eq.1',
+      'https://firebasedataconnect.googleapis.com/v1/postgrest/items?%20%24id%80=eq.1',
+      'https://firebasedataconnect.googleapis.com/v1/postgrest/items?%C2%A0%24id%ZZ=eq.1'
+    ]) {
+      let thrown: unknown;
+      try {
+        validateUrlQueryParams(badUrl);
+      } catch (err) {
+        thrown = err;
+      }
+      expect(thrown).toBeInstanceOf(FirebaseSqlError);
+      expect((thrown as FirebaseSqlError).code).toBe(Code.INVALID_ARGUMENT);
+      expect((thrown as FirebaseSqlError).category).toBe(
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+    }
   });
 });

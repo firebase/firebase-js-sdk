@@ -805,6 +805,61 @@ describe('FirebaseSql end-to-end operations', () => {
       );
       expect(url4.searchParams.has('admin')).toBe(false);
       expect(url4.hash).toBe('');
+
+      // Rejects $-prefixed query parameter keys on GET/HEAD rpc() while allowing $-prefixed keys in POST JSON bodies
+      for (const rpcOpts of [{ get: true }, { head: true }]) {
+        let dollarRpcErr: unknown;
+        try {
+          void sql.rpc('top_users', { $key: 'secret' }, rpcOpts);
+        } catch (err) {
+          dollarRpcErr = err;
+        }
+        expect(dollarRpcErr).toBeInstanceOf(FirebaseSqlError);
+        expect((dollarRpcErr as FirebaseSqlError).code).toBe(
+          Code.INVALID_ARGUMENT
+        );
+        expect((dollarRpcErr as FirebaseSqlError).category).toBe(
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        );
+      }
+
+      const postDollarBodyRes = await sql.rpc('top_users', { $jsonKey: 123 });
+      expect(postDollarBodyRes.success).toBe(true);
+      expect(mockFetch.mock.calls[5][1]?.method).toBe('POST');
+      expect(mockFetch.mock.calls[5][1]?.body).toBe('{"$jsonKey":123}');
+
+      let getReads = 0;
+      const sneakyRpcOpts = {
+        get get(): boolean {
+          getReads++;
+          return getReads > 1;
+        }
+      };
+      expect(() =>
+        sql.rpc('top_users', { $key: 'secret' }, sneakyRpcOpts)
+      ).not.toThrow();
+      expect(getReads).toBe(1);
+
+      let headParamReads = 0;
+      const headParams = {
+        get filter(): string {
+          headParamReads++;
+          return 'active';
+        }
+      };
+      expect(() =>
+        sql.rpc('top_users', headParams, { head: true })
+      ).not.toThrow();
+      expect(headParamReads).toBe(1);
+
+      mockFetch.mockResolvedValueOnce(new Response('[]', { status: 200 }));
+      await sql.rpc(
+        'top_users',
+        JSON.parse('{"__proto__":"proto_arg"}') as Record<string, unknown>,
+        { get: true }
+      );
+      const protoRpcUrl = new URL(String(mockFetch.mock.calls[6][0]));
+      expect(protoRpcUrl.searchParams.get('__proto__')).toBe('proto_arg');
     });
   });
 

@@ -31,6 +31,7 @@ import type {
 } from '../core/state';
 import { AppCheckTokenProvider } from '../core/tokenProviders/AppCheckTokenProvider';
 import { FirebaseAuthTokenProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
+import { validateUrlQueryParams } from '../util/url';
 
 import { Fetch, getFetch } from './fetch';
 import { FirebaseHeaders, resolveRequestHeaders } from './headers';
@@ -219,6 +220,8 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
         : input instanceof URL
           ? input.toString()
           : input.url;
+
+    validateUrlQueryParams(url);
 
     const authProvider =
       this._state?.active?.authTokenProvider ?? this.authProvider;
