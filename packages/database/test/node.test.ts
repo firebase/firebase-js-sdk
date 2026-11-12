@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { ChildrenNode } from '../src/core/snap/ChildrenNode';
 import { NAME_COMPARATOR } from '../src/core/snap/comparators';
 import { PRIORITY_INDEX } from '../src/core/snap/indexes/PriorityIndex';
@@ -32,14 +30,14 @@ describe('Node Tests', () => {
 
   it('Create leaf nodes of various types.', () => {
     let x = new LeafNode(5, new LeafNode(42));
-    expect(x.getValue()).to.equal(5);
-    expect(x.getPriority().val()).to.equal(42);
-    expect(x.isLeafNode()).to.equal(true);
+    expect(x.getValue()).toBe(5);
+    expect(x.getPriority().val()).toBe(42);
+    expect(x.isLeafNode()).toBe(true);
 
     x = new LeafNode('test');
-    expect(x.getValue()).to.equal('test');
+    expect(x.getValue()).toBe('test');
     x = new LeafNode(true);
-    expect(x.getValue()).to.equal(true);
+    expect(x.getValue()).toBe(true);
   });
 
   it('LeafNode.updatePriority returns a new leaf node without changing the old.', () => {
@@ -47,33 +45,31 @@ describe('Node Tests', () => {
     const y = x.updatePriority(new LeafNode(187));
 
     // old node is the same.
-    expect(x.getValue()).to.equal('test');
-    expect(x.getPriority().val()).to.equal(42);
+    expect(x.getValue()).toBe('test');
+    expect(x.getPriority().val()).toBe(42);
 
     // new node has the new priority but the old value.
-    expect((y as any).getValue()).to.equal('test');
-    expect(y.getPriority().val()).to.equal(187);
+    expect((y as any).getValue()).toBe('test');
+    expect(y.getPriority().val()).toBe(187);
   });
 
   it('LeafNode.updateImmediateChild returns a new children node.', () => {
     const x = new LeafNode('test', new LeafNode(42));
     const y = x.updateImmediateChild('test', new LeafNode('foo'));
 
-    expect(y.isLeafNode()).to.equal(false);
-    expect(y.getPriority().val()).to.equal(42);
-    expect((y.getImmediateChild('test') as LeafNode).getValue()).to.equal(
-      'foo'
-    );
+    expect(y.isLeafNode()).toBe(false);
+    expect(y.getPriority().val()).toBe(42);
+    expect((y.getImmediateChild('test') as LeafNode).getValue()).toBe('foo');
   });
 
   it('LeafNode.getImmediateChild returns an empty node.', () => {
     const x = new LeafNode('test');
-    expect(x.getImmediateChild('foo')).to.equal(ChildrenNode.EMPTY_NODE);
+    expect(x.getImmediateChild('foo')).toBe(ChildrenNode.EMPTY_NODE);
   });
 
   it('LeafNode.getChild returns an empty node.', () => {
     const x = new LeafNode('test');
-    expect(x.getChild(new Path('foo/bar'))).to.equal(ChildrenNode.EMPTY_NODE);
+    expect(x.getChild(new Path('foo/bar'))).toBe(ChildrenNode.EMPTY_NODE);
   });
 
   it('ChildrenNode.updatePriority returns a new internal node without changing the old.', () => {
@@ -83,10 +79,10 @@ describe('Node Tests', () => {
     );
     const children = (x as any).children_;
     const y = x.updatePriority(new LeafNode(17));
-    expect((y as any).children_).to.equal((x as any).children_);
-    expect((x as any).children_).to.equal(children);
-    expect(x.getPriority().val()).to.equal(null);
-    expect(y.getPriority().val()).to.equal(17);
+    expect((y as any).children_).toBe((x as any).children_);
+    expect((x as any).children_).toBe(children);
+    expect(x.getPriority().val()).toBe(null);
+    expect(y.getPriority().val()).toBe(17);
   });
 
   it('ChildrenNode.updateImmediateChild returns a new internal node with the new child, without changing the old.', () => {
@@ -98,8 +94,8 @@ describe('Node Tests', () => {
     );
     const newValue = new LeafNode('new value');
     const y = x.updateImmediateChild('test', newValue);
-    expect((x as any).children_).to.equal(children);
-    expect((y as any).children_.get('test')).to.equal(newValue);
+    expect((x as any).children_).toBe(children);
+    expect((y as any).children_.get('test')).toBe(newValue);
   });
 
   it('ChildrenNode.updateChild returns a new internal node with the new child, without changing the old.', () => {
@@ -111,8 +107,8 @@ describe('Node Tests', () => {
     );
     const newValue = new LeafNode('new value');
     const y = x.updateChild(new Path('test/foo'), newValue);
-    expect((x as any).children_).to.equal(children);
-    expect(y.getChild(new Path('test/foo'))).to.equal(newValue);
+    expect((x as any).children_).toBe(children);
+    expect(y.getChild(new Path('test/foo'))).toBe(newValue);
   });
 
   it('Node.hash() works correctly.', () => {
@@ -125,20 +121,20 @@ describe('Node Tests', () => {
 
     // !!!NOTE!!! These hashes must match what the server generates.  If you change anything so these hashes change,
     // make sure you change the corresponding server code.
-    expect(node.getImmediateChild('intNode').hash()).to.equal(
+    expect(node.getImmediateChild('intNode').hash()).toBe(
       'eVih19a6ZDz3NL32uVBtg9KSgQY='
     );
-    expect(node.getImmediateChild('doubleNode').hash()).to.equal(
+    expect(node.getImmediateChild('doubleNode').hash()).toBe(
       'vf1CL0tIRwXXunHcG/irRECk3lY='
     );
-    expect(node.getImmediateChild('stringNode').hash()).to.equal(
+    expect(node.getImmediateChild('stringNode').hash()).toBe(
       'CUNLXWpCVoJE6z7z1vE57lGaKAU='
     );
-    expect(node.getImmediateChild('boolNode').hash()).to.equal(
+    expect(node.getImmediateChild('boolNode').hash()).toBe(
       'E5z61QM0lN/U2WsOnusszCTkR8M='
     );
 
-    expect(node.hash()).to.equal('6Mc4jFmNdrLVIlJJjz2/MakTK9I=');
+    expect(node.hash()).toBe('6Mc4jFmNdrLVIlJJjz2/MakTK9I=');
   });
 
   it('Node.hash() works correctly with priorities.', () => {
@@ -146,7 +142,7 @@ describe('Node Tests', () => {
       root: { c: { '.value': 99, '.priority': 'abc' }, '.priority': 'def' }
     });
 
-    expect(node.hash()).to.equal('Fm6tzN4CVEu5WxFDZUdTtqbTVaA=');
+    expect(node.hash()).toBe('Fm6tzN4CVEu5WxFDZUdTtqbTVaA=');
   });
 
   it('Node.hash() works correctly with number priorities.', () => {
@@ -154,7 +150,7 @@ describe('Node Tests', () => {
       root: { c: { '.value': 99, '.priority': 42 }, '.priority': 3.14 }
     });
 
-    expect(node.hash()).to.equal('B15QCqrzCxrI5zz1y00arWqFRFg=');
+    expect(node.hash()).toBe('B15QCqrzCxrI5zz1y00arWqFRFg=');
   });
 
   it('Node.hash() stress...', () => {
@@ -170,25 +166,25 @@ describe('Node Tests', () => {
       '✔': 'foo',
       '.priority': '✔'
     });
-    expect(node.getImmediateChild('a').hash()).to.equal(
+    expect(node.getImmediateChild('a').hash()).toBe(
       '7HxgOBDEC92uQwhCuuvKA2rbXDA='
     );
-    expect(node.getImmediateChild('b').hash()).to.equal(
+    expect(node.getImmediateChild('b').hash()).toBe(
       '8R+ekVQmxs6ZWP0fdzFHxVeGnWo='
     );
-    expect(node.getImmediateChild('c').hash()).to.equal(
+    expect(node.getImmediateChild('c').hash()).toBe(
       'JoKoFUnbmg3/DlY70KaDWslfYPk='
     );
-    expect(node.getImmediateChild('d').hash()).to.equal(
+    expect(node.getImmediateChild('d').hash()).toBe(
       'Y41iC5+92GIqXfabOm33EanRI8s='
     );
-    expect(node.getImmediateChild('e').hash()).to.equal(
+    expect(node.getImmediateChild('e').hash()).toBe(
       '+E+Mxlqh5MhT+On05bjsZ6JaaxI='
     );
-    expect(node.getImmediateChild('✔').hash()).to.equal(
+    expect(node.getImmediateChild('✔').hash()).toBe(
       'MRRL/+aA/uibaL//jghUpxXS/uY='
     );
-    expect(node.hash()).to.equal('CyC0OU8GSkOAKnsPjheWtWC0Yxo=');
+    expect(node.hash()).toBe('CyC0OU8GSkOAKnsPjheWtWC0Yxo=');
   });
 
   it('ChildrenNode.getPredecessorChild works correctly.', () => {
@@ -201,21 +197,11 @@ describe('Node Tests', () => {
     });
 
     // HACK: Pass null instead of the actual childNode, since it's not actually needed.
-    expect(node.getPredecessorChildName('a', null, DEFAULT_INDEX)).to.equal(
-      null
-    );
-    expect(node.getPredecessorChildName('c', null, DEFAULT_INDEX)).to.equal(
-      'a'
-    );
-    expect(node.getPredecessorChildName('d', null, DEFAULT_INDEX)).to.equal(
-      'c'
-    );
-    expect(node.getPredecessorChildName('e', null, DEFAULT_INDEX)).to.equal(
-      'd'
-    );
-    expect(node.getPredecessorChildName('g', null, DEFAULT_INDEX)).to.equal(
-      'e'
-    );
+    expect(node.getPredecessorChildName('a', null, DEFAULT_INDEX)).toBe(null);
+    expect(node.getPredecessorChildName('c', null, DEFAULT_INDEX)).toBe('a');
+    expect(node.getPredecessorChildName('d', null, DEFAULT_INDEX)).toBe('c');
+    expect(node.getPredecessorChildName('e', null, DEFAULT_INDEX)).toBe('d');
+    expect(node.getPredecessorChildName('g', null, DEFAULT_INDEX)).toBe('e');
   });
 
   it('SortedChildrenNode.getPredecessorChild works correctly.', () => {
@@ -233,35 +219,35 @@ describe('Node Tests', () => {
         node.getImmediateChild('a'),
         DEFAULT_INDEX
       )
-    ).to.equal('c');
+    ).toBe('c');
     expect(
       node.getPredecessorChildName(
         'c',
         node.getImmediateChild('c'),
         DEFAULT_INDEX
       )
-    ).to.equal('d');
+    ).toBe('d');
     expect(
       node.getPredecessorChildName(
         'd',
         node.getImmediateChild('d'),
         DEFAULT_INDEX
       )
-    ).to.equal('e');
+    ).toBe('e');
     expect(
       node.getPredecessorChildName(
         'e',
         node.getImmediateChild('e'),
         DEFAULT_INDEX
       )
-    ).to.equal('g');
+    ).toBe('g');
     expect(
       node.getPredecessorChildName(
         'g',
         node.getImmediateChild('g'),
         DEFAULT_INDEX
       )
-    ).to.equal(null);
+    ).toBe(null);
   });
 
   it('SortedChildrenNode.updateImmediateChild works correctly.', () => {
@@ -275,11 +261,9 @@ describe('Node Tests', () => {
     });
 
     node = node.updateImmediateChild('c', nodeFromJSON(false));
-    expect((node.getImmediateChild('c') as LeafNode).getValue()).to.equal(
-      false
-    );
-    expect(node.getImmediateChild('c').getPriority().val()).to.equal(null);
-    expect(node.getPriority().val()).to.equal(1000);
+    expect((node.getImmediateChild('c') as LeafNode).getValue()).toBe(false);
+    expect(node.getImmediateChild('c').getPriority().val()).toBe(null);
+    expect(node.getPriority().val()).toBe(1000);
   });
 
   it('removing nodes correctly removes intermediate nodes with no remaining children', () => {
@@ -289,7 +273,7 @@ describe('Node Tests', () => {
       new Path('a/b/c'),
       ChildrenNode.EMPTY_NODE
     );
-    expect(newNode.isEmpty()).to.equal(true);
+    expect(newNode.isEmpty()).toBe(true);
   });
 
   it('removing nodes leaves intermediate nodes with other children', () => {
@@ -299,9 +283,9 @@ describe('Node Tests', () => {
       new Path('a/b/c'),
       ChildrenNode.EMPTY_NODE
     );
-    expect(newNode.isEmpty()).to.equal(false);
-    expect(newNode.getChild(new Path('a/b/c')).isEmpty()).to.equal(true);
-    expect(newNode.getChild(new Path('a/d')).val()).to.equal(2);
+    expect(newNode.isEmpty()).toBe(false);
+    expect(newNode.getChild(new Path('a/b/c')).isEmpty()).toBe(true);
+    expect(newNode.getChild(new Path('a/d')).val()).toBe(2);
   });
 
   it('removing nodes leaves other leaf nodes', () => {
@@ -311,53 +295,51 @@ describe('Node Tests', () => {
       new Path('a/b/c'),
       ChildrenNode.EMPTY_NODE
     );
-    expect(newNode.isEmpty()).to.equal(false);
-    expect(newNode.getChild(new Path('a/b/c')).isEmpty()).to.equal(true);
-    expect(newNode.getChild(new Path('a/b/d')).val()).to.equal(2);
+    expect(newNode.isEmpty()).toBe(false);
+    expect(newNode.getChild(new Path('a/b/c')).isEmpty()).toBe(true);
+    expect(newNode.getChild(new Path('a/b/d')).val()).toBe(2);
   });
 
   it('removing nodes correctly removes the root', () => {
     let json = null;
     let node = nodeFromJSON(json);
     let newNode = node.updateChild(newEmptyPath(), ChildrenNode.EMPTY_NODE);
-    expect(newNode.isEmpty()).to.equal(true);
+    expect(newNode.isEmpty()).toBe(true);
 
     json = { a: 1 };
     node = nodeFromJSON(json);
     newNode = node.updateChild(new Path('a'), ChildrenNode.EMPTY_NODE);
-    expect(newNode.isEmpty()).to.equal(true);
+    expect(newNode.isEmpty()).toBe(true);
   });
 
   it('ignores null values', () => {
     const json = { a: 1, b: null };
     const node = nodeFromJSON(json);
-    expect((node as any).children_.get('b')).to.equal(null);
+    expect((node as any).children_.get('b')).toBe(null);
   });
 
   it('Leading zeroes in path are handled properly', () => {
     const json = { '1': 1, '01': 2, '001': 3 };
     const tree = nodeFromJSON(json);
-    expect(tree.getChild(new Path('1')).val()).to.equal(1);
-    expect(tree.getChild(new Path('01')).val()).to.equal(2);
-    expect(tree.getChild(new Path('001')).val()).to.equal(3);
+    expect(tree.getChild(new Path('1')).val()).toBe(1);
+    expect(tree.getChild(new Path('01')).val()).toBe(2);
+    expect(tree.getChild(new Path('001')).val()).toBe(3);
   });
 
   it('Treats leading zeroes as objects, not array', () => {
     const json = { '3': 1, '03': 2 };
     const tree = nodeFromJSON(json);
     const val = tree.val();
-    expect(val).to.deep.equal(json);
+    expect(val).toEqual(json);
   });
 
   it("Updating empty children doesn't overwrite leaf node", () => {
     const empty = ChildrenNode.EMPTY_NODE;
     const node = nodeFromJSON('value');
-    expect(node).to.deep.equal(node.updateChild(new Path('.priority'), empty));
-    expect(node).to.deep.equal(node.updateChild(new Path('child'), empty));
-    expect(node).to.deep.equal(
-      node.updateChild(new Path('child/.priority'), empty)
-    );
-    expect(node).to.deep.equal(node.updateImmediateChild('child', empty));
-    expect(node).to.deep.equal(node.updateImmediateChild('.priority', empty));
+    expect(node).toEqual(node.updateChild(new Path('.priority'), empty));
+    expect(node).toEqual(node.updateChild(new Path('child'), empty));
+    expect(node).toEqual(node.updateChild(new Path('child/.priority'), empty));
+    expect(node).toEqual(node.updateImmediateChild('child', empty));
+    expect(node).toEqual(node.updateImmediateChild('.priority', empty));
   });
 });

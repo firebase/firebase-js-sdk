@@ -18,6 +18,7 @@
 import { DatabaseId } from '../core/database_info';
 import { toPipelineStages } from '../core/pipeline-util';
 import { Code, FirestoreError } from '../util/error';
+import { isPlainObject } from '../util/input_validation';
 import { isString } from '../util/types';
 
 import { Pipeline } from './pipeline';
@@ -32,6 +33,7 @@ import {
   CollectionSource,
   DatabaseSource,
   DocumentsSource,
+  LiteralsSource,
   Stage,
   SubcollectionSource
 } from './stage';
@@ -40,6 +42,8 @@ import {
   CollectionStageOptions,
   DatabaseStageOptions,
   DocumentsStageOptions,
+  LiteralsStageOptions,
+  StageOptions,
   SubcollectionStageOptions
 } from './stage_options';
 import { UserDataReader, UserDataSource } from './user_data_reader';
@@ -238,6 +242,63 @@ export class PipelineSource<PipelineType> {
     stage._readUserData(parseContext);
 
     // Add stage to the pipeline
+    return this._createPipeline([stage]);
+  }
+
+  /**
+   * Set the pipeline's source to the documents specified by the given array of
+   * literal objects.
+   *
+   * Each object in the array represents a document where keys are field names
+   * and values are constants or {@link @firebase/firestore/pipelines#Expression} instances.
+   *
+   * @example
+   * ```typescript
+   * firestore.pipeline().literals([
+   *   { name: 'Alice', score: 50 },
+   *   { name: 'Bob', score: add(constant(30), constant(40)) }
+   * ]);
+   * ```
+   *
+   * @param documents - An array of literal document objects.
+   */
+  literals(documents: Array<Record<string, unknown>>): PipelineType;
+
+  /**
+   * Set the pipeline's source to the documents specified by the given
+   * {@link @firebase/firestore/pipelines#LiteralsStageOptions}.
+   *
+   * @param options - Options defining how this `LiteralsStage` is evaluated.
+   */
+  literals(options: LiteralsStageOptions): PipelineType;
+  literals(
+    documentsOrOptions: Array<Record<string, unknown>> | LiteralsStageOptions
+  ): PipelineType {
+    let documents: Array<Record<string, unknown>>;
+    let options: StageOptions = {};
+
+    if (Array.isArray(documentsOrOptions)) {
+      documents = documentsOrOptions;
+    } else if (
+      isPlainObject(documentsOrOptions) &&
+      Array.isArray((documentsOrOptions as LiteralsStageOptions).documents)
+    ) {
+      ({ documents, ...options } = documentsOrOptions);
+    } else {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Function literals() requires an array of document objects or a LiteralsStageOptions object with a documents array.'
+      );
+    }
+
+    const stage = new LiteralsSource(documents, options);
+
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'literals'
+    );
+    stage._readUserData(parseContext);
+
     return this._createPipeline([stage]);
   }
 

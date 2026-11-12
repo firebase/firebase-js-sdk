@@ -16,7 +16,6 @@
  */
 
 import { getModularInstance } from '@firebase/util';
-import { expect } from 'chai';
 import { getApp, getApps } from '@firebase/app';
 import firebase from '@firebase/app-compat';
 
@@ -35,16 +34,16 @@ describe('App compat interop', () => {
   it('App compat instance references modular App instance', () => {
     const compatApp = firebase.initializeApp(TEST_PROJECT_CONFIG);
     const modularApp = getApp();
-    expect(getModularInstance(compatApp)).to.equal(modularApp);
+    expect(getModularInstance(compatApp)).toBe(modularApp);
   });
 
   it('deleting compat app deletes modular app', async () => {
     const compatApp = firebase.initializeApp(TEST_PROJECT_CONFIG);
-    expect(firebase.apps.length).to.equal(1);
-    expect(getApps().length).to.equal(1);
+    expect(firebase.apps.length).toBe(1);
+    expect(getApps().length).toBe(1);
 
     await compatApp.delete();
-    expect(firebase.apps.length).to.equal(0);
-    expect(getApps().length).to.equal(0);
+    expect(firebase.apps.length).toBe(0);
+    expect(getApps().length).toBe(0);
   });
 });

@@ -82,6 +82,8 @@ declare module '@firebase/component' {
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
  * @param options - {@link AIOptions} that configure the AI instance.
  * @returns The default {@link AI} instance for the given {@link @firebase/app#FirebaseApp}.
+ * @throws If `options.useLimitedUseAppCheckTokens` conflicts with the options of the existing
+ * {@link AI} instance for the same app and backend.
  *
  * @public
  */
@@ -92,16 +94,35 @@ export function getAI(app: FirebaseApp = getApp(), options?: AIOptions): AI {
 
   const backend = options?.backend ?? new GoogleAIBackend();
 
-  const finalOptions: Omit<AIOptions, 'backend'> = {
-    useLimitedUseAppCheckTokens: options?.useLimitedUseAppCheckTokens ?? false
-  };
-
   const identifier = encodeInstanceIdentifier(backend);
   const aiInstance = AIProvider.getImmediate({
     identifier
   });
 
-  aiInstance.options = finalOptions;
+  const existingOptions = aiInstance.options;
+  // `options` is only ever assigned here in getAI(), so `existingOptions` is undefined if
+  // `getImmediate()` just created this instance, and set if it was created by an earlier
+  // getAI() call for the same app and backend.
+  if (existingOptions) {
+    const requested = options?.useLimitedUseAppCheckTokens;
+    const existing = !!existingOptions.useLimitedUseAppCheckTokens;
+    if (requested != null && !!requested !== existing) {
+      throw new AIError(
+        AIErrorCode.ALREADY_INITIALIZED,
+        `getAI() has already been called for app "${app.name}" and this backend ` +
+          `with useLimitedUseAppCheckTokens: ${existing}. This option cannot be ` +
+          `changed after the AI instance has been initialized. Pass the desired ` +
+          `options to the first getAI() call for this app and backend, or omit ` +
+          `useLimitedUseAppCheckTokens to reuse the existing instance.`
+      );
+    }
+    return aiInstance;
+  }
+
+  // Assign options only if this is a new instance.
+  aiInstance.options = {
+    useLimitedUseAppCheckTokens: options?.useLimitedUseAppCheckTokens ?? false
+  };
 
   return aiInstance;
 }

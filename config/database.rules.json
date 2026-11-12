@@ -3,7 +3,13 @@
     ".read": true,
     ".write": true,
     "testing": {
-      ".indexOn": "testIndex"
+      ".indexOn": "testIndex",
+      "node": {
+        ".indexOn": "testIndex"
+      },
+      "browser": {
+        ".indexOn": "testIndex"
+      }
     }
   }
 }

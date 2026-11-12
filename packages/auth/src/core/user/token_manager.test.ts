@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-
 import { FirebaseError } from '@firebase/util';
 
 import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
@@ -28,9 +24,6 @@ import { StsTokenManager, Buffer } from './token_manager';
 import { FinalizeMfaResponse } from '../../api/authentication/mfa';
 import { makeJWT } from '../../../test/helpers/jwt';
 import { Endpoint } from '../../api';
-
-use(chaiAsPromised);
-
 describe('core/user/token_manager', () => {
   let stsTokenManager: StsTokenManager;
   let now: number;
@@ -40,27 +33,27 @@ describe('core/user/token_manager', () => {
     auth = await testAuth();
     stsTokenManager = new StsTokenManager();
     now = Date.now();
-    sinon.stub(Date, 'now').returns(now);
+    vi.spyOn(Date, 'now').mockReturnValue(now);
   });
 
   beforeEach(fetch.setUp);
   afterEach(fetch.tearDown);
-  afterEach(() => sinon.restore());
+  afterEach(() => vi.restoreAllMocks());
 
   describe('#isExpired', () => {
     it('is true if past expiration time', () => {
       stsTokenManager.expirationTime = 1; // Ancient history
-      expect(stsTokenManager.isExpired).to.eq(true);
+      expect(stsTokenManager.isExpired).toBe(true);
     });
 
     it('is true if exp is in future but within buffer', () => {
       stsTokenManager.expirationTime = now + (Buffer.TOKEN_REFRESH - 10);
-      expect(stsTokenManager.isExpired).to.eq(true);
+      expect(stsTokenManager.isExpired).toBe(true);
     });
 
     it('is false if exp is far enough in future', () => {
       stsTokenManager.expirationTime = now + (Buffer.TOKEN_REFRESH + 10);
-      expect(stsTokenManager.isExpired).to.eq(false);
+      expect(stsTokenManager.isExpired).toBe(false);
     });
   });
 
@@ -72,9 +65,9 @@ describe('core/user/token_manager', () => {
         expiresIn: '60' // From the server this is 30s
       } as IdTokenResponse);
 
-      expect(stsTokenManager.expirationTime).to.eq(now + 60_000);
-      expect(stsTokenManager.accessToken).to.eq('id-token');
-      expect(stsTokenManager.refreshToken).to.eq('refresh-token');
+      expect(stsTokenManager.expirationTime).toBe(now + 60_000);
+      expect(stsTokenManager.accessToken).toBe('id-token');
+      expect(stsTokenManager.refreshToken).toBe('refresh-token');
     });
 
     it('falls back to exp and iat when expiresIn is omitted (ie: MFA)', () => {
@@ -84,9 +77,9 @@ describe('core/user/token_manager', () => {
         refreshToken: 'refresh-token'
       } as FinalizeMfaResponse);
 
-      expect(stsTokenManager.expirationTime).to.eq(now + 60_000);
-      expect(stsTokenManager.accessToken).to.eq(idToken);
-      expect(stsTokenManager.refreshToken).to.eq('refresh-token');
+      expect(stsTokenManager.expirationTime).toBe(now + 60_000);
+      expect(stsTokenManager.accessToken).toBe(idToken);
+      expect(stsTokenManager.refreshToken).toBe('refresh-token');
     });
   });
 
@@ -94,12 +87,12 @@ describe('core/user/token_manager', () => {
     it('sets refresh token to null', () => {
       stsTokenManager.refreshToken = 'refresh-token';
       stsTokenManager.clearRefreshToken();
-      expect(stsTokenManager.refreshToken).to.be.null;
+      expect(stsTokenManager.refreshToken).toBeNull();
     });
   });
 
   describe('#getToken', () => {
-    context('with endpoint setup', () => {
+    describe('with endpoint setup', () => {
       let mock: fetch.Route;
       beforeEach(() => {
         const { apiKey, tokenApiHost, apiScheme } = auth.config;
@@ -115,16 +108,16 @@ describe('core/user/token_manager', () => {
         Object.assign(stsTokenManager, {
           accessToken: 'old-access-token',
           refreshToken: 'old-refresh-token',
-          expirationTime: now + 100_000
+          expirationTime: now + Buffer.TOKEN_REFRESH + 100_000
         });
 
         const tokens = await stsTokenManager.getToken(auth, true);
-        expect(mock.calls[0].request).to.contain('old-refresh-token');
-        expect(stsTokenManager.accessToken).to.eq('new-access-token');
-        expect(stsTokenManager.refreshToken).to.eq('new-refresh-token');
-        expect(stsTokenManager.expirationTime).to.eq(now + 3_600_000);
+        expect(mock.calls[0].request).toContain('old-refresh-token');
+        expect(stsTokenManager.accessToken).toBe('new-access-token');
+        expect(stsTokenManager.refreshToken).toBe('new-refresh-token');
+        expect(stsTokenManager.expirationTime).toBe(now + 3_600_000);
 
-        expect(tokens).to.eql('new-access-token');
+        expect(tokens).toEqual('new-access-token');
       });
 
       it('refreshes the token if token is expired', async () => {
@@ -135,33 +128,34 @@ describe('core/user/token_manager', () => {
         });
 
         const tokens = await stsTokenManager.getToken(auth, false);
-        expect(mock.calls[0].request).to.contain('old-refresh-token');
-        expect(stsTokenManager.accessToken).to.eq('new-access-token');
-        expect(stsTokenManager.refreshToken).to.eq('new-refresh-token');
-        expect(stsTokenManager.expirationTime).to.eq(now + 3_600_000);
+        expect(mock.calls[0].request).toContain('old-refresh-token');
+        expect(stsTokenManager.accessToken).toBe('new-access-token');
+        expect(stsTokenManager.refreshToken).toBe('new-refresh-token');
+        expect(stsTokenManager.expirationTime).toBe(now + 3_600_000);
 
-        expect(tokens).to.eql('new-access-token');
+        expect(tokens).toEqual('new-access-token');
       });
     });
 
     it('returns non-null if the refresh token is missing but token still valid', async () => {
       Object.assign(stsTokenManager, {
         accessToken: 'token',
-        expirationTime: now + 100_000
+        expirationTime: now + Buffer.TOKEN_REFRESH + 100_000
       });
       const tokens = await stsTokenManager.getToken(auth, false);
-      expect(tokens).to.eql('token');
+      expect(tokens).toEqual('token');
     });
 
     it('throws an error if the refresh token is missing and force refresh is true', async () => {
       Object.assign(stsTokenManager, {
         accessToken: 'token',
-        expirationTime: now + 100_000
+        expirationTime: now + Buffer.TOKEN_REFRESH + 100_000
       });
-      await expect(stsTokenManager.getToken(auth, true)).to.be.rejectedWith(
-        FirebaseError,
+      const promise = stsTokenManager.getToken(auth, true);
+      await expect(promise).rejects.toThrow(
         "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
       );
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('throws an error if the refresh token is missing and token is no longer valid', async () => {
@@ -169,10 +163,11 @@ describe('core/user/token_manager', () => {
         accessToken: 'old-access-token',
         expirationTime: now - 1
       });
-      await expect(stsTokenManager.getToken(auth)).to.be.rejectedWith(
-        FirebaseError,
+      const promise = stsTokenManager.getToken(auth);
+      await expect(promise).rejects.toThrow(
         "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
       );
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('throws an error if expired but refresh token is missing', async () => {
@@ -181,21 +176,22 @@ describe('core/user/token_manager', () => {
         expirationTime: now - 1
       });
 
-      await expect(stsTokenManager.getToken(auth)).to.be.rejectedWith(
-        FirebaseError,
+      const promise = stsTokenManager.getToken(auth);
+      await expect(promise).rejects.toThrow(
         "Firebase: The user's credential is no longer valid. The user must sign in again. (auth/user-token-expired)"
       );
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
     });
 
     it('returns access token if not expired, not refreshing', async () => {
       Object.assign(stsTokenManager, {
         accessToken: 'token',
         refreshToken: 'refresh',
-        expirationTime: now + 100_000
+        expirationTime: now + Buffer.TOKEN_REFRESH + 100_000
       });
 
       const tokens = (await stsTokenManager.getToken(auth))!;
-      expect(tokens).to.eql('token');
+      expect(tokens).toEqual('token');
     });
   });
 
@@ -208,8 +204,8 @@ describe('core/user/token_manager', () => {
       });
 
       const copy = stsTokenManager._clone();
-      expect(copy).not.to.eq(stsTokenManager);
-      expect(copy.toJSON()).to.eql(stsTokenManager.toJSON());
+      expect(copy).not.toBe(stsTokenManager);
+      expect(copy.toJSON()).toEqual(stsTokenManager.toJSON());
     });
   });
 
@@ -223,7 +219,14 @@ describe('core/user/token_manager', () => {
           accessToken: 't',
           expirationTime: 3
         })
-      ).to.throw(FirebaseError, errorString);
+      ).toThrow(FirebaseError);
+      expect(() =>
+        StsTokenManager.fromJSON('app', {
+          refreshToken: 45,
+          accessToken: 't',
+          expirationTime: 3
+        })
+      ).toThrow(errorString);
     });
 
     it('throws if access token is not a string', () => {
@@ -233,7 +236,14 @@ describe('core/user/token_manager', () => {
           accessToken: 45,
           expirationTime: 3
         })
-      ).to.throw(FirebaseError, errorString);
+      ).toThrow(FirebaseError);
+      expect(() =>
+        StsTokenManager.fromJSON('app', {
+          refreshToken: 't',
+          accessToken: 45,
+          expirationTime: 3
+        })
+      ).toThrow(errorString);
     });
 
     it('throws if expiration time is not a number', () => {
@@ -243,7 +253,14 @@ describe('core/user/token_manager', () => {
           accessToken: 't',
           expirationTime: 'lol'
         })
-      ).to.throw(FirebaseError, errorString);
+      ).toThrow(FirebaseError);
+      expect(() =>
+        StsTokenManager.fromJSON('app', {
+          refreshToken: 't',
+          accessToken: 't',
+          expirationTime: 'lol'
+        })
+      ).toThrow(errorString);
     });
 
     it('builds an object correctly', () => {
@@ -252,9 +269,9 @@ describe('core/user/token_manager', () => {
         accessToken: 'a',
         expirationTime: 45
       });
-      expect(manager.accessToken).to.eq('a');
-      expect(manager.refreshToken).to.eq('r');
-      expect(manager.expirationTime).to.eq(45);
+      expect(manager.accessToken).toBe('a');
+      expect(manager.refreshToken).toBe('r');
+      expect(manager.expirationTime).toBe(45);
     });
   });
 });

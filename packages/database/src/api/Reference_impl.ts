@@ -65,7 +65,7 @@ import {
   validateWritablePath
 } from '../core/util/validation';
 import { Change } from '../core/view/Change';
-import { CancelEvent, DataEvent, EventType } from '../core/view/Event';
+import { CancelEvent, DataEvent, type EventType } from '../core/view/Event';
 import {
   CallbackContext,
   EventRegistration,
@@ -1606,7 +1606,7 @@ export function onChildRemoved(
   );
 }
 
-export { EventType };
+export type { EventType };
 
 /**
  * Detaches a callback previously attached with the corresponding `on*()` (`onValue`, `onChildAdded`) listener.

@@ -34,7 +34,8 @@ const argv = yargs
 const nyc = resolve(__dirname, '../../../node_modules/.bin/nyc');
 const mocha = resolve(__dirname, '../../../node_modules/.bin/mocha');
 
-process.env.TS_NODE_COMPILER_OPTIONS = '{"module":"commonjs", "target": "es6"}';
+process.env.TS_NODE_COMPILER_OPTIONS =
+  '{"module":"commonjs", "target": "es6", "types": ["node", "mocha"]}';
 process.env.COMPAT_LAYER = 'true';
 
 let testConfig = ['src/**/*.test.ts'];
@@ -70,10 +71,28 @@ if (argv.integration || argv.webdriver) {
 
 args = args.concat(argv._ as string[]);
 
-const spawned = spawn(nyc, args, {
-  stdio: 'inherit',
-  cwd: process.cwd()
-});
+const vitest = resolve(__dirname, '../../../node_modules/.bin/vitest');
+
+const spawned = argv.webdriver
+  ? spawn(
+      vitest,
+      [
+        'run',
+        '--config',
+        resolve(__dirname, '../../auth/vitest.config.mjs'),
+        '--project=node',
+        resolve(__dirname, '../../auth/test/integration/webdriver'),
+        ...(argv._ as string[])
+      ],
+      {
+        stdio: 'inherit',
+        cwd: resolve(__dirname, '../../auth')
+      }
+    )
+  : spawn(nyc, args, {
+      stdio: 'inherit',
+      cwd: process.cwd()
+    });
 
 const childProcess = spawned.childProcess;
 spawned.catch(() => {

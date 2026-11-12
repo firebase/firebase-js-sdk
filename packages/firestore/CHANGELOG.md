@@ -1,5 +1,27 @@
 # @firebase/firestore
 
+## 4.20.0
+
+### Minor Changes
+
+- [`b464f6c`](https://github.com/firebase/firebase-js-sdk/commit/b464f6cca230e0f82520b5f84fc12cb9f0d8a793) [#10401](https://github.com/firebase/firebase-js-sdk/pull/10401) - Added support for window functions in Pipelines. Window functions are in preview until the backend launch is announced in the [Firestore release notes](https://docs.cloud.google.com/firestore/docs/release-notes).
+
+### Patch Changes
+
+- [`54e602c`](https://github.com/firebase/firebase-js-sdk/commit/54e602c78ed6af1a025cd9fe86630aa3056cb647) [#10568](https://github.com/firebase/firebase-js-sdk/pull/10568) - Fixed an issue where `documentSnapshotFromJSON()` and `querySnapshotFromJSON()` threw an error when the snapshot data or document path contained multi-byte UTF-8 characters (such as em-dashes, emoji, or accented characters). ([#10557](https://github.com/firebase/firebase-js-sdk/issues/10557))
+
+## 4.19.1
+
+### Patch Changes
+
+- [`3a5d6a0`](https://github.com/firebase/firebase-js-sdk/commit/3a5d6a04eb68f8534222cf41dd34ec2ea113a21e) [#10519](https://github.com/firebase/firebase-js-sdk/pull/10519) - Graduate Pipeline Search from Public Preview to GA.
+
+## 4.19.0
+
+### Minor Changes
+
+- [`d7bb0e1`](https://github.com/firebase/firebase-js-sdk/commit/d7bb0e16f2b13ba15f74b690596eb70ef145d4f6) [#10200](https://github.com/firebase/firebase-js-sdk/pull/10200) - Added DML stages (`delete`, `update`, `insert`, `upsert`) and the `literals` source stage to Pipelines, and added the `atomic` option to `PipelineExecuteOptions` for executing a pipeline in a single transaction.
+
 ## 4.18.0
 
 ### Minor Changes

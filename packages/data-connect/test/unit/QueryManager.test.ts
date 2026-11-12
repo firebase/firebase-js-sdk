@@ -16,9 +16,6 @@
  */
 
 import { deleteApp, FirebaseApp, initializeApp } from '@firebase/app';
-import { expect } from 'chai';
-import * as chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 
 import {
   DataConnect,
@@ -28,8 +25,7 @@ import {
   queryRef
 } from '../../src';
 import { Code, DataConnectError } from '../../src/core/error';
-chai.use(chaiAsPromised);
-
+import { DataConnectTransportManager } from '../../src/network/manager';
 describe('Query Manager Tests', () => {
   let dc: DataConnect;
   let app: FirebaseApp;
@@ -50,6 +46,14 @@ describe('Query Manager Tests', () => {
   });
 
   it('should refuse to make requests to execute non-query operations', async () => {
+    vi.spyOn(
+      DataConnectTransportManager.prototype,
+      'invokeQuery'
+    ).mockResolvedValue({
+      data: 'ok',
+      errors: [],
+      extensions: {}
+    });
     const query = queryRef<string>(dc, 'q');
     const mutation = mutationRef<string>(dc, 'm');
 
@@ -59,9 +63,8 @@ describe('Query Manager Tests', () => {
     );
 
     // @ts-ignore
-    await expect(executeQuery(mutation)).to.eventually.be.rejectedWith(
-      error.message
-    );
-    expect(() => executeQuery(query)).to.not.throw(error.message);
+    await expect(executeQuery(mutation)).rejects.toThrow(error.message);
+    const result = await executeQuery(query);
+    expect(result.data).toBe('ok');
   });
 });

@@ -29,6 +29,12 @@ export type AddFieldsStageOptions = StageOptions & {
     fields: Selectable[];
 };
 
+// @beta
+export type AddWindowFieldsStageOptions = StageOptions & {
+    window: WindowSpec;
+    fields: Array<AliasedAggregate | AliasedWindowFunction>;
+};
+
 // @public
 export class AggregateFunction {
     constructor(name: string, params: Expression[]);
@@ -37,6 +43,14 @@ export class AggregateFunction {
     /* Excluded from this release type: _methodName */
     // (undocumented)
     exprType: ExpressionType;
+    /* Excluded from this release type: _methodName */
+    // @beta
+    over(
+    frame: OneOf<{
+        documents: DocumentWindowFrame;
+        range: RangeWindowFrame;
+    }>
+    ): WindowFunction;
     /* Excluded from this release type: _toProto */
     /* Excluded from this release type: _readUserData */
 }
@@ -72,6 +86,20 @@ export class AliasedExpression implements Selectable {
     exprType: ExpressionType;
     // (undocumented)
     selectable: true;
+    /* Excluded from this release type: _readUserData */
+}
+
+// @beta
+export class AliasedWindowFunction {
+    constructor(
+    windowFunction: WindowFunction,
+    alias: string,
+    _methodName: string | undefined
+    );
+    // (undocumented)
+    readonly alias: string;
+    // (undocumented)
+    readonly windowFunction: WindowFunction;
     /* Excluded from this release type: _readUserData */
 }
 
@@ -636,6 +664,9 @@ export type DefineStageOptions = StageOptions & {
 };
 
 // @public
+export type DeleteStageOptions = StageOptions;
+
+// @public
 export function descending(expr: Expression): Ordering;
 
 // @public
@@ -680,7 +711,7 @@ export function documentId(
 documentPathExpr: Expression
 ): FunctionExpression;
 
-// @beta
+// @public
 export function documentMatches(
 rquery: string | Expression
 ): BooleanExpression;
@@ -689,6 +720,12 @@ rquery: string | Expression
 export type DocumentsStageOptions = StageOptions & {
     docs: Array<string | DocumentReference>;
 };
+
+// @beta
+export interface DocumentWindowFrame {
+    following: number | 'current' | 'unbounded' | Expression;
+    preceding: number | 'current' | 'unbounded' | Expression;
+}
 
 // @public
 export function dotProduct(
@@ -812,6 +849,11 @@ otherVectorExpression: Expression
 
 // @public
 export function execute(pipeline: Pipeline): Promise<PipelineSnapshot>;
+
+// @public
+export function execute(
+options: PipelineExecuteOptions
+): Promise<PipelineSnapshot>;
 
 // @public
 export function exists(value: Expression): BooleanExpression;
@@ -1412,6 +1454,7 @@ export type ExpressionType =
 | 'Constant'
 | 'Function'
 | 'AggregateFunction'
+| 'WindowFunction'
 | 'ListOfExpressions'
 | 'AliasedExpression'
 | 'Variable'
@@ -1427,7 +1470,6 @@ export class Field extends Expression implements Selectable {
     readonly expressionType: ExpressionType;
     // (undocumented)
     get fieldName(): string;
-    // @beta
     geoDistance(location: GeoPoint | Expression): Expression;
     // (undocumented)
     selectable: true;
@@ -1479,7 +1521,7 @@ export class FunctionExpression extends Expression {
     /* Excluded from this release type: _readUserData */
 }
 
-// @beta
+// @public
 export function geoDistance(
 fieldName: string | Field,
 location: GeoPoint | Expression
@@ -1598,6 +1640,12 @@ export function ifNull(
 ifFieldName: string,
 elseValue: unknown
 ): FunctionExpression;
+
+// @public
+export type InsertStageOptions = StageOptions & {
+    collection?: string | CollectionReference;
+    documentIdExpression?: string | Expression;
+};
 
 // @public
 export function isAbsent(value: Expression): BooleanExpression;
@@ -1732,6 +1780,11 @@ pattern: Expression
 // @public
 export type LimitStageOptions = StageOptions & {
     limit: number;
+};
+
+// @public
+export type LiteralsStageOptions = StageOptions & {
+    documents: Array<Record<string, unknown>>;
 };
 
 // @public
@@ -2061,6 +2114,14 @@ export class Pipeline {
     /* Excluded from this release type: __constructor */
     addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
     addFields(options: AddFieldsStageOptions): Pipeline;
+    // @beta
+    addWindowFields(
+    window: WindowSpec,
+    field: AliasedAggregate | AliasedWindowFunction,
+    ...additionalFields: Array<AliasedAggregate | AliasedWindowFunction>
+    ): Pipeline;
+    // @beta
+    addWindowFields(options: AddWindowFieldsStageOptions): Pipeline;
     aggregate(
     accumulator: AliasedAggregate,
     ...additionalAccumulators: AliasedAggregate[]
@@ -2071,12 +2132,16 @@ export class Pipeline {
     ...additionalExpressions: AliasedExpression[]
     ): Pipeline;
     define(options: DefineStageOptions): Pipeline;
+    delete(): Pipeline;
+    delete(options: DeleteStageOptions): Pipeline;
     distinct(
     group: string | Selectable,
     ...additionalGroups: Array<string | Selectable>
     ): Pipeline;
     distinct(options: DistinctStageOptions): Pipeline;
     findNearest(options: FindNearestStageOptions): Pipeline;
+    insert(): Pipeline;
+    insert(options: InsertStageOptions): Pipeline;
     limit(limit: number): Pipeline;
     limit(options: LimitStageOptions): Pipeline;
     offset(offset: number): Pipeline;
@@ -2098,7 +2163,6 @@ export class Pipeline {
     replaceWith(options: ReplaceWithStageOptions): Pipeline;
     sample(documents: number): Pipeline;
     sample(options: SampleStageOptions): Pipeline;
-    // @beta
     search(options: SearchStageOptions): Pipeline;
     select(
     selection: Selectable | string,
@@ -2113,10 +2177,32 @@ export class Pipeline {
     union(options: UnionStageOptions): Pipeline;
     unnest(selectable: Selectable, indexField?: string): Pipeline;
     unnest(options: UnnestStageOptions): Pipeline;
+    update(): Pipeline;
+    update(
+    transformedField: AliasedExpression,
+    ...additionalFields: AliasedExpression[]
+    ): Pipeline;
+    update(options: UpdateStageOptions): Pipeline;
+    upsert(): Pipeline;
+    upsert(
+    additionalField: AliasedExpression,
+    ...additionalFields: AliasedExpression[]
+    ): Pipeline;
+    upsert(options: UpsertStageOptions): Pipeline;
     where(condition: BooleanExpression): Pipeline;
     where(options: WhereStageOptions): Pipeline;
     /* Excluded from this release type: _toProto */
     /* Excluded from this release type: newPipeline */
+}
+
+// @public
+export interface PipelineExecuteOptions {
+    atomic?: boolean;
+    indexMode?: 'recommended';
+    pipeline: Pipeline;
+    rawOptions?: {
+        [name: string]: unknown;
+    };
 }
 
 // @public
@@ -2155,6 +2241,8 @@ export class PipelineSource<PipelineType> {
     database(options: DatabaseStageOptions): PipelineType;
     documents(docs: Array<string | DocumentReference>): PipelineType;
     documents(options: DocumentsStageOptions): PipelineType;
+    literals(documents: Array<Record<string, unknown>>): PipelineType;
+    literals(options: LiteralsStageOptions): PipelineType;
 }
 
 // @public
@@ -2180,6 +2268,27 @@ export function pow(base: string, exponent: number): FunctionExpression;
 
 // @public
 export function rand(): FunctionExpression;
+
+// @beta
+export interface RangeWindowFrame {
+    following: number | 'current' | 'unbounded' | Expression;
+    preceding: number | 'current' | 'unbounded' | Expression;
+    unit?:
+    | 'microsecond'
+    | 'millisecond'
+    | 'second'
+    | 'minute'
+    | 'hour'
+    | 'day'
+    | 'week'
+    | 'month'
+    | 'quarter'
+    | 'year'
+    | Expression;
+}
+
+// @beta
+export function rank(): WindowFunction;
 
 // @public
 export function regexContains(
@@ -2332,10 +2441,10 @@ OneOf<{
     documents: number;
 }>;
 
-// @beta
+// @public
 export function score(): Expression;
 
-// @beta
+// @public
 export type SearchStageOptions = StageOptions & {
     query: BooleanExpression | string;
     languageCode?: string;
@@ -2880,6 +2989,18 @@ export type UnnestStageOptions = StageOptions & {
 };
 
 // @public
+export type UpdateStageOptions = StageOptions & {
+    transformedFields?: AliasedExpression[];
+};
+
+// @public
+export type UpsertStageOptions = StageOptions & {
+    collection?: string | CollectionReference;
+    documentIdExpression?: string | Expression;
+    additionalFields?: AliasedExpression[];
+};
+
+// @public
 export function variable(name: string): Expression;
 
 // @public
@@ -2894,6 +3015,31 @@ export function vectorLength(fieldName: string): FunctionExpression;
 export type WhereStageOptions = StageOptions & {
     condition: BooleanExpression;
 };
+
+// @beta
+export class WindowFunction {
+    constructor(name: string, params?: Expression[]);
+    as(name: string): AliasedWindowFunction;
+    // (undocumented)
+    exprType: ExpressionType;
+    over(
+    frame: OneOf<{
+        documents: DocumentWindowFrame;
+        range: RangeWindowFrame;
+    }>
+    ): WindowFunction;
+    /* Excluded from this release type: _toProto */
+    /* Excluded from this release type: _readUserData */
+}
+
+// @beta
+export type WindowSpec = {
+    partition?: Array<string | Expression>;
+    sort?: Ordering | Ordering[];
+} & OneOf<{
+    documents?: DocumentWindowFrame;
+    range?: RangeWindowFrame;
+}>;
 
 // @public
 export function xor(

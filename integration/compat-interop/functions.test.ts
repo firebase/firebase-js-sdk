@@ -16,7 +16,6 @@
  */
 
 import { getModularInstance } from '@firebase/util';
-import { expect } from 'chai';
 import { getFunctions } from '@firebase/functions';
 import firebase from '@firebase/app-compat';
 import '@firebase/functions-compat';
@@ -30,6 +29,6 @@ const modularFunctions = getFunctions();
 
 describe('Functions compat interop', () => {
   it('Functions compat instance references modular Functions instance', () => {
-    expect(getModularInstance(compatFunction)).to.equal(modularFunctions);
+    expect(getModularInstance(compatFunction)).toBe(modularFunctions);
   });
 });

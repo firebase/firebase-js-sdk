@@ -1,5 +1,76 @@
 # firebase
 
+## 13.3.0
+
+### Minor Changes
+
+- [`36a8dda`](https://github.com/firebase/firebase-js-sdk/commit/36a8ddaa8b13f3f81b026c44c6ab701b53103666) [#10504](https://github.com/firebase/firebase-js-sdk/pull/10504) - Added `SpeechMetadata` and `TextPart.speechMetadata` (in Public Preview) to specify the speaker and vocal style for a piece of text when generating speech with Gemini TTS models.
+
+- [`b464f6c`](https://github.com/firebase/firebase-js-sdk/commit/b464f6cca230e0f82520b5f84fc12cb9f0d8a793) [#10401](https://github.com/firebase/firebase-js-sdk/pull/10401) - Added support for window functions in Pipelines. Window functions are in preview until the backend launch is announced in the [Firestore release notes](https://docs.cloud.google.com/firestore/docs/release-notes).
+
+- [`1ffc994`](https://github.com/firebase/firebase-js-sdk/commit/1ffc994f68f272f0cea12387a588fffe4c590066) [#10541](https://github.com/firebase/firebase-js-sdk/pull/10541) - Deprecated `RemoteConfigOptions.templateId` and `RemoteConfigOptions.initialFetchResponse`. Remote Config server-side rendering (SSR) hydration is no longer supported, and server templates (`"firebase-server"`) can't be fetched from client apps. These options will be removed in a future major release.
+
+### Patch Changes
+
+- [`cd161bf`](https://github.com/firebase/firebase-js-sdk/commit/cd161bf5be6a4ec7bb6b27073ca7af764bc7e933) [#10591](https://github.com/firebase/firebase-js-sdk/pull/10591) - Fixed an issue where `response.promptFeedback` was always `undefined` for `GoogleAIBackend` responses because the mapped prompt feedback was assigned to the wrong property.
+
+- [`6746f86`](https://github.com/firebase/firebase-js-sdk/commit/6746f8607f064ad93979c0a1005631a40ae7f5a8) [#10592](https://github.com/firebase/firebase-js-sdk/pull/10592) - Fixed the compat CDN bundles `firebase-compat.js` and `firebase-firestore-compat.js`, which contained ES2022 syntax (static class fields) and failed to load in browsers that support only ES2020.
+
+- [`6746f86`](https://github.com/firebase/firebase-js-sdk/commit/6746f8607f064ad93979c0a1005631a40ae7f5a8) [#10592](https://github.com/firebase/firebase-js-sdk/pull/10592) - Fixed the Crashlytics CDN bundle (`firebase-crashlytics.js`), which imported Node.js built-in modules such as `fs` and `zlib` and failed to load in browsers.
+
+- [`54e602c`](https://github.com/firebase/firebase-js-sdk/commit/54e602c78ed6af1a025cd9fe86630aa3056cb647) [#10568](https://github.com/firebase/firebase-js-sdk/pull/10568) - Fixed an issue where `documentSnapshotFromJSON()` and `querySnapshotFromJSON()` threw an error when the snapshot data or document path contained multi-byte UTF-8 characters (such as em-dashes, emoji, or accented characters). ([#10557](https://github.com/firebase/firebase-js-sdk/issues/10557))
+
+- [`79c5c47`](https://github.com/firebase/firebase-js-sdk/commit/79c5c4755e4c29aee493105c4876ac42477ae2a3) [#10571](https://github.com/firebase/firebase-js-sdk/pull/10571) - Fix transactions becoming permanently stuck after overlapping writes cancel the same in-flight transaction more than once.
+
+- [`94fc24e`](https://github.com/firebase/firebase-js-sdk/commit/94fc24e6c4aad730e1ee7a1a40878bb503582f81) [#10599](https://github.com/firebase/firebase-js-sdk/pull/10599) (fixes [#8837](https://github.com/firebase/firebase-js-sdk/issues/8837)) - TypeScript versions older than 4.5, which can't parse the Firebase type declarations, now report that Firebase requires TypeScript 4.5 or later. TypeScript leaves out this error if other type declarations, such as a recent `@types/node`, also fail to parse.
+
+- Updated dependencies [[`c0a4c7b`](https://github.com/firebase/firebase-js-sdk/commit/c0a4c7ba42ce3110b61ef2e8986a77995141bb2b), [`cd161bf`](https://github.com/firebase/firebase-js-sdk/commit/cd161bf5be6a4ec7bb6b27073ca7af764bc7e933), [`adfab71`](https://github.com/firebase/firebase-js-sdk/commit/adfab71e85b11ec4ed01d1a59a0acef50beb67dd), [`36a8dda`](https://github.com/firebase/firebase-js-sdk/commit/36a8ddaa8b13f3f81b026c44c6ab701b53103666), [`a61f2f0`](https://github.com/firebase/firebase-js-sdk/commit/a61f2f0de86114b58192d1449ec0183ec3dbeeea), [`b464f6c`](https://github.com/firebase/firebase-js-sdk/commit/b464f6cca230e0f82520b5f84fc12cb9f0d8a793), [`54e602c`](https://github.com/firebase/firebase-js-sdk/commit/54e602c78ed6af1a025cd9fe86630aa3056cb647), [`79c5c47`](https://github.com/firebase/firebase-js-sdk/commit/79c5c4755e4c29aee493105c4876ac42477ae2a3), [`1ffc994`](https://github.com/firebase/firebase-js-sdk/commit/1ffc994f68f272f0cea12387a588fffe4c590066), [`96fb62c`](https://github.com/firebase/firebase-js-sdk/commit/96fb62ce1050c6a1371a7a84762cb48877d541d9)]:
+  - @firebase/ai@3.1.0
+  - @firebase/auth@1.13.10
+  - @firebase/app@0.16.6
+  - @firebase/crashlytics@0.1.1
+  - @firebase/firestore@4.20.0
+  - @firebase/database@1.1.6
+  - @firebase/remote-config@0.10.0
+  - @firebase/auth-compat@0.6.15
+  - @firebase/app-compat@0.5.22
+  - @firebase/firestore-compat@0.4.18
+  - @firebase/database-compat@2.1.8
+  - @firebase/remote-config-compat@0.2.31
+
+## 13.2.0
+
+### Minor Changes
+
+- [`fe5dd06`](https://github.com/firebase/firebase-js-sdk/commit/fe5dd06c03ad6d5393b01590ec61bdd9be5e2839) [#10548](https://github.com/firebase/firebase-js-sdk/pull/10548) - First release of Crashlytics for public preview
+
+### Patch Changes
+
+- Updated dependencies [[`3da3c2b`](https://github.com/firebase/firebase-js-sdk/commit/3da3c2baff8303e80424eeaf8ee0b555362cca8d), [`fe5dd06`](https://github.com/firebase/firebase-js-sdk/commit/fe5dd06c03ad6d5393b01590ec61bdd9be5e2839), [`3a5d6a0`](https://github.com/firebase/firebase-js-sdk/commit/3a5d6a04eb68f8534222cf41dd34ec2ea113a21e), [`0079975`](https://github.com/firebase/firebase-js-sdk/commit/0079975f661d9158ebbf22055b3903b00bd4a48a)]:
+  - @firebase/auth@1.13.9
+  - @firebase/app@0.16.5
+  - @firebase/crashlytics@0.1.0
+  - @firebase/firestore@4.19.1
+  - @firebase/auth-compat@0.6.14
+  - @firebase/app-compat@0.5.21
+  - @firebase/firestore-compat@0.4.17
+
+## 13.1.0
+
+### Minor Changes
+
+- [`d7bb0e1`](https://github.com/firebase/firebase-js-sdk/commit/d7bb0e16f2b13ba15f74b690596eb70ef145d4f6) [#10200](https://github.com/firebase/firebase-js-sdk/pull/10200) - Added DML stages (`delete`, `update`, `insert`, `upsert`) and the `literals` source stage to Pipelines, and added the `atomic` option to `PipelineExecuteOptions` for executing a pipeline in a single transaction.
+
+### Patch Changes
+
+- Updated dependencies [[`76123a4`](https://github.com/firebase/firebase-js-sdk/commit/76123a4cfca375022974a6f63308f6326fa45d1a), [`d7bb0e1`](https://github.com/firebase/firebase-js-sdk/commit/d7bb0e16f2b13ba15f74b690596eb70ef145d4f6)]:
+  - @firebase/auth@1.13.8
+  - @firebase/firestore@4.19.0
+  - @firebase/app@0.16.4
+  - @firebase/auth-compat@0.6.13
+  - @firebase/firestore-compat@0.4.16
+  - @firebase/app-compat@0.5.20
+
 ## 13.0.0
 
 ### Major Changes

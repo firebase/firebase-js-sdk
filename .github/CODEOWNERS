@@ -10,14 +10,6 @@
 # These owners will be the default owners for everything in the repo.
 *       @firebase/jssdk-global-approvers
 
-# Database Code
-packages/database @stephenarosaj @dconeybe @aashishpatil-g @firebase/jssdk-global-approvers
-packages/database-compat @stephenarosaj @dconeybe @aashishpatil-g @firebase/jssdk-global-approvers
-packages/database-types @stephenarosaj @dconeybe @aashishpatil-g @firebase/jssdk-global-approvers
-
-# Data Connect Code
-packages/data-connect @stephenarosaj @dconeybe @aashishpatil-g @firebase/jssdk-global-approvers
-
 # Firestore Code
 packages/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers
 packages/firestore-compat  @firebase/firestore-js-team @firebase/jssdk-global-approvers
@@ -25,55 +17,12 @@ packages/webchannel-wrapper  @firebase/firestore-js-team @firebase/jssdk-global-
 packages/firestore-types  @firebase/firestore-js-team @firebase/jssdk-global-approvers
 integration/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers
 
-# Storage Code
-packages/storage @maneesht @tonyjhuang @firebase/jssdk-global-approvers
-packages/storage-compat @maneesht @tonyjhuang @firebase/jssdk-global-approvers
-packages/storage-types @maneesht @tonyjhuang @firebase/jssdk-global-approvers
-
-# Messaging Code
-packages/messaging  @zwu52 @firebase/jssdk-global-approvers
-packages/messaging-compat  @zwu52 @firebase/jssdk-global-approvers
-packages/messaging-interop-types @zwu52 @firebase/jssdk-global-approvers
-integration/messaging @zwu52 @firebase/jssdk-global-approvers
-
-# Auth Code
-packages/auth @sam-gc @mcastelaz @vverman @nbayati @firebase/jssdk-global-approvers
-packages/auth-compat @sam-gc @mcastelaz @vverman @nbayati @firebase/jssdk-global-approvers
-packages/auth-types @sam-gc @mcastelaz @vverman @nbayati @firebase/jssdk-global-approvers
-packages/auth-interop-types @sam-gc @mcastelaz @vverman @nbayati @firebase/jssdk-global-approvers
-
-# Testing Code
-packages/rules-unit-testing  @avolkovi @sam-gc @yuchenshi @firebase/jssdk-global-approvers
-
-# Installations
-packages/installations @avolkovi @yoyomyo @firebase/jssdk-global-approvers
-packages/installations-compat @avolkovi @yoyomyo @firebase/jssdk-global-approvers
-packages/installations-types @avolkovi @yoyomyo @firebase/jssdk-global-approvers
-
-# Performance Code
-packages/performance @visumickey @firebase/jssdk-global-approvers
-packages/performance-compat @visumickey @firebase/jssdk-global-approvers
-packages/performance-types @visumickey @firebase/jssdk-global-approvers
-
-# Analytics Code
-packages/analytics @hsubox76 @firebase/jssdk-global-approvers
-packages/analytics-compat @hsubox76 @firebase/jssdk-global-approvers
-packages/analytics-types @hsubox76 @firebase/jssdk-global-approvers
-
-# Remote Config Code
-packages/remote-config @erikeldridge @firebase/jssdk-global-approvers
-packages/remote-config-compat  @erikeldridge @firebase/jssdk-global-approvers
-packages/remote-config-types @erikeldridge @firebase/jssdk-global-approvers
-
-# App Check Code
-packages/app-check @hsubox76 @firebase/jssdk-global-approvers
-packages/app-check-compat @hsubox76 @firebase/jssdk-global-approvers
-packages/app-check-types @hsubox76 @firebase/jssdk-global-approvers
-packages/app-check-interop-types @hsubox76 @firebase/jssdk-global-approvers
+# Crashlytics Code
+packages/crashlytics  @firebase/jssdk-global-approvers @andrewbrook @tonybaroneee @MaesterChestnut
 
 # Documentation Changes
-packages/firebase/compat/index.d.ts @egilmorez @firebase/jssdk-global-approvers
-scripts/docgen/content-sources/ @egilmorez @firebase/jssdk-global-approvers
+packages/firebase/compat/index.d.ts @firebase/firebase-techwriters @firebase/jssdk-global-approvers
+scripts/docgen/content-sources/ @firebase/firebase-techwriters @firebase/jssdk-global-approvers
 docs-devsite/ @firebase/firebase-techwriters
 
 # Changeset

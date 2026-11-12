@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { ConfigInternal } from '../../model/auth';
 import { _emulatorUrl } from './emulator';
 
@@ -28,17 +26,17 @@ describe('core/util/emulator', () => {
   } as ConfigInternal;
 
   it('builds the proper URL with no path', () => {
-    expect(_emulatorUrl(config)).to.eq('http://127.0.0.1:4000/');
+    expect(_emulatorUrl(config)).toBe('http://127.0.0.1:4000/');
   });
 
   it('builds the proper URL with a path', () => {
-    expect(_emulatorUrl(config, '/test/path')).to.eq(
+    expect(_emulatorUrl(config, '/test/path')).toBe(
       'http://127.0.0.1:4000/test/path'
     );
   });
 
   it('builds the proper URL with a path missing separator', () => {
-    expect(_emulatorUrl(config, 'test/path')).to.eq(
+    expect(_emulatorUrl(config, 'test/path')).toBe(
       'http://127.0.0.1:4000/test/path'
     );
   });

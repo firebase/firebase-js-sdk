@@ -24,7 +24,7 @@
     "@babel/preset-env": "8.0.2",
     "@vitest/browser-playwright": "4.1.10",
     "babel-loader": "10.1.1",
-    "playwright": "1.55.1",
+    "playwright": "1.64.1",
     "typescript": "5.5.4",
     "vitest": "4.1.11",
     "webpack": "5.109.2",

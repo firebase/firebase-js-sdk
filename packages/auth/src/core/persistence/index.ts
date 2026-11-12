@@ -47,4 +47,6 @@ export interface PersistenceInternal extends Persistence {
   _removeListener(key: string, listener: StorageEventListener): void;
   // Should this persistence allow migration up the chosen hierarchy?
   _shouldAllowMigration?: boolean;
+  // Whether the most recent _isAvailable() call failed due to a timeout.
+  _lastProbeTimedOut?: boolean;
 }

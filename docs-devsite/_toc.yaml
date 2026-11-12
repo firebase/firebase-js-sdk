@@ -212,6 +212,8 @@ toc:
     path: /docs/reference/js/ai.slidingwindow.md
   - title: SpeakerVoiceConfig
     path: /docs/reference/js/ai.speakervoiceconfig.md
+  - title: SpeechMetadata
+    path: /docs/reference/js/ai.speechmetadata.md
   - title: StartAudioConversationOptions
     path: /docs/reference/js/ai.startaudioconversationoptions.md
   - title: StartChatParams
@@ -430,6 +432,51 @@ toc:
     path: /docs/reference/js/auth.userinfo.md
   - title: UserMetadata
     path: /docs/reference/js/auth.usermetadata.md
+- title: crashlytics
+  path: /docs/reference/js/crashlytics.md
+  section:
+  - title: Crashlytics
+    path: /docs/reference/js/crashlytics.crashlytics.md
+  - title: CrashlyticsFeature
+    path: /docs/reference/js/crashlytics.crashlyticsfeature.md
+  - title: CrashlyticsOptions
+    path: /docs/reference/js/crashlytics.crashlyticsoptions.md
+- title: crashlytics/angular
+  path: /docs/reference/js/crashlytics_angular.md
+  section:
+  - title: Crashlytics
+    path: /docs/reference/js/crashlytics_angular.crashlytics.md
+  - title: CrashlyticsFeature
+    path: /docs/reference/js/crashlytics_angular.crashlyticsfeature.md
+  - title: CrashlyticsOptions
+    path: /docs/reference/js/crashlytics_angular.crashlyticsoptions.md
+- title: crashlytics/next-navigation
+  path: /docs/reference/js/crashlytics_next-navigation.md
+  section:
+  - title: Crashlytics
+    path: /docs/reference/js/crashlytics_next-navigation.crashlytics.md
+  - title: CrashlyticsFeature
+    path: /docs/reference/js/crashlytics_next-navigation.crashlyticsfeature.md
+  - title: CrashlyticsOptions
+    path: /docs/reference/js/crashlytics_next-navigation.crashlyticsoptions.md
+- title: crashlytics/react
+  path: /docs/reference/js/crashlytics_react.md
+  section:
+  - title: Crashlytics
+    path: /docs/reference/js/crashlytics_react.crashlytics.md
+  - title: CrashlyticsFeature
+    path: /docs/reference/js/crashlytics_react.crashlyticsfeature.md
+  - title: CrashlyticsOptions
+    path: /docs/reference/js/crashlytics_react.crashlyticsoptions.md
+- title: crashlytics/react-router
+  path: /docs/reference/js/crashlytics_react-router.md
+  section:
+  - title: Crashlytics
+    path: /docs/reference/js/crashlytics_react-router.crashlytics.md
+  - title: CrashlyticsFeature
+    path: /docs/reference/js/crashlytics_react-router.crashlyticsfeature.md
+  - title: CrashlyticsOptions
+    path: /docs/reference/js/crashlytics_react-router.crashlyticsoptions.md
 - title: database
   path: /docs/reference/js/database.md
   section:
@@ -662,8 +709,12 @@ toc:
     path: /docs/reference/js/firestore_lite_pipelines.aliasedaggregate.md
   - title: AliasedExpression
     path: /docs/reference/js/firestore_lite_pipelines.aliasedexpression.md
+  - title: AliasedWindowFunction
+    path: /docs/reference/js/firestore_lite_pipelines.aliasedwindowfunction.md
   - title: BooleanExpression
     path: /docs/reference/js/firestore_lite_pipelines.booleanexpression.md
+  - title: DocumentWindowFrame
+    path: /docs/reference/js/firestore_lite_pipelines.documentwindowframe.md
   - title: Expression
     path: /docs/reference/js/firestore_lite_pipelines.expression.md
   - title: Field
@@ -674,14 +725,20 @@ toc:
     path: /docs/reference/js/firestore_lite_pipelines.ordering.md
   - title: Pipeline
     path: /docs/reference/js/firestore_lite_pipelines.pipeline.md
+  - title: PipelineExecuteOptions
+    path: /docs/reference/js/firestore_lite_pipelines.pipelineexecuteoptions.md
   - title: PipelineResult
     path: /docs/reference/js/firestore_lite_pipelines.pipelineresult.md
   - title: PipelineSnapshot
     path: /docs/reference/js/firestore_lite_pipelines.pipelinesnapshot.md
   - title: PipelineSource
     path: /docs/reference/js/firestore_lite_pipelines.pipelinesource.md
+  - title: RangeWindowFrame
+    path: /docs/reference/js/firestore_lite_pipelines.rangewindowframe.md
   - title: Selectable
     path: /docs/reference/js/firestore_lite_pipelines.selectable.md
+  - title: WindowFunction
+    path: /docs/reference/js/firestore_lite_pipelines.windowfunction.md
 - title: firestore/pipelines
   path: /docs/reference/js/firestore_pipelines.md
   section:
@@ -691,8 +748,12 @@ toc:
     path: /docs/reference/js/firestore_pipelines.aliasedaggregate.md
   - title: AliasedExpression
     path: /docs/reference/js/firestore_pipelines.aliasedexpression.md
+  - title: AliasedWindowFunction
+    path: /docs/reference/js/firestore_pipelines.aliasedwindowfunction.md
   - title: BooleanExpression
     path: /docs/reference/js/firestore_pipelines.booleanexpression.md
+  - title: DocumentWindowFrame
+    path: /docs/reference/js/firestore_pipelines.documentwindowframe.md
   - title: Expression
     path: /docs/reference/js/firestore_pipelines.expression.md
   - title: Field
@@ -711,8 +772,12 @@ toc:
     path: /docs/reference/js/firestore_pipelines.pipelinesnapshot.md
   - title: PipelineSource
     path: /docs/reference/js/firestore_pipelines.pipelinesource.md
+  - title: RangeWindowFrame
+    path: /docs/reference/js/firestore_pipelines.rangewindowframe.md
   - title: Selectable
     path: /docs/reference/js/firestore_pipelines.selectable.md
+  - title: WindowFunction
+    path: /docs/reference/js/firestore_pipelines.windowfunction.md
 - title: functions
   path: /docs/reference/js/functions.md
   section:

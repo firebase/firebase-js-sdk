@@ -15,14 +15,8 @@
  * limitations under the License.
  */
 
-import { use } from 'chai';
-import { restore } from 'sinon';
-import sinonChai from 'sinon-chai';
-import chaiAsPromised from 'chai-as-promised';
-
-use(chaiAsPromised);
-use(sinonChai);
-
 afterEach(async () => {
-  restore();
+  vi.useRealTimers();
+  vi.resetAllMocks();
+  vi.restoreAllMocks();
 });
