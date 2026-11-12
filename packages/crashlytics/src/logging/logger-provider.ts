@@ -42,6 +42,7 @@ import { AttributesStore } from '../attributes-store';
 import type { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
 import type { TelemetryStore } from '../telemetry-store';
 import { FirebaseAttributesLogProcessor } from './attributes-log-processor';
+import type { SessionSampler } from '../sampling/session-sampler';
 import {
   getBreadcrumbsFeature,
   getOtlpExportEndpointUrl,
@@ -69,7 +70,8 @@ export function createLoggerProvider(
   crashlyticsOptions: CrashlyticsOptions = {},
   attributesStore: AttributesStore,
   telemetryStore?: TelemetryStore,
-  dynamicHeaderProviders: DynamicHeaderProvider[] = []
+  dynamicHeaderProviders: DynamicHeaderProvider[] = [],
+  sessionSampler?: SessionSampler
 ): LoggerProviderResult {
   const endpointUrl = getOtlpExportEndpointUrl(crashlyticsOptions);
 
@@ -100,7 +102,8 @@ export function createLoggerProvider(
       }
     },
     dynamicHeaderProviders,
-    attributesStore
+    attributesStore,
+    sessionSampler
   );
 
   let onErrorLogRecordProcessor: OnErrorLogRecordProcessor | undefined;
@@ -141,7 +144,10 @@ export function createLoggerProvider(
   return { loggerProvider, onErrorLogRecordProcessor };
 }
 
-/** OTLP exporter that uses custom FetchTransport and resolves async attributes. */
+/**
+ * OTLP exporter that uses custom FetchTransport, applies the session sampling decision and
+ * resolves async attributes.
+ */
 class OTLPLogExporter
   extends OTLPExporterBase<ReadableLogRecord[]>
   implements LogRecordExporter
@@ -151,7 +157,8 @@ class OTLPLogExporter
   constructor(
     config: OTLPExporterConfigBase = {},
     dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-    private attributesStore: AttributesStore
+    private attributesStore: AttributesStore,
+    private sessionSampler?: SessionSampler
   ) {
     super(
       createOtlpNetworkExportDelegate(
@@ -188,6 +195,16 @@ class OTLPLogExporter
     });
 
     if (filteredLogs.length === 0) {
+      resultCallback({ code: ExportResultCode.SUCCESS });
+      return;
+    }
+
+    // Session sampling: the decision is made at the first export attempt of the session. Logs of
+    // unsampled sessions are dropped here, before any network transmission.
+    if (
+      this.sessionSampler &&
+      !(await this.sessionSampler.applySampling(filteredLogs))
+    ) {
       resultCallback({ code: ExportResultCode.SUCCESS });
       return;
     }
