@@ -26,7 +26,8 @@ import { AuthErrorCode, NamedErrorParams } from '../core/errors';
 import {
   _createError,
   _errorWithCustomMessage,
-  _fail
+  _fail,
+  _assert
 } from '../core/util/assert';
 import { Delay } from '../core/util/delay';
 import { _emulatorUrl } from '../core/util/emulator';
@@ -143,6 +144,11 @@ export async function _performApiRequest<T, V>(
   request?: T,
   customErrorMap: Partial<ServerErrorMap<ServerError>> = {}
 ): Promise<V> {
+  if (!auth.emulatorConfig && !auth.config.apiKey) {
+    _assert(false, AuthErrorCode.INVALID_API_KEY, {
+      appName: auth.app.name
+    });
+  }
   return _performFetchWithErrorHandling(auth, customErrorMap, async () => {
     let body = {};
     let params = {};
