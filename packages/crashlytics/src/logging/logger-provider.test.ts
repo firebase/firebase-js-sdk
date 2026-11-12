@@ -244,6 +244,46 @@ describe('createLoggerProvider', () => {
     }
   });
 
+  it('should export logs even when installations.getId() rejects', async () => {
+    const fetchStub = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('', { status: 200 }));
+    try {
+      const mockInstallations = {
+        getId: vi
+          .fn()
+          .mockRejectedValue(new Error('IndexedDB is not available'))
+      };
+      const mockInstallationsProvider = {
+        getImmediate: () => mockInstallations,
+        get: async () => mockInstallations
+      } as unknown as Provider<'installations-internal'>;
+      const storeWithFailingInstallations = new AttributesStore(
+        app.options,
+        {},
+        mockInstallationsProvider
+      );
+
+      const { loggerProvider: provider } = createLoggerProvider(
+        app,
+        {},
+        storeWithFailingInstallations,
+        telemetryStore,
+        []
+      );
+      provider.getLogger('test').emit({
+        severityNumber: SeverityNumber.ERROR,
+        body: 'test error'
+      });
+      await provider.forceFlush();
+
+      expect(mockInstallations.getId).toHaveBeenCalledTimes(1);
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+    } finally {
+      fetchStub.mockRestore();
+    }
+  });
+
   describe('BatchLogRecordProcessor auto-flush on document hide', () => {
     it('should pass disableAutoFlushOnDocumentHide: true to BatchLogRecordProcessor by default when breadcrumbs() is not enabled', () => {
       if ('_onInit' in BatchLogRecordProcessor.prototype) {
