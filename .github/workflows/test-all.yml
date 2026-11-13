@@ -40,6 +40,7 @@ jobs:
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
         node-version: 24.22.1
+        cache: 'yarn'
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -49,14 +50,13 @@ jobs:
     - name: Archive build
       if: ${{ !cancelled() }}
       run: |
-        tar -cf build.tar --exclude=.git .
-        gzip build.tar
+        tar -I 'zstd -T0' -cf build.tar.zst --exclude=.git .
     - name: Upload build archive
       if: ${{ !cancelled() }}
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # ratchet:actions/upload-artifact@v7
       with:
-          name: build.tar.gz
-          path: build.tar.gz
+          name: build.tar.zst
+          path: build.tar.zst
           retention-days: ${{ env.artifactRetentionDays }}
         
   # Auth and Firestore are built and executed in their own jobs in an attempt to reduce flakiness.
@@ -71,9 +71,9 @@ jobs:
     - name: Download build archive
       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
       with:
-        name: build.tar.gz
+        name: build.tar.zst
     - name: Unzip build artifact
-      run: tar xf build.tar.gz
+      run: tar -I zstd -xf build.tar.zst
     - name: Set up Node (24)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
@@ -85,10 +85,8 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '22'
-    - name: Test setup and yarn install
-      run: |
-        cp config/ci.config.json config/project.json
-        yarn
+    - name: Test setup
+      run: cp config/ci.config.json config/project.json
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
@@ -134,17 +132,15 @@ jobs:
     - name: Download build archive
       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
       with:
-        name: build.tar.gz
+        name: build.tar.zst
     - name: Unzip build artifact
-      run: tar xf build.tar.gz
+      run: tar -I zstd -xf build.tar.zst
     - name: Set up Node (24)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
         node-version: 24.22.1
-    - name: Test setup and yarn install
-      run: |
-        cp config/ci.config.json config/project.json
-        yarn
+    - name: Test setup
+      run: cp config/ci.config.json config/project.json
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
@@ -182,17 +178,15 @@ jobs:
     - name: Download build archive
       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
       with:
-        name: build.tar.gz
+        name: build.tar.zst
     - name: Unzip build artifact
-      run: tar xf build.tar.gz
+      run: tar -I zstd -xf build.tar.zst
     - name: Set up Node (24)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
         node-version: 24.22.1
-    - name: Test setup and yarn install
-      run: |
-        cp config/ci.config.json config/project.json
-        yarn
+    - name: Test setup
+      run: cp config/ci.config.json config/project.json
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
@@ -233,15 +227,14 @@ jobs:
     - name: Download build archive
       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
       with:
-        name: build.tar.gz
+        name: build.tar.zst
     - name: Unzip build artifact
-      run: tar xf build.tar.gz
+      run: tar -I zstd -xf build.tar.zst
     - name: Set up Node (24)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
         node-version: 24.22.1
     - run: cp config/ci.config.json config/project.json
-    - run: yarn
     - run: yarn build:${{ matrix.persistence }}
       working-directory: integration/firestore
     - run: xvfb-run yarn test:browser
