@@ -32,6 +32,7 @@ import type { OnErrorSpanProcessor } from './tracing/on-error-span-processor';
 import type { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
 import type { TelemetryStore } from './telemetry-store';
 import type { SessionSampler } from './sampling/session-sampler';
+import type { ClientConfigStore } from './sampling/client-config';
 
 /**
  * Internal interface implemented by Crashlytics feature plugins (such as {@link breadcrumbs}).
@@ -72,6 +73,8 @@ export interface CrashlyticsInternal extends Crashlytics {
   telemetryStore?: TelemetryStore;
   onErrorLogRecordProcessor?: OnErrorLogRecordProcessor;
   onErrorSpanProcessor?: OnErrorSpanProcessor;
+  clientConfigStore?: ClientConfigStore;
+  sessionSampler?: SessionSampler;
   options?: CrashlyticsOptions;
 }
 
