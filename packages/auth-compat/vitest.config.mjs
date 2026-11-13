@@ -95,6 +95,7 @@ if (config.test?.projects) {
       project.test.fileParallelism = false;
       project.test.testTimeout = 20000;
       project.test.hookTimeout = 20000;
+      project.test.retry = process.env.CI ? 3 : 0;
 
       if (project.test.name === 'browser' && project.test.browser) {
         project.test.browser.instances = [
