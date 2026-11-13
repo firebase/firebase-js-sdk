@@ -86,8 +86,8 @@ export const SESSION_STORAGE_SAMPLING_DECISION_KEY_PREFIX =
 export const SESSION_STORAGE_DEBUG_KEY = 'firebasecrashlytics.debug';
 
 /**
- * Global flag developers can set to force 100% telemetry collection, except while collection is
- * paused or disabled.
+ * Global flag developers can set to force 100% telemetry collection, at any sampling rate, unless
+ * telemetry collection is disabled.
  */
 export const TELEMETRY_DEBUG_GLOBAL_FLAG = 'FIREBASE_TELEMETRY_DEBUG';
 
@@ -103,8 +103,8 @@ export const ATTR_KEY_SESSION_SAMPLING_RATE = 'session.sampling.rate';
 
 /**
  * Attribute stamped as `true` on every exported log record and span of a session whose sampling
- * was forced by the telemetry debug override; absent otherwise. The server keeps these sessions
- * instead of re-sampling them, but still drops them while collection is paused or disabled.
+ * was forced by the telemetry debug override; absent otherwise. The server keeps these sessions at
+ * any configured rate, including `0.0`, but still drops them when telemetry collection is disabled.
  */
 export const ATTR_KEY_SESSION_SAMPLING_FORCED = 'session.sampling.forced';
 

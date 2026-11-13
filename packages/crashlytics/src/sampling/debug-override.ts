@@ -24,8 +24,8 @@ import {
 /**
  * Returns whether the telemetry debug override is active, forcing 100% telemetry collection
  * (stamped with `session.sampling.rate = 1.0` and `session.sampling.forced = true`) for this
- * browser session regardless of the configured sampling rate. The override doesn't apply while
- * collection is paused (rate `0.0`) or disabled: then nothing is collected.
+ * browser session regardless of the configured sampling rate, including `0.0`. The override doesn't
+ * apply when telemetry collection is disabled.
  *
  * The override is enabled by any of:
  * - `self.FIREBASE_TELEMETRY_DEBUG = true` (set by a developer in code or the dev console),

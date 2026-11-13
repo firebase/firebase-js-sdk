@@ -77,7 +77,7 @@ export function isSessionSampled(sessionId: string, rate: number): boolean {
  *   the next export after it is turned on, even mid-session, the session is sampled with a stamped
  *   rate of `1.0` and `session.sampling.forced = true`, so the server does not re-sample it.
  *   The session keeps this debug decision even if the override is turned off later. The override
- *   doesn't apply while collection is paused (rate `0.0`) or disabled.
+ *   applies at any sampling rate, including `0.0`, but not when telemetry collection is disabled.
  * - Once the decision is made or restored, the configuration isn't read again for the session, so
  *   its periodic refresh is stopped (see {@link ClientConfigStore.stop}).
  *
@@ -106,8 +106,8 @@ export class SessionSampler {
    * Before the first decision this refreshes the configuration (reusing a refresh started within
    * the last minute, see {@link ClientConfigStore.refreshIfStale}) and waits for it, bounded by
    * `initialWaitMs`, so the decision uses the most recent configuration the server's caches allow.
-   * This includes debug decisions, since the debug override doesn't apply while collection is
-   * paused or disabled. If the refresh is slow or fails, the configuration already in memory
+   * This includes debug decisions, since the debug override doesn't apply when telemetry
+   * collection is disabled. If the refresh is slow or fails, the configuration already in memory
    * (cached or default) is used. It does not refresh or wait when the page is hidden. Exports
    * issued while the page is hidden are typically the unload flush (`visibilitychange`/`pagehide`),
    * whose `keepalive` request must be started before the document is frozen or discarded, so it
@@ -208,9 +208,9 @@ export class SessionSampler {
     sessionId: string | undefined,
     config: ClientConfig
   ): SamplingDecision {
-    // The debug override forces sampling, but not while collection is paused or disabled (a
-    // disabled app is served as a rate of 0.0).
-    if (config.samplingRate > 0 && isTelemetryDebugEnabled()) {
+    // The debug override forces sampling at any rate, including a paused 0.0, but not when
+    // telemetry is disabled for the app.
+    if (config.enabled && isTelemetryDebugEnabled()) {
       return { sessionId, sampled: true, samplingRate: 1.0, forced: true };
     }
 
@@ -222,8 +222,8 @@ export class SessionSampler {
   /**
    * Returns the current session's decision from memory or `sessionStorage`, if one was made. While
    * the debug override is on, a non-debug decision is skipped and made again, so the session
-   * switches to a debug decision (unless collection is paused or disabled) and keeps it, even after
-   * the override is turned off.
+   * switches to a debug decision (unless telemetry collection is disabled) and keeps it, even
+   * after the override is turned off.
    */
   private _cachedDecision(): SamplingDecision | undefined {
     const sessionId = this._attributesStore.sessionId;

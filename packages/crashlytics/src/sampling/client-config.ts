@@ -34,15 +34,22 @@ import { isPageHidden } from '../helpers';
  */
 export interface ClientConfig {
   /**
-   * Session sampling rate in `[0.0, 1.0]`. `0.0` pauses collection (nothing is exported), which is
-   * also how an app with telemetry disabled is represented. The device applies it as served.
+   * Session sampling rate in `[0.0, 1.0]`. `0.0` pauses collection: only sessions forced by the
+   * telemetry debug override are exported. A disabled app is served as `0.0` too. The device
+   * applies the rate as served.
    */
   samplingRate: number;
+  /**
+   * Whether telemetry collection is enabled for the app. A disabled app exports nothing, not even
+   * sessions forced by the telemetry debug override.
+   */
+  enabled: boolean;
 }
 
 /** Configuration used when nothing has been fetched or cached yet: collect everything. */
 const DEFAULT_CLIENT_CONFIG: ClientConfig = Object.freeze({
-  samplingRate: 1.0
+  samplingRate: 1.0,
+  enabled: true
 });
 
 /** Enablement state enum values as serialized by the `ClientConfig` proto. */
@@ -68,15 +75,18 @@ function normalizeSamplingRate(rate: unknown): number {
 /**
  * Parses a `GetClientConfig` JSON response body into a {@link ClientConfig}.
  *
- * The response only contains `enablementState` and `samplingRate`. A disabled app is returned as a
- * sampling rate of `0.0`, since the device handles both the same way: it exports nothing.
+ * The response only contains `enablementState` and `samplingRate`. A disabled app is returned as
+ * `enabled: false` with a sampling rate of `0.0`, so it exports nothing, not even debug sessions.
  */
 function parseClientConfigResponse(body: unknown): ClientConfig {
   const response = (body ?? {}) as Record<string, unknown>;
   if (response['enablementState'] === ENABLEMENT_STATE_DISABLED) {
-    return { samplingRate: 0 };
+    return { samplingRate: 0, enabled: false };
   }
-  return { samplingRate: normalizeSamplingRate(response['samplingRate']) };
+  return {
+    samplingRate: normalizeSamplingRate(response['samplingRate']),
+    enabled: true
+  };
 }
 
 /**

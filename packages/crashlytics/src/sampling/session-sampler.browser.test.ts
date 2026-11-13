@@ -41,7 +41,7 @@ class FakeConfigStore {
   refreshCount = 0;
   stopCount = 0;
   constructor(config: Partial<ClientConfig> = {}) {
-    this.config = { samplingRate: 1, ...config };
+    this.config = { samplingRate: 1, enabled: true, ...config };
   }
   refreshIfStale(): Promise<void> {
     this.refreshCount++;
@@ -184,7 +184,7 @@ describe('SessionSampler', () => {
     expect(first.sampled).toBe(true);
 
     // Lowering the rate below the session's bucket does not flip the session.
-    store.config = { samplingRate: 0.05 };
+    store.config = { samplingRate: 0.05, enabled: true };
     expect(await sampler.getDecision()).toEqual(first);
     expect(sampler.decide()).toEqual(first);
   });
@@ -196,7 +196,7 @@ describe('SessionSampler', () => {
     );
     expect((await sampler.getDecision()).sampled).toBe(true);
 
-    store.config = { samplingRate: 0.9 };
+    store.config = { samplingRate: 0.9, enabled: true };
     attrs.setSessionId(SESSION_MID);
     expect(await sampler.getDecision()).toEqual({
       sessionId: SESSION_MID,
@@ -282,7 +282,7 @@ describe('SessionSampler', () => {
 
     const pending = sampler.getDecision();
     expect(store.refreshCount).toBe(1);
-    store.config = { samplingRate: 0.5 };
+    store.config = { samplingRate: 0.5, enabled: true };
     resolveFetch();
 
     expect(await pending).toMatchObject({ sampled: false, samplingRate: 0.5 });
@@ -509,7 +509,7 @@ describe('SessionSampler', () => {
       const spans = sampler.getDecision();
       expect(vi.getTimerCount()).toBeGreaterThan(0);
 
-      store.config = { samplingRate: 0.5 };
+      store.config = { samplingRate: 0.5, enabled: true };
       resolveFetch();
 
       const [logsDecision, spansDecision] = await Promise.all([logs, spans]);
@@ -555,11 +555,25 @@ describe('SessionSampler', () => {
       });
     });
 
-    it('does not force sampling while collection is paused or disabled', async () => {
+    it('forces sampling even when collection is paused (rate 0.0)', async () => {
       (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
         true;
-      // A disabled app is served as a rate of 0.0 too.
       const { sampler } = createSampler({ samplingRate: 0 }, SESSION_HIGH);
+      expect(await sampler.getDecision()).toEqual({
+        sessionId: SESSION_HIGH,
+        sampled: true,
+        samplingRate: 1,
+        forced: true
+      });
+    });
+
+    it('does not force sampling when telemetry is disabled', async () => {
+      (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
+        true;
+      const { sampler } = createSampler(
+        { samplingRate: 0, enabled: false },
+        SESSION_HIGH
+      );
       expect(await sampler.getDecision()).toEqual({
         sessionId: SESSION_HIGH,
         sampled: false,
@@ -567,7 +581,7 @@ describe('SessionSampler', () => {
       });
     });
 
-    it('refreshes the config before a debug decision, so a pause is honored', async () => {
+    it('refreshes the config before a debug decision, so disabling is honored', async () => {
       (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
         true;
       const { sampler, store } = createSampler(
@@ -582,15 +596,32 @@ describe('SessionSampler', () => {
 
       const pending = sampler.getDecision();
       expect(store.refreshCount).toBe(1);
-      // The refreshed config pauses collection.
-      store.config = { samplingRate: 0 };
+      // The refreshed config disables telemetry.
+      store.config = { samplingRate: 0, enabled: false };
       resolveFetch();
 
       expect(await pending).toMatchObject({ sampled: false, samplingRate: 0 });
     });
 
-    it('does not switch to a debug decision mid-session while collection is paused', async () => {
+    it('switches to a debug decision mid-session even while collection is paused', async () => {
       const { sampler } = createSampler({ samplingRate: 0 }, SESSION_HIGH);
+      expect((await sampler.getDecision()).sampled).toBe(false);
+
+      (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
+        true;
+      expect(await sampler.getDecision()).toEqual({
+        sessionId: SESSION_HIGH,
+        sampled: true,
+        samplingRate: 1,
+        forced: true
+      });
+    });
+
+    it('does not switch to a debug decision mid-session when telemetry is disabled', async () => {
+      const { sampler } = createSampler(
+        { samplingRate: 0, enabled: false },
+        SESSION_HIGH
+      );
       expect((await sampler.getDecision()).sampled).toBe(false);
 
       (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
