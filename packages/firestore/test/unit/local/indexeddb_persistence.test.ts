@@ -1580,6 +1580,84 @@ describe.skipIf(!IndexedDbPersistence.isAvailable())(
   }
 );
 
+describe.skipIf(!IndexedDbPersistence.isAvailable())(
+  'IndexedDb: pagehide on WebKit',
+  () => {
+    beforeEach(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    afterAll(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
+
+    it.each([
+      {
+        name: 'iOS Safari',
+        isWebKit: true,
+        userAgent:
+          'Mozilla/5.0 (iPhone; CPU iPhone OS 26_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1'
+      },
+      {
+        name: 'iOS Safari requesting the desktop website',
+        isWebKit: true,
+        userAgent:
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6.1 Safari/605.1.15'
+      },
+      {
+        name: 'macOS Safari 14',
+        isWebKit: true,
+        userAgent:
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Safari/605.1.15'
+      },
+      {
+        name: 'macOS Safari 17',
+        isWebKit: true,
+        userAgent:
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Safari/605.1.15'
+      },
+      {
+        name: 'Chrome on iOS',
+        isWebKit: true,
+        userAgent:
+          'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/130.0.6723.90 Mobile/15E148 Safari/604.1'
+      },
+      {
+        name: 'iOS app web view',
+        isWebKit: true,
+        userAgent:
+          'Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148'
+      },
+      {
+        name: 'desktop Chrome',
+        isWebKit: false,
+        userAgent:
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
+      },
+      {
+        name: 'desktop Firefox',
+        isWebKit: false,
+        userAgent:
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:132.0) Gecko/20100101 Firefox/132.0'
+      }
+    ])(
+      'skips cleanup only on WebKit: $name',
+      async ({ isWebKit, userAgent }) => {
+        await withMultiClientPersistence('clientA', async (_, __, queue) => {
+          vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(userAgent);
+          vi.spyOn(navigator, 'appVersion', 'get').mockReturnValue(
+            userAgent.replace('Mozilla/', '')
+          );
+
+          window.dispatchEvent(new Event('pagehide'));
+
+          expect(queue.isShuttingDown).toBe(isWebKit);
+        });
+      }
+    );
+  }
+);
+
 describe.skipIf(!IndexedDbPersistence.isAvailable())('IndexedDb', () => {
   it('can re-open after close', async () => {
     return withDb(2, async db => {
