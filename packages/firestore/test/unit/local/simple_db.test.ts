@@ -19,6 +19,7 @@ import { dbKeyComparator } from '../../../src/local/indexeddb_remote_document_ca
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
   getAndroidVersion,
+  isIndexedDbTransactionError,
   SimpleDb,
   SimpleDbSchemaConverter,
   SimpleDbStore,
@@ -50,6 +51,26 @@ const dummyUser = {
   name: 'nobody',
   age: 7
 };
+
+/**
+ * Reads from the store and then fails like WebKit does once iOS has closed the
+ * IndexedDB connection of a backgrounded page or WKWebView.
+ */
+function failWithLostConnection(
+  txn: SimpleDbTransaction
+): PersistencePromise<never> {
+  return txn
+    .store<number, User>('users')
+    .get(0)
+    .next(() =>
+      PersistencePromise.reject(
+        new DOMException(
+          'Attempt to get a record from database without an in-progress transaction',
+          'UnknownError'
+        )
+      )
+    );
+}
 
 /** Detects whether we are mocking IndexedDB using `IndexedDbShim`. */
 function isIndexedDbMock(): boolean {
@@ -656,6 +677,58 @@ describe.skipIf(!SimpleDb.isAvailable())('SimpleDb', () => {
     ).rejects.toThrow();
 
     expect(attemptCount).toBe(1);
+  });
+
+  it('retries transactions after a lost connection', async () => {
+    let attemptCount = 0;
+
+    const result = await db.runTransaction(
+      expect.getState().currentTestName ?? 'test',
+      'readwrite',
+      ['users'],
+      txn => {
+        ++attemptCount;
+        if (attemptCount === 1) {
+          return failWithLostConnection(txn);
+        }
+        return txn.store<number, User>('users').get(0);
+      }
+    );
+
+    expect(result).toEqual(testData[0]);
+    expect(attemptCount).toBe(2);
+  });
+
+  it('reports a lost connection as an IndexedDbTransactionError', async () => {
+    let attemptCount = 0;
+
+    const result = db.runTransaction(
+      expect.getState().currentTestName ?? 'test',
+      'readwrite',
+      ['users'],
+      txn => {
+        ++attemptCount;
+        return failWithLostConnection(txn);
+      }
+    );
+
+    await expect(result).rejects.toSatisfy(isIndexedDbTransactionError);
+    await expect(result).rejects.toThrow('without an in-progress transaction');
+    expect(attemptCount).toBe(3);
+  });
+
+  it('does not report other IndexedDB errors as IndexedDbTransactionError', async () => {
+    const result = db.runTransaction(
+      expect.getState().currentTestName ?? 'test',
+      'readwrite',
+      ['users'],
+      txn => {
+        const store = txn.store<string[], typeof dummyUser>('users');
+        return store.add(dummyUser).next(() => store.add(dummyUser)); // Fails with a unique key violation
+      }
+    );
+
+    await expect(result).rejects.toMatchObject({ name: 'ConstraintError' });
   });
 
   // A little perf test for convenient benchmarking

@@ -451,7 +451,11 @@ export class SimpleDb {
         this.close();
 
         if (!retryable) {
-          return Promise.reject(error);
+          return Promise.reject(
+            isLostConnectionError(error)
+              ? new IndexedDbTransactionError(action, error)
+              : error
+          );
         }
       }
     }
@@ -556,6 +560,30 @@ export class IndexedDbTransactionError extends FirestoreError {
       `IndexedDB transaction '${actionName}' failed: ${cause}`
     );
   }
+}
+
+/**
+ * DOMException names that IndexedDB uses when the transaction or the
+ * connection behind it is gone rather than when the request itself is invalid.
+ * WebKit reports these after iOS closes the IndexedDB connection of a
+ * backgrounded page or WKWebView, for example "Attempt to get a record from
+ * database without an in-progress transaction" (UnknownError).
+ */
+const LOST_CONNECTION_ERRORS = [
+  'UnknownError',
+  'InvalidStateError',
+  'TransactionInactiveError',
+  'AbortError'
+];
+
+/**
+ * Verifies whether `e` is an IndexedDB error that means the transaction or its
+ * connection was lost. These are reported as `IndexedDbTransactionError`s so
+ * that callers treat them like any other failed IndexedDB transaction instead
+ * of failing the AsyncQueue.
+ */
+function isLostConnectionError(e: Error): boolean {
+  return LOST_CONNECTION_ERRORS.indexOf(e.name) !== -1;
 }
 
 /** Verifies whether `e` is an IndexedDbTransactionError. */
