@@ -21,7 +21,7 @@ You can configure the sampling rate for your web app to a value from **0% to 100
 - **Rate changes**: Configuration responses can be cached for up to 16 minutes (15 minutes plus 1 minute of revalidation), so a new rate applies to sessions that start about 16 minutes after you change it. Sessions in progress keep their decision.
   - **Lowering the rate** also takes effect immediately on the server, which re-checks the same hash against the new rate and drops sessions that no longer qualify.
   - **Raising the rate** applies only to sessions that start after the change reaches the device.
-- **Pausing or disabling collection**: At a rate of `0.0`, or when telemetry collection is disabled, the server drops incoming telemetry right away, including debug sessions, and new sessions stop sending once the change reaches the device.
+- **Pausing or disabling collection**: At a rate of `0.0`, or when telemetry collection is disabled, the server drops incoming telemetry right away, and new sessions stop sending once the change reaches the device. Debug sessions are still collected at a rate of `0.0`, but not when collection is disabled.
 
 ---
 
@@ -141,7 +141,7 @@ To reproduce or investigate an issue during development or QA testing, you can c
 
 - **For a user's session**: ask them to open your app with the `firebase_telemetry_debug=true` query parameter, for example `https://example.com/?firebase_telemetry_debug=true`. The SDK remembers it in `sessionStorage` for the rest of the browser session, including after in-app navigation.
 
-The override applies from the session's next export, even mid-session, and the session stays fully collected until it ends, even if you turn the override off. Telemetry dropped before then isn't recovered. Debug sessions are sent with `session.sampling.rate = 1.0` and `session.sampling.forced = true`, so the server keeps them in full instead of re-sampling them. While collection is paused or disabled, nothing is collected, even in debug mode.
+The override applies from the session's next export, even mid-session, and the session stays fully collected until it ends, even if you turn the override off. Telemetry dropped before then isn't recovered. Debug sessions are sent with `session.sampling.rate = 1.0` and `session.sampling.forced = true`, so the server keeps them in full instead of re-sampling them. This applies even at a sampling rate of `0.0`, but not when telemetry collection is disabled.
 
 ---
 
