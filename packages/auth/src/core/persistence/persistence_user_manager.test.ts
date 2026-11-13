@@ -146,9 +146,11 @@ describe('core/persistence/persistence_user_manager', () => {
       c.stub._get.mockResolvedValue(testUser(auth, 'wrong-uid').toJSON());
 
       let persistedUserInA: PersistenceValue | null = null;
-      a.stub._set.mockImplementation(async (_, value) => {
-        persistedUserInA = value;
-      });
+      a.stub._set.mockImplementation(
+        async (_: string, value: PersistenceValue) => {
+          persistedUserInA = value;
+        }
+      );
       a.stub._get.mockImplementation(async () => persistedUserInA);
 
       const out = await PersistenceUserManager.create(auth, search);
@@ -183,9 +185,11 @@ describe('core/persistence/persistence_user_manager', () => {
       c.stub._get.mockResolvedValue(testUser(auth, 'wrong-uid').toJSON());
 
       let persistedUserInB: PersistenceValue | null = null;
-      b.stub._set.mockImplementation(async (_, value) => {
-        persistedUserInB = value;
-      });
+      b.stub._set.mockImplementation(
+        async (_: string, value: PersistenceValue) => {
+          persistedUserInB = value;
+        }
+      );
       b.stub._get.mockImplementation(async () => persistedUserInB);
 
       const out = await PersistenceUserManager.create(auth, search);
@@ -364,9 +368,11 @@ describe('core/persistence/persistence_user_manager', () => {
       b.stub._isAvailable.mockResolvedValue(true);
 
       let migratedUser: PersistenceValue | null = null;
-      b.stub._set.mockImplementation(async (_, val) => {
-        migratedUser = val;
-      });
+      b.stub._set.mockImplementation(
+        async (_: string, val: PersistenceValue) => {
+          migratedUser = val;
+        }
+      );
       b.stub._get.mockImplementation(async () => migratedUser);
 
       const out = await PersistenceUserManager.create(auth, [

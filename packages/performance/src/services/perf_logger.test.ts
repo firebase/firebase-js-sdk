@@ -29,7 +29,7 @@ import '../../test/setup';
 import { mergeStrings } from '../utils/string_merger';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { PerformanceController } from '../controllers/perf';
-import type { MockInstance } from 'vitest';
+import type { Mock, MockInstance } from 'vitest';
 
 vi.mock('./iid_service', { spy: true });
 vi.mock('./transport_service', { spy: true });
@@ -55,7 +55,7 @@ describe('Performance Monitoring > perf_logger', () => {
 "visibility_state":${VISIBILITY_STATE},"effective_connection_type":${EFFECTIVE_CONNECTION_TYPE}},\
 "application_process_state":0}`;
 
-  let addToQueueStub: MockInstance;
+  let addToQueueStub: Mock;
   let getIidStub: MockInstance;
 
   function mockTransportHandler(

@@ -54,7 +54,6 @@ import {
   injectRecaptchaV2Token
 } from './phone';
 import { mockLoadJS } from '../../../test/helpers/mock_loadjs';
-import { MockInstance } from 'vitest';
 const RECAPTCHA_V2_TOKEN = 'v2-token';
 const RECAPTCHA_ENTERPRISE_TOKEN = 'enterprise-token';
 
@@ -811,7 +810,9 @@ describe('platform_browser/strategies/phone', () => {
       if (typeof window === 'undefined') {
         return;
       }
-      (v2Verifier.verify as MockInstance).mockReturnValue(Promise.resolve(123));
+      vi.mocked(v2Verifier.verify).mockReturnValue(
+        Promise.resolve(123 as unknown as string)
+      );
       const promise = _verifyPhoneNumber(auth, 'number', v2Verifier);
       await expect(promise).rejects.toThrow('auth/argument-error');
       await expect(promise).rejects.toBeInstanceOf(FirebaseError);
@@ -848,7 +849,9 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       vi.spyOn(v2Verifier, '_reset');
-      (v2Verifier.verify as MockInstance).mockReturnValue(Promise.resolve(123));
+      vi.mocked(v2Verifier.verify).mockReturnValue(
+        Promise.resolve(123 as unknown as string)
+      );
 
       await expect(
         _verifyPhoneNumber(auth, 'number', v2Verifier)

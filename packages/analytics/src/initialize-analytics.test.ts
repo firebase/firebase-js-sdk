@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import type { MockInstance } from 'vitest';
+import type { Mock, MockInstance } from 'vitest';
 import { _initializeAnalytics } from './initialize-analytics';
 import {
   getFakeApp,
   getFakeInstallations
 } from '../test/get-fake-firebase-services';
 import { GtagCommand } from './constants';
-import { DynamicConfig } from './types';
+import { DynamicConfig, Gtag } from './types';
 import { FirebaseApp } from '@firebase/app';
 import { Deferred } from '@firebase/util';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
@@ -54,7 +54,7 @@ function stubFetch(): void {
 }
 
 describe('initializeAnalytics()', () => {
-  const gtagStub: MockInstance = vi.fn();
+  const gtagStub: Mock<Gtag> = vi.fn();
   const dynamicPromisesList: Array<Promise<DynamicConfig>> = [];
   const measurementIdToAppId: { [key: string]: string } = {};
   let app: FirebaseApp;

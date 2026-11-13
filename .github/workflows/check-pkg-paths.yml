@@ -39,6 +39,11 @@ jobs:
       run: yarn
     - name: Yarn build
       run: yarn build
+    - name: Type-check packages
+      run: |
+        cp config/ci.config.json config/project.json
+        yarn --cwd packages/ai testsetup
+        yarn type-check
     - name: Swap in public typings
       run: yarn release:prepare
     - name: Check paths

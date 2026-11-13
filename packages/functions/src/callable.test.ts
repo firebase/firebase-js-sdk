@@ -547,7 +547,10 @@ describe('Firebase Functions > Stream', () => {
     await func.stream({});
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
-    const [_, options] = mockFetch.mock.calls[0];
+    const [_, options] = mockFetch.mock.calls[0] as [
+      unknown,
+      RequestInit & { headers: Record<string, string> }
+    ];
     expect(options.headers['Authorization']).toBe('Bearer auth-token');
     expect(options.headers['Content-Type']).toBe('application/json');
     expect(options.credentials).toBe(undefined);
@@ -613,7 +616,7 @@ describe('Firebase Functions > Stream', () => {
     await func.stream({});
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
-    const [_, options] = mockFetch.mock.calls[0];
+    const [_, options] = mockFetch.mock.calls[0] as [unknown, RequestInit];
     expect(options.credentials).toBe('include');
   });
 
@@ -676,7 +679,7 @@ describe('Firebase Functions > Stream', () => {
     await func.stream({});
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
-    const [_, options] = mockFetch.mock.calls[0];
+    const [_, options] = mockFetch.mock.calls[0] as [unknown, RequestInit];
     expect(options.credentials).toBe('include');
   });
 

@@ -1146,12 +1146,12 @@ describe('password policy cache is updated in auth flows upon error', () => {
         // Wait for the password policy to be fetched and recached.
         await waitForRecachePasswordPolicy();
 
-        expect(window.grecaptcha?.enterprise.execute).toHaveBeenCalledWith(
-          TEST_SITE_KEY,
-          {
-            action: RecaptchaActionName.SIGN_UP_PASSWORD
-          }
-        );
+        expect(
+          (window.grecaptcha as MockGreCAPTCHATopLevel | undefined)?.enterprise
+            .execute
+        ).toHaveBeenCalledWith(TEST_SITE_KEY, {
+          action: RecaptchaActionName.SIGN_UP_PASSWORD
+        });
         expect(policyEndpointMock.calls.length).toBe(2);
         expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC
@@ -1497,12 +1497,12 @@ describe('password policy cache is updated in auth flows upon error', () => {
         // Wait to ensure the password policy is fetched and recached.
         await waitForRecachePasswordPolicy();
 
-        expect(window.grecaptcha?.enterprise.execute).toHaveBeenCalledWith(
-          TEST_SITE_KEY,
-          {
-            action: RecaptchaActionName.SIGN_IN_WITH_PASSWORD
-          }
-        );
+        expect(
+          (window.grecaptcha as MockGreCAPTCHATopLevel | undefined)?.enterprise
+            .execute
+        ).toHaveBeenCalledWith(TEST_SITE_KEY, {
+          action: RecaptchaActionName.SIGN_IN_WITH_PASSWORD
+        });
         expect(policyEndpointMock.calls.length).toBe(2);
         expect(auth._getPasswordPolicyInternal()).toEqual(
           CACHED_PASSWORD_POLICY_REQUIRE_NUMERIC

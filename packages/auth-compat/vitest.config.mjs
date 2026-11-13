@@ -72,56 +72,57 @@ function authInternalPlugin() {
   };
 }
 
-const config = createBaseConfig(import.meta.url);
+const config = createBaseConfig(
+  import.meta.url,
+  {},
+  {
+    testTimeout: 20000,
+    hookTimeout: 20000,
+    fileParallelism: false,
+    screenshotFailures: false
+  }
+);
 
 const hasEmulator = Boolean(process.env.FIREBASE_AUTH_EMULATOR_HOST);
 const hasExplicitSuiteArg = process.argv.some(arg =>
   arg.includes('test/integration')
 );
 
-if (config.test?.projects) {
-  for (const project of config.test.projects) {
-    project.plugins = [...(project.plugins || []), authInternalPlugin()];
-    project.define = {
-      ...(project.define || {}),
-      'process.env.FIREBASE_AUTH_EMULATOR_HOST': JSON.stringify(
-        process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9099'
-      ),
-      'process.env.GCLOUD_PROJECT': JSON.stringify(
-        process.env.GCLOUD_PROJECT || 'demo-emulatedproject'
-      )
-    };
-    if (project.test) {
-      project.test.fileParallelism = false;
-      project.test.testTimeout = 20000;
-      project.test.hookTimeout = 20000;
+for (const project of config.test.projects) {
+  project.plugins = [...(project.plugins || []), authInternalPlugin()];
+  project.define = {
+    ...(project.define || {}),
+    'process.env.FIREBASE_AUTH_EMULATOR_HOST': JSON.stringify(
+      process.env.FIREBASE_AUTH_EMULATOR_HOST || '127.0.0.1:9099'
+    ),
+    'process.env.GCLOUD_PROJECT': JSON.stringify(
+      process.env.GCLOUD_PROJECT || 'demo-emulatedproject'
+    )
+  };
 
-      if (project.test.name === 'browser' && project.test.browser) {
-        project.test.browser.instances = [
-          {
-            browser:
-              process.env.BROWSERS === 'WebkitHeadless'
-                ? 'webkit'
-                : process.env.BROWSERS === 'Firefox'
-                  ? 'firefox'
-                  : 'chromium'
-          }
-        ];
-        project.test.browser.screenshotFailures = false;
+  if (project.test.name === 'browser') {
+    project.test.browser.instances = [
+      {
+        browser:
+          process.env.BROWSERS === 'WebkitHeadless'
+            ? 'webkit'
+            : process.env.BROWSERS === 'Firefox'
+              ? 'firefox'
+              : 'chromium'
       }
+    ];
+  }
 
-      if (project.test.name === 'node') {
-        // Unit tests in src/ are browser-only; only run integration tests in Node
-        project.test.include = ['test/integration/flows/**/*.test.ts'];
-      }
+  if (project.test.name === 'node') {
+    // Unit tests in src/ are browser-only; only run integration tests in Node
+    project.test.include = ['test/integration/flows/**/*.test.ts'];
+  }
 
-      if (!hasEmulator && !hasExplicitSuiteArg) {
-        project.test.exclude = [
-          ...(project.test.exclude || []),
-          'test/integration/**'
-        ];
-      }
-    }
+  if (!hasEmulator && !hasExplicitSuiteArg) {
+    project.test.exclude = [
+      ...(project.test.exclude || []),
+      'test/integration/**'
+    ];
   }
 }
 
