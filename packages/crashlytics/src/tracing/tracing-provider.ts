@@ -21,26 +21,39 @@ import {
   W3CTraceContextPropagator,
   ExportResult
 } from '@opentelemetry/core';
-import { TracerProvider, trace } from '@opentelemetry/api';
-import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
+import {
+  context,
+  propagation,
+  TracerProvider,
+  trace
+} from '@opentelemetry/api';
+import {
+  ReadableSpan,
+  SpanExporter,
+  StackContextManager,
+  TracerProvider as SdkTracerProvider
+} from '@opentelemetry/sdk-trace';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
 import { OTLPTraceExporter as OTLPStandardTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import {
+  ExporterMetrics,
   OTLPExporterBase,
   OTLPExporterConfigBase,
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
-import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { DynamicHeaderProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { AttributesStore } from '../attributes-store';
 import { TelemetryStore } from '../telemetry-store';
 import { OnErrorSpanProcessor } from './on-error-span-processor';
 import { FirebaseAttributesSpanProcessor } from './attributes-span-processor';
-import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
+import {
+  JsonTraceSerializer,
+  TraceExporterMetricsHelper
+} from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
 import {
   DEFAULT_TELEMETRY_REGION,
@@ -125,7 +138,7 @@ export function createTracingProvider(
     telemetryStore
   );
 
-  const tracingProvider = new WebTracerProvider({
+  const tracingProvider = new SdkTracerProvider({
     resource,
     spanProcessors: [
       new FirebaseAttributesSpanProcessor(attributesStore),
@@ -133,11 +146,15 @@ export function createTracingProvider(
     ]
   });
 
-  tracingProvider.register({
-    propagator: new CompositePropagator({
+  trace.setGlobalTracerProvider(tracingProvider);
+  propagation.setGlobalPropagator(
+    new CompositePropagator({
       propagators: [new W3CTraceContextPropagator()]
     })
-  });
+  );
+  const contextManager = new StackContextManager();
+  contextManager.enable();
+  context.setGlobalContextManager(contextManager);
 
   /* We must clean url before a regex match in the cases of special characters changing matched url.
      Ex: https://api.example.com/traces?version=1
@@ -151,8 +168,7 @@ export function createTracingProvider(
   )}`;
 
   const networkInstrumentationConfig = {
-    ignoreUrls: [new RegExp(cleanedRegexEndpointUrl)],
-    semconvStabilityOptIn: 'http'
+    ignoreUrls: [new RegExp(cleanedRegexEndpointUrl)]
   };
 
   if (unregisterInstrumentations) {
@@ -163,9 +179,7 @@ export function createTracingProvider(
     instrumentations: [
       new FetchInstrumentation(networkInstrumentationConfig),
       new XMLHttpRequestInstrumentation(networkInstrumentationConfig),
-      new DocumentLoadInstrumentation({
-        semconvStabilityOptIn: 'http'
-      })
+      new DocumentLoadInstrumentation()
     ]
   });
 
@@ -190,6 +204,13 @@ export class OTLPTraceExporter
           compression: 'none'
         },
         JsonTraceSerializer,
+        new ExporterMetrics({
+          componentType: 'otlp_http_span_exporter',
+          metricsHelper: TraceExporterMetricsHelper,
+          url: config.url,
+          meterProvider: undefined,
+          responseAttributesFromError: () => ({})
+        }),
         new FetchTransport({
           url: config.url!,
           headers: new Headers(

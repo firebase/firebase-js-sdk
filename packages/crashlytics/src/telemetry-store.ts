@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
-import { SdkLogRecord } from '@opentelemetry/sdk-logs';
-import { SeverityNumber } from '@opentelemetry/api-logs';
+import { ReadableSpan } from '@opentelemetry/sdk-trace';
+import { ReadWriteLogRecord } from '@opentelemetry/sdk-logs';
+import { SeverityNumber } from '@opentelemetry/api';
 import { generateUuid } from './helpers';
 
 /**
@@ -37,9 +37,9 @@ type EventId = string;
 
 /**
  * Represents the type of telemetry data buffered in memory.
- * Can be a TraceEvents collection containing spans and logs for a trace, or a standalone SdkLogRecord.
+ * Can be a TraceEvents collection containing spans and logs for a trace, or a standalone ReadWriteLogRecord.
  */
-type EventData = TraceEvents | SdkLogRecord;
+type EventData = TraceEvents | ReadWriteLogRecord;
 
 /**
  * Represents the unique identifier for a span, typically a 16-character hexadecimal string.
@@ -51,7 +51,9 @@ type SpanId = string;
  *
  * @param event - The telemetry event to check.
  */
-function isSpan(event: ReadableSpan | SdkLogRecord): event is ReadableSpan {
+function isSpan(
+  event: ReadableSpan | ReadWriteLogRecord
+): event is ReadableSpan {
   return typeof event.spanContext === 'function';
 }
 
@@ -69,7 +71,7 @@ function getSpanId(span: ReadableSpan): SpanId {
  *
  * @param event - The telemetry event to check.
  */
-function isRootEvent(event: ReadableSpan | SdkLogRecord): boolean {
+function isRootEvent(event: ReadableSpan | ReadWriteLogRecord): boolean {
   if (isSpan(event)) {
     return event.parentSpanContext === undefined;
   } else {
@@ -82,7 +84,7 @@ function isRootEvent(event: ReadableSpan | SdkLogRecord): boolean {
  *
  * @param event - The telemetry event.
  */
-function getEventType(event: ReadableSpan | SdkLogRecord): EventType {
+function getEventType(event: ReadableSpan | ReadWriteLogRecord): EventType {
   if (isSpan(event)) {
     return isRootEvent(event) ? EventType.RootSpan : EventType.ChildSpan;
   } else {
@@ -95,7 +97,7 @@ function getEventType(event: ReadableSpan | SdkLogRecord): EventType {
  */
 class TraceEvents {
   // TODO: add unique id mappings to handle idempotency issue with duplicated events of different references
-  logs = new Set<SdkLogRecord>();
+  logs = new Set<ReadWriteLogRecord>();
   spans = new Map<SpanId, ReadableSpan>();
   isTraceQueuedForExport = false;
 
@@ -104,7 +106,7 @@ class TraceEvents {
    *
    * @param event - The telemetry event to add.
    */
-  add(event: ReadableSpan | SdkLogRecord): void {
+  add(event: ReadableSpan | ReadWriteLogRecord): void {
     if (isSpan(event)) {
       this.spans.set(getSpanId(event), event);
     } else {
@@ -117,7 +119,7 @@ class TraceEvents {
    *
    * @param event - The telemetry event to check.
    */
-  has(event: ReadableSpan | SdkLogRecord): boolean {
+  has(event: ReadableSpan | ReadWriteLogRecord): boolean {
     return isSpan(event)
       ? this.spans.has(getSpanId(event))
       : this.logs.has(event);
@@ -164,7 +166,7 @@ export class TelemetryStore {
    *
    * @param event - The telemetry event to add.
    */
-  add(event: ReadableSpan | SdkLogRecord): void {
+  add(event: ReadableSpan | ReadWriteLogRecord): void {
     const eventId = this._getEventId(event);
 
     // We have a root event that already exists in the buffer, exit
@@ -195,7 +197,7 @@ export class TelemetryStore {
         return;
       }
       case EventType.RootLog: {
-        this._telemetryBufferMap.set(eventId, event as SdkLogRecord);
+        this._telemetryBufferMap.set(eventId, event as ReadWriteLogRecord);
         if (this._rootTelemetryQueue.isFull()) {
           this._evictOldest();
         }
@@ -263,14 +265,14 @@ export class TelemetryStore {
   /**
    * Gets all buffered log records from completed root traces and standalone root logs currently in the queue.
    */
-  getLogsToExport(): SdkLogRecord[] {
-    const logs: SdkLogRecord[] = [];
+  getLogsToExport(): ReadWriteLogRecord[] {
+    const logs: ReadWriteLogRecord[] = [];
 
     if (this._shouldAddLimitLog) {
       const limitLog = {
         severityNumber: SeverityNumber.INFO,
         body: 'Telemetry buffer limit reached. Some telemetry events were dropped.'
-      } as SdkLogRecord;
+      } as ReadWriteLogRecord;
 
       logs.push(limitLog);
     }
@@ -300,7 +302,7 @@ export class TelemetryStore {
    *
    * @param event - The telemetry event.
    */
-  private _getEventId(event: ReadableSpan | SdkLogRecord): EventId {
+  private _getEventId(event: ReadableSpan | ReadWriteLogRecord): EventId {
     if (isSpan(event)) {
       return event.spanContext().traceId;
     } else {

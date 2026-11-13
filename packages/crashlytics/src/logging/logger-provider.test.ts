@@ -27,7 +27,7 @@ import { AppCheckProvider } from './appcheck-provider';
 import { FirebaseAttributesLogProcessor } from './attributes-log-processor';
 import { createLoggerProvider } from './logger-provider';
 import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
-import { SeverityNumber } from '@opentelemetry/api-logs';
+import { SeverityNumber } from '@opentelemetry/api';
 import { Provider } from '@firebase/component';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 

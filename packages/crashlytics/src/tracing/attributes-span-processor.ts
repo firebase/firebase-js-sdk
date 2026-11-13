@@ -16,11 +16,7 @@
  */
 
 import { Context } from '@opentelemetry/api';
-import {
-  SpanProcessor,
-  ReadableSpan,
-  Span
-} from '@opentelemetry/sdk-trace-base';
+import { SpanProcessor, ReadableSpan, Span } from '@opentelemetry/sdk-trace';
 import { ATTR_USER_AGENT_ORIGINAL } from '@opentelemetry/semantic-conventions';
 import { AttributesStore } from '../attributes-store';
 

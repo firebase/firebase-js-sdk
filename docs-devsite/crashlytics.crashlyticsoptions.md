@@ -27,7 +27,7 @@ export interface CrashlyticsOptions
 |  --- | --- | --- |
 |  [appVersion](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsappversion) | string | <b><i>(Public Preview)</i></b> The version of the application. This should be a unique string that identifies the snapshot of code to be deployed, such as "1.0.2". If not specified, other default locations will be checked for an identifier. Setting a value here takes precedence over any other values. |
 |  [captureUnhandledErrors](./crashlytics.crashlyticsoptions.md#crashlyticsoptionscaptureunhandlederrors) | boolean | <b><i>(Public Preview)</i></b> Automatically capture uncaught browser exceptions ('error' and 'unhandledrejection' window events).<!-- -->Defaults to <code>true</code>. |
-|  [customAttributes](./crashlytics.crashlyticsoptions.md#crashlyticsoptionscustomattributes) | AnyValueMap | <b><i>(Public Preview)</i></b> Base set of custom attributes to send with automatic error collection. Key-value pairs defined here will be sent with all error logs. If custom attributes are also specified in <code>recordError()</code> or <code>log()</code>, those values will take precedence over the base set defined here. |
+|  [customAttributes](./crashlytics.crashlyticsoptions.md#crashlyticsoptionscustomattributes) | Attributes | <b><i>(Public Preview)</i></b> Base set of custom attributes to send with automatic error collection. Key-value pairs defined here will be sent with all error logs. If custom attributes are also specified in <code>recordError()</code> or <code>log()</code>, those values will take precedence over the base set defined here. |
 |  [endpointUrl](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsendpointurl) | string | <b><i>(Public Preview)</i></b> The URL for the endpoint to which Crashlytics data should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase. |
 |  [features](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsfeatures) | [CrashlyticsFeature](./crashlytics.crashlyticsfeature.md#crashlyticsfeature_interface)<!-- -->\[\] | <b>(EXPERIMENTAL)</b> Optional list of Crashlytics features (such as [breadcrumbs()](./crashlytics.md#breadcrumbs)<!-- -->) to enable.<!-- -->When [breadcrumbs()](./crashlytics.md#breadcrumbs) is included, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions, and visibility lifecycle events), buffering them in memory and exporting them when an error occurs. |
 |  [region](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsregion) | string | <b><i>(Public Preview)</i></b> The Google Cloud region where the Crashlytics data should be sent.<!-- -->By default, data will be sent to the "global" region.<!-- -->Refer to https://cloud.google.com/logging/docs/regions for the list of available regions. |
@@ -71,7 +71,7 @@ Base set of custom attributes to send with automatic error collection. Key-value
 <b>Signature:</b>
 
 ```typescript
-customAttributes?: AnyValueMap;
+customAttributes?: Attributes;
 ```
 
 ## CrashlyticsOptions.endpointUrl
