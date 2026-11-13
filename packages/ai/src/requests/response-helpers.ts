@@ -120,8 +120,13 @@ export function createEnhancedContentResponse(
       if (candidate.content?.parts) {
         candidate.content.parts = candidate.content.parts.map(assignPartType);
       }
+      candidate.safetyRatings?.forEach(rating => (rating.blocked ??= false));
     }
   }
+
+  response.promptFeedback?.safetyRatings?.forEach(
+    rating => (rating.blocked ??= false)
+  );
 
   const responseWithHelpers = addHelpers(response);
   responseWithHelpers.inferenceSource = inferenceSource;

@@ -18,6 +18,7 @@
 import {
   addHelpers,
   assignPartType,
+  createEnhancedContentResponse,
   formatBlockErrorMessage
 } from './response-helpers';
 import {
@@ -25,9 +26,13 @@ import {
   Content,
   FinishReason,
   GenerateContentResponse,
+  HarmCategory,
+  HarmProbability,
+  HarmSeverity,
   InlineDataPart,
   FunctionCallPart,
   Part,
+  SafetyRating,
   UnknownPart
 } from '../types';
 
@@ -468,6 +473,58 @@ describe('response-helpers methods', () => {
       const resultUnknown = assignPartType(unknownPart);
       expect(resultUnknown).to.equal(unknownPart);
       expect(resultUnknown.type).to.be.undefined;
+    });
+  });
+  describe('createEnhancedContentResponse', () => {
+    const rating = (blocked?: boolean): SafetyRating =>
+      ({
+        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+        probability: HarmProbability.NEGLIGIBLE,
+        severity: HarmSeverity.HARM_SEVERITY_NEGLIGIBLE,
+        probabilityScore: 0,
+        severityScore: 0,
+        ...(blocked === undefined ? {} : { blocked })
+      }) as SafetyRating;
+
+    it('defaults omitted candidate safetyRatings blocked to false', () => {
+      const response = createEnhancedContentResponse({
+        candidates: [
+          {
+            index: 0,
+            content: { role: 'model', parts: [] },
+            safetyRatings: [rating(), rating(true)]
+          },
+          {
+            index: 1,
+            content: { role: 'model', parts: [] },
+            safetyRatings: [rating(false)]
+          }
+        ]
+      });
+      expect(response.candidates![0].safetyRatings![0].blocked).to.equal(false);
+      expect(response.candidates![0].safetyRatings![1].blocked).to.equal(true);
+      expect(response.candidates![1].safetyRatings![0].blocked).to.equal(false);
+    });
+    it('defaults omitted promptFeedback safetyRatings blocked to false', () => {
+      const response = createEnhancedContentResponse({
+        promptFeedback: {
+          blockReason: BlockReason.SAFETY,
+          safetyRatings: [rating(), rating(true)]
+        }
+      });
+      expect(response.promptFeedback!.safetyRatings[0].blocked).to.equal(false);
+      expect(response.promptFeedback!.safetyRatings[1].blocked).to.equal(true);
+    });
+    it('handles missing safetyRatings and promptFeedback', () => {
+      const response = createEnhancedContentResponse({
+        candidates: [{ index: 0, content: { role: 'model', parts: [] } }],
+        promptFeedback: {
+          blockReason: BlockReason.OTHER
+        } as GenerateContentResponse['promptFeedback']
+      });
+      expect(response.candidates![0].safetyRatings).to.be.undefined;
+      expect(response.promptFeedback!.safetyRatings).to.be.undefined;
+      expect(createEnhancedContentResponse({}).promptFeedback).to.be.undefined;
     });
   });
 });
