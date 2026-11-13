@@ -48,15 +48,14 @@ jobs:
     - name: yarn build
       run: yarn build
     - name: Archive build
-      if: ${{ !cancelled() }}
       run: |
-        tar -I 'zstd -T0' -cf build.tar.zst --exclude=.git .
+        set -o pipefail
+        tar --exclude=.git -cf - . | zstd -T0 -q -f -o "${{ runner.temp }}/build.tar.zst"
     - name: Upload build archive
-      if: ${{ !cancelled() }}
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # ratchet:actions/upload-artifact@v7
       with:
           name: build.tar.zst
-          path: build.tar.zst
+          path: ${{ runner.temp }}/build.tar.zst
           retention-days: ${{ env.artifactRetentionDays }}
         
   # Auth and Firestore are built and executed in their own jobs in an attempt to reduce flakiness.
@@ -72,8 +71,12 @@ jobs:
       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
       with:
         name: build.tar.zst
+        path: ${{ runner.temp }}
     - name: Unzip build artifact
-      run: tar -I zstd -xf build.tar.zst
+      run: |
+        set -o pipefail
+        zstd -dc "${{ runner.temp }}/build.tar.zst" | tar -xf -
+        rm -f "${{ runner.temp }}/build.tar.zst"
     - name: Set up Node (24)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
@@ -133,8 +136,12 @@ jobs:
       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
       with:
         name: build.tar.zst
+        path: ${{ runner.temp }}
     - name: Unzip build artifact
-      run: tar -I zstd -xf build.tar.zst
+      run: |
+        set -o pipefail
+        zstd -dc "${{ runner.temp }}/build.tar.zst" | tar -xf -
+        rm -f "${{ runner.temp }}/build.tar.zst"
     - name: Set up Node (24)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
@@ -179,8 +186,12 @@ jobs:
       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
       with:
         name: build.tar.zst
+        path: ${{ runner.temp }}
     - name: Unzip build artifact
-      run: tar -I zstd -xf build.tar.zst
+      run: |
+        set -o pipefail
+        zstd -dc "${{ runner.temp }}/build.tar.zst" | tar -xf -
+        rm -f "${{ runner.temp }}/build.tar.zst"
     - name: Set up Node (24)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
@@ -228,8 +239,12 @@ jobs:
       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
       with:
         name: build.tar.zst
+        path: ${{ runner.temp }}
     - name: Unzip build artifact
-      run: tar -I zstd -xf build.tar.zst
+      run: |
+        set -o pipefail
+        zstd -dc "${{ runner.temp }}/build.tar.zst" | tar -xf -
+        rm -f "${{ runner.temp }}/build.tar.zst"
     - name: Set up Node (24)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
