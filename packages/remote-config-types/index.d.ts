@@ -24,7 +24,7 @@ export interface RemoteConfig {
   /**
    * Object containing default values for configs.
    */
-  defaultConfig: { [key: string]: string | number | boolean };
+defaultConfig: { [key: string]: string | number | boolean | Record<string, unknown> };
 
   /**
    * The Unix timestamp in milliseconds of the last <i>successful</i> fetch, or negative one if
