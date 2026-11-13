@@ -25,7 +25,7 @@ import { context, trace } from '@opentelemetry/api';
 import { AttributesStore } from '../attributes-store';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
-import { CompositePropagator } from '@opentelemetry/core';
+import { CompositePropagator, ExportResultCode } from '@opentelemetry/core';
 import { TelemetryStore } from '../telemetry-store';
 import { FirebaseAttributesSpanProcessor } from './attributes-span-processor';
 import { OnErrorSpanProcessor } from './on-error-span-processor';
@@ -33,6 +33,8 @@ import { AppCheckProvider } from '../logging/appcheck-provider';
 import { Provider } from '@firebase/component';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import type { MockInstance } from 'vitest';
+import { ATTR_KEY_SESSION_SAMPLING_RATE } from '../constants';
+import { SamplingDecision, SessionSampler } from '../sampling/session-sampler';
 
 describe('createTracingProvider', () => {
   let mockApp: FirebaseApp;
@@ -491,6 +493,96 @@ describe('createTracingProvider', () => {
       );
       expect(dynamicAttr).toBeTruthy();
       expect(dynamicAttr.value.stringValue).toBe('installation_id_value');
+    });
+
+    function createSampler(
+      decision: Partial<SamplingDecision>
+    ): SessionSampler {
+      const fullDecision: SamplingDecision = {
+        sessionId: 'session-1',
+        sampled: true,
+        samplingRate: 1,
+        ...decision
+      };
+      return {
+        getDecision: vi.fn().mockResolvedValue(fullDecision),
+        decide: vi.fn().mockReturnValue(fullDecision),
+        // The real implementation, run against the fake decision above.
+        applySampling: SessionSampler.prototype.applySampling
+      } as unknown as SessionSampler;
+    }
+
+    function exportSpans(exporter: OTLPTraceExporter): Promise<void> {
+      return new Promise<void>((resolve, reject) => {
+        exporter
+          .export([mockSpan], res => {
+            if (res.code === 0) {
+              resolve();
+            } else {
+              reject(res.error || new Error('Export failed'));
+            }
+          })
+          .catch(reject);
+      });
+    }
+
+    it('should stamp session.sampling.rate on exported spans of a sampled session', async () => {
+      const sampler = createSampler({ sampled: true, samplingRate: 0.3 });
+      const exporter = new OTLPTraceExporter(
+        { url: 'http://localhost' },
+        [],
+        undefined,
+        sampler
+      );
+      await exportSpans(exporter);
+
+      expect(sampler.getDecision).toHaveBeenCalled();
+      expect(fetchStub).toHaveBeenCalledTimes(1);
+      const body = (fetchStub.mock.calls[0][1] as any).body;
+      const json = JSON.parse(new TextDecoder().decode(body));
+      const spanAttributes = json.resourceSpans[0].scopeSpans[0].spans[0]
+        .attributes as any[];
+      const attr = spanAttributes.find(
+        a => a.key === ATTR_KEY_SESSION_SAMPLING_RATE
+      );
+      expect(attr.value).toEqual({ doubleValue: 0.3 });
+    });
+
+    it('should drop spans of an unsampled session without a network request', async () => {
+      const sampler = createSampler({ sampled: false, samplingRate: 0.3 });
+      const exporter = new OTLPTraceExporter(
+        { url: 'http://localhost' },
+        [],
+        undefined,
+        sampler
+      );
+      await exportSpans(exporter);
+
+      expect(sampler.getDecision).toHaveBeenCalled();
+      expect(fetchStub).not.toHaveBeenCalled();
+    });
+
+    it('should fail the export without a network request when sampling throws', async () => {
+      const error = new Error('sampling failed');
+      const sampler = createSampler({});
+      vi.mocked(sampler.getDecision).mockRejectedValue(error);
+      const exporter = new OTLPTraceExporter(
+        { url: 'http://localhost' },
+        [],
+        undefined,
+        sampler
+      );
+      const resultCallback = vi.fn();
+
+      // The failure is reported through the callback; export() itself doesn't reject.
+      await expect(
+        exporter.export([mockSpan], resultCallback)
+      ).resolves.toBeUndefined();
+      expect(resultCallback).toHaveBeenCalledWith({
+        code: ExportResultCode.FAILED,
+        error
+      });
+      expect(fetchStub).not.toHaveBeenCalled();
     });
   });
 });

@@ -31,6 +31,7 @@ import { ALREADY_LOGGED_FLAG } from './constants';
 import type { OnErrorSpanProcessor } from './tracing/on-error-span-processor';
 import type { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
 import type { TelemetryStore } from './telemetry-store';
+import type { SessionSampler } from './sampling/session-sampler';
 
 /**
  * Internal interface implemented by Crashlytics feature plugins (such as {@link breadcrumbs}).
@@ -50,7 +51,8 @@ export interface CrashlyticsFeatureInternal extends CrashlyticsFeature {
     crashlyticsOptions: CrashlyticsOptions,
     attributesStore: AttributesStore,
     telemetryStore: TelemetryStore,
-    dynamicHeaderProviders?: DynamicHeaderProvider[]
+    dynamicHeaderProviders?: DynamicHeaderProvider[],
+    sessionSampler?: SessionSampler
   ): {
     tracingProvider: TracerProvider;
     onErrorSpanProcessor?: OnErrorSpanProcessor;
