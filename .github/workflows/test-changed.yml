@@ -39,6 +39,7 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
           node-version: 24.22.1
+          cache: 'yarn'
       # firebase-tools has a minimum java version requirement
       - name: Set up Java (22)
         uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
@@ -68,12 +69,12 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
           node-version: 24.22.1
-      - name: install Firefox stable
-        run: npx @puppeteer/browsers install firefox@stable
+          cache: 'yarn'
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
           yarn
+          npx playwright install firefox
       - name: build
         run: yarn build:changed core
       - name: Run tests on changed packages
@@ -96,6 +97,7 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
           node-version: 24.22.1
+          cache: 'yarn'
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
