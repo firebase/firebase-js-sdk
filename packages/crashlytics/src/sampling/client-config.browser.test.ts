@@ -28,7 +28,7 @@ const URL =
 const STORAGE_KEY = 'firebasecrashlytics.clientconfig:test';
 
 /** The configuration used when nothing has been fetched or cached yet: collect everything. */
-const DEFAULT_CONFIG: ClientConfig = { samplingRate: 1 };
+const DEFAULT_CONFIG: ClientConfig = { samplingRate: 1, enabled: true };
 
 /** The `Cache-Control` header the server sends by default. */
 const DEFAULT_CACHE_CONTROL = 'public, max-age=900, stale-while-revalidate=60';
@@ -97,8 +97,9 @@ describe('ClientConfigStore', () => {
   });
 
   it('loads a cached config from localStorage synchronously', () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ samplingRate: 0.3 }));
-    expect(createStore().config).toEqual({ samplingRate: 0.3 });
+    const cached = { samplingRate: 0.3, enabled: true };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cached));
+    expect(createStore().config).toEqual(cached);
   });
 
   it('ignores a corrupt cached config', () => {
@@ -129,14 +130,18 @@ describe('ClientConfigStore', () => {
     );
     expect(init.body).toBeUndefined();
 
-    expect(store.config).toEqual({ samplingRate: 0.2 });
+    expect(store.config).toEqual({ samplingRate: 0.2, enabled: true });
     expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual({
-      samplingRate: 0.2
+      samplingRate: 0.2,
+      enabled: true
     });
   });
 
   it('keeps the previous config when the fetch fails', async () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ samplingRate: 0.4 }));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ samplingRate: 0.4, enabled: true })
+    );
     fetchStub.mockRejectedValue(new TypeError('network down'));
     const store = createStore();
     store.start();
@@ -207,30 +212,31 @@ describe('ClientConfigStore', () => {
           enablementState: 'TELEMETRY_ENABLEMENT_STATE_ENABLED',
           samplingRate: 0.25
         })
-      ).toEqual({ samplingRate: 0.25 });
+      ).toEqual({ samplingRate: 0.25, enabled: true });
     });
 
-    it('uses a sampling rate of 0.0 for a disabled config, whatever its rate', async () => {
+    it('marks a disabled config as disabled with a sampling rate of 0.0, whatever its rate', async () => {
       expect(
         await configFromResponse({
           enablementState: 'TELEMETRY_ENABLEMENT_STATE_DISABLED',
           samplingRate: 1
         })
-      ).toEqual({ samplingRate: 0 });
+      ).toEqual({ samplingRate: 0, enabled: false });
     });
 
-    it('keeps an explicit 0.0 (paused) sampling rate', async () => {
+    it('keeps an explicit 0.0 (paused) sampling rate for an enabled config', async () => {
       expect(
         await configFromResponse({
           enablementState: 'TELEMETRY_ENABLEMENT_STATE_ENABLED',
           samplingRate: 0
         })
-      ).toEqual({ samplingRate: 0 });
+      ).toEqual({ samplingRate: 0, enabled: true });
     });
 
     it('accepts numeric strings', async () => {
       expect(await configFromResponse({ samplingRate: '0.5' })).toEqual({
-        samplingRate: 0.5
+        samplingRate: 0.5,
+        enabled: true
       });
     });
 
@@ -447,7 +453,7 @@ describe('ClientConfigStore', () => {
       store.stop();
       respond(jsonResponse({ samplingRate: 0.5 }, 200, DEFAULT_CACHE_CONTROL));
       await store.refreshIfStale();
-      expect(store.config).toEqual({ samplingRate: 0.5 });
+      expect(store.config).toEqual({ samplingRate: 0.5, enabled: true });
 
       await vi.advanceTimersByTimeAsync(DEFAULT_REFRESH_INTERVAL_MS);
       expect(fetchStub).toHaveBeenCalledTimes(1);
