@@ -79,6 +79,7 @@
     "@typescript-eslint/eslint-plugin-tslint": "7.0.2",
     "@typescript-eslint/parser": "7.18.0",
     "@vitest/browser-playwright": "4.1.10",
+    "buffer": "6.0.3",
     "chalk": "4.1.2",
     "child-process-promise": "2.2.1",
     "dependency-graph": "0.11.0",
