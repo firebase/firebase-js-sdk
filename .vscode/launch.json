@@ -132,7 +132,7 @@
         "--platform",
         "node_lite",
         "--main=lite/index.ts",
-        "test/lite/**/*.test.ts",
+        "test/lite",
         "--grep",
         "${input:grepString}"
       ],
