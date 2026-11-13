@@ -16,7 +16,7 @@
  */
 
 import { Provider } from '@firebase/component';
-import { AnyValue, Attributes } from '@opentelemetry/api';
+import { AnyValue, Attributes, diag } from '@opentelemetry/api';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { CrashlyticsOptions } from './public-types';
 import { AUTO_CONSTANTS } from './auto-constants';
@@ -201,7 +201,13 @@ export class AttributesStore {
       };
     }
 
-    const iid = await this._installations.getId();
+    let iid: string;
+    try {
+      iid = await this._installations.getId();
+    } catch (e) {
+      diag.debug('Failed to retrieve installation id', e);
+      return null;
+    }
     if (!iid) {
       return null;
     }

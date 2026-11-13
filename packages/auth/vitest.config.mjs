@@ -86,6 +86,7 @@ for (const project of config.test.projects) {
     );
     project.test.exclude = exclude;
   } else if (project.test.name === 'browser') {
+    exclude.push('test/integration/webdriver/**');
     project.test.exclude = exclude;
     if (project.test.browser) {
       project.test.browser.screenshotFailures = false;
