@@ -22,6 +22,35 @@ describe('Error handling', () => {
     it('returns null if ok', () => {
       expect(_errorForResponse(200, null)).toBeNull();
     });
+    it('returns null if ok and json has no error', () => {
+      expect(_errorForResponse(200, { data: 'hello' })).toBeNull();
+    });
+    it('returns ok error if json error.status is OK', () => {
+      const err = _errorForResponse(
+        200,
+        { error: { status: 'OK', message: 'explicit ok', details: 'v1' } },
+        'http://wrong-url.com'
+      );
+      expect(err?.message).toBe('explicit ok [200]');
+      expect(err?.code).toBe('functions/ok');
+      expect(err?.details).toBe('v1');
+      expect(err?.customData?.url).toBe('http://wrong-url.com');
+    });
+    it('returns ok error if httpStatus is 0 and json error.status is OK', () => {
+      const err = _errorForResponse(0, {
+        error: { status: 'OK', message: 'explicit ok' }
+      });
+      expect(err?.message).toBe('explicit ok [0]');
+      expect(err?.code).toBe('functions/ok');
+    });
+    it('returns error if json error is present even with data and a 2xx status', () => {
+      const err = _errorForResponse(200, {
+        data: 'ignored',
+        error: { message: 'nope' }
+      });
+      expect(err?.message).toBe('nope [200]');
+      expect(err?.code).toBe('functions/ok');
+    });
     it('returns not-found error if 404', () => {
       const err = _errorForResponse(404, null, 'http://wrong-url.com');
       expect(err?.message).toBe('not-found [404]');
