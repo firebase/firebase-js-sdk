@@ -67,7 +67,7 @@ export const CLIENT_CONFIG_FETCH_TIMEOUT_MS = 5000;
 /**
  * Maximum time a session's sampling decision (made at its first telemetry export) waits for a
  * `GetClientConfig` refresh before using the configuration already in memory. No wait happens when
- * the page is hidden or the telemetry debug override is active.
+ * the page is hidden.
  */
 export const CLIENT_CONFIG_INITIAL_WAIT_MS = 2000;
 
@@ -85,7 +85,10 @@ export const SESSION_STORAGE_SAMPLING_DECISION_KEY_PREFIX =
 /** sessionStorage key marking that the telemetry debug override is active for this session. */
 export const SESSION_STORAGE_DEBUG_KEY = 'firebasecrashlytics.debug';
 
-/** Global flag developers can set to force 100% on-device telemetry collection. */
+/**
+ * Global flag developers can set to force 100% telemetry collection, except while collection is
+ * paused or disabled.
+ */
 export const TELEMETRY_DEBUG_GLOBAL_FLAG = 'FIREBASE_TELEMETRY_DEBUG';
 
 /** URL query parameter that enables the telemetry debug override for the browser session. */

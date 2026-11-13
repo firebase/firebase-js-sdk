@@ -76,7 +76,8 @@ export function isSessionSampled(sessionId: string, rate: number): boolean {
  * - The telemetry debug override (see {@link isTelemetryDebugEnabled}) is the one exception: from
  *   the next export after it is turned on, even mid-session, the session is sampled with a stamped
  *   rate of `1.0` and `session.sampling.forced = true`, so the server does not re-sample it.
- *   The session keeps this debug decision even if the override is turned off later.
+ *   The session keeps this debug decision even if the override is turned off later. The override
+ *   doesn't apply while collection is paused (rate `0.0`) or disabled.
  * - Once the decision is made or restored, the configuration isn't read again for the session, so
  *   its periodic refresh is stopped (see {@link ClientConfigStore.stop}).
  *
@@ -104,21 +105,21 @@ export class SessionSampler {
    *
    * Before the first decision this refreshes the configuration (reusing a refresh started within
    * the last minute, see {@link ClientConfigStore.refreshIfStale}) and waits for it, bounded by
-   * `initialWaitMs`, so the decision uses the most recent sampling rate the server's caches allow.
-   * If the refresh is slow or fails, the configuration already in memory (cached or default) is
-   * used. It does not refresh or wait when:
-   * - the telemetry debug override is active
-   * - the page is hidden. Exports issued while the page is hidden are typically the unload flush
-   *   (`visibilitychange`/`pagehide`), whose `keepalive` request must be started before the
-   *   document is frozen or discarded, so it cannot be held back behind a timer. An export that is
-   *   already waiting when the page becomes hidden is released immediately for the same reason.
+   * `initialWaitMs`, so the decision uses the most recent configuration the server's caches allow.
+   * This includes debug decisions, since the debug override doesn't apply while collection is
+   * paused or disabled. If the refresh is slow or fails, the configuration already in memory
+   * (cached or default) is used. It does not refresh or wait when the page is hidden. Exports
+   * issued while the page is hidden are typically the unload flush (`visibilitychange`/`pagehide`),
+   * whose `keepalive` request must be started before the document is frozen or discarded, so it
+   * cannot be held back behind a timer. An export that is already waiting when the page becomes
+   * hidden is released immediately for the same reason.
    */
   async getDecision(): Promise<SamplingDecision> {
     const cached = this._cachedDecision();
     if (cached) {
       return cached;
     }
-    if (!isTelemetryDebugEnabled() && !isPageHidden()) {
+    if (!isPageHidden()) {
       await this._waitForConfigRefresh();
     }
     return this.decide();
@@ -207,7 +208,9 @@ export class SessionSampler {
     sessionId: string | undefined,
     config: ClientConfig
   ): SamplingDecision {
-    if (isTelemetryDebugEnabled()) {
+    // The debug override forces sampling, but not while collection is paused or disabled (a
+    // disabled app is served as a rate of 0.0).
+    if (config.samplingRate > 0 && isTelemetryDebugEnabled()) {
       return { sessionId, sampled: true, samplingRate: 1.0, forced: true };
     }
 
@@ -217,9 +220,10 @@ export class SessionSampler {
   }
 
   /**
-   * Returns the current session's decision from memory or `sessionStorage`, if one was made. A
-   * non-debug decision is skipped while the debug override is on, so the session switches to a
-   * debug decision and keeps it, even after the override is turned off.
+   * Returns the current session's decision from memory or `sessionStorage`, if one was made. While
+   * the debug override is on, a non-debug decision is skipped and made again, so the session
+   * switches to a debug decision (unless collection is paused or disabled) and keeps it, even after
+   * the override is turned off.
    */
   private _cachedDecision(): SamplingDecision | undefined {
     const sessionId = this._attributesStore.sessionId;

@@ -555,34 +555,49 @@ describe('SessionSampler', () => {
       });
     });
 
-    it('stamps 1.0 when collection is paused', async () => {
+    it('does not force sampling while collection is paused or disabled', async () => {
       (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
         true;
+      // A disabled app is served as a rate of 0.0 too.
       const { sampler } = createSampler({ samplingRate: 0 }, SESSION_HIGH);
-      expect(await sampler.getDecision()).toMatchObject({
-        sampled: true,
-        samplingRate: 1,
-        forced: true
+      expect(await sampler.getDecision()).toEqual({
+        sessionId: SESSION_HIGH,
+        sampled: false,
+        samplingRate: 0
       });
     });
 
-    it('does not refresh or wait for the config when the debug override is active', async () => {
+    it('refreshes the config before a debug decision, so a pause is honored', async () => {
       (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
         true;
       const { sampler, store } = createSampler(
         { samplingRate: 0.5 },
         SESSION_HIGH,
-        60_000
+        1000
       );
-      store.ready = new Promise<void>(() => {});
-
-      expect(await sampler.getDecision()).toEqual({
-        sessionId: SESSION_HIGH,
-        sampled: true,
-        samplingRate: 1,
-        forced: true
+      let resolveFetch!: () => void;
+      store.ready = new Promise<void>(resolve => {
+        resolveFetch = resolve;
       });
-      expect(store.refreshCount).toBe(0);
+
+      const pending = sampler.getDecision();
+      expect(store.refreshCount).toBe(1);
+      // The refreshed config pauses collection.
+      store.config = { samplingRate: 0 };
+      resolveFetch();
+
+      expect(await pending).toMatchObject({ sampled: false, samplingRate: 0 });
+    });
+
+    it('does not switch to a debug decision mid-session while collection is paused', async () => {
+      const { sampler } = createSampler({ samplingRate: 0 }, SESSION_HIGH);
+      expect((await sampler.getDecision()).sampled).toBe(false);
+
+      (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
+        true;
+      const records = [{ attributes: {} }];
+      expect(await sampler.applySampling(records)).toBe(false);
+      expect(records).toEqual([{ attributes: {} }]);
     });
 
     it('overrides a previously cached unsampled decision when enabled mid-session', async () => {
