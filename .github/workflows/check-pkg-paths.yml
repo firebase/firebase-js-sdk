@@ -40,7 +40,10 @@ jobs:
     - name: Yarn build
       run: yarn build
     - name: Type-check packages
-      run: yarn type-check
+      run: |
+        cp config/ci.config.json config/project.json
+        yarn --cwd packages/ai testsetup
+        yarn type-check
     - name: Swap in public typings
       run: yarn release:prepare
     - name: Check paths

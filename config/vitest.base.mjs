@@ -100,7 +100,9 @@ export function applyProjectDefaults(config, defaults = {}, projectNames) {
     throw new Error('Expected Vitest config to define non-empty test.projects.');
   }
 
-  const targetNames = projectNames ? new Set(projectNames) : null;
+  const targetNames = projectNames
+    ? new Set(typeof projectNames === 'string' ? [projectNames] : projectNames)
+    : null;
   if (targetNames) {
     const availableNames = new Set(projects.map(project => project?.test?.name));
     for (const name of targetNames) {
