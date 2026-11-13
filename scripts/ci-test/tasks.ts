@@ -50,11 +50,8 @@ const fullTestTriggerFiles = [
   // Global dependency changes.
   'yarn.lock',
   // Test/compile/lint configs.
-  'config/karma.base.js',
-  'config/mocha.browser.opts',
-  'config/mocharc.node.js',
+  'config/vitest.base.mjs',
   'config/tsconfig.base.json',
-  'config/webpack.test.js',
   'config/firestore.rules',
   'config/database.rules.json'
 ];

@@ -15,11 +15,9 @@
  * limitations under the License.
  */
 
-import assert from 'assert';
-
 import { FirebaseApp, initializeApp } from '@firebase/app';
 import _ from 'lodash';
-import { expect } from 'vitest';
+import { assert, expect } from 'vitest';
 
 import {
   ReferenceImpl,

@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { createSandbox } from 'sinon';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   ReferenceImpl,
@@ -36,24 +35,41 @@ import {
 import { Path } from '../src/core/util/Path';
 import { CallbackContext } from '../src/core/view/EventRegistration';
 
-describe('Repo transaction cancellation', () => {
-  const sandbox = createSandbox();
+class StubServerActions extends ServerActions {
+  listen = vi.fn<ServerActions['listen']>();
+  unlisten = vi.fn<ServerActions['unlisten']>();
+  get = vi.fn<ServerActions['get']>();
+  put =
+    vi.fn<
+      (
+        pathString: string,
+        data: unknown,
+        onComplete?: (a: string, b: string | null) => void,
+        hash?: string
+      ) => void
+    >();
+  merge = vi.fn<ServerActions['merge']>();
+}
 
-  afterEach(() => sandbox.restore());
+describe('Repo transaction cancellation', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+  });
 
   for (const applyLocally of [false, true]) {
     for (const multiPathUpdate of [false, true]) {
       it(`cleans up a stale transaction after ${
         multiPathUpdate ? 'a multi-path update' : 'two overlapping updates'
       } (applyLocally=${applyLocally})`, () => {
-        const clock = sandbox.useFakeTimers();
+        vi.useFakeTimers();
         const repo = new Repo(
           new RepoInfo('test.firebaseio.com', true, 'test', false),
           false,
           null,
           null
         );
-        const server = sandbox.createStubInstance(ServerActions);
+        const server = new StubServerActions();
         repo.server_ = server;
         repo.infoData_ = new SnapshotHolder();
         repo.serverSyncTree_ = new SyncTree({
@@ -74,8 +90,8 @@ describe('Repo transaction cancellation', () => {
           nodeFromJSON(initial)
         );
 
-        const onComplete = sandbox.spy();
-        const unwatcher = sandbox.spy();
+        const onComplete = vi.fn();
+        const unwatcher = vi.fn();
         repoStartTransaction(
           repo,
           path,
@@ -84,7 +100,7 @@ describe('Repo transaction cancellation', () => {
           unwatcher,
           applyLocally
         );
-        expect(server.put.callCount).to.equal(1);
+        expect(server.put).toHaveBeenCalledTimes(1);
 
         // Each updated path tries to abort the same outstanding transaction.
         if (multiPathUpdate) {
@@ -93,7 +109,7 @@ describe('Repo transaction cancellation', () => {
           repoUpdate(repo, path, { 'events/a': 1 }, null);
           repoUpdate(repo, path, { 'events/b': 2 }, null);
         }
-        expect(onComplete.called).to.equal(false);
+        expect(onComplete).not.toHaveBeenCalled();
 
         const serverValue = { ...initial, events: { a: 1, b: 2 } };
         syncTreeApplyServerOverwrite(
@@ -101,26 +117,26 @@ describe('Repo transaction cancellation', () => {
           path,
           nodeFromJSON(serverValue)
         );
-        for (const call of server.merge.getCalls()) {
-          call.args[2]('ok', null);
+        for (const [, , mergeOnComplete] of server.merge.mock.calls) {
+          mergeOnComplete('ok', null);
         }
-        server.put.firstCall.args[2](
+        server.put.mock.calls[0][2]!(
           'datastale',
           'Transaction ETag does not match'
         );
-        clock.runAll();
+        vi.runAllTimers();
 
-        expect(onComplete.callCount).to.equal(1);
-        expect(onComplete.firstCall.args[0].message).to.equal('set');
-        expect(onComplete.firstCall.args[1]).to.equal(false);
-        expect(unwatcher.callCount).to.equal(1);
+        expect(onComplete).toHaveBeenCalledTimes(1);
+        expect(onComplete.mock.calls[0][0].message).to.equal('set');
+        expect(onComplete.mock.calls[0][1]).to.equal(false);
+        expect(unwatcher).toHaveBeenCalledTimes(1);
         expect(repo.serverSyncTree_.pendingWriteTree_.allWrites).to.be.empty;
         expect(
           syncTreeCalcCompleteEventCache(repo.serverSyncTree_, path).val()
         ).to.deep.equal(serverValue);
 
         // A later transaction must use server data, not the abandoned output.
-        const update = sandbox.spy(value => value);
+        const update = vi.fn((value: unknown) => value);
         repoStartTransaction(
           repo,
           path,
@@ -129,8 +145,8 @@ describe('Repo transaction cancellation', () => {
           () => {},
           false
         );
-        expect(update.firstCall.args[0]).to.deep.equal(serverValue);
-        server.put.secondCall.args[2]('ok', null);
+        expect(update.mock.calls[0][0]).to.deep.equal(serverValue);
+        server.put.mock.calls[1][2]!('ok', null);
         expect(repo.serverSyncTree_.pendingWriteTree_.allWrites).to.be.empty;
       });
     }
