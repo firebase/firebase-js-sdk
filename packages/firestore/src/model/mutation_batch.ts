@@ -138,10 +138,7 @@ export class MutationBatch {
    * this batch. Returns a `DocumentKey` to `Mutation` map which can be used to
    * replace all the mutation applications.
    */
-  applyToLocalDocumentSet(
-    documentMap: OverlayedDocumentMap,
-    documentsWithoutRemoteVersion: DocumentKeySet
-  ): MutationMap {
+  applyToLocalDocumentSet(documentMap: OverlayedDocumentMap): MutationMap {
     // TODO(mrschmidt): This implementation is O(n^2). If we apply the mutations
     // directly (as done in `applyToLocalView()`), we can reduce the complexity
     // to O(n).
@@ -152,16 +149,17 @@ export class MutationBatch {
       // and we should remove this cast.
       const mutableDocument =
         overlayedDocument.overlayedDocument as MutableDocument;
-      let mutatedFields = this.applyToLocalView(
+      // Do not drop the patch mask when the remote document is not cached yet.
+      // A setDoc(merge) is a PatchMutation; storing it as a Set overlay makes
+      // the next server copy replace every field the merge did not mention.
+      // Sets and deletes already return a null mask from applyToLocalView, so
+      // an explicit setDoc or deleteDoc still overwrites the whole document.
+      // When the base document arrives, LocalDocumentsView replays Patch
+      // overlays from the mutation queue.
+      const mutatedFields = this.applyToLocalView(
         mutableDocument,
         overlayedDocument.mutatedFields
       );
-      // Set mutatedFields to null if the document is only from local mutations.
-      // This creates a Set or Delete mutation, instead of trying to create a
-      // patch mutation as the overlay.
-      mutatedFields = documentsWithoutRemoteVersion.has(m.key)
-        ? null
-        : mutatedFields;
       const overlay = calculateOverlayMutation(mutableDocument, mutatedFields);
       if (overlay !== null) {
         overlays.set(m.key, overlay);

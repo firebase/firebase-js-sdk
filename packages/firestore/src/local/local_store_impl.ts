@@ -328,23 +328,11 @@ export function localStoreWriteLocally(
 
   return localStoreImpl.persistence
     .runTransaction('Locally write mutations', 'readwrite', txn => {
-      // Figure out which keys do not have a remote version in the cache, this
-      // is needed to create the right overlay mutation: if no remote version
-      // presents, we do not need to create overlays as patch mutations.
-      // TODO(Overlay): Is there a better way to determine this? Using the
-      //  document version does not work because local mutations set them back
-      //  to 0.
       let remoteDocs = mutableDocumentMap();
-      let docsWithoutRemoteVersion = documentKeySet();
       return localStoreImpl.remoteDocuments
         .getEntries(txn, keys)
         .next(docs => {
           remoteDocs = docs;
-          remoteDocs.forEach((key, doc) => {
-            if (!doc.isValidDocument()) {
-              docsWithoutRemoteVersion = docsWithoutRemoteVersion.add(key);
-            }
-          });
         })
         .next(() => {
           // Load and apply all existing mutations. This lets us compute the
@@ -394,10 +382,7 @@ export function localStoreWriteLocally(
         })
         .next(batch => {
           mutationBatch = batch;
-          const overlays = batch.applyToLocalDocumentSet(
-            overlayedDocuments,
-            docsWithoutRemoteVersion
-          );
+          const overlays = batch.applyToLocalDocumentSet(overlayedDocuments);
           return localStoreImpl.documentOverlayCache.saveOverlays(
             txn,
             batch.batchId,
