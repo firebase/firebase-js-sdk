@@ -21,7 +21,7 @@ You can configure the sampling rate for your web app to a value from **0% to 100
 - **Rate changes**: Configuration responses can be cached for up to 16 minutes (15 minutes plus 1 minute of revalidation), so a new rate applies to sessions that start about 16 minutes after you change it. Sessions in progress keep their decision.
   - **Lowering the rate** also takes effect immediately on the server, which re-checks the same hash against the new rate and drops sessions that no longer qualify.
   - **Raising the rate** applies only to sessions that start after the change reaches the device.
-- **Pausing or disabling collection**: At a rate of `0.0`, or when telemetry collection is disabled, the server drops incoming telemetry right away, and new sessions stop sending once the change reaches the device.
+- **Pausing or disabling collection**: At a rate of `0.0`, or when telemetry collection is disabled, the server drops incoming telemetry right away, including debug sessions, and new sessions stop sending once the change reaches the device.
 
 ---
 
