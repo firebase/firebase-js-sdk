@@ -23,6 +23,7 @@ export interface HttpsCallableOptions
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [limitedUseAppCheckTokens](./functions.httpscallableoptions.md#httpscallableoptionslimiteduseappchecktokens) | boolean | If set to true, uses a limited-use App Check token for callable function requests from this instance of [Functions](./functions.functions.md#functions_interface)<!-- -->. You must use limited-use tokens to call functions with replay protection enabled. By default, this is false. |
+|  [signal](./functions.httpscallableoptions.md#httpscallableoptionssignal) | AbortSignal | An <code>AbortSignal</code> that can be used to cancel the callable function request. When the signal is aborted, the underlying HTTP connection will be terminated. |
 |  [timeout](./functions.httpscallableoptions.md#httpscallableoptionstimeout) | number | Time in milliseconds after which to cancel if there is no response. Default is 70000. |
 
 ## HttpsCallableOptions.limitedUseAppCheckTokens
@@ -33,6 +34,16 @@ If set to true, uses a limited-use App Check token for callable function request
 
 ```typescript
 limitedUseAppCheckTokens?: boolean;
+```
+
+## HttpsCallableOptions.signal
+
+An `AbortSignal` that can be used to cancel the callable function request. When the signal is aborted, the underlying HTTP connection will be terminated.
+
+<b>Signature:</b>
+
+```typescript
+signal?: AbortSignal;
 ```
 
 ## HttpsCallableOptions.timeout
