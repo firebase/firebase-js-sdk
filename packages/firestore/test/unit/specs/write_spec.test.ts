@@ -719,6 +719,18 @@ describeSpec('Writes:', [], () => {
       .expectNumOutstandingWrites(0);
   });
 
+  specTest('Redundant enableNetwork() keeps the write stream', [], () => {
+    return spec()
+      .userSets('collection/key', { foo: 'bar' })
+      .expectNumOutstandingWrites(1)
+      .expectWriteStreamRequestCount(2)
+      .enableNetwork()
+      .enableNetwork()
+      .expectWriteStreamRequestCount(2)
+      .writeAcks('collection/key', 1)
+      .expectNumOutstandingWrites(0);
+  });
+
   specTest('New writes are sent after write failure', [], () => {
     return spec()
       .userSets('collection/a', { v: 1 })
