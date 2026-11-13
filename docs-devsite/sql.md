@@ -10,90 +10,91 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # @firebase/sql
+Firebase SQL
 
 ## Functions
 
 |  Function | Description |
 |  --- | --- |
 |  <b>function(app, ...)</b> |
-|  [getSql(app, settings)](./sql.md#getsql_94d2423) | Returns the cached or newly initialized <code>FirebaseSql</code> instance for the given <code>FirebaseApp</code>. |
+|  [getSql(app, settings)](./sql.md#getsql_94d2423) | Return the cached or newly initialized <code>FirebaseSql</code> client for the given <code>FirebaseApp</code>. |
 |  <b>function(settings, ...)</b> |
-|  [copySqlServiceSettings(settings)](./sql.md#copysqlservicesettings_e89ea77) | Creates a deep defensive copy of a <code>SqlServiceSettings</code> object. |
-|  [getSql(settings)](./sql.md#getsql_e89ea77) | Returns the cached or newly initialized <code>FirebaseSql</code> instance for the default <code>FirebaseApp</code>. |
+|  [copySqlServiceSettings(settings)](./sql.md#copysqlservicesettings_e89ea77) | Create a mutable copy of a <code>SqlServiceSettings</code> object, including its <code>headers</code> map. |
+|  [getSql(settings)](./sql.md#getsql_e89ea77) | Return the cached or newly initialized <code>FirebaseSql</code> client for the default <code>FirebaseApp</code>. |
 |  <b>function(sql, ...)</b> |
-|  [terminate(sql)](./sql.md#terminate_bc2cb94) | Terminates the <code>FirebaseSql</code> instance and removes it from the app's component registry. |
+|  [terminate(sql)](./sql.md#terminate_bc2cb94) | Terminate a <code>FirebaseSql</code> client, abort in-flight requests, and release cached resources. |
 
 ## Classes
 
 |  Class | Description |
 |  --- | --- |
-|  [FirebaseSql](./sql.firebasesql.md#firebasesql_class) | The Firebase SQL service client instance. |
-|  [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) | Error class thrown or returned by Firebase SQL operations. |
+|  [FirebaseSql](./sql.firebasesql.md#firebasesql_class) | Client for querying tables, views, and PostgreSQL functions in Firebase SQL. |
+|  [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) | Structured error returned in <code>result.error</code> (or thrown after <code>.throwOnError()</code>) when an operation fails. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [Builder](./sql.builder.md#builder_interface) |  |
-|  [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) |  |
-|  [FilterOrOptions](./sql.filteroroptions.md#filteroroptions_interface) |  |
-|  [FilterTextSearchOptions](./sql.filtertextsearchoptions.md#filtertextsearchoptions_interface) |  |
-|  [FirebaseSqlRpcOptions](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptions_interface) |  |
-|  [InvalidMethodError](./sql.invalidmethoderror.md#invalidmethoderror_interface) |  |
-|  [OperationBase](./sql.operationbase.md#operationbase_interface) |  |
-|  [OperationFailure](./sql.operationfailure.md#operationfailure_interface) |  |
-|  [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface) |  |
-|  [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) |  |
-|  [QueryDeleteOptions](./sql.querydeleteoptions.md#querydeleteoptions_interface) |  |
-|  [QueryInsertOptions](./sql.queryinsertoptions.md#queryinsertoptions_interface) |  |
-|  [QuerySelectOptions](./sql.queryselectoptions.md#queryselectoptions_interface) |  |
-|  [QueryUpdateOptions](./sql.queryupdateoptions.md#queryupdateoptions_interface) |  |
-|  [QueryUpsertOptions](./sql.queryupsertoptions.md#queryupsertoptions_interface) |  |
+|  [Builder](./sql.builder.md#builder_interface) | Awaitable terminal builder for executing a Firebase SQL operation and typing or configuring the response. |
+|  [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) | Query builder with row-filtering operators (<code>.eq()</code>, <code>.in()</code>, <code>.or()</code>, etc.). |
+|  [FilterOrOptions](./sql.filteroroptions.md#filteroroptions_interface) | Options for combining filters in <code>[FilterBuilder.or()](./sql.filterbuilder.md#filterbuilderor)</code>. |
+|  [FilterTextSearchOptions](./sql.filtertextsearchoptions.md#filtertextsearchoptions_interface) | Options for full-text search in <code>[FilterBuilder.textSearch()](./sql.filterbuilder.md#filterbuildertextsearch)</code>. |
+|  [FirebaseSqlRpcOptions](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptions_interface) | Options for calling a PostgreSQL function with <code>[FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)</code>. |
+|  [InvalidMethodError](./sql.invalidmethoderror.md#invalidmethoderror_interface) | Compile-time type error returned when a builder method is unavailable for the current HTTP verb. |
+|  [OperationBase](./sql.operationbase.md#operationbase_interface) | Common HTTP status metadata returned on every operation response. |
+|  [OperationFailure](./sql.operationfailure.md#operationfailure_interface) | Failed operation response containing a structured <code>FirebaseSqlError</code>. |
+|  [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface) | Successful operation response containing <code>data</code> and optional row <code>count</code>. |
+|  [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) | Entry-point builder for selecting or mutating rows on a table or view. |
+|  [QueryDeleteOptions](./sql.querydeleteoptions.md#querydeleteoptions_interface) | Options for deleting rows in <code>[QueryBuilder.delete()](./sql.querybuilder.md#querybuilderdelete)</code>. |
+|  [QueryInsertOptions](./sql.queryinsertoptions.md#queryinsertoptions_interface) | Options for inserting rows in <code>[QueryBuilder.insert()](./sql.querybuilder.md#querybuilderinsert)</code>. |
+|  [QuerySelectOptions](./sql.queryselectoptions.md#queryselectoptions_interface) | Options for selecting rows in <code>[QueryBuilder.select()](./sql.querybuilder.md#querybuilderselect)</code>. |
+|  [QueryUpdateOptions](./sql.queryupdateoptions.md#queryupdateoptions_interface) | Options for updating rows in <code>[QueryBuilder.update()](./sql.querybuilder.md#querybuilderupdate)</code>. |
+|  [QueryUpsertOptions](./sql.queryupsertoptions.md#queryupsertoptions_interface) | Options for upserting rows in <code>[QueryBuilder.upsert()](./sql.querybuilder.md#querybuilderupsert)</code>. |
 |  [SerializedFirebaseSqlError](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerror_interface) | Plain JSON-serializable representation of a <code>FirebaseSqlError</code>. |
-|  [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Service connection settings for configuring a Firebase SQL client instance. |
-|  [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) |  |
-|  [TransformExplainOptions](./sql.transformexplainoptions.md#transformexplainoptions_interface) |  |
-|  [TransformLimitOptions](./sql.transformlimitoptions.md#transformlimitoptions_interface) |  |
-|  [TransformOrderOptions](./sql.transformorderoptions.md#transformorderoptions_interface) |  |
-|  [TransformRangeOptions](./sql.transformrangeoptions.md#transformrangeoptions_interface) |  |
+|  [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Connection settings for a <code>FirebaseSql</code> client instance. |
+|  [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) | Query builder supporting ordering, pagination, row cardinality, and output format modifiers. |
+|  [TransformExplainOptions](./sql.transformexplainoptions.md#transformexplainoptions_interface) | Options for inspecting the query plan in <code>[TransformBuilder.explain()](./sql.transformbuilder.md#transformbuilderexplain)</code>. |
+|  [TransformLimitOptions](./sql.transformlimitoptions.md#transformlimitoptions_interface) | Options for limiting rows in <code>[TransformBuilder.limit()](./sql.transformbuilder.md#transformbuilderlimit)</code>. |
+|  [TransformOrderOptions](./sql.transformorderoptions.md#transformorderoptions_interface) | Options for sorting query results in <code>[TransformBuilder.order()](./sql.transformbuilder.md#transformbuilderorder)</code>. |
+|  [TransformRangeOptions](./sql.transformrangeoptions.md#transformrangeoptions_interface) | Options for paginating rows in <code>[TransformBuilder.range()](./sql.transformbuilder.md#transformbuilderrange)</code>. |
 
 ## Variables
 
 |  Variable | Description |
 |  --- | --- |
-|  [Code](./sql.md#code) | Error codes emitted by Firebase SQL client and platform operations. |
-|  [FirebaseSqlErrorCategory](./sql.md#firebasesqlerrorcategory) | Categories identifying the origin of a <code>FirebaseSqlError</code>. |
+|  [Code](./sql.md#code) | Constant map of <code>FirebaseSqlErrorCode</code> values. |
+|  [FirebaseSqlErrorCategory](./sql.md#firebasesqlerrorcategory) | Constant map of <code>FirebaseSqlErrorCategory</code> values. |
 
 ## Type Aliases
 
 |  Type Alias | Description |
 |  --- | --- |
-|  [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes) |  |
-|  [Code](./sql.md#code) | Error codes emitted by Firebase SQL client and platform operations. |
-|  [ContainsNull](./sql.md#containsnull) |  |
-|  [ExplicitKeys](./sql.md#explicitkeys) |  |
-|  [FilterOperator](./sql.md#filteroperator) |  |
-|  [FilterTextSearchType](./sql.md#filtertextsearchtype) |  |
+|  [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes) | Enforces matching array or single-object cardinality for <code>.returns()</code> and <code>.overrideTypes()</code>. |
+|  [Code](./sql.md#code) | Alias for <code>FirebaseSqlErrorCode</code>. |
+|  [ContainsNull](./sql.md#containsnull) | Evaluates to <code>true</code> when <code>T</code> is a known type that includes <code>null</code>. |
+|  [ExplicitKeys](./sql.md#explicitkeys) | Keys of <code>T</code> declared as named properties rather than an index signature. |
+|  [FilterOperator](./sql.md#filteroperator) | PostgREST filter operator names accepted by <code>.not()</code> and <code>.filter()</code>. |
+|  [FilterTextSearchType](./sql.md#filtertextsearchtype) | Query parsing mode for <code>[FilterBuilder.textSearch()](./sql.filterbuilder.md#filterbuildertextsearch)</code>. |
 |  [FirebaseSqlErrorCategory](./sql.md#firebasesqlerrorcategory) | Categories identifying the origin of a <code>FirebaseSqlError</code>. |
 |  [FirebaseSqlErrorCode](./sql.md#firebasesqlerrorcode) | Error codes emitted by Firebase SQL client and platform operations. |
-|  [IsPlainObject](./sql.md#isplainobject) |  |
-|  [IsValidResultOverride](./sql.md#isvalidresultoverride) |  |
-|  [MergeDeep](./sql.md#mergedeep) |  |
-|  [MergeExplicit](./sql.md#mergeexplicit) |  |
-|  [MergePartialResult](./sql.md#mergepartialresult) |  |
-|  [NarrowResultColumn](./sql.md#narrowresultcolumn) |  |
-|  [NonIterable](./sql.md#noniterable) | Constrains a type to ensure it is not iterable (e.g. not an Array). |
-|  [OperationResult](./sql.md#operationresult) |  |
-|  [QueryCountStrategy](./sql.md#querycountstrategy) |  |
-|  [SelectQueryError](./sql.md#selectqueryerror) |  |
-|  [Simplify](./sql.md#simplify) |  |
-|  [TransformExplainFormat](./sql.md#transformexplainformat) |  |
+|  [IsPlainObject](./sql.md#isplainobject) | Type-level predicate matching object types other than arrays. |
+|  [IsValidResultOverride](./sql.md#isvalidresultoverride) | Validates that a custom result type preserves array vs. single-object cardinality. |
+|  [MergeDeep](./sql.md#mergedeep) | Deeply merges <code>New</code> into <code>Row</code> while preserving any string index signature on <code>Row</code>. |
+|  [MergeExplicit](./sql.md#mergeexplicit) | Merges explicit keys from <code>New</code> into <code>Row</code>, recursively merging nested objects and arrays. |
+|  [MergePartialResult](./sql.md#mergepartialresult) | Merges or replaces <code>Result$1</code> with <code>NewResult</code> according to the <code>.overrideTypes()</code> <code>merge</code> option. |
+|  [NarrowResultColumn](./sql.md#narrowresultcolumn) | Narrows <code>Col</code> to <code>NonNullable</code> in the result row type after <code>.not(column, 'is', null)</code>. |
+|  [NonIterable](./sql.md#noniterable) | Constrains <code>T</code> to a single non-iterable row object rather than an array. |
+|  [OperationResult](./sql.md#operationresult) | Discriminated union returned when awaiting a builder without <code>.throwOnError()</code>. |
+|  [QueryCountStrategy](./sql.md#querycountstrategy) | Row-counting algorithm used when <code>count</code> is requested (<code>'exact'</code>, <code>'planned'</code>, or <code>'estimated'</code>). |
+|  [SelectQueryError](./sql.md#selectqueryerror) | Error marker returned at the type level when a select query string cannot be parsed. |
+|  [Simplify](./sql.md#simplify) | Flattens intersected object types for readable IDE hover tooltips in <code>.overrideTypes()</code>. |
+|  [TransformExplainFormat](./sql.md#transformexplainformat) | Output format for <code>[TransformBuilder.explain()](./sql.transformbuilder.md#transformbuilderexplain)</code> (<code>'json'</code> or <code>'text'</code>). |
 
 ## function(app, ...)
 
 ### getSql(app, settings) {:#getsql_94d2423}
 
-Returns the cached or newly initialized `FirebaseSql` instance for the given `FirebaseApp`<!-- -->.
+Return the cached or newly initialized `FirebaseSql` client for the given `FirebaseApp`<!-- -->.
 
 <b>Signature:</b>
 
@@ -105,18 +106,33 @@ export declare function getSql(app: FirebaseApp, settings: SqlServiceSettings): 
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The <code>FirebaseApp</code> instance to bind to. |
-|  settings | [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Configuration settings for the Firebase SQL service instance. |
+|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The <code>FirebaseApp</code> instance to use. |
+|  settings | [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Service, region, and schema configuration. |
 
 <b>Returns:</b>
 
 [FirebaseSql](./sql.firebasesql.md#firebasesql_class)
 
+The `FirebaseSql` client for `app`<!-- -->.
+
+### Example
+
+Initialize Firebase SQL with a specific app
+
+```ts
+import { initializeApp } from 'firebase/app';
+import { getSql } from 'firebase/sql';
+
+const app = initializeApp({ projectId: 'my-project' }, 'secondary');
+const sql = getSql(app, { serviceId: 'my-service', location: 'us-central1' });
+
+```
+
 ## function(settings, ...)
 
 ### copySqlServiceSettings(settings) {:#copysqlservicesettings_e89ea77}
 
-Creates a deep defensive copy of a `SqlServiceSettings` object.
+Create a mutable copy of a `SqlServiceSettings` object, including its `headers` map.
 
 <b>Signature:</b>
 
@@ -128,15 +144,19 @@ export declare function copySqlServiceSettings(settings: SqlServiceSettings): Sq
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  settings | [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) |  |
+|  settings | [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Settings object to clone. |
 
 <b>Returns:</b>
 
 [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface)
 
+A shallow-cloned, unfrozen `SqlServiceSettings` object.
+
 ### getSql(settings) {:#getsql_e89ea77}
 
-Returns the cached or newly initialized `FirebaseSql` instance for the default `FirebaseApp`<!-- -->.
+Return the cached or newly initialized `FirebaseSql` client for the default `FirebaseApp`<!-- -->.
+
+Instances are cached per `(app, serviceId, location, schemaName)` — custom `headers` in `settings` are bound when the instance is first created; use `.setHeader()` on a query for per-request headers.
 
 <b>Signature:</b>
 
@@ -148,17 +168,32 @@ export declare function getSql(settings: SqlServiceSettings): FirebaseSql;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  settings | [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Configuration settings for the Firebase SQL service instance. |
+|  settings | [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Service, region, and schema configuration. |
 
 <b>Returns:</b>
 
 [FirebaseSql](./sql.firebasesql.md#firebasesql_class)
 
+The `FirebaseSql` client for the default `FirebaseApp`<!-- -->.
+
+### Example
+
+Initialize Firebase SQL with the default app
+
+```ts
+import { initializeApp } from 'firebase/app';
+import { getSql } from 'firebase/sql';
+
+initializeApp({ projectId: 'my-project' });
+const sql = getSql({ serviceId: 'my-service', location: 'us-central1' });
+
+```
+
 ## function(sql, ...)
 
 ### terminate(sql) {:#terminate_bc2cb94}
 
-Terminates the `FirebaseSql` instance and removes it from the app's component registry.
+Terminate a `FirebaseSql` client, abort in-flight requests, and release cached resources.
 
 <b>Signature:</b>
 
@@ -170,15 +205,29 @@ export declare function terminate(sql: FirebaseSql): Promise<void>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  sql | [FirebaseSql](./sql.firebasesql.md#firebasesql_class) | The <code>FirebaseSql</code> instance to terminate. |
+|  sql | [FirebaseSql](./sql.firebasesql.md#firebasesql_class) | The <code>FirebaseSql</code> client to terminate. |
 
 <b>Returns:</b>
 
 Promise&lt;void&gt;
 
+A promise that resolves when termination completes.
+
+### Example
+
+Terminate a client instance
+
+```ts
+import { getSql, terminate } from 'firebase/sql';
+
+const sql = getSql({ serviceId: 'my-service', location: 'us-central1' });
+await terminate(sql);
+
+```
+
 ## Code
 
-Error codes emitted by Firebase SQL client and platform operations.
+Constant map of `FirebaseSqlErrorCode` values.
 
 <b>Signature:</b>
 
@@ -196,7 +245,7 @@ Code: Readonly<{
 
 ## FirebaseSqlErrorCategory
 
-Categories identifying the origin of a `FirebaseSqlError`<!-- -->.
+Constant map of `FirebaseSqlErrorCategory` values.
 
 <b>Signature:</b>
 
@@ -210,6 +259,8 @@ FirebaseSqlErrorCategory: Readonly<{
 
 ## CheckMatchingArrayTypes
 
+Enforces matching array or single-object cardinality for `.returns()` and `.overrideTypes()`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -222,7 +273,7 @@ export type CheckMatchingArrayTypes<T, NewResult> = T extends SelectQueryError<s
 
 ## Code
 
-Error codes emitted by Firebase SQL client and platform operations.
+Alias for `FirebaseSqlErrorCode`<!-- -->.
 
 <b>Signature:</b>
 
@@ -232,6 +283,8 @@ export type Code = FirebaseSqlErrorCode;
 
 ## ContainsNull
 
+Evaluates to `true` when `T` is a known type that includes `null`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -239,6 +292,8 @@ export type ContainsNull<T> = unknown extends T ? false : null extends T ? true 
 ```
 
 ## ExplicitKeys
+
+Keys of `T` declared as named properties rather than an index signature.
 
 <b>Signature:</b>
 
@@ -250,6 +305,8 @@ export type ExplicitKeys<T> = {
 
 ## FilterOperator
 
+PostgREST filter operator names accepted by `.not()` and `.filter()`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -257,6 +314,8 @@ export type FilterOperator = 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like'
 ```
 
 ## FilterTextSearchType
+
+Query parsing mode for <code>[FilterBuilder.textSearch()](./sql.filterbuilder.md#filterbuildertextsearch)</code>.
 
 <b>Signature:</b>
 
@@ -286,6 +345,8 @@ export type FirebaseSqlErrorCode = 'other' | 'already-initialized' | 'not-initia
 
 ## IsPlainObject
 
+Type-level predicate matching object types other than arrays.
+
 <b>Signature:</b>
 
 ```typescript
@@ -294,6 +355,8 @@ export type IsPlainObject<T> = T extends unknown[] ? false : T extends object ? 
 
 ## IsValidResultOverride
 
+Validates that a custom result type preserves array vs. single-object cardinality.
+
 <b>Signature:</b>
 
 ```typescript
@@ -301,6 +364,8 @@ export type IsValidResultOverride<T, NewResult, ErrorResult, ErrorNewResult> = u
 ```
 
 ## MergeDeep
+
+Deeply merges `New` into `Row` while preserving any string index signature on `Row`<!-- -->.
 
 <b>Signature:</b>
 
@@ -312,6 +377,8 @@ export type MergeDeep<New, Row> = Simplify<MergeExplicit<New, Row> & (string ext
 
 ## MergeExplicit
 
+Merges explicit keys from `New` into `Row`<!-- -->, recursively merging nested objects and arrays.
+
 <b>Signature:</b>
 
 ```typescript
@@ -322,6 +389,8 @@ export type MergeExplicit<New, Row> = {
 
 ## MergePartialResult
 
+Merges or replaces `Result$1` with `NewResult` according to the `.overrideTypes()` `merge` option.
+
 <b>Signature:</b>
 
 ```typescript
@@ -331,6 +400,8 @@ export type MergePartialResult<NewResult, Result$1, Options> = Options extends {
 ```
 
 ## NarrowResultColumn
+
+Narrows `Col` to `NonNullable` in the result row type after `.not(column, 'is', null)`<!-- -->.
 
 <b>Signature:</b>
 
@@ -344,7 +415,7 @@ export type NarrowResultColumn<T, Col extends string> = T extends Array<infer It
 
 ## NonIterable
 
-Constrains a type to ensure it is not iterable (e.g. not an Array).
+Constrains `T` to a single non-iterable row object rather than an array.
 
 <b>Signature:</b>
 
@@ -356,6 +427,8 @@ export type NonIterable<T> = T & {
 
 ## OperationResult
 
+Discriminated union returned when awaiting a builder without `.throwOnError()`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -364,6 +437,8 @@ export type OperationResult<T> = OperationSuccess<T> | OperationFailure;
 
 ## QueryCountStrategy
 
+Row-counting algorithm used when `count` is requested (`'exact'`<!-- -->, `'planned'`<!-- -->, or `'estimated'`<!-- -->).
+
 <b>Signature:</b>
 
 ```typescript
@@ -371,6 +446,8 @@ export type QueryCountStrategy = 'exact' | 'planned' | 'estimated' | (string & {
 ```
 
 ## SelectQueryError
+
+Error marker returned at the type level when a select query string cannot be parsed.
 
 <b>Signature:</b>
 
@@ -382,6 +459,8 @@ export type SelectQueryError<Message extends string> = {
 
 ## Simplify
 
+Flattens intersected object types for readable IDE hover tooltips in `.overrideTypes()`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -391,6 +470,8 @@ export type Simplify<T> = T extends object ? {
 ```
 
 ## TransformExplainFormat
+
+Output format for <code>[TransformBuilder.explain()](./sql.transformbuilder.md#transformbuilderexplain)</code> (`'json'` or `'text'`<!-- -->).
 
 <b>Signature:</b>
 

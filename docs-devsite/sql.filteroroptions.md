@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FilterOrOptions interface
+Options for combining filters in <code>[FilterBuilder.or()](./sql.filterbuilder.md#filterbuilderor)</code>.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,10 +22,17 @@ export interface FilterOrOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [foreignTable](./sql.filteroroptions.md#filteroroptionsforeigntable) | string \| undefined |  |
-|  [referencedTable](./sql.filteroroptions.md#filteroroptionsreferencedtable) | string \| undefined |  |
+|  [foreignTable](./sql.filteroroptions.md#filteroroptionsforeigntable) | string \| undefined | Deprecated alias for <code>referencedTable</code>. |
+|  [referencedTable](./sql.filteroroptions.md#filteroroptionsreferencedtable) | string \| undefined | Embedded related table to apply the <code>OR</code> filter to. |
 
 ## FilterOrOptions.foreignTable
+
+> Warning: This API is now obsolete.
+> 
+> Use `referencedTable` instead.
+> 
+
+Deprecated alias for `referencedTable`<!-- -->.
 
 <b>Signature:</b>
 
@@ -32,6 +41,8 @@ foreignTable?: string | undefined;
 ```
 
 ## FilterOrOptions.referencedTable
+
+Embedded related table to apply the `OR` filter to.
 
 <b>Signature:</b>
 

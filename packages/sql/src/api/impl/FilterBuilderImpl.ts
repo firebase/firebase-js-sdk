@@ -107,7 +107,7 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
 
   stripNulls(): this {
     // Delegate without catching so synchronous validation errors (e.g. `.csv().stripNulls()`)
-    // propagate unwrapped as raw Error instances matching @supabase/postgrest-js.
+    // propagate unwrapped as raw Error instances from the underlying PostgREST builder.
     // `void` is used across synchronous builder mutations because PostgrestFilterBuilder is a lazy
     // PromiseLike that only executes when `.then()` is invoked, satisfying no-floating-promises.
     void this._delegate.stripNulls();
@@ -550,7 +550,7 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
           return this._fail(tracker.clientError, 0, '');
         }
 
-        // @supabase/postgrest-js sets `success: error === null` after `JSON.parse(body)`,
+        // PostgrestBuilder sets `success: error === null` after `JSON.parse(body)`,
         // so non-2xx responses with a `"null"` JSON body arrive with `raw.success === true`
         // and `raw.error === null` (whereas empty `404` rewrites normalize status to `200`/`204`).
         if (

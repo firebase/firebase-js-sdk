@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QuerySelectOptions interface
+Options for selecting rows in <code>[QueryBuilder.select()](./sql.querybuilder.md#querybuilderselect)</code>.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,10 +22,12 @@ export interface QuerySelectOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [count](./sql.queryselectoptions.md#queryselectoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined |  |
-|  [head](./sql.queryselectoptions.md#queryselectoptionshead) | boolean \| undefined |  |
+|  [count](./sql.queryselectoptions.md#queryselectoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined | Row-counting algorithm to return in <code>result.count</code>. |
+|  [head](./sql.queryselectoptions.md#queryselectoptionshead) | boolean \| undefined | Return only <code>count</code> without row data (<code>data</code> is <code>null</code>) when <code>true</code>. |
 
 ## QuerySelectOptions.count
+
+Row-counting algorithm to return in `result.count`<!-- -->.
 
 <b>Signature:</b>
 
@@ -32,6 +36,8 @@ count?: QueryCountStrategy | undefined;
 ```
 
 ## QuerySelectOptions.head
+
+Return only `count` without row data (`data` is `null`<!-- -->) when `true`<!-- -->.
 
 <b>Signature:</b>
 

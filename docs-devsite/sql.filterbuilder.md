@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FilterBuilder interface
+Query builder with row-filtering operators (`.eq()`<!-- -->, `.in()`<!-- -->, `.or()`<!-- -->, etc.).
+
 <b>Signature:</b>
 
 ```typescript
@@ -21,41 +23,43 @@ export interface FilterBuilder<T, Method = unknown, ThrowOnError extends boolean
 
 |  Method | Description |
 |  --- | --- |
-|  [containedBy(column, value)](./sql.filterbuilder.md#filterbuildercontainedby) |  |
-|  [contains(column, value)](./sql.filterbuilder.md#filterbuildercontains) |  |
-|  [eq(column, value)](./sql.filterbuilder.md#filterbuildereq) |  |
-|  [filter(column, operator, value)](./sql.filterbuilder.md#filterbuilderfilter) |  |
-|  [gt(column, value)](./sql.filterbuilder.md#filterbuildergt) |  |
-|  [gte(column, value)](./sql.filterbuilder.md#filterbuildergte) |  |
-|  [ilike(column, pattern)](./sql.filterbuilder.md#filterbuilderilike) |  |
-|  [ilikeAllOf(column, patterns)](./sql.filterbuilder.md#filterbuilderilikeallof) |  |
-|  [ilikeAnyOf(column, patterns)](./sql.filterbuilder.md#filterbuilderilikeanyof) |  |
-|  [in(column, values)](./sql.filterbuilder.md#filterbuilderin) |  |
-|  [is(column, value)](./sql.filterbuilder.md#filterbuilderis) |  |
-|  [isDistinct(column, value)](./sql.filterbuilder.md#filterbuilderisdistinct) |  |
-|  [like(column, pattern)](./sql.filterbuilder.md#filterbuilderlike) |  |
-|  [likeAllOf(column, patterns)](./sql.filterbuilder.md#filterbuilderlikeallof) |  |
-|  [likeAnyOf(column, patterns)](./sql.filterbuilder.md#filterbuilderlikeanyof) |  |
-|  [lt(column, value)](./sql.filterbuilder.md#filterbuilderlt) |  |
-|  [lte(column, value)](./sql.filterbuilder.md#filterbuilderlte) |  |
-|  [match(query)](./sql.filterbuilder.md#filterbuildermatch) |  |
-|  [neq(column, value)](./sql.filterbuilder.md#filterbuilderneq) |  |
-|  [not(column, operator, value)](./sql.filterbuilder.md#filterbuildernot) |  |
-|  [not(column, operator, value)](./sql.filterbuilder.md#filterbuildernot) |  |
-|  [notIn(column, values)](./sql.filterbuilder.md#filterbuildernotin) |  |
-|  [or(filters, options)](./sql.filterbuilder.md#filterbuilderor) |  |
-|  [overlaps(column, value)](./sql.filterbuilder.md#filterbuilderoverlaps) |  |
-|  [rangeAdjacent(column, range)](./sql.filterbuilder.md#filterbuilderrangeadjacent) |  |
-|  [rangeGt(column, range)](./sql.filterbuilder.md#filterbuilderrangegt) |  |
-|  [rangeGte(column, range)](./sql.filterbuilder.md#filterbuilderrangegte) |  |
-|  [rangeLt(column, range)](./sql.filterbuilder.md#filterbuilderrangelt) |  |
-|  [rangeLte(column, range)](./sql.filterbuilder.md#filterbuilderrangelte) |  |
-|  [regexIMatch(column, pattern)](./sql.filterbuilder.md#filterbuilderregeximatch) |  |
-|  [regexMatch(column, pattern)](./sql.filterbuilder.md#filterbuilderregexmatch) |  |
-|  [textSearch(column, query, options)](./sql.filterbuilder.md#filterbuildertextsearch) |  |
-|  [throwOnError()](./sql.filterbuilder.md#filterbuilderthrowonerror) |  |
+|  [containedBy(column, value)](./sql.filterbuilder.md#filterbuildercontainedby) | Filter rows where an array, range, or <code>jsonb</code> <code>column</code> is contained by <code>value</code>. |
+|  [contains(column, value)](./sql.filterbuilder.md#filterbuildercontains) | Filter rows where an array, range, or <code>jsonb</code> <code>column</code> contains <code>value</code>. |
+|  [eq(column, value)](./sql.filterbuilder.md#filterbuildereq) | Filter rows where <code>column</code> equals <code>value</code>. |
+|  [filter(column, operator, value)](./sql.filterbuilder.md#filterbuilderfilter) | Filter rows using a raw PostgREST operator name (such as <code>'eq'</code> or <code>'not.in'</code>). |
+|  [gt(column, value)](./sql.filterbuilder.md#filterbuildergt) | Filter rows where <code>column</code> is greater than <code>value</code>. |
+|  [gte(column, value)](./sql.filterbuilder.md#filterbuildergte) | Filter rows where <code>column</code> is greater than or equal to <code>value</code>. |
+|  [ilike(column, pattern)](./sql.filterbuilder.md#filterbuilderilike) | Filter rows where <code>column</code> matches <code>pattern</code> case-insensitively. |
+|  [ilikeAllOf(column, patterns)](./sql.filterbuilder.md#filterbuilderilikeallof) | Filter rows where <code>column</code> matches every pattern in <code>patterns</code> case-insensitively. |
+|  [ilikeAnyOf(column, patterns)](./sql.filterbuilder.md#filterbuilderilikeanyof) | Filter rows where <code>column</code> matches at least one pattern in <code>patterns</code> case-insensitively. |
+|  [in(column, values)](./sql.filterbuilder.md#filterbuilderin) | Filter rows where <code>column</code> matches any value in <code>values</code>. |
+|  [is(column, value)](./sql.filterbuilder.md#filterbuilderis) | Filter rows where <code>column</code> is <code>null</code>, <code>true</code>, or <code>false</code>. |
+|  [isDistinct(column, value)](./sql.filterbuilder.md#filterbuilderisdistinct) | Filter rows where <code>column</code> is distinct from <code>value</code> (including <code>NULL</code> comparisons). |
+|  [like(column, pattern)](./sql.filterbuilder.md#filterbuilderlike) | Filter rows where <code>column</code> matches <code>pattern</code> case-sensitively. |
+|  [likeAllOf(column, patterns)](./sql.filterbuilder.md#filterbuilderlikeallof) | Filter rows where <code>column</code> matches every pattern in <code>patterns</code> case-sensitively. |
+|  [likeAnyOf(column, patterns)](./sql.filterbuilder.md#filterbuilderlikeanyof) | Filter rows where <code>column</code> matches at least one pattern in <code>patterns</code> case-sensitively. |
+|  [lt(column, value)](./sql.filterbuilder.md#filterbuilderlt) | Filter rows where <code>column</code> is less than <code>value</code>. |
+|  [lte(column, value)](./sql.filterbuilder.md#filterbuilderlte) | Filter rows where <code>column</code> is less than or equal to <code>value</code>. |
+|  [match(query)](./sql.filterbuilder.md#filterbuildermatch) | Filter rows where every <code>key: value</code> entry in <code>query</code> matches. |
+|  [neq(column, value)](./sql.filterbuilder.md#filterbuilderneq) | Filter rows where <code>column</code> does not equal <code>value</code>. |
+|  [not(column, operator, value)](./sql.filterbuilder.md#filterbuildernot) | Filter rows where <code>column</code> is not <code>null</code>, narrowing <code>column</code> to <code>NonNullable</code> in the result type. |
+|  [not(column, operator, value)](./sql.filterbuilder.md#filterbuildernot) | Filter rows that do not satisfy <code>operator</code> and <code>value</code> on <code>column</code>. |
+|  [notIn(column, values)](./sql.filterbuilder.md#filterbuildernotin) | Filter rows where <code>column</code> does not match any value in <code>values</code>. |
+|  [or(filters, options)](./sql.filterbuilder.md#filterbuilderor) | Filter rows matching at least one condition in a comma-separated PostgREST filter string. |
+|  [overlaps(column, value)](./sql.filterbuilder.md#filterbuilderoverlaps) | Filter rows where an array or range <code>column</code> shares at least one element with <code>value</code>. |
+|  [rangeAdjacent(column, range)](./sql.filterbuilder.md#filterbuilderrangeadjacent) | Filter rows where a range <code>column</code> is immediately adjacent to <code>range</code> without overlapping. |
+|  [rangeGt(column, range)](./sql.filterbuilder.md#filterbuilderrangegt) | Filter rows where a range <code>column</code> lies strictly to the right of <code>range</code>. |
+|  [rangeGte(column, range)](./sql.filterbuilder.md#filterbuilderrangegte) | Filter rows where a range <code>column</code> does not extend to the left of <code>range</code>. |
+|  [rangeLt(column, range)](./sql.filterbuilder.md#filterbuilderrangelt) | Filter rows where a range <code>column</code> lies strictly to the left of <code>range</code>. |
+|  [rangeLte(column, range)](./sql.filterbuilder.md#filterbuilderrangelte) | Filter rows where a range <code>column</code> does not extend to the right of <code>range</code>. |
+|  [regexIMatch(column, pattern)](./sql.filterbuilder.md#filterbuilderregeximatch) | Filter rows where <code>column</code> matches the POSIX regular expression <code>pattern</code> case-insensitively. |
+|  [regexMatch(column, pattern)](./sql.filterbuilder.md#filterbuilderregexmatch) | Filter rows where <code>column</code> matches the POSIX regular expression <code>pattern</code> case-sensitively. |
+|  [textSearch(column, query, options)](./sql.filterbuilder.md#filterbuildertextsearch) | Filter rows where a <code>text</code> or <code>tsvector</code> <code>column</code> matches the full-text <code>query</code>. |
+|  [throwOnError()](./sql.filterbuilder.md#filterbuilderthrowonerror) | Throw a <code>FirebaseSqlError</code> when the operation fails instead of returning it in <code>result.error</code>. |
 
 ## FilterBuilder.containedBy()
+
+Filter rows where an array, range, or `jsonb` `column` is contained by `value`<!-- -->.
 
 <b>Signature:</b>
 
@@ -71,14 +75,38 @@ containedBy<Value extends object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | string \| readonly unknown\[\] \| Value |  |
+|  column | string | Array, range, or <code>jsonb</code> column to filter on. |
+|  value | string \| readonly unknown\[\] \| Value | Superset array, range literal, or JSON object that must contain <code>column</code>. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Find tasks whose tags are a subset of allowed tags
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text, tags text[]);
+INSERT INTO tasks VALUES
+  (1, 'Write docs', ARRAY['docs']),
+  (2, 'Ship SDK', ARRAY['docs', 'release']);
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .containedBy('tags', ['docs', 'urgent'])
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }]
+
+```
+
 ## FilterBuilder.contains()
+
+Filter rows where an array, range, or `jsonb` `column` contains `value`<!-- -->.
 
 <b>Signature:</b>
 
@@ -94,14 +122,40 @@ contains<Value extends object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | string \| readonly unknown\[\] \| Value |  |
+|  column | string | Array, range, or <code>jsonb</code> column to filter on. |
+|  value | string \| readonly unknown\[\] \| Value | Subset array, range literal, or JSON object that <code>column</code> must contain. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Find tasks containing specific tags
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text, tags text[]);
+INSERT INTO tasks VALUES
+  (1, 'Write docs', ARRAY['docs', 'urgent']),
+  (2, 'Ship SDK', ARRAY['release']);
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .contains('tags', ['docs', 'urgent'])
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }]
+
+```
+
 ## FilterBuilder.eq()
+
+Filter rows where `column` equals `value`<!-- -->.
+
+Comparing against `null` does not match SQL `NULL` values — use `.is(column, null)` instead.
 
 <b>Signature:</b>
 
@@ -113,14 +167,38 @@ eq(column: string, value: NonNullable<unknown>): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | NonNullable&lt;unknown&gt; |  |
+|  column | string | Column to filter on. |
+|  value | NonNullable&lt;unknown&gt; | Value to match. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Filter tasks by status
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text, status text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs', 'open'),
+  (2, 'Ship SDK', 'done');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .eq('status', 'open')
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }]
+
+```
+
 ## FilterBuilder.filter()
+
+Filter rows using a raw PostgREST operator name (such as `'eq'` or `'not.in'`<!-- -->).
 
 <b>Signature:</b>
 
@@ -132,15 +210,39 @@ filter(column: string, operator: `${'' | 'not.'}${FilterOperator}` | (string & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  operator | \`${'' \| 'not.'}${[FilterOperator](./sql.md#filteroperator)<!-- -->}\` \| (string &amp; {}) |  |
-|  value | unknown |  |
+|  column | string | Column to filter on. |
+|  operator | \`${'' \| 'not.'}${[FilterOperator](./sql.md#filteroperator)<!-- -->}\` \| (string &amp; {}) | PostgREST operator name, optionally prefixed with <code>'not.'</code>. |
+|  value | unknown | Raw PostgREST operand value. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Apply a raw PostgREST filter
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text, status text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs', 'open'),
+  (2, 'Ship SDK', 'done');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .filter('status', 'in', '("open","in_progress")')
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }]
+
+```
+
 ## FilterBuilder.gt()
+
+Filter rows where `column` is greater than `value`<!-- -->.
 
 <b>Signature:</b>
 
@@ -152,14 +254,38 @@ gt(column: string, value: unknown): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | unknown |  |
+|  column | string | Column to filter on. |
+|  value | unknown | Lower bound to compare against. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Find high-value orders
+
+```sql
+CREATE TABLE orders (id int8 PRIMARY KEY, total int4);
+INSERT INTO orders VALUES
+  (1, 45),
+  (2, 120);
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('orders')
+  .select('id, total')
+  .gt('total', 100)
+  .returns<Order[]>();
+// data: [{ id: 2, total: 120 }]
+
+```
+
 ## FilterBuilder.gte()
+
+Filter rows where `column` is greater than or equal to `value`<!-- -->.
 
 <b>Signature:</b>
 
@@ -171,14 +297,38 @@ gte(column: string, value: unknown): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | unknown |  |
+|  column | string | Column to filter on. |
+|  value | unknown | Inclusive lower bound to compare against. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Find products meeting a minimum stock level
+
+```sql
+CREATE TABLE products (id int8 PRIMARY KEY, name text, stock int4);
+INSERT INTO products VALUES
+  (1, 'Notebook', 4),
+  (2, 'Pen', 10);
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('products')
+  .select('id, name')
+  .gte('stock', 10)
+  .returns<Product[]>();
+// data: [{ id: 2, name: 'Pen' }]
+
+```
+
 ## FilterBuilder.ilike()
+
+Filter rows where `column` matches `pattern` case-insensitively.
 
 <b>Signature:</b>
 
@@ -190,14 +340,38 @@ ilike(column: string, pattern: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  pattern | string |  |
+|  column | string | Text column to match against. |
+|  pattern | string | SQL <code>ILIKE</code> pattern (using <code>%</code> and <code>_</code> wildcards). |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Match task titles case-insensitively
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs'),
+  (2, 'Ship SDK');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .ilike('title', '%docs%')
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }]
+
+```
+
 ## FilterBuilder.ilikeAllOf()
+
+Filter rows where `column` matches every pattern in `patterns` case-insensitively.
 
 <b>Signature:</b>
 
@@ -209,14 +383,16 @@ ilikeAllOf(column: string, patterns: readonly string[]): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  patterns | readonly string\[\] |  |
+|  column | string | Text column to match against. |
+|  patterns | readonly string\[\] | SQL <code>ILIKE</code> patterns that must all match (using <code>%</code> and <code>_</code> wildcards). |
 
 <b>Returns:</b>
 
 this
 
 ## FilterBuilder.ilikeAnyOf()
+
+Filter rows where `column` matches at least one pattern in `patterns` case-insensitively.
 
 <b>Signature:</b>
 
@@ -228,14 +404,16 @@ ilikeAnyOf(column: string, patterns: readonly string[]): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  patterns | readonly string\[\] |  |
+|  column | string | Text column to match against. |
+|  patterns | readonly string\[\] | SQL <code>ILIKE</code> patterns where any match succeeds (using <code>%</code> and <code>_</code> wildcards). |
 
 <b>Returns:</b>
 
 this
 
 ## FilterBuilder.in()
+
+Filter rows where `column` matches any value in `values`<!-- -->.
 
 <b>Signature:</b>
 
@@ -247,14 +425,39 @@ in(column: string, values: readonly unknown[]): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  values | readonly unknown\[\] |  |
+|  column | string | Column to filter on. |
+|  values | readonly unknown\[\] | Candidate values to match against. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Filter tasks by multiple statuses
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text, status text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs', 'open'),
+  (2, 'Review PR', 'in_progress'),
+  (3, 'Ship SDK', 'done');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .in('status', ['open', 'in_progress'])
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }, { id: 2, title: 'Review PR' }]
+
+```
+
 ## FilterBuilder.is()
+
+Filter rows where `column` is `null`<!-- -->, `true`<!-- -->, or `false`<!-- -->.
 
 <b>Signature:</b>
 
@@ -266,14 +469,38 @@ is(column: string, value: boolean | null): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | boolean \| null |  |
+|  column | string | Column to filter on. |
+|  value | boolean \| null | <code>null</code> or boolean literal to check with SQL <code>IS</code>. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Find unassigned tasks
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text, assignee text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs', NULL),
+  (2, 'Ship SDK', 'Ada');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .is('assignee', null)
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }]
+
+```
+
 ## FilterBuilder.isDistinct()
+
+Filter rows where `column` is distinct from `value` (including `NULL` comparisons).
 
 <b>Signature:</b>
 
@@ -285,14 +512,16 @@ isDistinct(column: string, value: unknown): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | unknown |  |
+|  column | string | Column to filter on. |
+|  value | unknown | Value to compare with SQL <code>IS DISTINCT FROM</code>. |
 
 <b>Returns:</b>
 
 this
 
 ## FilterBuilder.like()
+
+Filter rows where `column` matches `pattern` case-sensitively.
 
 <b>Signature:</b>
 
@@ -304,14 +533,38 @@ like(column: string, pattern: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  pattern | string |  |
+|  column | string | Text column to match against. |
+|  pattern | string | SQL <code>LIKE</code> pattern (using <code>%</code> and <code>_</code> wildcards). |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Match task titles by prefix
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs'),
+  (2, 'write tests');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .like('title', 'Write%')
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }]
+
+```
+
 ## FilterBuilder.likeAllOf()
+
+Filter rows where `column` matches every pattern in `patterns` case-sensitively.
 
 <b>Signature:</b>
 
@@ -323,14 +576,16 @@ likeAllOf(column: string, patterns: readonly string[]): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  patterns | readonly string\[\] |  |
+|  column | string | Text column to match against. |
+|  patterns | readonly string\[\] | SQL <code>LIKE</code> patterns that must all match (using <code>%</code> and <code>_</code> wildcards). |
 
 <b>Returns:</b>
 
 this
 
 ## FilterBuilder.likeAnyOf()
+
+Filter rows where `column` matches at least one pattern in `patterns` case-sensitively.
 
 <b>Signature:</b>
 
@@ -342,14 +597,16 @@ likeAnyOf(column: string, patterns: readonly string[]): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  patterns | readonly string\[\] |  |
+|  column | string | Text column to match against. |
+|  patterns | readonly string\[\] | SQL <code>LIKE</code> patterns where any match succeeds (using <code>%</code> and <code>_</code> wildcards). |
 
 <b>Returns:</b>
 
 this
 
 ## FilterBuilder.lt()
+
+Filter rows where `column` is less than `value`<!-- -->.
 
 <b>Signature:</b>
 
@@ -361,14 +618,38 @@ lt(column: string, value: unknown): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | unknown |  |
+|  column | string | Column to filter on. |
+|  value | unknown | Upper bound to compare against. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Find low-stock products
+
+```sql
+CREATE TABLE products (id int8 PRIMARY KEY, name text, stock int4);
+INSERT INTO products VALUES
+  (1, 'Notebook', 4),
+  (2, 'Pen', 25);
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('products')
+  .select('id, name')
+  .lt('stock', 10)
+  .returns<Product[]>();
+// data: [{ id: 1, name: 'Notebook' }]
+
+```
+
 ## FilterBuilder.lte()
+
+Filter rows where `column` is less than or equal to `value`<!-- -->.
 
 <b>Signature:</b>
 
@@ -380,14 +661,38 @@ lte(column: string, value: unknown): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | unknown |  |
+|  column | string | Column to filter on. |
+|  value | unknown | Inclusive upper bound to compare against. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Find budget products
+
+```sql
+CREATE TABLE products (id int8 PRIMARY KEY, name text, price int4);
+INSERT INTO products VALUES
+  (1, 'Pencil', 5),
+  (2, 'Binder', 15);
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('products')
+  .select('id, name')
+  .lte('price', 5)
+  .returns<Product[]>();
+// data: [{ id: 1, name: 'Pencil' }]
+
+```
+
 ## FilterBuilder.match()
+
+Filter rows where every `key: value` entry in `query` matches.
 
 <b>Signature:</b>
 
@@ -403,13 +708,37 @@ match<Query extends object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | Query |  |
+|  query | Query | Object mapping column names to expected values. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Match multiple columns at once
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text, status text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs', 'open'),
+  (2, 'Ship SDK', 'done');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .match({ id: 1, status: 'open' })
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }]
+
+```
+
 ## FilterBuilder.neq()
+
+Filter rows where `column` does not equal `value`<!-- -->.
 
 <b>Signature:</b>
 
@@ -421,14 +750,38 @@ neq(column: string, value: unknown): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | unknown |  |
+|  column | string | Column to filter on. |
+|  value | unknown | Value to exclude. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Exclude completed tasks
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text, status text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs', 'open'),
+  (2, 'Ship SDK', 'done');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .neq('status', 'done')
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }]
+
+```
+
 ## FilterBuilder.not()
+
+Filter rows where `column` is not `null`<!-- -->, narrowing `column` to `NonNullable` in the result type.
 
 <b>Signature:</b>
 
@@ -440,15 +793,17 @@ not<ColumnName extends string>(column: ColumnName, operator: 'is', value: null):
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | ColumnName |  |
-|  operator | 'is' |  |
-|  value | null |  |
+|  column | ColumnName | Column to filter and narrow. |
+|  operator | 'is' | The <code>'is'</code> operator. |
+|  value | null | <code>null</code> literal. |
 
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;[NarrowResultColumn](./sql.md#narrowresultcolumn)<!-- -->&lt;T, ColumnName&gt;, Method, ThrowOnError&gt; &amp; this
 
 ## FilterBuilder.not()
+
+Filter rows that do not satisfy `operator` and `value` on `column`<!-- -->.
 
 <b>Signature:</b>
 
@@ -460,15 +815,39 @@ not(column: string, operator: FilterOperator | (string & {}), value: unknown): t
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  operator | [FilterOperator](./sql.md#filteroperator) \| (string &amp; {}) |  |
-|  value | unknown |  |
+|  column | string | Column to filter on. |
+|  operator | [FilterOperator](./sql.md#filteroperator) \| (string &amp; {}) | PostgREST operator name to negate (such as <code>'eq'</code> or <code>'in'</code>). |
+|  value | unknown | Raw PostgREST operand value. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Exclude rows matching a condition
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text, status text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs', 'open'),
+  (2, 'Ship SDK', 'archived');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .not('status', 'eq', 'archived')
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }]
+
+```
+
 ## FilterBuilder.notIn()
+
+Filter rows where `column` does not match any value in `values`<!-- -->.
 
 <b>Signature:</b>
 
@@ -480,14 +859,16 @@ notIn(column: string, values: readonly unknown[]): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  values | readonly unknown\[\] |  |
+|  column | string | Column to filter on. |
+|  values | readonly unknown\[\] | Values to exclude. |
 
 <b>Returns:</b>
 
 this
 
 ## FilterBuilder.or()
+
+Filter rows matching at least one condition in a comma-separated PostgREST filter string.
 
 <b>Signature:</b>
 
@@ -499,14 +880,38 @@ or(filters: string, options?: Readonly<FilterOrOptions> | undefined): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  filters | string |  |
-|  options | Readonly&lt;[FilterOrOptions](./sql.filteroroptions.md#filteroroptions_interface)<!-- -->&gt; \| undefined |  |
+|  filters | string | Comma-separated PostgREST filter expressions (such as <code>'status.eq.open,priority.gte.3'</code>). |
+|  options | Readonly&lt;[FilterOrOptions](./sql.filteroroptions.md#filteroroptions_interface)<!-- -->&gt; \| undefined | Optional target table configuration for embedded resources. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Match any of multiple conditions
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text, status text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs', 'open'),
+  (2, 'Ship SDK', 'done');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .or('id.eq.1,status.eq.open')
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }]
+
+```
+
 ## FilterBuilder.overlaps()
+
+Filter rows where an array or range `column` shares at least one element with `value`<!-- -->.
 
 <b>Signature:</b>
 
@@ -518,14 +923,38 @@ overlaps(column: string, value: string | readonly unknown[]): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | string \| readonly unknown\[\] |  |
+|  column | string | Array or range column to filter on. |
+|  value | string \| readonly unknown\[\] | Array of elements or PostgreSQL range literal to test for overlap. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Find tasks matching any tag in a list
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text, tags text[]);
+INSERT INTO tasks VALUES
+  (1, 'Write docs', ARRAY['docs', 'urgent']),
+  (2, 'Ship SDK', ARRAY['release']);
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .overlaps('tags', ['urgent', 'blocked'])
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }]
+
+```
+
 ## FilterBuilder.rangeAdjacent()
+
+Filter rows where a range `column` is immediately adjacent to `range` without overlapping.
 
 <b>Signature:</b>
 
@@ -537,14 +966,38 @@ rangeAdjacent(column: string, range: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  range | string |  |
+|  column | string | Range column to filter on. |
+|  range | string | PostgreSQL range literal (such as <code>'[1, 5)'</code>). |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Find adjacent time slots
+
+```sql
+CREATE TABLE orders (id int8 PRIMARY KEY, hours int4range);
+INSERT INTO orders VALUES
+  (1, '[9, 12)'),
+  (2, '[14, 17)');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('orders')
+  .select('id')
+  .rangeAdjacent('hours', '[12, 14)')
+  .returns<Order[]>();
+// data: [{ id: 1 }, { id: 2 }]
+
+```
+
 ## FilterBuilder.rangeGt()
+
+Filter rows where a range `column` lies strictly to the right of `range`<!-- -->.
 
 <b>Signature:</b>
 
@@ -556,14 +1009,38 @@ rangeGt(column: string, range: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  range | string |  |
+|  column | string | Range column to filter on. |
+|  range | string | PostgreSQL range literal (such as <code>'[1, 5)'</code>). |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Find bookings strictly after a window
+
+```sql
+CREATE TABLE orders (id int8 PRIMARY KEY, hours int4range);
+INSERT INTO orders VALUES
+  (1, '[9, 12)'),
+  (2, '[14, 17)');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('orders')
+  .select('id')
+  .rangeGt('hours', '[12, 14)')
+  .returns<Order[]>();
+// data: [{ id: 2 }]
+
+```
+
 ## FilterBuilder.rangeGte()
+
+Filter rows where a range `column` does not extend to the left of `range`<!-- -->.
 
 <b>Signature:</b>
 
@@ -575,14 +1052,38 @@ rangeGte(column: string, range: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  range | string |  |
+|  column | string | Range column to filter on. |
+|  range | string | PostgreSQL range literal (such as <code>'[1, 5)'</code>). |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Find windows starting at or after a range start
+
+```sql
+CREATE TABLE orders (id int8 PRIMARY KEY, hours int4range);
+INSERT INTO orders VALUES
+  (1, '[9, 12)'),
+  (2, '[14, 17)');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('orders')
+  .select('id')
+  .rangeGte('hours', '[13, 18)')
+  .returns<Order[]>();
+// data: [{ id: 2 }]
+
+```
+
 ## FilterBuilder.rangeLt()
+
+Filter rows where a range `column` lies strictly to the left of `range`<!-- -->.
 
 <b>Signature:</b>
 
@@ -594,14 +1095,38 @@ rangeLt(column: string, range: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  range | string |  |
+|  column | string | Range column to filter on. |
+|  range | string | PostgreSQL range literal (such as <code>'[1, 5)'</code>). |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Find bookings strictly before a window
+
+```sql
+CREATE TABLE orders (id int8 PRIMARY KEY, hours int4range);
+INSERT INTO orders VALUES
+  (1, '[9, 12)'),
+  (2, '[14, 17)');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('orders')
+  .select('id')
+  .rangeLt('hours', '[12, 14)')
+  .returns<Order[]>();
+// data: [{ id: 1 }]
+
+```
+
 ## FilterBuilder.rangeLte()
+
+Filter rows where a range `column` does not extend to the right of `range`<!-- -->.
 
 <b>Signature:</b>
 
@@ -613,14 +1138,38 @@ rangeLte(column: string, range: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  range | string |  |
+|  column | string | Range column to filter on. |
+|  range | string | PostgreSQL range literal (such as <code>'[1, 5)'</code>). |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Find windows ending at or before a range end
+
+```sql
+CREATE TABLE orders (id int8 PRIMARY KEY, hours int4range);
+INSERT INTO orders VALUES
+  (1, '[9, 12)'),
+  (2, '[14, 17)');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('orders')
+  .select('id')
+  .rangeLte('hours', '[8, 13)')
+  .returns<Order[]>();
+// data: [{ id: 1 }]
+
+```
+
 ## FilterBuilder.regexIMatch()
+
+Filter rows where `column` matches the POSIX regular expression `pattern` case-insensitively.
 
 <b>Signature:</b>
 
@@ -632,14 +1181,16 @@ regexIMatch(column: string, pattern: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  pattern | string |  |
+|  column | string | Text column to match against. |
+|  pattern | string | Case-insensitive PostgreSQL regular expression (<code>~*</code> operator). |
 
 <b>Returns:</b>
 
 this
 
 ## FilterBuilder.regexMatch()
+
+Filter rows where `column` matches the POSIX regular expression `pattern` case-sensitively.
 
 <b>Signature:</b>
 
@@ -651,14 +1202,16 @@ regexMatch(column: string, pattern: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  pattern | string |  |
+|  column | string | Text column to match against. |
+|  pattern | string | PostgreSQL regular expression (<code>~</code> operator). |
 
 <b>Returns:</b>
 
 this
 
 ## FilterBuilder.textSearch()
+
+Filter rows where a `text` or `tsvector` `column` matches the full-text `query`<!-- -->.
 
 <b>Signature:</b>
 
@@ -670,15 +1223,39 @@ textSearch(column: string, query: string, options?: Readonly<FilterTextSearchOpt
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  query | string |  |
-|  options | Readonly&lt;[FilterTextSearchOptions](./sql.filtertextsearchoptions.md#filtertextsearchoptions_interface)<!-- -->&gt; \| undefined |  |
+|  column | string | Text or <code>tsvector</code> column to search. |
+|  query | string | Full-text search query expression. |
+|  options | Readonly&lt;[FilterTextSearchOptions](./sql.filtertextsearchoptions.md#filtertextsearchoptions_interface)<!-- -->&gt; \| undefined | Optional text search configuration and parsing mode. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Search task descriptions with full-text search
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text);
+INSERT INTO tasks VALUES
+  (1, 'Write API documentation'),
+  (2, 'Fix login bug');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .textSearch('title', 'documentation', { config: 'english', type: 'plain' })
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write API documentation' }]
+
+```
+
 ## FilterBuilder.throwOnError()
+
+Throw a `FirebaseSqlError` when the operation fails instead of returning it in `result.error`<!-- -->.
 
 <b>Signature:</b>
 

@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FilterTextSearchOptions interface
+Options for full-text search in <code>[FilterBuilder.textSearch()](./sql.filterbuilder.md#filterbuildertextsearch)</code>.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,10 +22,12 @@ export interface FilterTextSearchOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [config](./sql.filtertextsearchoptions.md#filtertextsearchoptionsconfig) | string \| undefined |  |
-|  [type](./sql.filtertextsearchoptions.md#filtertextsearchoptionstype) | [FilterTextSearchType](./sql.md#filtertextsearchtype) \| undefined |  |
+|  [config](./sql.filtertextsearchoptions.md#filtertextsearchoptionsconfig) | string \| undefined | PostgreSQL text search configuration (for example, <code>'english'</code>). |
+|  [type](./sql.filtertextsearchoptions.md#filtertextsearchoptionstype) | [FilterTextSearchType](./sql.md#filtertextsearchtype) \| undefined | Query parsing mode (<code>'plain'</code>, <code>'phrase'</code>, or <code>'websearch'</code>). |
 
 ## FilterTextSearchOptions.config
+
+PostgreSQL text search configuration (for example, `'english'`<!-- -->).
 
 <b>Signature:</b>
 
@@ -32,6 +36,8 @@ config?: string | undefined;
 ```
 
 ## FilterTextSearchOptions.type
+
+Query parsing mode (`'plain'`<!-- -->, `'phrase'`<!-- -->, or `'websearch'`<!-- -->).
 
 <b>Signature:</b>
 

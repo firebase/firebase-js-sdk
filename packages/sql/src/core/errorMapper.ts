@@ -136,7 +136,7 @@ export const mapPostgrestFailureToFirebaseSqlError: MapPostgrestError = (
 
   // Google OnePlatform / ESF pre-adapter rejections wrap errors under a top-level
   // `error` envelope (`{ error: { code, message, status, details } }` or single-element
-  // array `[{ error: { ... } }]`), which @supabase/postgrest-js leaves nested via raw JSON.parse.
+  // array `[{ error: { ... } }]`), which PostgrestBuilder leaves nested via raw JSON.parse.
   if (
     isPlainRecord(envelopeCandidate) &&
     isPlainRecord(envelopeCandidate.error)

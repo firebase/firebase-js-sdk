@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # InvalidMethodError interface
+Compile-time type error returned when a builder method is unavailable for the current HTTP verb.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,9 +22,11 @@ export interface InvalidMethodError<S extends string>
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [Error](./sql.invalidmethoderror.md#invalidmethoderrorerror) | S |  |
+|  [Error](./sql.invalidmethoderror.md#invalidmethoderrorerror) | S | Diagnostic message describing why the method is unavailable. |
 
 ## InvalidMethodError.Error
+
+Diagnostic message describing why the method is unavailable.
 
 <b>Signature:</b>
 

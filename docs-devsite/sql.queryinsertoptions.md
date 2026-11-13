@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QueryInsertOptions interface
+Options for inserting rows in <code>[QueryBuilder.insert()](./sql.querybuilder.md#querybuilderinsert)</code>.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,10 +22,12 @@ export interface QueryInsertOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [count](./sql.queryinsertoptions.md#queryinsertoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined |  |
-|  [defaultToNull](./sql.queryinsertoptions.md#queryinsertoptionsdefaulttonull) | boolean \| undefined |  |
+|  [count](./sql.queryinsertoptions.md#queryinsertoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined | Row-counting algorithm to return in <code>result.count</code>. |
+|  [defaultToNull](./sql.queryinsertoptions.md#queryinsertoptionsdefaulttonull) | boolean \| undefined | Fill missing columns in bulk inserts with <code>NULL</code> when <code>true</code> (default) or column defaults when <code>false</code>. |
 
 ## QueryInsertOptions.count
+
+Row-counting algorithm to return in `result.count`<!-- -->.
 
 <b>Signature:</b>
 
@@ -32,6 +36,8 @@ count?: QueryCountStrategy | undefined;
 ```
 
 ## QueryInsertOptions.defaultToNull
+
+Fill missing columns in bulk inserts with `NULL` when `true` (default) or column defaults when `false`<!-- -->.
 
 <b>Signature:</b>
 

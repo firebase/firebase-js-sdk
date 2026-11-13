@@ -10,7 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FirebaseSqlError class
-Error class thrown or returned by Firebase SQL operations.
+Structured error returned in `result.error` (or thrown after `.throwOnError()`<!-- -->) when an operation fails.
+
+Use `category` to distinguish client (`'sql-client'`<!-- -->), platform (`'sql-platform'`<!-- -->), and database (`'sql-postgrest'`<!-- -->) failures, branch on `code` for programmatic handling, and inspect `details` and `hint` for database diagnostics.
 
 <b>Signature:</b>
 
@@ -23,27 +25,27 @@ export declare class FirebaseSqlError extends FirebaseError
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(code, message, category, details, hint, status)](./sql.firebasesqlerror.md#firebasesqlerrorconstructor) |  | Constructs a new instance of the <code>FirebaseSqlError</code> class |
+|  [(constructor)(code, message, category, details, hint, status)](./sql.firebasesqlerror.md#firebasesqlerrorconstructor) |  | Create a <code>FirebaseSqlError</code> instance. |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [category](./sql.firebasesqlerror.md#firebasesqlerrorcategory) |  | string | Error origin discriminator ('sql-postgrest' \| 'sql-platform' \| 'sql-client'). |
-|  [code](./sql.firebasesqlerror.md#firebasesqlerrorcode) |  | string | PostgREST wire error code or Firebase SQL platform/client error code. |
-|  [details](./sql.firebasesqlerror.md#firebasesqlerrordetails) |  | string \| undefined | Optional detailed error explanation returned by the server. |
-|  [hint](./sql.firebasesqlerror.md#firebasesqlerrorhint) |  | string \| undefined | Optional remediation hint returned by the server. |
+|  [category](./sql.firebasesqlerror.md#firebasesqlerrorcategory) |  | string | Origin category (<code>'sql-postgrest'</code>, <code>'sql-platform'</code>, or <code>'sql-client'</code>). |
+|  [code](./sql.firebasesqlerror.md#firebasesqlerrorcode) |  | string | SQLSTATE, PostgREST (<code>'PGRST*'</code>), or client <code>Code</code> identifier. |
+|  [details](./sql.firebasesqlerror.md#firebasesqlerrordetails) |  | string \| undefined | Optional diagnostic details from the server or client. |
+|  [hint](./sql.firebasesqlerror.md#firebasesqlerrorhint) |  | string \| undefined | Optional remediation hint from the server. |
 |  [status](./sql.firebasesqlerror.md#firebasesqlerrorstatus) |  | number \| undefined | Optional HTTP status code associated with the failure. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [toJSON()](./sql.firebasesqlerror.md#firebasesqlerrortojson) |  | Serializes this error into a plain JSON-compatible object. |
+|  [toJSON()](./sql.firebasesqlerror.md#firebasesqlerrortojson) |  | Serialize this error into a plain JSON object. |
 
 ## FirebaseSqlError.(constructor)
 
-Constructs a new instance of the `FirebaseSqlError` class
+Create a `FirebaseSqlError` instance.
 
 <b>Signature:</b>
 
@@ -55,16 +57,16 @@ constructor(code: string, message: string, category: string, details?: string | 
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  code | string |  |
-|  message | string |  |
-|  category | string |  |
-|  details | string \| undefined |  |
-|  hint | string \| undefined |  |
-|  status | number \| undefined |  |
+|  code | string | SQLSTATE, PostgREST (<code>'PGRST*'</code>), or client <code>Code</code> identifier. |
+|  message | string | Descriptive error message. |
+|  category | string | Origin category (<code>'sql-postgrest'</code>, <code>'sql-platform'</code>, or <code>'sql-client'</code>). |
+|  details | string \| undefined | Optional diagnostic details from the server or client. |
+|  hint | string \| undefined | Optional remediation hint from the server. |
+|  status | number \| undefined | Optional HTTP status code associated with the failure. |
 
 ## FirebaseSqlError.category
 
-Error origin discriminator ('sql-postgrest' \| 'sql-platform' \| 'sql-client').
+Origin category (`'sql-postgrest'`<!-- -->, `'sql-platform'`<!-- -->, or `'sql-client'`<!-- -->).
 
 <b>Signature:</b>
 
@@ -74,7 +76,7 @@ readonly category: string;
 
 ## FirebaseSqlError.code
 
-PostgREST wire error code or Firebase SQL platform/client error code.
+SQLSTATE, PostgREST (`'PGRST*'`<!-- -->), or client `Code` identifier.
 
 <b>Signature:</b>
 
@@ -84,7 +86,7 @@ readonly code: string;
 
 ## FirebaseSqlError.details
 
-Optional detailed error explanation returned by the server.
+Optional diagnostic details from the server or client.
 
 <b>Signature:</b>
 
@@ -94,7 +96,7 @@ readonly details?: string | undefined;
 
 ## FirebaseSqlError.hint
 
-Optional remediation hint returned by the server.
+Optional remediation hint from the server.
 
 <b>Signature:</b>
 
@@ -114,7 +116,7 @@ readonly status?: number | undefined;
 
 ## FirebaseSqlError.toJSON()
 
-Serializes this error into a plain JSON-compatible object.
+Serialize this error into a plain JSON object.
 
 <b>Signature:</b>
 
@@ -124,4 +126,20 @@ toJSON(): SerializedFirebaseSqlError;
 <b>Returns:</b>
 
 [SerializedFirebaseSqlError](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerror_interface)
+
+Plain JSON representation of this error.
+
+### Example
+
+Handle a unique constraint violation
+
+```ts
+const { error } = await sql
+  .from('tasks')
+  .insert({ id: 1, title: 'Write docs' });
+if (error?.code === '23505') {
+  console.error('Duplicate task ID:', error.details);
+}
+
+```
 

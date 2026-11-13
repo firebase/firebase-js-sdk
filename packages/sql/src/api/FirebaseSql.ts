@@ -60,14 +60,18 @@ declare module '@firebase/component' {
   }
 }
 
+/** Options for calling a PostgreSQL function with <code>{@link FirebaseSql.rpc}</code>. */
 export interface FirebaseSqlRpcOptions {
+  /** Send a `HEAD` request to return headers and count without a response body. */
   head?: boolean | undefined;
+  /** Call a read-only function with a `GET` request (passing arguments as query parameters). */
   get?: boolean | undefined;
+  /** Row count algorithm to return in `result.count`. */
   count?: QueryCountStrategy | undefined;
 }
 
 /**
- * The Firebase SQL service client instance.
+ * Client for querying tables, views, and PostgreSQL functions in Firebase SQL.
  */
 export class FirebaseSql {
   /** @internal */
@@ -86,13 +90,13 @@ export class FirebaseSql {
   >;
 
   /**
-   * Should only be called by {@linkcode getSql()}, after validating inputs.
+   * Should only be called by `getSql()`, after validating inputs.
    * @internal
    */
   constructor(
-    /** The bound FirebaseApp instance. */
+    /** The `FirebaseApp` associated with this client. */
     readonly app: FirebaseApp,
-    /** Resolved configuration settings. */
+    /** Frozen configuration settings for this client. */
     readonly settings: SqlServiceSettings,
     /** @internal */
     readonly _instanceIdentifier: string,
@@ -155,7 +159,7 @@ export class FirebaseSql {
   // Encode table and RPC names so `/`, `?`, `#`, and dot-segments cannot traverse out of
   // `/postgrest` or inject query parameters on the shared `firebasedataconnect.googleapis.com`
   // origin (deviating from `PostgrestClient`'s raw URL interpolation while leaving blank
-  // `from('')` inputs untouched so `@supabase/postgrest-js`'s raw `Error` still propagates).
+  // `from('')` inputs untouched so `PostgrestClient`'s raw `Error` still propagates).
   private _encodeResourceSegment(
     segment: string,
     preserveBlank: boolean
@@ -177,6 +181,27 @@ export class FirebaseSql {
     return encodeURIComponent(segment);
   }
 
+  /**
+   * Start a query or mutation on a table or view.
+   *
+   * @param table - Table or view name in the configured schema.
+   * @returns A `QueryBuilder` for selecting or mutating rows.
+   *
+   * @example Query a table
+   * ```sql
+   * CREATE TABLE tasks (id int8 PRIMARY KEY, title text);
+   * INSERT INTO tasks VALUES
+   *   (1, 'Write docs'),
+   *   (2, 'Ship SDK');
+   * ```
+   * ```ts
+   * const { data, error } = await sql
+   *   .from('tasks')
+   *   .select('id, title')
+   *   .returns<Task[]>();
+   * // data: [{ id: 1, title: 'Write docs' }, { id: 2, title: 'Ship SDK' }]
+   * ```
+   */
   from(table: string): QueryBuilder {
     if (this._state.active === null) {
       throw new FirebaseSqlError(
@@ -197,14 +222,26 @@ export class FirebaseSql {
   }
 
   /**
-   * Calls a Postgres stored procedure or function (RPC).
+   * Call a PostgreSQL function (stored procedure) in the configured schema.
    *
-   * Untyped RPC results default to `unknown` for type safety. Call `.returns<T>()` or
-   * `.overrideTypes<T>()` on the returned builder to specify the expected return type.
+   * @remarks
+   * Untyped calls default to `unknown` — chain `.returns<T>()` or `.overrideTypes<T>()` to type the result.
    *
-   * @param fn - The function name to call.
-   * @param params - Named arguments to pass to the function.
-   * @param options - Execution options.
+   * @param fn - PostgreSQL function name in the configured schema.
+   * @param params - Optional named arguments object passed to the function.
+   * @param options - Optional execution and count settings.
+   *
+   * @example Call a PostgreSQL function
+   * ```sql
+   * CREATE FUNCTION add_numbers(a int4, b int4) RETURNS int4
+   *   LANGUAGE sql IMMUTABLE AS $$ SELECT a + b $$;
+   * ```
+   * ```ts
+   * const { data, error } = await sql
+   *   .rpc('add_numbers', { a: 2, b: 3 })
+   *   .returns<number>();
+   * // data: 5
+   * ```
    */
   rpc<
     Args extends object & {
@@ -239,17 +276,40 @@ export class FirebaseSql {
 }
 
 /**
- * Returns the cached or newly initialized `FirebaseSql` instance for the default `FirebaseApp`.
+ * Return the cached or newly initialized `FirebaseSql` client for the default `FirebaseApp`.
  *
- * @param settings - Configuration settings for the Firebase SQL service instance.
+ * @remarks
+ * Instances are cached per `(app, serviceId, location, schemaName)` — custom `headers` in `settings` are bound when the instance is first created; use `.setHeader()` on a query for per-request headers.
+ *
+ * @param settings - Service, region, and schema configuration.
+ * @returns The `FirebaseSql` client for the default `FirebaseApp`.
+ *
+ * @example Initialize Firebase SQL with the default app
+ * ```ts
+ * import { initializeApp } from 'firebase/app';
+ * import { getSql } from 'firebase/sql';
+ *
+ * initializeApp({ projectId: 'my-project' });
+ * const sql = getSql({ serviceId: 'my-service', location: 'us-central1' });
+ * ```
  */
 export function getSql(settings: SqlServiceSettings): FirebaseSql;
 
 /**
- * Returns the cached or newly initialized `FirebaseSql` instance for the given `FirebaseApp`.
+ * Return the cached or newly initialized `FirebaseSql` client for the given `FirebaseApp`.
  *
- * @param app - The `FirebaseApp` instance to bind to.
- * @param settings - Configuration settings for the Firebase SQL service instance.
+ * @param app - The `FirebaseApp` instance to use.
+ * @param settings - Service, region, and schema configuration.
+ * @returns The `FirebaseSql` client for `app`.
+ *
+ * @example Initialize Firebase SQL with a specific app
+ * ```ts
+ * import { initializeApp } from 'firebase/app';
+ * import { getSql } from 'firebase/sql';
+ *
+ * const app = initializeApp({ projectId: 'my-project' }, 'secondary');
+ * const sql = getSql(app, { serviceId: 'my-service', location: 'us-central1' });
+ * ```
  */
 export function getSql(
   app: FirebaseApp,
@@ -319,9 +379,18 @@ export function getSql(
 }
 
 /**
- * Terminates the `FirebaseSql` instance and removes it from the app's component registry.
+ * Terminate a `FirebaseSql` client, abort in-flight requests, and release cached resources.
  *
- * @param sql - The `FirebaseSql` instance to terminate.
+ * @param sql - The `FirebaseSql` client to terminate.
+ * @returns A promise that resolves when termination completes.
+ *
+ * @example Terminate a client instance
+ * ```ts
+ * import { getSql, terminate } from 'firebase/sql';
+ *
+ * const sql = getSql({ serviceId: 'my-service', location: 'us-central1' });
+ * await terminate(sql);
+ * ```
  */
 export function terminate(sql: FirebaseSql): Promise<void> {
   return sql._delete();

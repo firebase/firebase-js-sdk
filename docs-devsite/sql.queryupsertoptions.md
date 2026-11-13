@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QueryUpsertOptions interface
+Options for upserting rows in <code>[QueryBuilder.upsert()](./sql.querybuilder.md#querybuilderupsert)</code>.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,12 +22,14 @@ export interface QueryUpsertOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [count](./sql.queryupsertoptions.md#queryupsertoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined |  |
-|  [defaultToNull](./sql.queryupsertoptions.md#queryupsertoptionsdefaulttonull) | boolean \| undefined |  |
-|  [ignoreDuplicates](./sql.queryupsertoptions.md#queryupsertoptionsignoreduplicates) | boolean \| undefined |  |
-|  [onConflict](./sql.queryupsertoptions.md#queryupsertoptionsonconflict) | string \| undefined |  |
+|  [count](./sql.queryupsertoptions.md#queryupsertoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined | Row-counting algorithm to return in <code>result.count</code>. |
+|  [defaultToNull](./sql.queryupsertoptions.md#queryupsertoptionsdefaulttonull) | boolean \| undefined | Fill missing columns in bulk upserts with <code>NULL</code> when <code>true</code> (default) or column defaults when <code>false</code>. |
+|  [ignoreDuplicates](./sql.queryupsertoptions.md#queryupsertoptionsignoreduplicates) | boolean \| undefined | Ignore conflicting rows instead of merging updates when <code>true</code>. |
+|  [onConflict](./sql.queryupsertoptions.md#queryupsertoptionsonconflict) | string \| undefined | Unique column name(s), comma-separated, used to detect conflicts instead of the primary key. |
 
 ## QueryUpsertOptions.count
+
+Row-counting algorithm to return in `result.count`<!-- -->.
 
 <b>Signature:</b>
 
@@ -35,6 +39,8 @@ count?: QueryCountStrategy | undefined;
 
 ## QueryUpsertOptions.defaultToNull
 
+Fill missing columns in bulk upserts with `NULL` when `true` (default) or column defaults when `false`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -43,6 +49,8 @@ defaultToNull?: boolean | undefined;
 
 ## QueryUpsertOptions.ignoreDuplicates
 
+Ignore conflicting rows instead of merging updates when `true`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -50,6 +58,8 @@ ignoreDuplicates?: boolean | undefined;
 ```
 
 ## QueryUpsertOptions.onConflict
+
+Unique column name(s), comma-separated, used to detect conflicts instead of the primary key.
 
 <b>Signature:</b>
 

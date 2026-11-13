@@ -18,7 +18,7 @@
 /**
  * PostgREST client configuration options for untyped databases.
  *
- * `PostgrestVersion: '14'` satisfies `@supabase/postgrest-js`'s `IsPostgrestVersionGreaterThan12`
+ * `PostgrestVersion: '14'` satisfies `PostgrestClient`'s `IsPostgrestVersionGreaterThan12`
  * type-level feature gate, enabling modern PostgREST capabilities such as `.maxAffected()`
  * and spread on many relationships.
  *
@@ -37,7 +37,7 @@ export interface UntypedRelationship {
   referencedColumns: string[];
 }
 
-// Express `unknown` as `NonNullable<unknown> | null | undefined` so `@supabase/postgrest-js`'s
+// Express `unknown` as `NonNullable<unknown> | null | undefined` so `PostgrestClient`'s
 // `JsonPathToType` (`ContainsNull<T> ? JsonPathToType<Exclude<T, null>, Path> : ...`) strips
 // `null` in one step instead of tail-recursing infinitely on `Exclude<unknown, null> = unknown`.
 /** @internal */

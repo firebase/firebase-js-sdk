@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TransformBuilder interface
+Query builder supporting ordering, pagination, row cardinality, and output format modifiers.
+
 <b>Signature:</b>
 
 ```typescript
@@ -21,22 +23,24 @@ export interface TransformBuilder<Result$1, Method = unknown, ThrowOnError exten
 
 |  Method | Description |
 |  --- | --- |
-|  [abortSignal(signal)](./sql.transformbuilder.md#transformbuilderabortsignal) |  |
-|  [csv()](./sql.transformbuilder.md#transformbuildercsv) |  |
-|  [explain(options)](./sql.transformbuilder.md#transformbuilderexplain) |  |
-|  [geojson()](./sql.transformbuilder.md#transformbuildergeojson) |  |
-|  [limit(rows, options)](./sql.transformbuilder.md#transformbuilderlimit) |  |
-|  [maxAffected(rows)](./sql.transformbuilder.md#transformbuildermaxaffected) |  |
-|  [maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle) |  |
-|  [order(column, options)](./sql.transformbuilder.md#transformbuilderorder) |  |
-|  [range(from, to, options)](./sql.transformbuilder.md#transformbuilderrange) |  |
-|  [returns()](./sql.transformbuilder.md#transformbuilderreturns) |  |
-|  [rollback()](./sql.transformbuilder.md#transformbuilderrollback) |  |
-|  [select(columns)](./sql.transformbuilder.md#transformbuilderselect) |  |
-|  [single()](./sql.transformbuilder.md#transformbuildersingle) |  |
-|  [throwOnError()](./sql.transformbuilder.md#transformbuilderthrowonerror) |  |
+|  [abortSignal(signal)](./sql.transformbuilder.md#transformbuilderabortsignal) | Attach an <code>AbortSignal</code> to cancel the in-flight HTTP request. |
+|  [csv()](./sql.transformbuilder.md#transformbuildercsv) | Format <code>result.data</code> as a comma-separated values (CSV) string including a header row. |
+|  [explain(options)](./sql.transformbuilder.md#transformbuilderexplain) | Return the PostgreSQL <code>EXPLAIN</code> execution plan for the query instead of its row results. |
+|  [geojson()](./sql.transformbuilder.md#transformbuildergeojson) | Format <code>result.data</code> as a GeoJSON <code>FeatureCollection</code> object. |
+|  [limit(rows, options)](./sql.transformbuilder.md#transformbuilderlimit) | Limit the query result to at most <code>rows</code> rows. |
+|  [maxAffected(rows)](./sql.transformbuilder.md#transformbuildermaxaffected) | Fail the mutation or RPC if more than <code>rows</code> rows are affected. |
+|  [maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle) | Unwrap <code>result.data</code> to a single row object, or <code>null</code> when zero rows match. |
+|  [order(column, options)](./sql.transformbuilder.md#transformbuilderorder) | Sort query results by <code>column</code>. |
+|  [range(from, to, options)](./sql.transformbuilder.md#transformbuilderrange) | Limit the query result to rows within the inclusive zero-based index range <code>[from, to]</code>. |
+|  [returns()](./sql.transformbuilder.md#transformbuilderreturns) | Set the TypeScript row or payload type for <code>result.data</code> while keeping filter and transform methods available. |
+|  [rollback()](./sql.transformbuilder.md#transformbuilderrollback) | Run the query or mutation inside a transaction that is rolled back at the end of the request. |
+|  [select(columns)](./sql.transformbuilder.md#transformbuilderselect) | Return rows modified by an <code>insert</code>, <code>upsert</code>, <code>update</code>, or <code>delete</code> operation, or project columns from a table-valued <code>rpc</code> result. |
+|  [single()](./sql.transformbuilder.md#transformbuildersingle) | Unwrap <code>result.data</code> to a single row object instead of an array. |
+|  [throwOnError()](./sql.transformbuilder.md#transformbuilderthrowonerror) | Throw a <code>FirebaseSqlError</code> when the operation fails instead of returning it in <code>result.error</code>. |
 
 ## TransformBuilder.abortSignal()
+
+Attach an `AbortSignal` to cancel the in-flight HTTP request.
 
 <b>Signature:</b>
 
@@ -48,13 +52,31 @@ abortSignal(signal: AbortSignal): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  signal | AbortSignal |  |
+|  signal | AbortSignal | Signal from an <code>AbortController</code> or <code>AbortSignal.timeout()</code>. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Cancel a query with AbortController
+
+```ts
+const controller = new AbortController();
+const responsePromise = sql
+  .from('tasks')
+  .select()
+  .abortSignal(controller.signal);
+
+controller.abort();
+const { data, error } = await responsePromise;
+
+```
+
 ## TransformBuilder.csv()
+
+Format `result.data` as a comma-separated values (CSV) string including a header row.
 
 <b>Signature:</b>
 
@@ -65,7 +87,31 @@ csv(): Builder<string, ThrowOnError>;
 
 [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;string, ThrowOnError&gt;
 
+### Example
+
+Export rows as CSV
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs'),
+  (2, 'Ship SDK');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .order('id')
+  .csv();
+// data: "id,title\n1,Write docs\n2,Ship SDK"
+
+```
+
 ## TransformBuilder.explain()
+
+Return the PostgreSQL `EXPLAIN` execution plan for the query instead of its row results.
 
 <b>Signature:</b>
 
@@ -77,13 +123,27 @@ explain(options?: Readonly<TransformExplainOptions> | undefined): Builder<Array<
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | Readonly&lt;[TransformExplainOptions](./sql.transformexplainoptions.md#transformexplainoptions_interface)<!-- -->&gt; \| undefined |  |
+|  options | Readonly&lt;[TransformExplainOptions](./sql.transformexplainoptions.md#transformexplainoptions_interface)<!-- -->&gt; \| undefined | Optional <code>EXPLAIN</code> flags and output format. |
 
 <b>Returns:</b>
 
 [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;Array&lt;Record&lt;string, unknown&gt;&gt;, ThrowOnError&gt; \| [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;string, ThrowOnError&gt;
 
+### Example
+
+Inspect a query execution plan
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .explain({ analyze: true, format: 'json' });
+
+```
+
 ## TransformBuilder.geojson()
+
+Format `result.data` as a GeoJSON `FeatureCollection` object.
 
 <b>Signature:</b>
 
@@ -94,7 +154,27 @@ geojson(): Builder<Record<string, unknown>, ThrowOnError>;
 
 [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;Record&lt;string, unknown&gt;, ThrowOnError&gt;
 
+### Example
+
+Fetch landmarks as GeoJSON
+
+```sql
+CREATE TABLE landmarks (id int8 PRIMARY KEY, name text, geom geometry(Point, 4326));
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('landmarks')
+  .select('id, name, geom')
+  .geojson();
+// data: { type: 'FeatureCollection', features: [...] }
+
+```
+
 ## TransformBuilder.limit()
+
+Limit the query result to at most `rows` rows.
 
 <b>Signature:</b>
 
@@ -106,14 +186,40 @@ limit(rows: number, options?: Readonly<TransformLimitOptions> | undefined): this
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  rows | number |  |
-|  options | Readonly&lt;[TransformLimitOptions](./sql.transformlimitoptions.md#transformlimitoptions_interface)<!-- -->&gt; \| undefined |  |
+|  rows | number | Maximum number of rows to return. |
+|  options | Readonly&lt;[TransformLimitOptions](./sql.transformlimitoptions.md#transformlimitoptions_interface)<!-- -->&gt; \| undefined | Optional referenced table settings. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Return the first 2 tasks
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs'),
+  (2, 'Add tests'),
+  (3, 'Ship SDK');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .order('id')
+  .limit(2)
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Write docs' }, { id: 2, title: 'Add tests' }]
+
+```
+
 ## TransformBuilder.maxAffected()
+
+Fail the mutation or RPC if more than `rows` rows are affected.
 
 <b>Signature:</b>
 
@@ -125,13 +231,17 @@ maxAffected(rows: number): Method extends 'PATCH' | 'DELETE' | 'RPC' ? this : In
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  rows | number |  |
+|  rows | number | Maximum number of rows allowed to be modified. |
 
 <b>Returns:</b>
 
 Method extends 'PATCH' \| 'DELETE' \| 'RPC' ? this : [InvalidMethodError](./sql.invalidmethoderror.md#invalidmethoderror_interface)<!-- -->&lt;'maxAffected method only available on update or delete'&gt;
 
 ## TransformBuilder.maybeSingle()
+
+Unwrap `result.data` to a single row object, or `null` when zero rows match.
+
+Fails with a `FirebaseSqlError` if the query returns more than one row.
 
 <b>Signature:</b>
 
@@ -142,7 +252,30 @@ maybeSingle<ResultOne = unknown extends Result$1 ? Record<string, unknown> : Res
 
 [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;ResultOne \| null, ThrowOnError&gt;
 
+### Example
+
+Fetch an optional row
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .eq('id', 99)
+  .maybeSingle<Task>();
+// data: null
+
+```
+
 ## TransformBuilder.order()
+
+Sort query results by `column`<!-- -->.
 
 <b>Signature:</b>
 
@@ -154,14 +287,38 @@ order(column: string, options?: Readonly<TransformOrderOptions> | undefined): th
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  options | Readonly&lt;[TransformOrderOptions](./sql.transformorderoptions.md#transformorderoptions_interface)<!-- -->&gt; \| undefined |  |
+|  column | string | Column to sort by. |
+|  options | Readonly&lt;[TransformOrderOptions](./sql.transformorderoptions.md#transformorderoptions_interface)<!-- -->&gt; \| undefined | Optional sort direction, null ordering, and referenced table settings. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Sort products by price descending
+
+```sql
+CREATE TABLE products (id int8 PRIMARY KEY, name text, price numeric);
+INSERT INTO products VALUES
+  (1, 'Pen', 2.50),
+  (2, 'Notebook', 12.00);
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('products')
+  .select('id, name, price')
+  .order('price', { ascending: false })
+  .returns<Product[]>();
+// data: [{ id: 2, name: 'Notebook', price: 12 }, { id: 1, name: 'Pen', price: 2.5 }]
+
+```
+
 ## TransformBuilder.range()
+
+Limit the query result to rows within the inclusive zero-based index range `[from, to]`<!-- -->.
 
 <b>Signature:</b>
 
@@ -173,15 +330,43 @@ range(from: number, to: number, options?: Readonly<TransformRangeOptions> | unde
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  from | number |  |
-|  to | number |  |
-|  options | Readonly&lt;[TransformRangeOptions](./sql.transformrangeoptions.md#transformrangeoptions_interface)<!-- -->&gt; \| undefined |  |
+|  from | number | Zero-based starting row index (inclusive). |
+|  to | number | Zero-based ending row index (inclusive). |
+|  options | Readonly&lt;[TransformRangeOptions](./sql.transformrangeoptions.md#transformrangeoptions_interface)<!-- -->&gt; \| undefined | Optional referenced table settings. |
 
 <b>Returns:</b>
 
 this
 
+### Example
+
+Fetch a page of rows
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs'),
+  (2, 'Add tests'),
+  (3, 'Ship SDK');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .order('id')
+  .range(1, 2)
+  .returns<Task[]>();
+// data: [{ id: 2, title: 'Add tests' }, { id: 3, title: 'Ship SDK' }]
+
+```
+
 ## TransformBuilder.returns()
+
+Set the TypeScript row or payload type for `result.data` while keeping filter and transform methods available.
+
+Can be chained before `.single()`<!-- -->, `.maybeSingle()`<!-- -->, or additional transforms; array vs. single-object cardinality must match the query shape.
 
 <b>Signature:</b>
 
@@ -192,7 +377,31 @@ returns<NewResult>(): TransformBuilder<CheckMatchingArrayTypes<Result$1, NewResu
 
 [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface)<!-- -->&lt;[CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->&lt;Result$1, NewResult&gt;, Method, ThrowOnError&gt;
 
+### Example
+
+Type a query before calling single
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .eq('id', 1)
+  .returns<Task[]>()
+  .single();
+// data: { id: 1, title: 'Write docs' }
+
+```
+
 ## TransformBuilder.rollback()
+
+Run the query or mutation inside a transaction that is rolled back at the end of the request.
 
 <b>Signature:</b>
 
@@ -203,7 +412,29 @@ rollback(): this;
 
 this
 
+### Example
+
+Dry-run an insert with rollback
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text);
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .insert({ id: 1, title: 'Dry run' })
+  .select()
+  .rollback()
+  .returns<Task[]>();
+// data: [{ id: 1, title: 'Dry run' }] (not persisted)
+
+```
+
 ## TransformBuilder.select()
+
+Return rows modified by an `insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, or `delete` operation, or project columns from a table-valued `rpc` result.
 
 <b>Signature:</b>
 
@@ -215,13 +446,39 @@ select(columns?: string | undefined): FilterBuilder<Method extends 'RPC' ? unkno
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  columns | string \| undefined |  |
+|  columns | string \| undefined | Comma-separated columns to return. Defaults to <code>'*'</code>. |
 
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;Method extends 'RPC' ? unknown extends Result$1 ? Result$1 : Result$1 extends readonly unknown\[\] ? Array&lt;Record&lt;string, unknown&gt;&gt; : Record&lt;string, unknown&gt; : Array&lt;Record&lt;string, unknown&gt;&gt;, Method, ThrowOnError&gt;
 
+### Example
+
+Return rows from an update
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text, done boolean);
+INSERT INTO tasks VALUES
+  (1, 'Write docs', false);
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .update({ done: true })
+  .eq('id', 1)
+  .select('id, done')
+  .returns<Task[]>();
+// data: [{ id: 1, done: true }]
+
+```
+
 ## TransformBuilder.single()
+
+Unwrap `result.data` to a single row object instead of an array.
+
+Fails with a `FirebaseSqlError` if the query returns zero rows or more than one row — apply filters before calling `.single()`<!-- -->.
 
 <b>Signature:</b>
 
@@ -232,7 +489,31 @@ single<ResultOne = unknown extends Result$1 ? Record<string, unknown> : Result$1
 
 [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;ResultOne, ThrowOnError&gt;
 
+### Example
+
+Fetch a single row by primary key
+
+```sql
+CREATE TABLE tasks (id int8 PRIMARY KEY, title text);
+INSERT INTO tasks VALUES
+  (1, 'Write docs'),
+  (2, 'Ship SDK');
+
+```
+
+```ts
+const { data, error } = await sql
+  .from('tasks')
+  .select('id, title')
+  .eq('id', 1)
+  .single<Task>();
+// data: { id: 1, title: 'Write docs' }
+
+```
+
 ## TransformBuilder.throwOnError()
+
+Throw a `FirebaseSqlError` when the operation fails instead of returning it in `result.error`<!-- -->.
 
 <b>Signature:</b>
 

@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FirebaseSqlRpcOptions interface
+Options for calling a PostgreSQL function with <code>[FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)</code>.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,11 +22,13 @@ export interface FirebaseSqlRpcOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [count](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined |  |
-|  [get](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptionsget) | boolean \| undefined |  |
-|  [head](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptionshead) | boolean \| undefined |  |
+|  [count](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined | Row count algorithm to return in <code>result.count</code>. |
+|  [get](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptionsget) | boolean \| undefined | Call a read-only function with a <code>GET</code> request (passing arguments as query parameters). |
+|  [head](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptionshead) | boolean \| undefined | Send a <code>HEAD</code> request to return headers and count without a response body. |
 
 ## FirebaseSqlRpcOptions.count
+
+Row count algorithm to return in `result.count`<!-- -->.
 
 <b>Signature:</b>
 
@@ -34,6 +38,8 @@ count?: QueryCountStrategy | undefined;
 
 ## FirebaseSqlRpcOptions.get
 
+Call a read-only function with a `GET` request (passing arguments as query parameters).
+
 <b>Signature:</b>
 
 ```typescript
@@ -41,6 +47,8 @@ get?: boolean | undefined;
 ```
 
 ## FirebaseSqlRpcOptions.head
+
+Send a `HEAD` request to return headers and count without a response body.
 
 <b>Signature:</b>
 
