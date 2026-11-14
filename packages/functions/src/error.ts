@@ -196,3 +196,18 @@ export function _errorForResponse(
     url
   );
 }
+
+/**
+ * Returns the error for a request whose `fetch` rejected, so no HTTP response
+ * was received: the network failed or the browser blocked the response (for
+ * example a missing CORS header). Carries the browser's own failure message
+ * and HTTP status 0.
+ */
+export function _errorForNetworkFailure(
+  fetchError: unknown,
+  url?: string
+): FunctionsError {
+  const reason =
+    fetchError instanceof Error ? fetchError.message : String(fetchError);
+  return new FunctionsError('unavailable', `${reason} [0]`, undefined, url);
+}
