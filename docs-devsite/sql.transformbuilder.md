@@ -10,9 +10,11 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TransformBuilder interface
-Lazy PostgREST result-shaping builder supporting post-mutation projection (`select`<!-- -->), ordering, pagination (`limit`<!-- -->, `range`<!-- -->), safety guards (`maxAffected`<!-- -->, `rollback`<!-- -->, `abortSignal`<!-- -->), and cardinality/format narrowing (`single`<!-- -->, `maybeSingle`<!-- -->, `csv`<!-- -->, `geojson`<!-- -->, `explain`<!-- -->).
+Lazy PostgREST result-shaping builder supporting post-mutation projection (`select`<!-- -->), ordering, pagination (`limit`<!-- -->, `range`<!-- -->), server preferences (`maxAffected`<!-- -->, `rollback`<!-- -->), client fetch cancellation (`abortSignal`<!-- -->), and cardinality/format narrowing (`single`<!-- -->, `maybeSingle`<!-- -->, `csv`<!-- -->, `geojson`<!-- -->, `explain`<!-- -->).
 
-\*\*Builder Progression:\*\* Base interface of [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) and subtype of [Builder](./sql.builder.md#builder_interface)<!-- -->. Calling `.single()`<!-- -->, `.maybeSingle()`<!-- -->, `.csv()`<!-- -->, `.geojson()`<!-- -->, or `.explain()` narrows the static return type to [Builder](./sql.builder.md#builder_interface)<!-- -->—always apply filters (`eq`<!-- -->, `in`<!-- -->), `order()`<!-- -->, `limit()`<!-- -->, `range()`<!-- -->, and `maxAffected()` \*\*before\*\* those terminal format modifiers.
+Builder progression: base interface of [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) and subtype of [Builder](./sql.builder.md#builder_interface)<!-- -->. Calling `.single()`<!-- -->, `.maybeSingle()`<!-- -->, `.csv()`<!-- -->, `.geojson()`<!-- -->, or `.explain()` narrows the static return type to [Builder](./sql.builder.md#builder_interface)<!-- -->—always apply filters (`eq`<!-- -->, `in`<!-- -->), `order()`<!-- -->, `limit()`<!-- -->, `range()`<!-- -->, and `maxAffected()` before those terminal format modifiers.
+
+Note that `limit()` and `range()` both set the `limit` URL parameter on the target table (or `referencedTable`<!-- -->), so chaining both overwrites the previous `limit` (last call wins).
 
 <b>Signature:</b>
 
@@ -25,28 +27,30 @@ export interface TransformBuilder<Result$1, Method = unknown, ThrowOnError exten
 
 |  Method | Description |
 |  --- | --- |
-|  [abortSignal(signal)](./sql.transformbuilder.md#transformbuilderabortsignal) | Attaches an <code>AbortSignal</code> to cancel the underlying HTTP <code>fetch</code> request (and any pending retries) when aborted. |
+|  [abortSignal(signal)](./sql.transformbuilder.md#transformbuilderabortsignal) | Attaches an <code>AbortSignal</code> to cancel the client-side HTTP <code>fetch</code> request (and any pending retries) when aborted. |
 |  [csv()](./sql.transformbuilder.md#transformbuildercsv) | Requests the response payload serialized as a raw CSV string (<code>Accept: text/csv</code>), including a header row. |
 |  [explain(options)](./sql.transformbuilder.md#transformbuilderexplain) | Requests the PostgreSQL <code>EXPLAIN</code> execution plan for this query instead of row data (<code>Accept: application/vnd.pgrst.plan+&lt;format&gt;; ...</code>). |
 |  [geojson()](./sql.transformbuilder.md#transformbuildergeojson) | Requests the response payload formatted as a GeoJSON <code>FeatureCollection</code> object (<code>Accept: application/geo+json</code>). |
 |  [limit(rows, options)](./sql.transformbuilder.md#transformbuilderlimit) | Caps the maximum number of rows returned (<code>?limit=&lt;rows&gt;</code> or <code>?&lt;referencedTable&gt;.limit=&lt;rows&gt;</code>). |
-|  [maxAffected(rows)](./sql.transformbuilder.md#transformbuildermaxaffected) | Enforces a server-side safety ceiling (<code>Prefer: handling=strict, max-affected=&lt;rows&gt;</code>) so PostgREST rolls back the transaction if an <code>update</code>, <code>delete</code>, or <code>rpc</code> operation affects more than <code>rows</code> rows. |
-|  [maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle) | Unwraps a <code>0</code>-or-<code>1</code> row result into <code>ResultOne &#124; null</code>, failing only if \*\*more than <code>1</code> row\*\* matches. |
+|  [maxAffected(rows)](./sql.transformbuilder.md#transformbuildermaxaffected) | Appends <code>Prefer: handling=strict</code> and <code>Prefer: max-affected=&lt;rows&gt;</code> to request that PostgREST roll back the transaction if the operation affects more than <code>rows</code> rows. |
+|  [maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle) | Unwraps a <code>0</code>-or-<code>1</code> row array result client-side into <code>ResultOne &#124; null</code>, failing client-side if <code>2</code> or more rows are returned. |
 |  [order(column, options)](./sql.transformbuilder.md#transformbuilderorder) | Appends an <code>ORDER BY</code> clause (<code>?order=&lt;column&gt;.&lt;asc&#124;desc&gt;[.&lt;nullsfirst&#124;nullslast&gt;]</code>) to sort parent rows or an embedded child relation's array. |
-|  [range(from, to, options)](./sql.transformbuilder.md#transformbuilderrange) | Slices the result set to the \*\*0-based inclusive\*\* index window <code>[from, to]</code> (<code>?offset=&lt;from&gt;&amp;limit=&lt;to - from + 1&gt;</code>). |
-|  [returns()](./sql.transformbuilder.md#transformbuilderreturns) | Replaces the static TypeScript type of <code>result.data</code> while keeping [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) methods available. |
-|  [rollback()](./sql.transformbuilder.md#transformbuilderrollback) | Executes the request inside a server-side PostgreSQL transaction that is \*\*rolled back\*\* instead of committed (<code>Prefer: tx=rollback</code>). |
+|  [range(from, to, options)](./sql.transformbuilder.md#transformbuilderrange) | Slices the result set to the 0-based inclusive index window <code>[from, to]</code> (<code>?offset=&lt;from&gt;&amp;limit=&lt;to - from + 1&gt;</code>). |
+|  [returns()](./sql.transformbuilder.md#transformbuilderreturns) | Legacy result-type override method replacing the static TypeScript type of <code>result.data</code> while keeping [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) methods available. |
+|  [rollback()](./sql.transformbuilder.md#transformbuilderrollback) | Requests (<code>Prefer: tx=rollback</code>) that PostgREST roll back this request's transaction instead of committing it. |
 |  [select(columns)](./sql.transformbuilder.md#transformbuilderselect) | Requests that PostgREST return the affected row representation (<code>Prefer: return=representation</code>) projected to <code>columns</code> after <code>insert</code>, <code>upsert</code>, <code>update</code>, <code>delete</code>, or set-returning <code>rpc</code>. |
-|  [single()](./sql.transformbuilder.md#transformbuildersingle) | Unwraps a 1-row array result into a single JSON object (<code>Accept: application/vnd.pgrst.object+json</code>) and fails if the query matches <code>0</code> rows or more than <code>1</code> row. |
-|  [throwOnError()](./sql.transformbuilder.md#transformbuilderthrowonerror) | Switches this builder into throwing mode so awaiting it rejects with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) on failure while preserving [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) chaining. |
+|  [single()](./sql.transformbuilder.md#transformbuildersingle) | Unwraps a 1-row array result into a single JSON object (<code>Accept: application/vnd.pgrst.object+json</code>) and fails on the server if the query matches <code>0</code> rows or more than <code>1</code> row. |
+|  [throwOnError()](./sql.transformbuilder.md#transformbuilderthrowonerror) | Switches this builder into throwing mode so awaiting it rejects with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) on failure while preserving [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) chaining. See [Builder.throwOnError()](./sql.builder.md#builderthrowonerror)<!-- -->. |
 
 ## TransformBuilder.abortSignal()
 
-Attaches an `AbortSignal` to cancel the underlying HTTP `fetch` request (and any pending retries) when aborted.
+Attaches an `AbortSignal` to cancel the client-side HTTP `fetch` request (and any pending retries) when aborted.
 
-\*\*When to use:\*\* Enforcing per-query deadlines (`AbortSignal.timeout(ms)`<!-- -->) or cancelling in-flight queries when a UI component unmounts or user search input changes.
+When to use: enforcing per-query client deadlines (`AbortSignal.timeout(ms)`<!-- -->) or cancelling in-flight read queries when a UI component unmounts or user search input changes.
 
-\*\*Behavior &amp; Side Effects:\*\* Composes `signal` with the client's internal [terminate()](./sql.md#terminate_bc2cb94) signal. When `signal` aborts before completion, awaiting the builder resolves to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) (`status: 0`<!-- -->, `category: 'sql-client'`<!-- -->, `code: 'other'`<!-- -->) by default, or rejects with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) when [Builder.throwOnError()](./sql.builder.md#builderthrowonerror) is enabled.
+Behavior and side effects: composes `signal` with the client's internal [terminate()](./sql.md#terminate_bc2cb94) signal. When `signal` aborts before completion, awaiting the builder resolves to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) with `res.status === 0`<!-- -->, `res.error.category === 'sql-client'`<!-- -->, and `res.error.code === 'other'` (or rejects with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) where `err.status === undefined` when [Builder.throwOnError()](./sql.builder.md#builderthrowonerror) is enabled; note that calling [terminate()](./sql.md#terminate_bc2cb94) mid-request yields `code === 'not-initialized'` instead of `'other'`<!-- -->).
+
+Write-safety and reuse caveat: aborting cancels only the client-side `fetch`<!-- -->—a mutation that has already reached the server may still commit, and the resulting `code: 'other'` failure is indistinguishable from a pre-flight network drop, so do not blindly retry aborted writes. The `signal` stays attached to this mutable builder instance (after it aborts, every later `await` fails immediately); create a fresh signal and builder per execution.
 
 <b>Signature:</b>
 
@@ -68,7 +72,7 @@ This builder for continued chaining.
 
 ### Example
 
-\*\*Enforce a 3-second timeout on a query\*\*
+Enforce a 3-second client timeout on a read query:
 
 ```ts
 const res = await sql
@@ -82,11 +86,11 @@ const res = await sql
 
 Requests the response payload serialized as a raw CSV string (`Accept: text/csv`<!-- -->), including a header row.
 
-\*\*When to use:\*\* Exporting query or mutation results directly as Comma-Separated Values text without client-side JSON-to-CSV formatting.
+When to use: exporting `select()` results (or write results when `.select(...)` is chained before `.csv()`<!-- -->) directly as Comma-Separated Values text.
 
-\*\*Do NOT use:\*\* Together with [.stripNulls()](./sql.builder.md#builderstripnulls)<!-- -->—calling `.csv().stripNulls()` throws a synchronous `Error('stripNulls() cannot be used with csv()')`<!-- -->.
+Do not use with [.stripNulls()](./sql.builder.md#builderstripnulls)<!-- -->—calling `.csv().stripNulls()` throws a synchronous `Error('stripNulls() cannot be used with csv()')`<!-- -->.
 
-\*\*Behavior &amp; Side Effects:\*\* - \*\*Builder Progression:\*\* `TransformBuilder -> Builder<string, ThrowOnError>`<!-- -->. Terminal format modifier—chain all filters, `order()`<!-- -->, and `limit()` \*\*before\*\* `.csv()`<!-- -->. - Mutates this builder's `Accept` header in place without network I/O.
+Behavior and side effects: builder progression is `TransformBuilder -> Builder<string, ThrowOnError>`<!-- -->. Terminal format modifier—chain all filters, `order()`<!-- -->, `limit()`<!-- -->, and (for writes) `.select(...)` before `.csv()`<!-- -->. On writes without `.select(...)` before `.csv()`<!-- -->, PostgREST returns an empty body and `res.data` resolves to `null` at runtime despite the `string` type.
 
 <b>Signature:</b>
 
@@ -97,11 +101,11 @@ csv(): Builder<string, ThrowOnError>;
 
 [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;string, ThrowOnError&gt;
 
-A [Builder](./sql.builder.md#builder_interface) whose `data` resolves to a `string` containing the CSV document.
+A [Builder](./sql.builder.md#builder_interface) whose `data` resolves to a `string` containing the CSV document (or `null` at runtime if the response body is empty).
 
 ### Example
 
-\*\*Export attendee registrations for an event as CSV\*\*
+Export attendee registrations for an event as CSV:
 
 ```ts
 const res = await sql
@@ -121,9 +125,9 @@ if (res.success) {
 
 Requests the PostgreSQL `EXPLAIN` execution plan for this query instead of row data (`Accept: application/vnd.pgrst.plan+<format>; ...`<!-- -->).
 
-\*\*Preconditions:\*\* - PostgREST's `db-plan-enabled` server configuration must be enabled; otherwise the server rejects the `application/vnd.pgrst.plan+*` media type with HTTP `406`<!-- -->. - Passing `{ analyze: true }` \*\*executes\*\* the underlying SQL statement—chain [.rollback()](./sql.transformbuilder.md#transformbuilderrollback) \*before\* `.explain({ analyze: true })` when profiling `insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, or `delete` statements so changes are not committed!
+Preconditions: PostgREST's `db-plan-enabled` server configuration must be enabled; otherwise the server rejects the `application/vnd.pgrst.plan+*` media type with HTTP `406`<!-- -->. Passing `{ analyze: true }` executes the underlying SQL statement—chaining [.rollback()](./sql.transformbuilder.md#transformbuilderrollback) before `.explain({ analyze: true })` rolls back `insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, or `delete` statements only if the backend's PostgREST `db-tx-end` configuration permits `Prefer: tx=rollback` overrides (otherwise the write commits).
 
-\*\*Behavior &amp; Side Effects:\*\* - \*\*Builder Progression:\*\* `TransformBuilder -> Builder<Array<Record<string, unknown>>, ThrowOnError> | Builder<string, ThrowOnError>`<!-- -->. Terminal format modifier—place at the end of your filter/transform chain. - \*\*Do NOT chain `.overrideTypes()` or `.returns()` after `.explain()`<!-- -->:\*\* Because `explain()` returns a union of array and `string` builders, any array or non-array type override fails compile-time cardinality checking on the opposite union branch. `await` `.explain(...)` directly and narrow `res.data` at runtime with `typeof res.data === 'string'` (`'text'` format) or `Array.isArray(res.data)` (`'json'` format).
+Behavior and side effects: builder progression is `TransformBuilder -> Builder<Array<Record<string, unknown>>, ThrowOnError> | Builder<string, ThrowOnError>`<!-- -->. Terminal format modifier—place at the end of your filter/transform chain. Do not chain `.overrideTypes()` or `.returns()` after `.explain()`<!-- -->: because `explain()` returns a union of array and `string` builders, any array or non-array type override fails compile-time cardinality checking on the opposite union branch. `await` `.explain(...)` directly and narrow `res.data` at runtime with `typeof res.data === 'string'` (`'text'` format) or `Array.isArray(res.data)` (`'json'` format).
 
 <b>Signature:</b>
 
@@ -135,7 +139,7 @@ explain(options?: Readonly<TransformExplainOptions> | undefined): Builder<Array<
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | Readonly&lt;[TransformExplainOptions](./sql.transformexplainoptions.md#transformexplainoptions_interface)<!-- -->&gt; \| undefined | Optional PostgreSQL <code>EXPLAIN</code> flags (<code>analyze</code>, <code>verbose</code>, <code>settings</code>, <code>buffers</code>, <code>wal</code>) and output <code>format</code> (<code>'text'</code> default, or <code>'json'</code>). See [TransformExplainOptions](./sql.transformexplainoptions.md#transformexplainoptions_interface)<!-- -->. |
+|  options | Readonly&lt;[TransformExplainOptions](./sql.transformexplainoptions.md#transformexplainoptions_interface)<!-- -->&gt; \| undefined | Optional PostgreSQL <code>EXPLAIN</code> flags (<code>analyze</code>, <code>verbose</code>, <code>settings</code>, <code>buffers</code>, <code>wal</code>, all defaulting to <code>false</code>) and output <code>format</code> (defaults to <code>'text'</code>, or <code>'json'</code>). See [TransformExplainOptions](./sql.transformexplainoptions.md#transformexplainoptions_interface)<!-- -->. |
 
 <b>Returns:</b>
 
@@ -145,7 +149,7 @@ A [Builder](./sql.builder.md#builder_interface) union resolving `data` to plan t
 
 ### Example
 
-\*\*Inspect the `EXPLAIN ANALYZE` plan for a filtered event query\*\*
+Inspect the `EXPLAIN ANALYZE` plan for a filtered event query:
 
 ```ts
 const res = await sql
@@ -164,9 +168,9 @@ if (res.success && typeof res.data === 'string') {
 
 Requests the response payload formatted as a GeoJSON `FeatureCollection` object (`Accept: application/geo+json`<!-- -->).
 
-\*\*Preconditions:\*\* - Requires PostGIS on the PostgreSQL database and at least one `geometry` or `geography` column (such as `venues.coords`<!-- -->) in the selected output columns; otherwise PostgREST returns an error.
+Preconditions: requires PostGIS on the PostgreSQL database and at least one `geometry` or `geography` column (such as `venues.coords`<!-- -->) in the selected output columns; otherwise PostgREST returns an error.
 
-\*\*Behavior &amp; Side Effects:\*\* - \*\*Builder Progression:\*\* `TransformBuilder -> Builder<Record<string, unknown>, ThrowOnError>`<!-- -->. Terminal format modifier—apply all filters, `order()`<!-- -->, and `limit()` \*\*before\*\* `.geojson()`<!-- -->. - Follow with `.overrideTypes<MyFeatureCollection, { merge: false }>()` if you have a typed GeoJSON interface.
+Behavior and side effects: builder progression is `TransformBuilder -> Builder<Record<string, unknown>, ThrowOnError>`<!-- -->. Terminal format modifier—apply all filters, `order()`<!-- -->, `limit()`<!-- -->, and (for writes) `.select(...)` before `.geojson()` (writes without `.select(...)` return an empty body where `res.data` is `null` at runtime). Follow with `.overrideTypes<MyFeatureCollection, { merge: false }>()` if you have a typed GeoJSON interface.
 
 <b>Signature:</b>
 
@@ -177,11 +181,11 @@ geojson(): Builder<Record<string, unknown>, ThrowOnError>;
 
 [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;Record&lt;string, unknown&gt;, ThrowOnError&gt;
 
-A [Builder](./sql.builder.md#builder_interface) resolving `data` to a GeoJSON `Record<string, unknown>` object.
+A [Builder](./sql.builder.md#builder_interface) resolving `data` to a GeoJSON `Record<string, unknown>` object (or `null` at runtime if the response body is empty).
 
 ### Example
 
-\*\*Fetch San Francisco venues as a GeoJSON `FeatureCollection`<!-- -->\*\*
+Fetch San Francisco venues as a GeoJSON `FeatureCollection`<!-- -->:
 
 ```ts
 const res = await sql
@@ -196,11 +200,11 @@ const res = await sql
 
 Caps the maximum number of rows returned (`?limit=<rows>` or `?<referencedTable>.limit=<rows>`<!-- -->).
 
-\*\*When to use:\*\* Fetching the top `N` rows (combine with [TransformBuilder.order()](./sql.transformbuilder.md#transformbuilderorder)<!-- -->) or capping nested child arrays on each parent row via `options.referencedTable`<!-- -->.
+When to use: fetching the top `N` rows (combine with [TransformBuilder.order()](./sql.transformbuilder.md#transformbuilderorder)<!-- -->) or capping nested child arrays on each parent row via `options.referencedTable`<!-- -->.
 
-\*\*Do NOT use:\*\* Offset-based pagination across pages; use [TransformBuilder.range()](./sql.transformbuilder.md#transformbuilderrange) instead (which sets both `offset` and `limit`<!-- -->).
+Do not use for offset-based pagination across pages; use [TransformBuilder.range()](./sql.transformbuilder.md#transformbuilderrange) instead (note that `limit()` and `range()` overwrite each other's `limit` URL parameter—last call wins).
 
-\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
+Behavior and side effects: sends `limit=<rows>` verbatim without client-side validation, mutating URL query parameters in place without network I/O, and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -212,7 +216,7 @@ limit(rows: number, options?: Readonly<TransformLimitOptions> | undefined): this
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  rows | number | Non-negative maximum row count to return. |
+|  rows | number | Non-negative maximum row count to return (not validated client-side). |
 |  options | Readonly&lt;[TransformLimitOptions](./sql.transformlimitoptions.md#transformlimitoptions_interface)<!-- -->&gt; \| undefined | Optional <code>referencedTable</code> to cap an embedded relation instead of parent rows. See [TransformLimitOptions](./sql.transformlimitoptions.md#transformlimitoptions_interface)<!-- -->. |
 
 <b>Returns:</b>
@@ -223,7 +227,7 @@ This builder for continued chaining.
 
 ### Example
 
-\*\*Fetch the 5 highest-capacity venues\*\*
+Fetch the 5 highest-capacity venues:
 
 ```ts
 const res = await sql
@@ -236,15 +240,17 @@ const res = await sql
 
 ## TransformBuilder.maxAffected()
 
-Enforces a server-side safety ceiling (`Prefer: handling=strict, max-affected=<rows>`<!-- -->) so PostgREST rolls back the transaction if an `update`<!-- -->, `delete`<!-- -->, or `rpc` operation affects more than `rows` rows.
+Appends `Prefer: handling=strict` and `Prefer: max-affected=<rows>` to request that PostgREST roll back the transaction if the operation affects more than `rows` rows.
 
-\*\*When to use:\*\* Protecting `update()` and `delete()` operations from overly broad or buggy filter predicates (for example, `.maxAffected(1)` when updating a single record by business key).
+Preconditions: requires a PostgREST v13+ backend (older PostgREST servers do not enforce `max-affected`<!-- -->), and upstream PostgREST documents enforcement for `PATCH` (`update`<!-- -->) and `DELETE` (`delete`<!-- -->) methods.
 
-\*\*Do NOT use:\*\* `select()`<!-- -->, `insert()`<!-- -->, or `upsert()`<!-- -->—restricted at compile time to `Method` `'PATCH' | 'DELETE' | 'RPC'` (calling on `GET` or `POST` yields [InvalidMethodError](./sql.invalidmethoderror.md#invalidmethoderror_interface)<!-- -->).
+When to use: protecting `update()` and `delete()` operations on PostgREST v13+ from overly broad filter predicates (for example, `.maxAffected(1)` when updating a single record).
 
-\*\*Behavior &amp; Side Effects:\*\* Appends `Prefer: handling=strict, max-affected=<rows>` in place without network I/O and returns `this`<!-- -->.
+Do not use on `select()`<!-- -->, `insert()`<!-- -->, or `upsert()`<!-- -->: when `Method` is not `'PATCH' | 'DELETE' | 'RPC'`<!-- -->, the return type is [InvalidMethodError](./sql.invalidmethoderror.md#invalidmethoderror_interface)<!-- -->. Note that `InvalidMethodError` is a type-level marker only—at runtime the builder is still returned, so a bare `await` compiles and sends the request unless the return value is used as a builder.
 
-\*\*Error Handling &amp; Remediation:\*\* - If the affected row count exceeds `rows`<!-- -->, PostgREST aborts the transaction (persisting zero changes) and returns HTTP `400` (`category: 'sql-postgrest'`<!-- -->, `code: 'PGRST124'`<!-- -->). Narrow the [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) predicates or raise `rows` if the batch size is expected.
+Behavior and side effects: appends `Prefer: handling=strict` and `Prefer: max-affected=<rows>` verbatim without client-side validation or network I/O, and returns `this`<!-- -->.
+
+Error handling: when enforced by a PostgREST v13+ server and the affected row count exceeds `rows`<!-- -->, PostgREST aborts the transaction and returns HTTP `400`<!-- -->, resolving to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) with `res.status === 400`<!-- -->, `res.error.category === 'sql-postgrest'`<!-- -->, and `res.error.code === 'PGRST124'`<!-- -->. Narrow the [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) predicates or raise `rows` if the batch size is expected.
 
 <b>Signature:</b>
 
@@ -256,7 +262,7 @@ maxAffected(rows: number): Method extends 'PATCH' | 'DELETE' | 'RPC' ? this : In
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  rows | number | Maximum number of rows permitted to be modified or deleted (<code>&gt;= 0</code>). |
+|  rows | number | Maximum number of rows permitted to be modified or deleted (<code>&gt;= 0</code>, not validated client-side). |
 
 <b>Returns:</b>
 
@@ -266,7 +272,7 @@ This builder when `Method` is `'PATCH' | 'DELETE' | 'RPC'`<!-- -->, otherwise co
 
 ### Example
 
-\*\*Ensure an `update()` modifies at most 1 row\*\*
+Cap an `update()` to at most 1 row on PostgREST v13+:
 
 ```ts
 const res = await sql
@@ -275,19 +281,23 @@ const res = await sql
   .eq('code', 'FIREBASE-SUMMIT-2026')
   .maxAffected(1);
 
+if (!res.success) {
+  console.error('Update failed:', res.error.code, res.error.message);
+}
+
 ```
 
 ## TransformBuilder.maybeSingle()
 
-Unwraps a `0`<!-- -->-or-`1` row result into `ResultOne | null`<!-- -->, failing only if \*\*more than `1` row\*\* matches.
+Unwraps a `0`<!-- -->-or-`1` row array result client-side into `ResultOne | null`<!-- -->, failing client-side if `2` or more rows are returned.
 
-\*\*When to use:\*\* Lookups by unique key or conditional `update(...).select()` chains where the target row might not exist (`0` rows cleanly resolves to `success: true, data: null`<!-- -->).
+When to use: read-only `select()` lookups by unique key where `0` matching rows is a valid outcome (`0` rows resolves to `success: true, data: null`<!-- -->; use [TransformBuilder.single()](./sql.transformbuilder.md#transformbuildersingle) when `0` rows should fail).
 
-\*\*Do NOT use:\*\* Queries where `0` rows should be treated as an error; use [TransformBuilder.single()](./sql.transformbuilder.md#transformbuildersingle) instead.
+Do not use to guard writes (`insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, `delete`<!-- -->): `maybeSingle()` sets no `Accept` header and no row `limit`<!-- -->, and runs its cardinality check client-side after the server has already returned `2xx` and committed changes to every matched row. Use [.maxAffected(1)](./sql.transformbuilder.md#transformbuildermaxaffected) (on PostgREST v13+) or [TransformBuilder.single()](./sql.transformbuilder.md#transformbuildersingle) to enforce single-row writes on the server.
 
-\*\*Behavior &amp; Side Effects:\*\* - \*\*Builder Progression:\*\* `TransformBuilder<R[]> -> Builder<R | null, ThrowOnError>`<!-- -->. Terminal cardinality modifier—apply all filters and `.select()` \*\*before\*\* `.maybeSingle()`<!-- -->. - Follow with `.overrideTypes<MyRow, { merge: false }>()` (pass `MyRow` without `| null` or `[]`<!-- -->; `overrideTypes` automatically preserves `| null` on `result.data`<!-- -->!).
+Behavior and side effects: builder progression is `TransformBuilder<R[]> -> Builder<R | null, ThrowOnError>`<!-- -->. Terminal cardinality modifier—apply all filters and `.select()` before `.maybeSingle()`<!-- -->. Follow with `.overrideTypes<MyRow, { merge: false }>()` (pass `MyRow` without `| null` or `[]`<!-- -->; `overrideTypes` automatically preserves `| null` on `result.data`<!-- -->). Sends no `limit`<!-- -->, so all matching rows are transferred and parsed before checking `data.length > 1`<!-- -->; chain `.limit(2)` before `.maybeSingle()` on read queries to bound network transfer while still detecting duplicates.
 
-\*\*Error Handling &amp; Remediation:\*\* - Matching `2` or more rows resolves to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) with HTTP `status: 406`<!-- -->, `category: 'sql-postgrest'`<!-- -->, and `code: 'PGRST116'`<!-- -->. Filter on a `UNIQUE` column or add `.limit(1)`<!-- -->.
+Error handling: matching `2` or more rows triggers a client-side check after the server responded `2xx`<!-- -->, resolving to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) with `res.status === 406`<!-- -->, `res.error.category === 'sql-postgrest'`<!-- -->, and `res.error.code === 'PGRST116'`<!-- -->. Filter on a `UNIQUE` column or add `.limit(2)` to bound transfer while keeping duplicate detection (adding `.limit(1)` disables duplicate detection and returns an arbitrary row).
 
 <b>Signature:</b>
 
@@ -302,7 +312,7 @@ A [Builder](./sql.builder.md#builder_interface) resolving `data` as `ResultOne |
 
 ### Example
 
-\*\*Look up an optional registration by composite key (`ResultOne | null`<!-- -->)\*\*
+Look up an optional registration by composite unique key (`ResultOne | null`<!-- -->):
 
 ```ts
 interface RegistrationCheck {
@@ -316,6 +326,7 @@ const res = await sql
   .select('id, role, checked_in_at')
   .eq('event_id', '6ba7b810-9dad-11d1-80b4-00c04fd430c8')
   .eq('attendee_email', 'alice@example.com')
+  .limit(2)
   .maybeSingle()
   .overrideTypes<RegistrationCheck, { merge: false }>();
 
@@ -329,9 +340,9 @@ if (res.success && res.data !== null) {
 
 Appends an `ORDER BY` clause (`?order=<column>.<asc|desc>[.<nullsfirst|nullslast>]`<!-- -->) to sort parent rows or an embedded child relation's array.
 
-\*\*When to use:\*\* Deterministic sorting of query or mutation results—especially before [TransformBuilder.limit()](./sql.transformbuilder.md#transformbuilderlimit) or [TransformBuilder.range()](./sql.transformbuilder.md#transformbuilderrange) pagination. Chain multiple `.order()` calls to sort by primary, secondary, and tertiary columns in call order. For `jsonb` properties, use single-arrow `'metadata->level'` for numeric/typed JSON sorting and double-arrow `'metadata->>track'` for lexicographical text sorting.
+When to use: deterministic sorting of query or mutation results—especially before [TransformBuilder.limit()](./sql.transformbuilder.md#transformbuilderlimit) or [TransformBuilder.range()](./sql.transformbuilder.md#transformbuilderrange) pagination. Chain multiple `.order()` calls to sort by primary, secondary, and tertiary columns in call order. For `jsonb` properties, use single-arrow `'metadata->level'` for numeric or typed JSON sorting and double-arrow `'metadata->>track'` for lexicographical text sorting.
 
-\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
+Behavior and side effects: mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -344,7 +355,7 @@ order(column: string, options?: Readonly<TransformOrderOptions> | undefined): th
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  column | string | PostgreSQL column name, JSON path (<code>metadata-&gt;level</code> or <code>metadata-&gt;&gt;track</code>), or <code>foreign_alias(column)</code> to sort parent rows by a many-to-one relation. |
-|  options | Readonly&lt;[TransformOrderOptions](./sql.transformorderoptions.md#transformorderoptions_interface)<!-- -->&gt; \| undefined | Sort direction (<code>ascending</code>), null placement (<code>nullsFirst</code>), and embedded <code>referencedTable</code> target. See [TransformOrderOptions](./sql.transformorderoptions.md#transformorderoptions_interface)<!-- -->. |
+|  options | Readonly&lt;[TransformOrderOptions](./sql.transformorderoptions.md#transformorderoptions_interface)<!-- -->&gt; \| undefined | Sort direction (<code>ascending</code>, defaults to <code>true</code>), null placement (<code>nullsFirst</code>), and embedded <code>referencedTable</code> target. See [TransformOrderOptions](./sql.transformorderoptions.md#transformorderoptions_interface)<!-- -->. |
 
 <b>Returns:</b>
 
@@ -354,7 +365,7 @@ This builder for continued chaining.
 
 ### Example
 
-\*\*Sort events by price ascending, breaking ties by newest `created_at`<!-- -->\*\*
+Sort events by price ascending, breaking ties by newest `created_at`<!-- -->:
 
 ```ts
 const res = await sql
@@ -367,13 +378,13 @@ const res = await sql
 
 ## TransformBuilder.range()
 
-Slices the result set to the \*\*0-based inclusive\*\* index window `[from, to]` (`?offset=<from>&limit=<to - from + 1>`<!-- -->).
+Slices the result set to the 0-based inclusive index window `[from, to]` (`?offset=<from>&limit=<to - from + 1>`<!-- -->).
 
-\*\*When to use:\*\* Page-based pagination (for example, page 1 of 20 items is `.range(0, 19)`<!-- -->, page 2 is `.range(20, 39)`<!-- -->). Always pair with a deterministic [TransformBuilder.order()](./sql.transformbuilder.md#transformbuilderorder) clause (such as ordering by a unique `id` tie-breaker) so rows cannot shift across pages.
+When to use: page-based pagination (for example, page 1 of 20 items is `.range(0, 19)`<!-- -->, page 2 is `.range(20, 39)`<!-- -->). Always pair with a deterministic [TransformBuilder.order()](./sql.transformbuilder.md#transformbuilderorder) clause (such as ordering by a unique `id` tie-breaker) so rows cannot shift across pages. For simple top-N queries without an offset, use [TransformBuilder.limit()](./sql.transformbuilder.md#transformbuilderlimit)<!-- -->.
 
-\*\*Behavior &amp; Side Effects:\*\* Both `from` and `to` are \*\*inclusive\*\* (`range(0, 9)` returns up to `10` rows). Mutates URL query parameters in place without network I/O and returns `this`<!-- -->.
+Behavior and side effects: both `from` and `to` are inclusive (`range(0, 9)` returns up to `10` rows). The SDK sends `offset=<from>` and `limit=<to - from + 1>` verbatim without client-side validation (overwriting any earlier `.limit()` on the same target table).
 
-\*\*Error Handling &amp; Remediation:\*\* - When `count` (`'exact'`<!-- -->, `'planned'`<!-- -->, or `'estimated'`<!-- -->) is requested and `from > 0` is greater than or equal to the total matching row count (or when `to < from`<!-- -->), PostgREST returns HTTP `416 Requested Range Not Satisfiable`<!-- -->, which resolves to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) (`status: 416`<!-- -->, `category: 'sql-postgrest'`<!-- -->, `error.code === 'PGRST103'`<!-- -->). Clamp `from` to total count or treat `error.code === 'PGRST103'` as an empty page (`[]`<!-- -->).
+Error handling: if PostgREST rejects the requested range (for example, an offset beyond total matching rows when `count` is requested, or a negative `limit` when `to < from - 1`<!-- -->), it returns HTTP `416`<!-- -->, resolving to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) with `res.status === 416`<!-- -->, `res.error.category === 'sql-postgrest'`<!-- -->, and `res.error.code === 'PGRST103'`<!-- -->. Stop paginating once `from >= count` (or treat `'PGRST103'` as an empty page).
 
 <b>Signature:</b>
 
@@ -385,8 +396,8 @@ range(from: number, to: number, options?: Readonly<TransformRangeOptions> | unde
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  from | number | 0-based starting row index (inclusive, must be <code>&gt;= 0</code>). |
-|  to | number | 0-based ending row index (inclusive, must be <code>&gt;= from</code>). |
+|  from | number | 0-based starting row index, inclusive (<code>&gt;= 0</code>, not validated client-side). |
+|  to | number | 0-based ending row index, inclusive (<code>&gt;= from</code>, not validated client-side). |
 |  options | Readonly&lt;[TransformRangeOptions](./sql.transformrangeoptions.md#transformrangeoptions_interface)<!-- -->&gt; \| undefined | Optional <code>referencedTable</code> to paginate an embedded child array per parent row. See [TransformRangeOptions](./sql.transformrangeoptions.md#transformrangeoptions_interface)<!-- -->. |
 
 <b>Returns:</b>
@@ -397,7 +408,7 @@ This builder for continued chaining.
 
 ### Example
 
-\*\*Fetch page 2 (rows 20..39) of published events\*\*
+Fetch page 2 (rows 20..39) of published events:
 
 ```ts
 const page2 = await sql
@@ -412,14 +423,9 @@ const page2 = await sql
 
 ## TransformBuilder.returns()
 
-> Warning: This API is now obsolete.
-> 
-> Use [.overrideTypes()](./sql.builder.md#builderoverridetypes) with `{ merge: false }` at the end of your call chain instead.
-> 
+Legacy result-type override method replacing the static TypeScript type of `result.data` while keeping [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) methods available.
 
-Replaces the static TypeScript type of `result.data` while keeping [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) methods available.
-
-Prefer [.overrideTypes()](./sql.builder.md#builderoverridetypes) with `{ merge: false }` at the end of the builder chain instead of `returns()`<!-- -->. Enforces array-vs-object cardinality compatibility via [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->. Note that calling `returns()` on a [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) narrows the static type to [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) (filter methods are no longer exposed after `returns()`<!-- -->).
+Prefer [.overrideTypes()](./sql.builder.md#builderoverridetypes) with `{ merge: false }` at the end of the builder chain for new code. Enforces array-vs-object cardinality compatibility via [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->. Calling `returns()` on a [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) narrows the static type to [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) (filter methods are no longer exposed after `returns()`<!-- -->).
 
 <b>Signature:</b>
 
@@ -434,7 +440,7 @@ This [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) wi
 
 ### Example
 
-\*\*Legacy type override on a `TransformBuilder` (prefer `.overrideTypes()` instead)\*\*
+Legacy type override on a `TransformBuilder` (prefer `.overrideTypes()` for new code):
 
 ```ts
 const res = await sql
@@ -446,13 +452,11 @@ const res = await sql
 
 ## TransformBuilder.rollback()
 
-Executes the request inside a server-side PostgreSQL transaction that is \*\*rolled back\*\* instead of committed (`Prefer: tx=rollback`<!-- -->).
+Requests (`Prefer: tx=rollback`<!-- -->) that PostgREST roll back this request's transaction instead of committing it.
 
-\*\*When to use:\*\* Dry-running `insert()`<!-- -->, `upsert()`<!-- -->, `update()`<!-- -->, `delete()`<!-- -->, or `rpc()` calls to validate constraints, triggers, Row-Level Security policies, and `RETURNING` payloads (`.select()`<!-- -->) without persisting any database changes.
+Preconditions and commit warning: PostgREST ignores `Prefer: tx=rollback` unless the backend server is explicitly configured with `db-tx-end` set to `commit-allow-override` or `rollback-allow-override`<!-- -->. On default PostgREST configurations, `Prefer: tx=rollback` is silently ignored, the mutation commits permanently, and the SDK still resolves `OperationSuccess` because `Preference-Applied` is not inspected. Never run `.rollback()` against production data unless you have verified the backend enforces `tx=rollback`<!-- -->.
 
-\*\*Preconditions:\*\* PostgREST server configuration must permit transaction rollback preferences (`db-tx-end` set to `commit-allow-override` or `rollback-allow-override`<!-- -->); otherwise `Prefer: tx=rollback` is ignored by PostgREST!
-
-\*\*Behavior &amp; Side Effects:\*\* Appends `Prefer: tx=rollback` to this single HTTP request in place and returns `this`<!-- -->. Does not span multiple SDK calls (use a PostgreSQL function via [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc) for multi-statement transactions).
+Behavior and side effects: appends `Prefer: tx=rollback` to this single HTTP request in place and returns `this`<!-- -->. Does not span multiple SDK calls (use a PostgreSQL function via [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc) for multi-statement transactions).
 
 <b>Signature:</b>
 
@@ -467,9 +471,11 @@ This builder for continued chaining.
 
 ### Example
 
-\*\*Dry-run an event `insert()` to preview generated columns without saving\*\*
+Request a rolled-back insert preview (only when the server permits `Prefer: tx=rollback`<!-- -->):
 
 ```ts
+// WARNING: If the server's db-tx-end does not allow overrides, PostgREST ignores
+// Prefer: tx=rollback and this INSERT COMMITS while returning success: true.
 const res = await sql
   .from('events')
   .insert({
@@ -481,17 +487,21 @@ const res = await sql
   .rollback()
   .single();
 
+if (!res.success) {
+  console.error('Preview failed:', res.error.message);
+}
+
 ```
 
 ## TransformBuilder.select()
 
 Requests that PostgREST return the affected row representation (`Prefer: return=representation`<!-- -->) projected to `columns` after `insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, `delete`<!-- -->, or set-returning `rpc`<!-- -->.
 
-\*\*When to use:\*\* Chaining onto [QueryBuilder.insert()](./sql.querybuilder.md#querybuilderinsert)<!-- -->, [QueryBuilder.upsert()](./sql.querybuilder.md#querybuilderupsert)<!-- -->, [QueryBuilder.update()](./sql.querybuilder.md#querybuilderupdate)<!-- -->, or [QueryBuilder.delete()](./sql.querybuilder.md#querybuilderdelete) when you need database-generated columns (`id`<!-- -->, `created_at`<!-- -->) or post-update values in `result.data` (which otherwise resolves to `null`<!-- -->), or projecting specific columns from a table-returning [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc) call.
+When to use: chaining onto [QueryBuilder.insert()](./sql.querybuilder.md#querybuilderinsert)<!-- -->, [QueryBuilder.upsert()](./sql.querybuilder.md#querybuilderupsert)<!-- -->, [QueryBuilder.update()](./sql.querybuilder.md#querybuilderupdate)<!-- -->, or [QueryBuilder.delete()](./sql.querybuilder.md#querybuilderdelete) when you need database-generated columns (`id`<!-- -->, `created_at`<!-- -->) or post-update values in `result.data` (which otherwise resolves to `null`<!-- -->), or projecting specific columns from a table-returning [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc) call. For read-only table queries, start with [QueryBuilder.select()](./sql.querybuilder.md#querybuilderselect)<!-- -->.
 
-\*\*Preconditions:\*\* - Under PostgreSQL Row-Level Security (RLS), returning mutated rows requires a `SELECT` policy permitting visibility of the affected rows in addition to the mutation policy.
+Preconditions: under PostgreSQL Row-Level Security (RLS), returning mutated rows requires a `SELECT` policy permitting visibility of the affected rows in addition to the mutation policy.
 
-\*\*Behavior &amp; Side Effects:\*\* - \*\*Builder Progression:\*\* Transitions `Result$1` from `null` to `Array<Record<string, unknown>>` (for table mutations) and returns a [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->, enabling subsequent `.order()`<!-- -->, `.single()`<!-- -->, `.maybeSingle()`<!-- -->, and `.overrideTypes()`<!-- -->. - Appends `Prefer: return=representation` and sets `?select=<columns>` (stripping unquoted whitespace).
+Behavior and side effects: transitions `Result$1` from `null` to `Array<Record<string, unknown>>` (for table mutations) and returns a [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->, enabling subsequent `.order()`<!-- -->, `.single()`<!-- -->, `.maybeSingle()`<!-- -->, and `.overrideTypes()`<!-- -->. Appends `Prefer: return=representation` and sets `?select=<columns>` (stripping unquoted whitespace).
 
 <b>Signature:</b>
 
@@ -513,7 +523,7 @@ This builder typed as [FilterBuilder](./sql.filterbuilder.md#filterbuilder_inter
 
 ### Example
 
-\*\*Return database-generated columns from an `insert()`<!-- -->\*\*
+Return database-generated columns from an `insert()`<!-- -->:
 
 ```ts
 const res = await sql
@@ -523,19 +533,23 @@ const res = await sql
   .single()
   .overrideTypes<{ id: string; slug: string; name: string }, { merge: false }>();
 
+if (!res.success) {
+  console.error('Insert failed:', res.error.message);
+}
+
 ```
 
 ## TransformBuilder.single()
 
-Unwraps a 1-row array result into a single JSON object (`Accept: application/vnd.pgrst.object+json`<!-- -->) and fails if the query matches `0` rows or more than `1` row.
+Unwraps a 1-row array result into a single JSON object (`Accept: application/vnd.pgrst.object+json`<!-- -->) and fails on the server if the query matches `0` rows or more than `1` row.
 
-\*\*When to use:\*\* Primary-key lookups (`eq('id', id)`<!-- -->) or single-row `insert(...).select()` chains where anything other than \*\*exactly 1 row\*\* indicates an error.
+When to use: primary-key or unique-key lookups (`eq('id', id)`<!-- -->) or single-row `insert(...).select()` / `update(...).select()` chains where anything other than 1 row must roll back and fail on the server.
 
-\*\*Do NOT use:\*\* Optional lookups that may legitimately match `0` rows—use [TransformBuilder.maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle) instead so `0` rows resolves to `data: null` rather than HTTP 406 `'PGRST116'`<!-- -->.
+Do not use on optional read lookups that may legitimately match `0` rows—use [TransformBuilder.maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle) instead so `0` rows resolves to `data: null` rather than HTTP `406` `'PGRST116'`<!-- -->.
 
-\*\*Behavior &amp; Side Effects:\*\* - \*\*Builder Progression:\*\* `TransformBuilder<R[]> -> Builder<R, ThrowOnError>`<!-- -->. Terminal cardinality modifier—apply all filters, `.select()`<!-- -->, and `.order()` \*\*before\*\* `.single()`<!-- -->. - Follow with `.overrideTypes<MyRow, { merge: false }>()` (passing a single object type `MyRow`<!-- -->, \*\*not\*\* `MyRow[]`<!-- -->) to strongly type `result.data`<!-- -->.
+Behavior and side effects: builder progression is `TransformBuilder<R[]> -> Builder<R, ThrowOnError>`<!-- -->. Terminal cardinality modifier—apply all filters, `.select()`<!-- -->, and `.order()` before `.single()`<!-- -->. Follow with `.overrideTypes<MyRow, { merge: false }>()` (passing a single object type `MyRow`<!-- -->, not `MyRow[]`<!-- -->) to strongly type `result.data`<!-- -->.
 
-\*\*Error Handling &amp; Remediation:\*\* - `0` rows or `> 1` rows resolves to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) with HTTP `status: 406`<!-- -->, `category: 'sql-postgrest'`<!-- -->, and `code: 'PGRST116'`<!-- -->. Switch to [TransformBuilder.maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle) if `0` rows is expected, or add `.limit(1)` / a unique-key filter if multiple rows matched.
+Error handling: `0` rows or more than `1` row resolves to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) with `res.status === 406`<!-- -->, `res.error.category === 'sql-postgrest'`<!-- -->, and `res.error.code === 'PGRST116'`<!-- -->. Switch to [TransformBuilder.maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle) on reads if `0` rows is expected, or add a unique-key filter if multiple rows matched (do not add `.limit(1)` if duplicates should be detected as errors, because `.limit(1)` suppresses duplicate detection and returns an arbitrary row).
 
 <b>Signature:</b>
 
@@ -550,7 +564,7 @@ A [Builder](./sql.builder.md#builder_interface) resolving `data` as a single obj
 
 ### Example
 
-\*\*Fetch a single venue by unique `slug`<!-- -->\*\*
+Fetch a single venue by unique `slug`<!-- -->:
 
 ```ts
 interface VenueSummary {
@@ -571,7 +585,7 @@ const res = await sql
 
 ## TransformBuilder.throwOnError()
 
-Switches this builder into throwing mode so awaiting it rejects with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) on failure while preserving [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) chaining.
+Switches this builder into throwing mode so awaiting it rejects with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) on failure while preserving [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) chaining. See [Builder.throwOnError()](./sql.builder.md#builderthrowonerror)<!-- -->.
 
 <b>Signature:</b>
 
@@ -586,7 +600,7 @@ This [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) na
 
 ### Example
 
-\*\*Enable throwing mode before `.single()` on a `TransformBuilder`<!-- -->\*\*
+Enable throwing mode before `.single()` on a `TransformBuilder`<!-- -->:
 
 ```ts
 const { data } = await sql
@@ -601,7 +615,7 @@ const { data } = await sql
 
 ### Example
 
-\*\*Order, paginate, and apply an `AbortSignal` timeout on a `TransformBuilder`<!-- -->\*\*
+Order, paginate, and apply an `AbortSignal` timeout on a `TransformBuilder`<!-- -->:
 
 ```ts
 const res = await sql

@@ -22,17 +22,12 @@ export interface FilterOrOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [foreignTable](./sql.filteroroptions.md#filteroroptionsforeigntable) | string \| undefined | Legacy alias for [FilterOrOptions.referencedTable](./sql.filteroroptions.md#filteroroptionsreferencedtable)<!-- -->. Prefer <code>referencedTable</code>. |
+|  [foreignTable](./sql.filteroroptions.md#filteroroptionsforeigntable) | string \| undefined | Legacy alias for [FilterOrOptions.referencedTable](./sql.filteroroptions.md#filteroroptionsreferencedtable)<!-- -->. Prefer <code>referencedTable</code> for new code. Defaults to <code>undefined</code>. |
 |  [referencedTable](./sql.filteroroptions.md#filteroroptionsreferencedtable) | string \| undefined | Embedded relation name (or alias) to apply the <code>OR</code> disjunction against (<code>?&lt;referencedTable&gt;.or=(...)</code>) instead of the parent table. |
 
 ## FilterOrOptions.foreignTable
 
-> Warning: This API is now obsolete.
-> 
-> Use [FilterOrOptions.referencedTable](./sql.filteroroptions.md#filteroroptionsreferencedtable) instead.
-> 
-
-Legacy alias for [FilterOrOptions.referencedTable](./sql.filteroroptions.md#filteroroptionsreferencedtable)<!-- -->. Prefer `referencedTable`<!-- -->.
+Legacy alias for [FilterOrOptions.referencedTable](./sql.filteroroptions.md#filteroroptionsreferencedtable)<!-- -->. Prefer `referencedTable` for new code. Defaults to `undefined`<!-- -->.
 
 <b>Signature:</b>
 
@@ -44,7 +39,7 @@ foreignTable?: string | undefined;
 
 Embedded relation name (or alias) to apply the `OR` disjunction against (`?<referencedTable>.or=(...)`<!-- -->) instead of the parent table.
 
-Takes precedence over `foreignTable` when both are provided. Filters rows inside the embedded relation's array; combine with `!inner` in `select()` if unmatched parent rows should also be excluded.
+Defaults to `undefined`<!-- -->. Takes precedence over `foreignTable` when both are provided. Filters rows inside the embedded relation's array; combine with `!inner` in `select()` if unmatched parent rows should also be excluded.
 
 <b>Signature:</b>
 
@@ -54,7 +49,7 @@ referencedTable?: string | undefined;
 
 ### Example
 
-\*\*Scope an `OR` filter to an embedded `registrations` relation\*\*
+Scope an `OR` filter to an embedded `registrations` relation:
 
 ```ts
 import type { FilterOrOptions } from 'firebase/sql';

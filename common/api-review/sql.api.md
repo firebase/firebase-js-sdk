@@ -18,7 +18,6 @@ export interface Builder<T, ThrowOnError extends boolean = false> extends Promis
         merge: true;
     }>(): Builder<IsValidResultOverride<T, NewResult, false, false> extends true ? ContainsNull<T> extends true ? MergePartialResult<NewResult, NonNullable<T>, Options> | null : MergePartialResult<NewResult, T, Options> : CheckMatchingArrayTypes<T, NewResult>, ThrowOnError>;
     retry(enabled: boolean): this;
-    // @deprecated
     returns<NewResult>(): Builder<CheckMatchingArrayTypes<T, NewResult>, ThrowOnError>;
     setHeader(name: string, value: string): this;
     stripNulls(): this;
@@ -111,7 +110,6 @@ export type FilterOperator = 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like'
 
 // @public
 export interface FilterOrOptions {
-    // @deprecated
     foreignTable?: string | undefined;
     referencedTable?: string | undefined;
 }
@@ -349,7 +347,6 @@ export interface TransformBuilder<Result$1, Method = unknown, ThrowOnError exten
     maybeSingle<ResultOne = unknown extends Result$1 ? Record<string, unknown> : Result$1 extends ReadonlyArray<infer R> ? R : never>(): Builder<ResultOne | null, ThrowOnError>;
     order(column: string, options?: Readonly<TransformOrderOptions> | undefined): this;
     range(from: number, to: number, options?: Readonly<TransformRangeOptions> | undefined): this;
-    // @deprecated
     returns<NewResult>(): TransformBuilder<CheckMatchingArrayTypes<Result$1, NewResult>, Method, ThrowOnError>;
     rollback(): this;
     select(columns?: string | undefined): FilterBuilder<Method extends 'RPC' ? unknown extends Result$1 ? Result$1 : Result$1 extends readonly unknown[] ? Array<Record<string, unknown>> : Record<string, unknown> : Array<Record<string, unknown>>, Method, ThrowOnError>;
@@ -372,7 +369,6 @@ export interface TransformExplainOptions {
 
 // @public
 export interface TransformLimitOptions {
-    // @deprecated
     foreignTable?: string | undefined;
     referencedTable?: string | undefined;
 }
@@ -380,7 +376,6 @@ export interface TransformLimitOptions {
 // @public
 export interface TransformOrderOptions {
     ascending?: boolean | undefined;
-    // @deprecated
     foreignTable?: string | undefined;
     nullsFirst?: boolean | undefined;
     referencedTable?: string | undefined;
@@ -388,7 +383,6 @@ export interface TransformOrderOptions {
 
 // @public
 export interface TransformRangeOptions {
-    // @deprecated
     foreignTable?: string | undefined;
     referencedTable?: string | undefined;
 }

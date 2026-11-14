@@ -23,13 +23,15 @@ export interface QueryUpsertOptions
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [count](./sql.queryupsertoptions.md#queryupsertoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined | Row-counting algorithm used to populate <code>result.count</code> with the number of affected rows. |
-|  [defaultToNull](./sql.queryupsertoptions.md#queryupsertoptionsdefaulttonull) | boolean \| undefined | Controls whether omitted (or <code>undefined</code>-valued) properties in \*\*bulk array\*\* upserts default to <code>NULL</code> (<code>true</code>) or use PostgreSQL column <code>DEFAULT</code> expressions (<code>false</code>, sends <code>Prefer: missing=default</code>). |
+|  [defaultToNull](./sql.queryupsertoptions.md#queryupsertoptionsdefaulttonull) | boolean \| undefined | Controls the value used for keys omitted by an array element (or set to <code>undefined</code>): <code>NULL</code> when <code>true</code> (default), or the PostgreSQL column <code>DEFAULT</code> expression when <code>false</code> (<code>Prefer: missing=default</code>). |
 |  [ignoreDuplicates](./sql.queryupsertoptions.md#queryupsertoptionsignoreduplicates) | boolean \| undefined | Conflict action applied when an incoming row matches an existing row on <code>onConflict</code> (or primary key). |
 |  [onConflict](./sql.queryupsertoptions.md#queryupsertoptionsonconflict) | string \| undefined | Comma-separated column name(s) forming a <code>PRIMARY KEY</code> or <code>UNIQUE</code> constraint used to detect conflicts (sent as <code>?on_conflict=...</code>). |
 
 ## QueryUpsertOptions.count
 
 Row-counting algorithm used to populate `result.count` with the number of affected rows.
+
+Defaults to `undefined` (`result.count` is `null`<!-- -->). Only exact lowercase `'exact'`<!-- -->, `'planned'`<!-- -->, or `'estimated'` populate `result.count`<!-- -->.
 
 <b>Signature:</b>
 
@@ -39,9 +41,9 @@ count?: QueryCountStrategy | undefined;
 
 ## QueryUpsertOptions.defaultToNull
 
-Controls whether omitted (or `undefined`<!-- -->-valued) properties in \*\*bulk array\*\* upserts default to `NULL` (`true`<!-- -->) or use PostgreSQL column `DEFAULT` expressions (`false`<!-- -->, sends `Prefer: missing=default`<!-- -->).
+Controls the value used for keys omitted by an array element (or set to `undefined`<!-- -->): `NULL` when `true` (default), or the PostgreSQL column `DEFAULT` expression when `false` (`Prefer: missing=default`<!-- -->).
 
-Only affects newly inserted rows during bulk array upserts; does not overwrite existing columns during conflict merges, and is unnecessary for single-object upserts.
+Defaults to `true`<!-- -->. On `merge-duplicates` (`ignoreDuplicates: false`<!-- -->) conflicts, PostgREST emits `DO UPDATE SET <col> = EXCLUDED.<col>` for every column in `?columns`<!-- -->. Because bulk arrays set `?columns` to the union of keys across all elements, an omitted key on a conflicting row overwrites the existing database column with `NULL` (`true`<!-- -->) or the column `DEFAULT` (`false`<!-- -->)—it does not preserve the existing row's value. Give every element in a bulk upsert array the exact same keys, or split batches by key set. Has no effect on single-object upserts.
 
 <b>Signature:</b>
 
@@ -53,7 +55,7 @@ defaultToNull?: boolean | undefined;
 
 Conflict action applied when an incoming row matches an existing row on `onConflict` (or primary key).
 
-- `false` (default): Sends `Prefer: resolution=merge-duplicates` (`ON CONFLICT DO UPDATE`<!-- -->), overwriting conflicting rows. - `true`<!-- -->: Sends `Prefer: resolution=ignore-duplicates` (`ON CONFLICT DO NOTHING`<!-- -->), silently skipping conflicting rows.
+Defaults to `false`<!-- -->, which sends `Prefer: resolution=merge-duplicates` (`ON CONFLICT DO UPDATE`<!-- -->), updating every column in the payload (and for bulk arrays, every key in the `?columns` union across all elements) on the conflicting row. Setting `true` sends `Prefer: resolution=ignore-duplicates` (`ON CONFLICT DO NOTHING`<!-- -->), skipping conflicting rows.
 
 <b>Signature:</b>
 
@@ -65,7 +67,7 @@ ignoreDuplicates?: boolean | undefined;
 
 Comma-separated column name(s) forming a `PRIMARY KEY` or `UNIQUE` constraint used to detect conflicts (sent as `?on_conflict=...`<!-- -->).
 
-Do \*\*not\*\* include spaces around commas (for example, `'event_id,attendee_email'`<!-- -->, or `'code'` for a single column). When omitted, PostgREST defaults conflict detection to the table's primary key.
+Defaults to `undefined` (PostgREST defaults conflict detection to the table's primary key). Do not include spaces around commas (for example, `'event_id,attendee_email'`<!-- -->, or `'code'` for a single column).
 
 <b>Signature:</b>
 
@@ -75,7 +77,7 @@ onConflict?: string | undefined;
 
 ### Example
 
-\*\*Configure conflict resolution on a composite unique key\*\*
+Configure conflict resolution on a composite unique key:
 
 ```ts
 import type { QueryUpsertOptions } from 'firebase/sql';
@@ -83,9 +85,21 @@ import type { QueryUpsertOptions } from 'firebase/sql';
 const upsertOpts: QueryUpsertOptions = {
   onConflict: 'event_id,attendee_email',
   ignoreDuplicates: false,
-  defaultToNull: false,
   count: 'exact'
 };
+
+const res = await sql.from('registrations').upsert(
+  {
+    event_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+    user_uid: 'uid_alice',
+    attendee_email: 'alice@example.com',
+    role: 'speaker'
+  },
+  upsertOpts
+);
+if (!res.success) {
+  console.error('Upsert failed:', res.error.code, res.error.message);
+}
 
 ```
 

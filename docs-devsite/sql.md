@@ -12,17 +12,17 @@ https://github.com/firebase/firebase-js-sdk
 # @firebase/sql
 PostgREST-compatible SQL client SDK (`firebase/sql`<!-- -->) for querying PostgreSQL databases hosted on Firebase SQL with automatic Firebase Authentication and App Check integration.
 
-\*\*Application Import Path:\*\* Install `firebase` and import from `firebase/sql` (do not import `@firebase/sql` directly in application code).
+Application import path: install `firebase` and import from `firebase/sql` (do not import `@firebase/sql` directly in application code).
 
-\*\*Builder State Machine &amp; Chain Order:\*\* Queries and mutations progress through four lazy TypeScript builder interfaces: 1. [FirebaseSql](./sql.firebasesql.md#firebasesql_class)<!-- -->: Entry client (`sql.from(table)` or `sql.rpc(fn, params, options)`<!-- -->). 2. [QueryBuilder](./sql.querybuilder.md#querybuilder_interface)<!-- -->: SQL table verb (`select`<!-- -->, `insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, `delete`<!-- -->). 3. [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->: Row filters (`eq`<!-- -->, `in`<!-- -->, `gte`<!-- -->, `contains`<!-- -->, `or`<!-- -->, `not`<!-- -->, etc.). 4. [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface)<!-- -->: Ordering, pagination, post-mutation `select()`<!-- -->, safety caps (`maxAffected`<!-- -->), and cardinality/format modifiers (`single`<!-- -->, `maybeSingle`<!-- -->, `csv`<!-- -->, `geojson`<!-- -->, `explain`<!-- -->). 5. [Builder](./sql.builder.md#builder_interface)<!-- -->: Type overrides (`overrideTypes`<!-- -->), `stripNulls`<!-- -->, `setHeader`<!-- -->, `retry`<!-- -->, `throwOnError`<!-- -->, and `PromiseLike` execution (`await`<!-- -->).
+Builder state machine and chain order: queries and mutations progress through the entry client and four lazy TypeScript builder interfaces: (1) [FirebaseSql](./sql.firebasesql.md#firebasesql_class)<!-- -->, the entry client exposing `sql.from(table)` and `sql.rpc(fn, params, options)`<!-- -->; (2) [QueryBuilder](./sql.querybuilder.md#querybuilder_interface)<!-- -->, the SQL table verb selector (`select`<!-- -->, `insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, `delete`<!-- -->); (3) [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->, row filters (`eq`<!-- -->, `in`<!-- -->, `gte`<!-- -->, `contains`<!-- -->, `or`<!-- -->, `not`<!-- -->, and related operators); (4) [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface)<!-- -->, ordering, pagination, post-mutation `select()`<!-- -->, server preferences (`maxAffected`<!-- -->, `rollback`<!-- -->), cancellation (`abortSignal`<!-- -->), and cardinality/format modifiers (`single`<!-- -->, `maybeSingle`<!-- -->, `csv`<!-- -->, `geojson`<!-- -->, `explain`<!-- -->); and (5) [Builder](./sql.builder.md#builder_interface)<!-- -->, terminal type overrides (`overrideTypes`<!-- -->), `stripNulls`<!-- -->, `setHeader`<!-- -->, `retry`<!-- -->, `throwOnError`<!-- -->, and `PromiseLike` execution (`await`<!-- -->).
 
-Always apply [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) and [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) methods \*\*before\*\* calling `.single()`<!-- -->, `.maybeSingle()`<!-- -->, `.csv()`<!-- -->, `.geojson()`<!-- -->, `.explain()`<!-- -->, or `.overrideTypes()`<!-- -->, because those methods narrow the return type to [Builder](./sql.builder.md#builder_interface)<!-- -->.
+Always apply [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) and [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) methods before calling `.single()`<!-- -->, `.maybeSingle()`<!-- -->, `.csv()`<!-- -->, `.geojson()`<!-- -->, `.explain()`<!-- -->, or `.overrideTypes()`<!-- -->, because those methods narrow the static return type to [Builder](./sql.builder.md#builder_interface)<!-- -->. Each `await` or `.then()` sends a new HTTP request (results are never cached), so await each mutation builder at most once.
 
-\*\*Untyped Defaults &amp; Type Narrowing:\*\* - [getSql()](./sql.md#getsql_e89ea77) and [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) do \*\*not\*\* accept `<Database>` or `<Row>` generics, and there is no `sql.schema()` method (pass `schemaName` in [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) to [getSql()](./sql.md#getsql_e89ea77) instead). - `select()` defaults `data` to `Array<Record<string, unknown>>`<!-- -->. - `insert()`<!-- -->, `upsert()`<!-- -->, `update()`<!-- -->, and `delete()` default `data` to `null` unless `.select()` is chained. - `rpc()` defaults `data` to `unknown` (its `<Args>` generic types input parameters only). - Call `.overrideTypes<Row[], { merge: false }>()` at the end of table chains (or `.overrideTypes<T>()` on direct `rpc()` chains; pass `{ merge: false }` if `.single()` or `.maybeSingle()` is chained on `rpc()`<!-- -->) to assign a static TypeScript type to `data`<!-- -->.
+Untyped defaults and type narrowing: [getSql()](./sql.md#getsql_e89ea77) and [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) do not accept `<Database>` or `<Row>` generics, and there is no `sql.schema()` method (pass `schemaName` in [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) to [getSql()](./sql.md#getsql_e89ea77) instead). Table `select()` defaults `data` to `Array<Record<string, unknown>>`<!-- -->; `insert()`<!-- -->, `upsert()`<!-- -->, `update()`<!-- -->, and `delete()` default `data` to `null` unless `.select()` is chained; and `rpc()` defaults `data` to `unknown` (its `<Args>` generic types input parameters only). Call `.overrideTypes<Row[], { merge: false }>()` at the end of table chains (or `.overrideTypes<T>()` on direct `rpc()` chains; pass `{ merge: false }` if `.single()` or `.maybeSingle()` precedes `overrideTypes()` on `rpc()`<!-- -->) to assign a static TypeScript type to `data`<!-- -->.
 
-\*\*Result Envelope vs. Throwing Mode:\*\* - By default, `await builder` \*\*never rejects\*\* on HTTP, PostgREST, platform, or client failures; it resolves to [OperationResult](./sql.md#operationresult) (`{ success: true, data, count, error: null, status, statusText }` or `{ success: false, data: null, count: null, error: FirebaseSqlError, status, statusText }`<!-- -->). Narrow via `if (!res.success)` or `const { data, error } = await ...; if (error)`<!-- -->—never narrow with `if (!data)` when `data` can legitimately be `null` (such as `.maybeSingle()`<!-- -->, `head: true`<!-- -->, or mutations without `.select()`<!-- -->). - Chain [.throwOnError()](./sql.builder.md#builderthrowonerror) to reject with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) on failure and narrow the resolved envelope to [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface) (still destructure `const { data } = await query.throwOnError()`<!-- -->, as it resolves `{ data, count, status, statusText, success: true, error: null }`<!-- -->, not raw `T`<!-- -->).
+Result envelope vs. throwing mode: by default, `await builder` resolves to [OperationResult](./sql.md#operationresult) (`{ success: true, data, count, error: null, status, statusText }` or `{ success: false, data: null, count: null, error: FirebaseSqlError, status, statusText }`<!-- -->) for HTTP, PostgREST, platform, and network failures (note that a `settings.schemaName` containing invalid HTTP header characters rejects with a `TypeError` when setting the profile header). Narrow via `if (!res.success)` or `const { data, error } = await ...; if (error)`<!-- -->—never narrow with `if (!data)` when `data` can legitimately be `null` (such as `.maybeSingle()`<!-- -->, `head: true`<!-- -->, or mutations without `.select()`<!-- -->). Chain [.throwOnError()](./sql.builder.md#builderthrowonerror) to reject with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) on failure and narrow the resolved envelope to [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface) (still destructure `const { data } = await query.throwOnError()`<!-- -->, as it resolves `{ data, count, status, statusText, success: true, error: null }`<!-- -->, not raw `T`<!-- -->).
 
-\*\*Reference Schema Used Across SDK Examples:\*\* Examples across this package share a 3-table PostgreSQL schema (`venues`<!-- -->, `events`<!-- -->, `registrations`<!-- -->) plus two stored functions (`remaining_seats`<!-- -->, `list_events_by_city`<!-- -->): - `venues(id uuid PK, slug text UNIQUE, name text, city text, capacity int4, coords geography(Point, 4326))` - `events(id uuid PK, venue_id uuid FK NULL, code text UNIQUE, title text, status text DEFAULT 'draft', is_featured bool DEFAULT false, ticket_price numeric, tags text[], metadata jsonb, schedule tstzrange, search_doc tsvector, created_at timestamptz DEFAULT now())` - `registrations(id uuid PK, event_id uuid FK, user_uid text, attendee_email text, role text DEFAULT 'attendee', checked_in_at timestamptz NULL, UNIQUE (event_id, attendee_email))`
+Example conventions and reference schema: code examples across this package assume an initialized client `const sql = getSql({ serviceId: 'events-db', location: 'us-central1' });` unless client initialization is shown explicitly, and share three PostgreSQL tables plus two stored functions: `venues(id uuid PK, slug text UNIQUE, name text, city text, capacity int4, coords geography(Point, 4326))`<!-- -->, `events(id uuid PK, venue_id uuid FK NULL, code text UNIQUE, title text, status text DEFAULT 'draft', is_featured bool DEFAULT false, ticket_price numeric, tags text[], metadata jsonb, schedule tstzrange, search_doc tsvector, created_at timestamptz DEFAULT now())`<!-- -->, `registrations(id uuid PK, event_id uuid FK, user_uid text, attendee_email text, role text DEFAULT 'attendee', checked_in_at timestamptz NULL, UNIQUE (event_id, attendee_email))`<!-- -->, `remaining_seats(target_event_id uuid) RETURNS int4`<!-- -->, and `list_events_by_city(target_city text) RETURNS SETOF events`<!-- -->.
 
 ## Functions
 
@@ -34,7 +34,7 @@ Always apply [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) and
 |  [copySqlServiceSettings(settings)](./sql.md#copysqlservicesettings_e89ea77) | Creates a mutable deep copy of a [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) object, cloning nested <code>headers</code> if present. |
 |  [getSql(settings)](./sql.md#getsql_e89ea77) | Returns the cached or newly initialized [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client bound to the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) and the specified [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface)<!-- -->. |
 |  <b>function(sql, ...)</b> |
-|  [terminate(sql)](./sql.md#terminate_bc2cb94) | Terminates a [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client, aborts any in-flight HTTP requests, detaches Auth and App Check token listeners, and evicts the instance from its <code>FirebaseApp</code> component cache. |
+|  [terminate(sql)](./sql.md#terminate_bc2cb94) | Terminates a [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client, aborts any in-flight HTTP requests, cancels pending Auth and App Check initialization subscriptions, and evicts the instance from its <code>FirebaseApp</code> component cache. |
 
 ## Classes
 
@@ -64,7 +64,7 @@ Always apply [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) and
 |  [QueryUpsertOptions](./sql.queryupsertoptions.md#queryupsertoptions_interface) | Conflict-resolution and execution options for [QueryBuilder.upsert()](./sql.querybuilder.md#querybuilderupsert)<!-- -->. |
 |  [SerializedFirebaseSqlError](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerror_interface) | Plain JSON-serializable object returned by [FirebaseSqlError.toJSON()](./sql.firebasesqlerror.md#firebasesqlerrortojson)<!-- -->. |
 |  [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Connection and routing configuration for a [FirebaseSql](./sql.firebasesql.md#firebasesql_class) service client instance initialized via [getSql()](./sql.md#getsql_e89ea77)<!-- -->. |
-|  [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) | Lazy PostgREST result-shaping builder supporting post-mutation projection (<code>select</code>), ordering, pagination (<code>limit</code>, <code>range</code>), safety guards (<code>maxAffected</code>, <code>rollback</code>, <code>abortSignal</code>), and cardinality/format narrowing (<code>single</code>, <code>maybeSingle</code>, <code>csv</code>, <code>geojson</code>, <code>explain</code>). |
+|  [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) | Lazy PostgREST result-shaping builder supporting post-mutation projection (<code>select</code>), ordering, pagination (<code>limit</code>, <code>range</code>), server preferences (<code>maxAffected</code>, <code>rollback</code>), client fetch cancellation (<code>abortSignal</code>), and cardinality/format narrowing (<code>single</code>, <code>maybeSingle</code>, <code>csv</code>, <code>geojson</code>, <code>explain</code>). |
 |  [TransformExplainOptions](./sql.transformexplainoptions.md#transformexplainoptions_interface) | PostgreSQL <code>EXPLAIN</code> execution flags and output format options for [TransformBuilder.explain()](./sql.transformbuilder.md#transformbuilderexplain)<!-- -->. |
 |  [TransformLimitOptions](./sql.transformlimitoptions.md#transformlimitoptions_interface) | Embedded-table targeting options for [TransformBuilder.limit()](./sql.transformbuilder.md#transformbuilderlimit)<!-- -->. |
 |  [TransformOrderOptions](./sql.transformorderoptions.md#transformorderoptions_interface) | Ordering options for [TransformBuilder.order()](./sql.transformbuilder.md#transformbuilderorder)<!-- -->. |
@@ -84,7 +84,7 @@ Always apply [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) and
 |  [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes) | Type-level guard enforcing array-vs-object cardinality compatibility in [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) and [Builder.returns()](./sql.builder.md#builderreturns)<!-- -->, while preserving <code>&#124; null</code> when <code>T</code> is nullable. |
 |  [Code](./sql.md#code) | Alias for [FirebaseSqlErrorCode](./sql.md#firebasesqlerrorcode)<!-- -->. |
 |  [ContainsNull](./sql.md#containsnull) | Type-level predicate evaluating to <code>true</code> when <code>T</code> explicitly includes <code>null</code> (and is not <code>unknown</code>), or <code>false</code> otherwise. |
-|  [ExplicitKeys](./sql.md#explicitkeys) | Extracts literal property keys from <code>T</code> while discarding wide <code>[key: string]</code> index signatures. |
+|  [ExplicitKeys](./sql.md#explicitkeys) | Extracts the literal property keys of <code>T</code> when <code>T</code> has no <code>string</code> index signature; evaluates to <code>never</code> when <code>T</code> includes a <code>[key: string]</code> index signature (because <code>string</code> absorbs literal keys in <code>keyof T</code>). |
 |  [FilterOperator](./sql.md#filteroperator) | Raw PostgREST filter operator tokens accepted by [FilterBuilder.not](./sql.filterbuilder.md#filterbuildernot) and [FilterBuilder.filter()](./sql.filterbuilder.md#filterbuilderfilter)<!-- -->. |
 |  [FilterTextSearchType](./sql.md#filtertextsearchtype) | PostgreSQL <code>tsquery</code> parser mode used by [FilterBuilder.textSearch()](./sql.filterbuilder.md#filterbuildertextsearch)<!-- -->. |
 |  [FirebaseSqlErrorCategory](./sql.md#firebasesqlerrorcategory) | Origin tier discriminator identifying which layer produced a [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class)<!-- -->. |
@@ -95,7 +95,7 @@ Always apply [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) and
 |  [MergeExplicit](./sql.md#mergeexplicit) | Recursively merges explicit (non-index-signature) properties of <code>New</code> onto <code>Row</code>, giving <code>New</code> precedence on overlapping keys. |
 |  [MergePartialResult](./sql.md#mergepartialresult) | Computes the resulting <code>data</code> type for [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) based on <code>Options</code> (<code>{ merge: true }</code> vs. <code>{ merge: false }</code>). |
 |  [NarrowResultColumn](./sql.md#narrowresultcolumn) | Type-level helper that narrows property <code>Col</code> on an object <code>T</code> (or each element of an array <code>T</code>) to <code>NonNullable&lt;T[Col]&gt;</code> when [.not(column, 'is', null)](./sql.filterbuilder.md#filterbuildernot) is chained. |
-|  [NonIterable](./sql.md#noniterable) | Compile-time constraint ensuring <code>T</code> is a plain non-iterable object (rejecting <code>Array</code>, <code>Map</code>, <code>Set</code>, and strings). |
+|  [NonIterable](./sql.md#noniterable) | Compile-time constraint rejecting iterable types (<code>Array</code>, <code>Map</code>, <code>Set</code>, <code>string</code>) by forbidding <code>[Symbol.iterator]</code>; does not by itself require <code>T</code> to be a plain object unless intersected with <code>object</code>. |
 |  [OperationResult](./sql.md#operationresult) | Discriminated union (<code>success: true &#124; false</code>) resolved when awaiting any [Builder](./sql.builder.md#builder_interface) in its default non-throwing mode (<code>ThrowOnError = false</code>). |
 |  [QueryCountStrategy](./sql.md#querycountstrategy) | Row-counting strategy sent in the PostgREST <code>Prefer: count=&lt;strategy&gt;</code> request header. |
 |  [SelectQueryError](./sql.md#selectqueryerror) | Compile-time error marker retained as a type-compatibility guard inside [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes) and [MergeExplicit](./sql.md#mergeexplicit)<!-- -->. |
@@ -108,11 +108,11 @@ Always apply [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) and
 
 Returns the cached or newly initialized [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client bound to the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) and [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface)<!-- -->.
 
-\*\*When to use:\*\* Binding to a specific `FirebaseApp` instance (including named secondary apps or `FirebaseServerApp` instances created via `initializeServerApp`<!-- -->) or maintaining explicit dependency injection of `app`<!-- -->.
+When to use: binding to a specific `FirebaseApp` instance (including named secondary apps or `FirebaseServerApp` instances created via `initializeServerApp`<!-- -->) or maintaining explicit dependency injection of `app`<!-- -->.
 
-\*\*Preconditions:\*\* - `app.options.projectId` must be a non-empty string.
+Preconditions: `app.options.projectId` must be a non-empty string.
 
-\*\*Behavior &amp; Side Effects:\*\* Synchronous, performs no network I/O, deep-clones and freezes `settings`<!-- -->, and caches the [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instance on `app` keyed by `(resolvedEndpointUrl, schemaName)`<!-- -->. Note that `settings.headers` is excluded from the cache key; use [Builder.setHeader()](./sql.builder.md#buildersetheader) for per-operation headers.
+Behavior and side effects: synchronous, performs no network I/O, deep-clones and freezes `settings`<!-- -->, and caches the [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instance on `app` keyed by `(resolvedEndpointUrl, schemaName)` (`settings.headers` is excluded from the cache key; use [Builder.setHeader()](./sql.builder.md#buildersetheader) for per-operation headers, or [terminate()](./sql.md#terminate_bc2cb94) to evict the cached instance). Note that passing a scheme or path in `settings.host` does not throw and silently produces a wrong endpoint (for example, `'http://example.com'` resolves to hostname `'http'`<!-- -->).
 
 <b>Signature:</b>
 
@@ -135,13 +135,13 @@ The cached or newly created [FirebaseSql](./sql.firebasesql.md#firebasesql_class
 
 #### Exceptions
 
-[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown when `app` is not a valid `FirebaseApp` object, `app.options.projectId` is missing/empty, `settings`<!-- -->, `serviceId`<!-- -->, or `location` is missing/empty, `port` is not an integer in `1..65535`<!-- -->, or `headers` includes a protected header name. \*\*Remediation:\*\* Pass a valid `FirebaseApp` initialized with `projectId` and valid [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface)<!-- -->.
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown when `app` is not an object with an `options` property (note that passing `undefined` as `app` falls back to the default app via `getApp()`<!-- -->, which throws `FirebaseError` `app/no-app` if no default app exists), `app.options.projectId` is missing/empty, `settings`<!-- -->, `serviceId`<!-- -->, or `location` is missing/empty, `port` is not an integer in `1..65535`<!-- -->, or `headers` includes a protected header name.
 
-`TypeError` Thrown when `settings.host` is not a valid hostname accepted by the WHATWG `URL` constructor (for example, `''` or a string including `http://`<!-- -->). \*\*Remediation:\*\* Pass a bare hostname without protocol or path.
+`TypeError` Thrown synchronously when `settings.host` is rejected by the WHATWG `URL` parser (such as `''`<!-- -->) or when `settings.headers` contains an invalid HTTP header name or value (for example, spaces in a header name, CR/LF, or non-Latin-1 characters).
 
 ### Example 1
 
-\*\*Initialize Firebase SQL with an explicit `FirebaseApp` using the default schema\*\*
+Initialize Firebase SQL with an explicit `FirebaseApp` using the default schema:
 
 ```ts
 import { initializeApp } from 'firebase/app';
@@ -162,7 +162,7 @@ const sql = getSql(app, {
 
 ### Example 2
 
-\*\*Initialize Firebase SQL with an explicit `FirebaseApp` targeting a non-default schema\*\*
+Initialize Firebase SQL with an explicit `FirebaseApp` targeting a non-default schema:
 
 ```ts
 import { getApp } from 'firebase/app';
@@ -184,9 +184,9 @@ const analyticsSql = getSql(app, {
 
 Creates a mutable deep copy of a [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) object, cloning nested `headers` if present.
 
-\*\*When to use:\*\* Cloning a frozen `sql.settings` object (returned by [FirebaseSql.settings](./sql.firebasesql.md#firebasesqlsettings)<!-- -->) to derive configuration for another [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instance (such as targeting a different `schemaName` or `serviceId`<!-- -->).
+When to use: cloning a frozen `sql.settings` object (returned by [FirebaseSql.settings](./sql.firebasesql.md#firebasesqlsettings)<!-- -->) to derive configuration for another [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instance (such as targeting a different `schemaName` or `serviceId`<!-- -->).
 
-\*\*Behavior &amp; Side Effects:\*\* Pure synchronous clone with no network I/O or validation. Unlike `sql.settings`<!-- -->, the returned object and its `headers` map are unfrozen and safe to mutate before passing to [getSql()](./sql.md#getsql_e89ea77)<!-- -->.
+Behavior and side effects: pure synchronous clone with no network I/O or validation. Unlike `sql.settings`<!-- -->, the returned object and its `headers` map are unfrozen and safe to mutate before passing to [getSql()](./sql.md#getsql_e89ea77)<!-- -->.
 
 <b>Signature:</b>
 
@@ -208,7 +208,7 @@ A new mutable [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesetting
 
 ### Example
 
-\*\*Derive a secondary schema client from existing settings\*\*
+Derive a secondary schema client from existing settings:
 
 ```ts
 import { copySqlServiceSettings, getSql } from 'firebase/sql';
@@ -225,13 +225,13 @@ const analyticsSql = getSql(sql.app, analyticsSettings);
 
 Returns the cached or newly initialized [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client bound to the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) and the specified [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface)<!-- -->.
 
-\*\*When to use:\*\* Standard single-app setups where `initializeApp({ projectId, ... })` has already been called for the default Firebase app.
+When to use: standard single-app setups where `initializeApp({ projectId, ... })` has already been called for the default Firebase app.
 
-\*\*Do NOT use:\*\* - Multi-app environments targeting a named secondary `FirebaseApp`<!-- -->; pass the `app` explicitly via the two-argument [getSql(app, settings)](./sql.md#getsql_94d2423) overload. - Varying `settings.headers` on the same `(serviceId, location, schemaName)` expecting separate clients—cached instances ignore subsequent `settings.headers`<!-- -->; use [Builder.setHeader()](./sql.builder.md#buildersetheader) for per-request headers instead.
+Do not use in multi-app environments targeting a named secondary `FirebaseApp` (pass `app` explicitly via [getSql(app, settings)](./sql.md#getsql_94d2423)<!-- -->) or when varying `settings.headers` on the same `(serviceId, location, schemaName)` expecting separate clients (cached instances ignore subsequent `settings.headers`<!-- -->; use [Builder.setHeader()](./sql.builder.md#buildersetheader) for per-request headers or call [terminate()](./sql.md#terminate_bc2cb94) first).
 
-\*\*Preconditions:\*\* - The default `FirebaseApp` must be initialized via `initializeApp(...)` with a non-empty `options.projectId`<!-- -->.
+Preconditions: the default `FirebaseApp` must be initialized via `initializeApp(...)` with a non-empty `options.projectId`<!-- -->.
 
-\*\*Behavior &amp; Side Effects:\*\* Synchronous, performs no network I/O, deep-clones and freezes `settings`<!-- -->, and caches the resulting [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instance on the default app keyed by `(resolvedEndpointUrl, schemaName)`<!-- -->.
+Behavior and side effects: synchronous, performs no network I/O, deep-clones and freezes `settings`<!-- -->, and caches the resulting [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instance on the default app keyed by `(resolvedEndpointUrl, schemaName)`<!-- -->. Note that if `settings.host` contains a scheme or path (such as `'http://example.com'`<!-- -->), it does not throw—it resolves to the unintended hostname `'http'` and overwrites the path, so always pass a bare hostname.
 
 <b>Signature:</b>
 
@@ -253,15 +253,15 @@ The cached or newly created [FirebaseSql](./sql.firebasesql.md#firebasesql_class
 
 #### Exceptions
 
-`FirebaseError` (`app/no-app`<!-- -->) Thrown when no default `FirebaseApp` has been initialized. \*\*Remediation:\*\* Call `initializeApp({ projectId: '...' })` before calling `getSql(settings)`<!-- -->.
+`FirebaseError` (`app/no-app`<!-- -->) Thrown when no default `FirebaseApp` has been initialized. Call `initializeApp({ projectId: '...' })` before calling `getSql(settings)`<!-- -->.
 
-[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown when `settings` is missing, `serviceId` or `location` is empty, `port` is outside `1..65535` or non-integer, `headers` contains a protected header key, or `app.options.projectId` is missing/empty. \*\*Remediation:\*\* Supply non-empty `projectId`<!-- -->, `serviceId`<!-- -->, and `location`<!-- -->, an integer `port` in `1..65535`<!-- -->, and remove disallowed auth/telemetry headers.
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown when `settings` is missing, `serviceId` or `location` is empty, `port` is outside `1..65535` or non-integer, `headers` contains a protected header key, or `app.options.projectId` is missing/empty. Supply non-empty `projectId`<!-- -->, `serviceId`<!-- -->, and `location`<!-- -->, an integer `port` in `1..65535`<!-- -->, and remove disallowed auth/telemetry headers.
 
-`TypeError` Thrown when `settings.host` is not a valid hostname accepted by the WHATWG `URL` constructor (for example, `''` or a string including `http://`<!-- -->). \*\*Remediation:\*\* Pass a bare hostname without protocol or path.
+`TypeError` Thrown synchronously when `settings.host` is rejected by the WHATWG `URL` parser (such as `''`<!-- -->) or when `settings.headers` contains an invalid HTTP header name or value (for example, spaces in a header name, CR/LF, or non-Latin-1 characters). Note that a scheme or path in `settings.host` is not rejected by `URL` and silently produces a wrong endpoint.
 
 ### Example 1
 
-\*\*Initialize Firebase SQL using the default schema\*\*
+Initialize Firebase SQL using the default schema:
 
 ```ts
 import { initializeApp } from 'firebase/app';
@@ -282,7 +282,7 @@ const sql = getSql({
 
 ### Example 2
 
-\*\*Initialize Firebase SQL targeting a non-default schema\*\*
+Initialize Firebase SQL targeting a non-default schema:
 
 ```ts
 import { getSql } from 'firebase/sql';
@@ -299,11 +299,13 @@ const analyticsSql = getSql({
 
 ### terminate(sql) {:#terminate_bc2cb94}
 
-Terminates a [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client, aborts any in-flight HTTP requests, detaches Auth and App Check token listeners, and evicts the instance from its `FirebaseApp` component cache.
+Terminates a [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client, aborts any in-flight HTTP requests, cancels pending Auth and App Check initialization subscriptions, and evicts the instance from its `FirebaseApp` component cache.
 
-\*\*When to use:\*\* Tearing down a client during test cleanup, user session isolation, or before re-initializing a client with updated `headers` for the same `(app, serviceId, location, schemaName)`<!-- -->.
+When to use: tearing down a client during test cleanup, user session isolation, or before re-initializing a client with updated `headers` for the same `(app, serviceId, location, schemaName)` via [getSql()](./sql.md#getsql_e89ea77)<!-- -->.
 
-\*\*Behavior &amp; Side Effects:\*\* - Idempotent: calling `terminate(sql)` repeatedly on an already-terminated instance resolves immediately without side effects and will not evict a newer client created afterward via [getSql()](./sql.md#getsql_e89ea77)<!-- -->. - After termination, calling `sql.from()` or `sql.rpc()` throws [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->) synchronously. - Pre-existing builders created before `terminate(sql)` continue chaining synchronously without throwing, but awaiting them (or any request already in flight) settles with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->).
+Behavior and side effects: idempotent—calling `terminate(sql)` repeatedly on an already-terminated instance resolves immediately without side effects and will not evict a newer client created afterward via [getSql()](./sql.md#getsql_e89ea77)<!-- -->.
+
+After termination, calling `sql.from()` or `sql.rpc()` throws [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->) synchronously. Pre-existing builders created before `terminate(sql)` continue chaining synchronously without throwing, but awaiting them (or any request already in flight) settles with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->).
 
 <b>Signature:</b>
 
@@ -321,11 +323,11 @@ export declare function terminate(sql: FirebaseSql): Promise<void>;
 
 Promise&lt;void&gt;
 
-A `Promise` that resolves once token listeners are detached and the instance is removed from the registry.
+A `Promise` that resolves immediately after the instance is marked terminated, pending initialization subscriptions are cancelled, and the instance is removed from the registry.
 
 ### Example 1
 
-\*\*Terminate a client and create a fresh instance\*\*
+Terminate a client and create a fresh instance:
 
 ```ts
 import { getSql, terminate } from 'firebase/sql';
@@ -340,7 +342,7 @@ const nextSql = getSql({ serviceId: 'events-db', location: 'us-central1' });
 
 ### Example 2
 
-\*\*Handle `Code.NOT_INITIALIZED` on builders created before termination\*\*
+Handle `Code.NOT_INITIALIZED` on builders created before termination:
 
 ```ts
 import { Code, getSql, terminate } from 'firebase/sql';
@@ -361,7 +363,19 @@ if (!res.success && res.error.code === Code.NOT_INITIALIZED) {
 
 Frozen map of canonical client and platform error code constants.
 
-Compare against `error.code` when handling `'sql-client'` and `'sql-platform'` errors: - `Code.INVALID_ARGUMENT` (`'invalid-argument'`<!-- -->): Missing `projectId`<!-- -->, `serviceId`<!-- -->, `location`<!-- -->, invalid `port`<!-- -->, dot-segment resource name (`'.'`<!-- -->/`'..'`<!-- -->), disallowed HTTP header, or HTTP 400 gateway rejection. - `Code.NOT_INITIALIZED` (`'not-initialized'`<!-- -->): Operation called or settled after [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->. - `Code.NOT_SUPPORTED` (`'not-supported'`<!-- -->): Global `fetch` unavailable in runtime (`'sql-client'`<!-- -->), or HTTP 501 / `UNIMPLEMENTED` gateway rejection (`'sql-platform'`<!-- -->). - `Code.UNAUTHORIZED` (`'unauthorized'`<!-- -->): Emitted for `'sql-platform'` HTTP 401/403 or `UNAUTHENTICATED`<!-- -->/`PERMISSION_DENIED` gateway, IAM, or App Check rejections. (PostgreSQL/PostgREST privilege errors preserve SQLSTATE `'42501'` or `'PGRST*'` under `'sql-postgrest'`<!-- -->, and client-side Auth `getToken()` failures map to `Code.OTHER` under `'sql-client'`<!-- -->.) - `Code.OTHER` (`'other'`<!-- -->): Network failure, aborted request, client-side Auth token retrieval failure (`status === 0`<!-- -->, `'sql-client'`<!-- -->), or unmapped gateway error (`'sql-platform'`<!-- -->). - `Code.ALREADY_INITIALIZED` (`'already-initialized'`<!-- -->): Reserved lifecycle conflict code. - `Code.PARTIAL_ERROR` (`'partial-error'`<!-- -->): Reserved partial failure code.
+Compare against `error.code` when handling `'sql-client'` and `'sql-platform'` errors.
+
+`Code.INVALID_ARGUMENT` (`'invalid-argument'`<!-- -->): missing `projectId`<!-- -->, `serviceId`<!-- -->, or `location`<!-- -->, invalid `port`<!-- -->, dot-segment resource name (`'.'` or `'..'`<!-- -->), disallowed HTTP header, or HTTP 400 non-PostgREST gateway rejection.
+
+`Code.NOT_INITIALIZED` (`'not-initialized'`<!-- -->): operation called or settled after [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->.
+
+`Code.NOT_SUPPORTED` (`'not-supported'`<!-- -->): global `fetch` unavailable in runtime (`'sql-client'`<!-- -->), or HTTP 501 / `UNIMPLEMENTED` gateway rejection (`'sql-platform'`<!-- -->).
+
+`Code.UNAUTHORIZED` (`'unauthorized'`<!-- -->): emitted for `'sql-platform'` HTTP 401/403 or `UNAUTHENTICATED` / `PERMISSION_DENIED` gateway, IAM, or App Check rejections. PostgreSQL and PostgREST privilege errors preserve SQLSTATE `'42501'` or `'PGRST*'` under `'sql-postgrest'`<!-- -->, and client-side Auth `getToken()` failures map to `Code.OTHER` under `'sql-client'`<!-- -->.
+
+`Code.OTHER` (`'other'`<!-- -->): network failure, aborted request, circular JSON request body, client-side Auth token retrieval failure (`res.status === 0`<!-- -->, `'sql-client'`<!-- -->), or unmapped `'sql-platform'` response (such as HTTP 502/504 or unparseable 2xx body).
+
+`Code.ALREADY_INITIALIZED` (`'already-initialized'`<!-- -->) and `Code.PARTIAL_ERROR` (`'partial-error'`<!-- -->): reserved error codes.
 
 <b>Signature:</b>
 
@@ -379,7 +393,7 @@ Code: Readonly<{
 
 ### Example
 
-\*\*Branch on client and platform error codes\*\*
+Branch on client and platform error codes:
 
 ```ts
 import { Code } from 'firebase/sql';
@@ -407,7 +421,7 @@ FirebaseSqlErrorCategory: Readonly<{
 
 ### Example
 
-\*\*Distinguish PostgreSQL errors from gateway or client failures\*\*
+Distinguish PostgreSQL errors from gateway or client failures:
 
 ```ts
 import { FirebaseSqlErrorCategory } from 'firebase/sql';
@@ -437,7 +451,7 @@ export type CheckMatchingArrayTypes<T, NewResult> = T extends SelectQueryError<s
 
 ### Example
 
-\*\*Preserve `| null` on valid single-row overrides and surface mismatch errors\*\*
+Preserve `| null` on valid single-row overrides and surface mismatch errors:
 
 ```ts
 import type { CheckMatchingArrayTypes } from 'firebase/sql';
@@ -459,7 +473,7 @@ export type Code = FirebaseSqlErrorCode;
 
 ### Example
 
-\*\*Reference `Code` as both a type and a runtime constant map\*\*
+Reference `Code` as both a type and a runtime constant map:
 
 ```ts
 import { Code } from 'firebase/sql';
@@ -482,7 +496,7 @@ export type ContainsNull<T> = unknown extends T ? false : null extends T ? true 
 
 ### Example
 
-\*\*Check whether a `maybeSingle()` result type includes `null`<!-- -->\*\*
+Check whether a `maybeSingle()` result type includes `null`<!-- -->:
 
 ```ts
 import type { ContainsNull } from 'firebase/sql';
@@ -494,7 +508,7 @@ type NonNull = ContainsNull<{ id: string }>; // false
 
 ## ExplicitKeys
 
-Extracts literal property keys from `T` while discarding wide `[key: string]` index signatures.
+Extracts the literal property keys of `T` when `T` has no `string` index signature; evaluates to `never` when `T` includes a `[key: string]` index signature (because `string` absorbs literal keys in `keyof T`<!-- -->).
 
 <b>Signature:</b>
 
@@ -506,13 +520,13 @@ export type ExplicitKeys<T> = {
 
 ### Example
 
-\*\*Extract known keys while ignoring a string index signature\*\*
+Extract literal keys from closed vs. index-signature object types:
 
 ```ts
 import type { ExplicitKeys } from 'firebase/sql';
 
-type Keys = ExplicitKeys<{ id: string; slug: string; [key: string]: unknown }>;
-// 'id' | 'slug'
+type ClosedKeys = ExplicitKeys<{ id: string; slug: string }>; // 'id' | 'slug'
+type IndexedKeys = ExplicitKeys<{ id: string; [key: string]: unknown }>; // never
 
 ```
 
@@ -520,7 +534,15 @@ type Keys = ExplicitKeys<{ id: string; slug: string; [key: string]: unknown }>;
 
 Raw PostgREST filter operator tokens accepted by [FilterBuilder.not](./sql.filterbuilder.md#filterbuildernot) and [FilterBuilder.filter()](./sql.filterbuilder.md#filterbuilderfilter)<!-- -->.
 
-Maps to PostgREST URL filter prefixes: - Comparison: `'eq'` (`=`<!-- -->), `'neq'` (`<>`<!-- -->), `'gt'` (`>`<!-- -->), `'gte'` (`>=`<!-- -->), `'lt'` (`<`<!-- -->), `'lte'` (`<=`<!-- -->), `'is'` (`IS`<!-- -->), `'isdistinct'` (`IS DISTINCT FROM`<!-- -->), `'in'` (`IN`<!-- -->). - Pattern &amp; regex: `'like'` (`LIKE`<!-- -->), `'ilike'` (`ILIKE`<!-- -->), `'match'` (`~`<!-- -->), `'imatch'` (`~*`<!-- -->). - Array, `jsonb`<!-- -->, &amp; range: `'cs'` (`@>`<!-- -->), `'cd'` (`<@`<!-- -->), `'ov'` (`&&`<!-- -->), `'sl'` (`<<`<!-- -->), `'sr'` (`>>`<!-- -->), `'nxl'` (`&>`<!-- -->), `'nxr'` (`&<`<!-- -->), `'adj'` (`-|-`<!-- -->). - Full-text search: `'fts'` (`to_tsquery`<!-- -->), `'plfts'` (`plainto_tsquery`<!-- -->), `'phfts'` (`phraseto_tsquery`<!-- -->), `'wfts'` (`websearch_to_tsquery`<!-- -->).
+Maps to PostgREST URL filter prefixes across four operator families.
+
+Comparison: `'eq'` (`=`<!-- -->), `'neq'` (`<>`<!-- -->), `'gt'` (`>`<!-- -->), `'gte'` (`>=`<!-- -->), `'lt'` (`<`<!-- -->), `'lte'` (`<=`<!-- -->), `'is'` (`IS`<!-- -->), `'isdistinct'` (`IS DISTINCT FROM`<!-- -->), and `'in'` (`IN`<!-- -->).
+
+Pattern and regex: `'like'` (`LIKE`<!-- -->), `'ilike'` (`ILIKE`<!-- -->), `'match'` (`~`<!-- -->), and `'imatch'` (`~*`<!-- -->).
+
+Array, `jsonb`<!-- -->, and range: `'cs'` (`@>`<!-- -->), `'cd'` (`<@`<!-- -->), `'ov'` (`&&`<!-- -->), `'sl'` (`<<`<!-- -->), `'sr'` (`>>`<!-- -->), `'nxl'` (`&>`<!-- -->), `'nxr'` (`&<`<!-- -->), and `'adj'` (`-|-`<!-- -->).
+
+Full-text search: `'fts'` (`to_tsquery`<!-- -->), `'plfts'` (`plainto_tsquery`<!-- -->), `'phfts'` (`phraseto_tsquery`<!-- -->), and `'wfts'` (`websearch_to_tsquery`<!-- -->).
 
 <b>Signature:</b>
 
@@ -530,7 +552,7 @@ export type FilterOperator = 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like'
 
 ### Example
 
-\*\*Use a typed PostgREST operator token with `.filter()`<!-- -->\*\*
+Use a typed PostgREST operator token with `.filter()`<!-- -->:
 
 ```ts
 import type { FilterOperator } from 'firebase/sql';
@@ -547,7 +569,7 @@ const res = await sql
 
 PostgreSQL `tsquery` parser mode used by [FilterBuilder.textSearch()](./sql.filterbuilder.md#filterbuildertextsearch)<!-- -->.
 
-- `'plain'`<!-- -->: Uses `plainto_tsquery` (`plfts`<!-- -->), normalizing unquoted words and joining terms with `&` (`AND`<!-- -->). - `'phrase'`<!-- -->: Uses `phraseto_tsquery` (`phfts`<!-- -->), matching normalized terms in adjacent `<->` phrase order. - `'websearch'`<!-- -->: Uses `websearch_to_tsquery` (`wfts`<!-- -->), supporting `"quoted phrases"`<!-- -->, `or`<!-- -->, and `-negation` without ever raising syntax errors on raw user input.
+`'plain'` uses `plainto_tsquery` (`plfts`<!-- -->), normalizing unquoted words and joining terms with `&` (`AND`<!-- -->). `'phrase'` uses `phraseto_tsquery` (`phfts`<!-- -->), matching normalized terms in adjacent `<->` phrase order. `'websearch'` uses `websearch_to_tsquery` (`wfts`<!-- -->), supporting `"quoted phrases"`<!-- -->, `or`<!-- -->, and `-negation` without raising syntax errors on raw user input.
 
 When omitted in [FilterTextSearchOptions](./sql.filtertextsearchoptions.md#filtertextsearchoptions_interface)<!-- -->, PostgREST uses raw `to_tsquery` (`fts`<!-- -->), which requires valid `tsquery` syntax.
 
@@ -559,7 +581,7 @@ export type FilterTextSearchType = 'plain' | 'phrase' | 'websearch';
 
 ### Example
 
-\*\*Select `'websearch'` mode for raw user search input\*\*
+Select `'websearch'` mode for raw user search input:
 
 ```ts
 import type { FilterTextSearchType } from 'firebase/sql';
@@ -579,7 +601,13 @@ const res = await sql
 
 Origin tier discriminator identifying which layer produced a [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class)<!-- -->.
 
-Note that [FirebaseSqlError.category](./sql.firebasesqlerror.md#firebasesqlerrorcategory) is typed as `string` at compile time, while SDK-generated errors emit one of these three values: - `'sql-client'`<!-- -->: Local SDK validation, missing `fetch`<!-- -->, network drop, Auth `getToken()` rejection, or terminated client (`error.status` is `undefined`<!-- -->, while [OperationFailure.status](./sql.operationbase.md#operationbasestatus) is `0`<!-- -->). - `'sql-platform'`<!-- -->: Google Cloud gateway / IAM / App Check rejection prior to reaching PostgREST. - `'sql-postgrest'`<!-- -->: PostgREST or PostgreSQL database execution failure (`code` contains SQLSTATE or `PGRST*`<!-- -->).
+[FirebaseSqlError.category](./sql.firebasesqlerror.md#firebasesqlerrorcategory) is typed as `string` at compile time, while SDK-generated errors emit one of three values.
+
+`'sql-client'`<!-- -->: local SDK validation, missing `fetch`<!-- -->, network drop, `AbortSignal` cancellation, circular JSON body, Auth `getToken()` rejection, or terminated client (`error.status` is `undefined`<!-- -->, while [OperationFailure.status](./sql.operationbase.md#operationbasestatus) is `0`<!-- -->).
+
+`'sql-platform'`<!-- -->: any HTTP failure response whose body is not a PostgREST error envelope—typically a Google Cloud gateway, IAM, or App Check rejection, but also proxy or gateway errors (such as HTTP 502 or 504), body-less `HEAD` failures, or `2xx` responses with unparseable JSON bodies. Do not assume the request had no effect on the server.
+
+`'sql-postgrest'`<!-- -->: PostgREST or PostgreSQL database execution failure (`code` contains a PostgreSQL SQLSTATE or PostgREST `PGRST*` code).
 
 <b>Signature:</b>
 
@@ -589,14 +617,24 @@ export type FirebaseSqlErrorCategory = 'sql-postgrest' | 'sql-platform' | 'sql-c
 
 ### Example
 
-\*\*Narrow error category in logging middleware\*\*
+Inspect an error category in a telemetry helper:
 
 ```ts
-import type { FirebaseSqlErrorCategory } from 'firebase/sql';
+import { Code, FirebaseSqlErrorCategory, type FirebaseSqlError } from 'firebase/sql';
 
-const retryableCategories: ReadonlySet<FirebaseSqlErrorCategory | string> = new Set([
-  'sql-client'
-]);
+function describeOrigin(err: FirebaseSqlError): FirebaseSqlErrorCategory | 'custom' {
+  if (
+    err.category === FirebaseSqlErrorCategory.SQL_CLIENT ||
+    err.category === FirebaseSqlErrorCategory.SQL_PLATFORM ||
+    err.category === FirebaseSqlErrorCategory.SQL_POSTGREST
+  ) {
+    if (err.category === FirebaseSqlErrorCategory.SQL_CLIENT && err.code === Code.OTHER) {
+      // Transport/abort failure: an in-flight write may or may not have reached the server.
+    }
+    return err.category;
+  }
+  return 'custom';
+}
 
 ```
 
@@ -604,7 +642,7 @@ const retryableCategories: ReadonlySet<FirebaseSqlErrorCategory | string> = new 
 
 Canonical client and platform error codes emitted by Firebase SQL operations.
 
-Note that [FirebaseSqlError.code](./sql.firebasesqlerror.md#firebasesqlerrorcode) is typed as `string` because errors with `category === 'sql-postgrest'` preserve raw PostgreSQL SQLSTATE codes (such as `'23505'` for unique-constraint violations or `'42501'` for insufficient privilege) and PostgREST `PGRST*` codes (such as `'PGRST116'` when `.single()` or `.maybeSingle()` row-count expectations fail). Client (`'sql-client'`<!-- -->) and Google Cloud gateway (`'sql-platform'`<!-- -->) errors emit values from `FirebaseSqlErrorCode`<!-- -->.
+[FirebaseSqlError.code](./sql.firebasesqlerror.md#firebasesqlerrorcode) is typed as `string` because errors with `category === 'sql-postgrest'` preserve raw PostgreSQL SQLSTATE codes (such as `'23505'` for unique-constraint violations or `'42501'` for insufficient privilege) and PostgREST `PGRST*` codes (such as `'PGRST116'` when `.single()` or `.maybeSingle()` row-count expectations fail). Client (`'sql-client'`<!-- -->) and non-PostgREST (`'sql-platform'`<!-- -->) errors emit values from `FirebaseSqlErrorCode` (see runtime constants in [Code](./sql.md#code)<!-- -->).
 
 <b>Signature:</b>
 
@@ -614,7 +652,7 @@ export type FirebaseSqlErrorCode = 'other' | 'already-initialized' | 'not-initia
 
 ### Example
 
-\*\*Type-annotate a helper handling client and platform error codes\*\*
+Type-annotate a helper handling client and platform error codes:
 
 ```ts
 import { Code, type FirebaseSqlErrorCode } from 'firebase/sql';
@@ -637,7 +675,7 @@ export type IsPlainObject<T> = T extends unknown[] ? false : T extends object ? 
 
 ### Example
 
-\*\*Distinguish plain row objects from arrays\*\*
+Distinguish plain row objects from arrays:
 
 ```ts
 import type { IsPlainObject } from 'firebase/sql';
@@ -661,7 +699,7 @@ export type IsValidResultOverride<T, NewResult, ErrorResult, ErrorNewResult> = u
 
 ### Example
 
-\*\*Validate array-vs-object override compatibility at compile time\*\*
+Validate array-vs-object override compatibility at compile time:
 
 ```ts
 import type { IsValidResultOverride } from 'firebase/sql';
@@ -685,7 +723,7 @@ export type MergeDeep<New, Row> = Simplify<MergeExplicit<New, Row> & (string ext
 
 ### Example
 
-\*\*Deep-merge refined nested fields onto a base row type\*\*
+Deep-merge refined nested fields onto a base row type:
 
 ```ts
 import type { MergeDeep } from 'firebase/sql';
@@ -712,7 +750,7 @@ export type MergeExplicit<New, Row> = {
 
 ### Example
 
-\*\*Override a `metadata` field type while retaining other explicit row properties\*\*
+Override a `metadata` field type while retaining other explicit row properties:
 
 ```ts
 import type { MergeExplicit } from 'firebase/sql';
@@ -729,7 +767,7 @@ type MergedEvent = MergeExplicit<
 
 Computes the resulting `data` type for [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) based on `Options` (`{ merge: true }` vs. `{ merge: false }`<!-- -->).
 
-- When `Options` is `{ merge: false }`<!-- -->, evaluates directly to `NewResult` (discarding `Result$1`<!-- -->'s `Record<string, unknown>` index signature). - When `Options` is `{ merge: true }` (the default on `overrideTypes`<!-- -->), short-circuits to `NewResult` if `Result$1` is `unknown` (such as untyped `rpc()`<!-- -->), or applies [MergeDeep](./sql.md#mergedeep) across object or array elements.
+When `Options` is `{ merge: false }`<!-- -->, evaluates directly to `NewResult` (discarding `Result$1`<!-- -->'s `Record<string, unknown>` index signature). When `Options` is `{ merge: true }` (the default on `overrideTypes`<!-- -->), short-circuits to `NewResult` if `Result$1` is `unknown` (such as untyped `rpc()`<!-- -->), or applies [MergeDeep](./sql.md#mergedeep) across object or array elements.
 
 <b>Signature:</b>
 
@@ -741,7 +779,7 @@ export type MergePartialResult<NewResult, Result$1, Options> = Options extends {
 
 ### Example
 
-\*\*Compare `{ merge: false }` replacement against `{ merge: true }` merging\*\*
+Compare `{ merge: false }` replacement against `{ merge: true }` merging:
 
 ```ts
 import type { MergePartialResult } from 'firebase/sql';
@@ -773,7 +811,7 @@ export type NarrowResultColumn<T, Col extends string> = T extends Array<infer It
 
 ### Example
 
-\*\*Narrow a nullable `venue_id` property to `string` across an array of rows\*\*
+Narrow a nullable `venue_id` property to `string` across an array of rows:
 
 ```ts
 import type { NarrowResultColumn } from 'firebase/sql';
@@ -790,7 +828,7 @@ type InPersonEventItems = NarrowResultColumn<EventItem[], 'venue_id'>;
 
 ## NonIterable
 
-Compile-time constraint ensuring `T` is a plain non-iterable object (rejecting `Array`<!-- -->, `Map`<!-- -->, `Set`<!-- -->, and strings).
+Compile-time constraint rejecting iterable types (`Array`<!-- -->, `Map`<!-- -->, `Set`<!-- -->, `string`<!-- -->) by forbidding `[Symbol.iterator]`<!-- -->; does not by itself require `T` to be a plain object unless intersected with `object`<!-- -->.
 
 <b>Signature:</b>
 
@@ -802,7 +840,7 @@ export type NonIterable<T> = T & {
 
 ### Example
 
-\*\*Constrain a generic patch helper to plain single-row objects\*\*
+Constrain a generic patch helper to non-iterable single-row objects:
 
 ```ts
 import type { NonIterable } from 'firebase/sql';
@@ -817,7 +855,9 @@ function patchEvent<Patch extends NonIterable<Record<string, unknown>>>(id: stri
 
 Discriminated union (`success: true | false`<!-- -->) resolved when awaiting any [Builder](./sql.builder.md#builder_interface) in its default non-throwing mode (`ThrowOnError = false`<!-- -->).
 
-Narrow using `if (!result.success)` or destructured `const { data, error } = await ...; if (error)` before reading `data`<!-- -->. \*\*Never\*\* narrow with `if (!data)` on `.maybeSingle()`<!-- -->, `head: true`<!-- -->, or mutations without `.select()`<!-- -->, because `data` is legitimately `null` on success (leaving `error` possibly `null` in the `if (!data)` branch). To reject with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) instead of resolving an `OperationFailure`<!-- -->, chain [.throwOnError()](./sql.builder.md#builderthrowonerror)<!-- -->.
+Narrow using `if (!result.success)` or destructured `const { data, error } = await ...; if (error)` before reading `data`<!-- -->. Never narrow with `if (!data)` on `.maybeSingle()`<!-- -->, `head: true`<!-- -->, or mutations without `.select()`<!-- -->, because `data` is legitimately `null` on success (leaving `error` possibly `null` in the `if (!data)` branch).
+
+To reject with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) instead of resolving an `OperationFailure`<!-- -->, chain [.throwOnError()](./sql.builder.md#builderthrowonerror)<!-- -->.
 
 <b>Signature:</b>
 
@@ -827,7 +867,7 @@ export type OperationResult<T> = OperationSuccess<T> | OperationFailure;
 
 ### Example
 
-\*\*Narrow `OperationResult` via `result.success`<!-- -->\*\*
+Narrow `OperationResult` via `result.success`<!-- -->:
 
 ```ts
 import type { OperationResult } from 'firebase/sql';
@@ -856,9 +896,9 @@ if (!result.success) {
 
 Row-counting strategy sent in the PostgREST `Prefer: count=<strategy>` request header.
 
-Controls how `result.count` on [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface) is computed: - `'exact'`<!-- -->: Executes a full `COUNT(*)` query; accurate at any scale but incurs table/index scan cost. - `'planned'`<!-- -->: Reads row estimates from PostgreSQL planner statistics (`EXPLAIN`<!-- -->); near-zero overhead but approximate. - `'estimated'`<!-- -->: Uses `'exact'` below PostgREST's `db-max-rows` threshold and `'planned'` above it.
+Controls how `result.count` on [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface) is computed. `'exact'` executes a full `COUNT(*)` query (accurate at any scale, incurs table or index scan cost). `'planned'` reads row estimates from PostgreSQL planner statistics (`EXPLAIN`<!-- -->; near-zero overhead, approximate). `'estimated'` uses `'exact'` below PostgREST's `db-max-rows` threshold and `'planned'` above it.
 
-When combined with [TransformBuilder.limit()](./sql.transformbuilder.md#transformbuilderlimit) or [TransformBuilder.range()](./sql.transformbuilder.md#transformbuilderrange)<!-- -->, `result.count` reflects the \*\*total\*\* rows matching the query filters prior to pagination, not `result.data.length`<!-- -->.
+Only the exact lowercase literals `'exact'`<!-- -->, `'planned'`<!-- -->, and `'estimated'` (case-sensitive) populate `result.count`<!-- -->; any other string is sent verbatim in `Prefer: count=<value>` while `result.count` remains `null`<!-- -->. When combined with [TransformBuilder.limit()](./sql.transformbuilder.md#transformbuilderlimit) or [TransformBuilder.range()](./sql.transformbuilder.md#transformbuilderrange)<!-- -->, `result.count` reflects total rows matching the query filters prior to pagination, not `result.data.length`<!-- -->.
 
 <b>Signature:</b>
 
@@ -868,13 +908,16 @@ export type QueryCountStrategy = 'exact' | 'planned' | 'estimated' | (string & {
 
 ### Example
 
-\*\*Select a counting strategy based on table size\*\*
+Request an estimated total row count:
 
 ```ts
 import type { QueryCountStrategy } from 'firebase/sql';
 
 const strategy: QueryCountStrategy = 'estimated';
 const res = await sql.from('events').select('id', { count: strategy }).limit(20);
+if (res.success) {
+  console.log('Estimated total:', res.count);
+}
 
 ```
 
@@ -882,7 +925,7 @@ const res = await sql.from('events').select('id', { count: strategy }).limit(20)
 
 Compile-time error marker retained as a type-compatibility guard inside [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes) and [MergeExplicit](./sql.md#mergeexplicit)<!-- -->.
 
-Note that `firebase/sql` operates on an untyped schema (`Record<string, unknown>`<!-- -->) and does \*\*not\*\* parse `select()` projection strings at compile time; use [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) to assign static row types.
+`firebase/sql` operates on an untyped schema (`Record<string, unknown>`<!-- -->) and does not parse `select()` projection strings at compile time; use [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) to assign static row types.
 
 <b>Signature:</b>
 
@@ -894,12 +937,12 @@ export type SelectQueryError<Message extends string> = {
 
 ### Example
 
-\*\*Represent a compile-time `select()` parser diagnostic\*\*
+Type-compatibility error marker checked by `CheckMatchingArrayTypes`<!-- -->:
 
 ```ts
 import type { SelectQueryError } from 'firebase/sql';
 
-type ParseFailure = SelectQueryError<'Invalid column projection syntax'>;
+type Marker = SelectQueryError<'Invalid column reference'>;
 
 ```
 
@@ -917,7 +960,7 @@ export type Simplify<T> = T extends object ? {
 
 ### Example
 
-\*\*Flatten an intersection of event fields into a single object type\*\*
+Flatten an intersection of event fields into a single object type:
 
 ```ts
 import type { Simplify } from 'firebase/sql';
@@ -931,7 +974,7 @@ type FlatEvent = Simplify<{ id: string } & { code: string; title: string }>;
 
 Output serialization format for PostgreSQL `EXPLAIN` plans requested via [TransformBuilder.explain()](./sql.transformbuilder.md#transformbuilderexplain)<!-- -->.
 
-- `'text'`<!-- -->: Returns PostgreSQL's human-readable indented plan text as a `string`<!-- -->. - `'json'`<!-- -->: Returns PostgreSQL's structured plan array as `Array<Record<string, unknown>>`<!-- -->.
+`'text'` returns PostgreSQL's human-readable indented plan text as a `string`<!-- -->. `'json'` returns PostgreSQL's structured plan array as `Array<Record<string, unknown>>`<!-- -->.
 
 <b>Signature:</b>
 
@@ -941,7 +984,7 @@ export type TransformExplainFormat = 'json' | 'text';
 
 ### Example
 
-\*\*Select JSON output format for programmatic query-plan inspection\*\*
+Select JSON output format for programmatic query-plan inspection:
 
 ```ts
 import type { TransformExplainFormat } from 'firebase/sql';

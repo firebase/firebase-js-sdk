@@ -1,17 +1,4 @@
 /**
- * PostgREST-compatible SQL client SDK (`firebase/sql`) for querying PostgreSQL databases
- * hosted on Firebase SQL with automatic Firebase Authentication and App Check integration.
- *
- * @remarks
- * **Application Import Path:** Install `firebase` and import from `firebase/sql` (do not import
- * `@firebase/sql` directly in application code). See {@link FirebaseSql}, {@link QueryBuilder},
- * {@link FilterBuilder}, {@link TransformBuilder}, and {@link Builder} for the lazy builder pipeline,
- * {@link OperationResult} vs. {@link Builder.throwOnError} error semantics, and `.overrideTypes()` usage.
- *
- * @packageDocumentation
- */
-
-/**
  * @license
  * Copyright 2026 Google LLC
  *

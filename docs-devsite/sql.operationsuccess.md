@@ -23,14 +23,14 @@ export interface OperationSuccess<T> extends OperationBase
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [count](./sql.operationsuccess.md#operationsuccesscount) | number \| null | Total row count when <code>count</code> (<code>'exact'</code>, <code>'planned'</code>, or <code>'estimated'</code>) was requested; otherwise <code>null</code>. |
+|  [count](./sql.operationsuccess.md#operationsuccesscount) | number \| null | Total row count when <code>count</code> (<code>'exact'</code>, <code>'planned'</code>, or <code>'estimated'</code>) was requested and returned by the server; otherwise <code>null</code>. |
 |  [data](./sql.operationsuccess.md#operationsuccessdata) | T | Deserialized response payload (<code>null</code> for mutations without <code>.select()</code> or <code>HEAD</code> requests). |
 |  [error](./sql.operationsuccess.md#operationsuccesserror) | null | Always <code>null</code> on a successful operation. |
-|  [success](./sql.operationsuccess.md#operationsuccesssuccess) | true | Discriminator literal <code>true</code> confirming the operation succeeded with a 2xx response. |
+|  [success](./sql.operationsuccess.md#operationsuccesssuccess) | true | Discriminator literal <code>true</code> when no error was reported. Note that an HTTP <code>404</code> response with an empty body (such as a <code>HEAD</code> request against a nonexistent table) is normalized to <code>status: 204</code> with <code>success: true</code>, <code>data: null</code>, and <code>count: null</code>, and an HTTP <code>404</code> with a JSON array body is normalized to <code>status: 200</code> with <code>data: []</code>. |
 
 ## OperationSuccess.count
 
-Total row count when `count` (`'exact'`<!-- -->, `'planned'`<!-- -->, or `'estimated'`<!-- -->) was requested; otherwise `null`<!-- -->.
+Total row count when `count` (`'exact'`<!-- -->, `'planned'`<!-- -->, or `'estimated'`<!-- -->) was requested and returned by the server; otherwise `null`<!-- -->.
 
 <b>Signature:</b>
 
@@ -60,7 +60,7 @@ error: null;
 
 ## OperationSuccess.success
 
-Discriminator literal `true` confirming the operation succeeded with a 2xx response.
+Discriminator literal `true` when no error was reported. Note that an HTTP `404` response with an empty body (such as a `HEAD` request against a nonexistent table) is normalized to `status: 204` with `success: true`<!-- -->, `data: null`<!-- -->, and `count: null`<!-- -->, and an HTTP `404` with a JSON array body is normalized to `status: 200` with `data: []`<!-- -->.
 
 <b>Signature:</b>
 
@@ -70,7 +70,7 @@ success: true;
 
 ### Example
 
-\*\*Handle a narrowed `OperationSuccess` envelope\*\*
+Handle a narrowed `OperationSuccess` envelope:
 
 ```ts
 import type { OperationSuccess } from 'firebase/sql';

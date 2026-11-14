@@ -22,14 +22,14 @@ export interface TransformOrderOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [ascending](./sql.transformorderoptions.md#transformorderoptionsascending) | boolean \| undefined | Sorts values in ascending (<code>true</code>) or descending (<code>false</code>) order. |
-|  [foreignTable](./sql.transformorderoptions.md#transformorderoptionsforeigntable) | string \| undefined | Legacy alias for [TransformOrderOptions.referencedTable](./sql.transformorderoptions.md#transformorderoptionsreferencedtable)<!-- -->. Prefer <code>referencedTable</code>. |
+|  [ascending](./sql.transformorderoptions.md#transformorderoptionsascending) | boolean \| undefined | Sorts values in ascending (<code>true</code>) or descending (<code>false</code>) order. Defaults to <code>true</code>. |
+|  [foreignTable](./sql.transformorderoptions.md#transformorderoptionsforeigntable) | string \| undefined | Legacy alias for [TransformOrderOptions.referencedTable](./sql.transformorderoptions.md#transformorderoptionsreferencedtable)<!-- -->. Prefer <code>referencedTable</code> for new code. Defaults to <code>undefined</code>. |
 |  [nullsFirst](./sql.transformorderoptions.md#transformorderoptionsnullsfirst) | boolean \| undefined | Places <code>NULL</code> values before non-null values (<code>true</code> emits <code>.nullsfirst</code>) or after (<code>false</code> emits <code>.nullslast</code>). |
 |  [referencedTable](./sql.transformorderoptions.md#transformorderoptionsreferencedtable) | string \| undefined | Embedded relation name (or alias) whose nested array elements should be sorted instead of the parent table (<code>?&lt;referencedTable&gt;.order=...</code>). |
 
 ## TransformOrderOptions.ascending
 
-Sorts values in ascending (`true`<!-- -->) or descending (`false`<!-- -->) order.
+Sorts values in ascending (`true`<!-- -->) or descending (`false`<!-- -->) order. Defaults to `true`<!-- -->.
 
 <b>Signature:</b>
 
@@ -39,12 +39,7 @@ ascending?: boolean | undefined;
 
 ## TransformOrderOptions.foreignTable
 
-> Warning: This API is now obsolete.
-> 
-> Use [TransformOrderOptions.referencedTable](./sql.transformorderoptions.md#transformorderoptionsreferencedtable) instead.
-> 
-
-Legacy alias for [TransformOrderOptions.referencedTable](./sql.transformorderoptions.md#transformorderoptionsreferencedtable)<!-- -->. Prefer `referencedTable`<!-- -->.
+Legacy alias for [TransformOrderOptions.referencedTable](./sql.transformorderoptions.md#transformorderoptionsreferencedtable)<!-- -->. Prefer `referencedTable` for new code. Defaults to `undefined`<!-- -->.
 
 <b>Signature:</b>
 
@@ -56,7 +51,7 @@ foreignTable?: string | undefined;
 
 Places `NULL` values before non-null values (`true` emits `.nullsfirst`<!-- -->) or after (`false` emits `.nullslast`<!-- -->).
 
-When omitted, PostgreSQL applies its default null ordering (`NULLS LAST` for `ASC`<!-- -->, `NULLS FIRST` for `DESC`<!-- -->).
+Defaults to `undefined` (PostgreSQL applies its default null ordering: `NULLS LAST` for `ASC`<!-- -->, `NULLS FIRST` for `DESC`<!-- -->).
 
 <b>Signature:</b>
 
@@ -68,7 +63,7 @@ nullsFirst?: boolean | undefined;
 
 Embedded relation name (or alias) whose nested array elements should be sorted instead of the parent table (`?<referencedTable>.order=...`<!-- -->).
 
-Takes precedence over `foreignTable` when both are provided. Does not change parent-row order (to sort parent rows by a many-to-one relation column, pass `'venue(name)'` as `column` with `referencedTable` omitted).
+Defaults to `undefined`<!-- -->. Takes precedence over `foreignTable` when both are provided. Does not change parent-row order (to sort parent rows by a many-to-one relation column, pass `'venue(name)'` as `column` with `referencedTable` omitted).
 
 <b>Signature:</b>
 
@@ -78,7 +73,7 @@ referencedTable?: string | undefined;
 
 ### Example
 
-\*\*Sort an embedded `registrations` array newest-first with `NULL` check-ins placed last\*\*
+Sort an embedded `registrations` array newest-first with `NULL` check-ins placed last:
 
 ```ts
 import type { TransformOrderOptions } from 'firebase/sql';

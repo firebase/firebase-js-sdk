@@ -70,7 +70,7 @@ success: false;
 
 ### Example
 
-\*\*Inspect structured `FirebaseSqlError` fields on an `OperationFailure`<!-- -->\*\*
+Inspect structured `FirebaseSqlError` fields on an `OperationFailure`<!-- -->:
 
 ```ts
 import type { OperationFailure } from 'firebase/sql';

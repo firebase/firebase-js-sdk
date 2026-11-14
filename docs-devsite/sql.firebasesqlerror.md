@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # FirebaseSqlError class
 Structured error class returned in [OperationFailure.error](./sql.operationfailure.md#operationfailureerror) or thrown synchronously / via [Builder.throwOnError()](./sql.builder.md#builderthrowonerror)<!-- -->.
 
-Extends `FirebaseError` from `@firebase/util`<!-- -->. Inspect [FirebaseSqlError.category](./sql.firebasesqlerror.md#firebasesqlerrorcategory)<!-- -->, [FirebaseSqlError.code](./sql.firebasesqlerror.md#firebasesqlerrorcode)<!-- -->, [FirebaseSqlError.details](./sql.firebasesqlerror.md#firebasesqlerrordetails)<!-- -->, and [FirebaseSqlError.hint](./sql.firebasesqlerror.md#firebasesqlerrorhint) together—PostgreSQL and PostgREST frequently populate `hint` and `details` with the exact column, constraint, or SQL grant needed to fix a failing query.
+Extends `FirebaseError` from `@firebase/util`<!-- -->. Inspect [FirebaseSqlError.category](./sql.firebasesqlerror.md#firebasesqlerrorcategory)<!-- -->, [FirebaseSqlError.code](./sql.firebasesqlerror.md#firebasesqlerrorcode)<!-- -->, [FirebaseSqlError.details](./sql.firebasesqlerror.md#firebasesqlerrordetails)<!-- -->, and [FirebaseSqlError.hint](./sql.firebasesqlerror.md#firebasesqlerrorhint) together—PostgreSQL and PostgREST frequently populate `hint` and `details` with the exact column, constraint, or SQL grant needed to fix a failing query. See [Code](./sql.md#code) for client and platform error codes and [FirebaseSqlErrorCategory](./sql.md#firebasesqlerrorcategory) for origin tiers.
 
 <b>Signature:</b>
 
@@ -57,12 +57,12 @@ constructor(code: string, message: string, category: string, details?: string | 
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  code | string | PostgREST/SQLSTATE code or [FirebaseSqlErrorCode](./sql.md#firebasesqlerrorcode)<!-- -->. |
-|  message | string | Human-readable failure description. |
-|  category | string | Error origin tier (see [FirebaseSqlErrorCategory](./sql.md#firebasesqlerrorcategory)<!-- -->). |
-|  details | string \| undefined | Optional diagnostic detail text. |
-|  hint | string \| undefined | Optional server remediation hint. |
-|  status | number \| undefined | Optional HTTP status code (<code>&gt; 0</code>). |
+|  code | string | PostgREST/SQLSTATE error code or [FirebaseSqlErrorCode](./sql.md#firebasesqlerrorcode) literal stored on <code>error.code</code>. |
+|  message | string | Human-readable failure description stored on <code>error.message</code>. |
+|  category | string | Origin tier identifier (see [FirebaseSqlErrorCategory](./sql.md#firebasesqlerrorcategory)<!-- -->). |
+|  details | string \| undefined | Server-supplied diagnostic detail string, JSON-serialized structured details, or client error stack; <code>undefined</code> when absent. |
+|  hint | string \| undefined | Server-supplied remediation or URL-length hint; <code>undefined</code> when absent. |
+|  status | number \| undefined | HTTP response status code, or <code>undefined</code> for client-side errors (stored verbatim without runtime validation). |
 
 ## FirebaseSqlError.category
 
@@ -131,7 +131,7 @@ Plain [SerializedFirebaseSqlError](./sql.serializedfirebasesqlerror.md#serialize
 
 ### Example
 
-\*\*Convert a `FirebaseSqlError` to JSON\*\*
+Convert a `FirebaseSqlError` to JSON:
 
 ```ts
 const res = await sql.from('venues').select('id').eq('slug', 'missing').single();
@@ -143,7 +143,7 @@ if (!res.success) {
 
 ### Example
 
-\*\*Inspect error origin category, code, details, and hint\*\*
+Inspect error origin category, code, details, and hint:
 
 ```ts
 import { Code, FirebaseSqlErrorCategory } from 'firebase/sql';
@@ -152,7 +152,7 @@ const res = await sql.from('events').select('id, title');
 if (!res.success) {
   const { category, code, message, details, hint, status } = res.error;
   if (category === FirebaseSqlErrorCategory.SQL_POSTGREST && code === '42501') {
-    console.error('Database RLS/privilege error:', message, hint);
+    console.error('Database privilege error:', message, hint);
   } else if (code === Code.UNAUTHORIZED) {
     console.error('Auth or App Check rejected:', status, details);
   }

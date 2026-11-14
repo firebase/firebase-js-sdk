@@ -91,7 +91,7 @@ status?: number | undefined;
 
 ### Example
 
-\*\*Serialize a `FirebaseSqlError` for structured telemetry\*\*
+Serialize a `FirebaseSqlError` for structured telemetry:
 
 ```ts
 import type { SerializedFirebaseSqlError } from 'firebase/sql';

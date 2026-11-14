@@ -28,6 +28,8 @@ export interface QueryUpdateOptions
 
 Row-counting algorithm used to populate `result.count` with the number of updated rows.
 
+Defaults to `undefined` (`result.count` is `null`<!-- -->). Only exact lowercase `'exact'`<!-- -->, `'planned'`<!-- -->, or `'estimated'` populate `result.count`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -36,13 +38,19 @@ count?: QueryCountStrategy | undefined;
 
 ### Example
 
-\*\*Count rows modified by an `update()`<!-- -->\*\*
+Count rows modified by an `update()`<!-- -->:
 
 ```ts
 import type { QueryUpdateOptions } from 'firebase/sql';
 
 const updateOpts: QueryUpdateOptions = { count: 'exact' };
-const res = await sql.from('events').update({ is_featured: false }, updateOpts).eq('status', 'archived');
+const res = await sql
+  .from('events')
+  .update({ is_featured: false }, updateOpts)
+  .eq('status', 'archived');
+if (!res.success) {
+  console.error('Update failed:', res.error.message);
+}
 
 ```
 

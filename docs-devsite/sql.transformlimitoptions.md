@@ -22,17 +22,12 @@ export interface TransformLimitOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [foreignTable](./sql.transformlimitoptions.md#transformlimitoptionsforeigntable) | string \| undefined | Legacy alias for [TransformLimitOptions.referencedTable](./sql.transformlimitoptions.md#transformlimitoptionsreferencedtable)<!-- -->. Prefer <code>referencedTable</code>. |
-|  [referencedTable](./sql.transformlimitoptions.md#transformlimitoptionsreferencedtable) | string \| undefined | Embedded child relation name (or alias) whose nested array length should be capped per parent row (<code>?&lt;referencedTable&gt;.limit=...</code>). |
+|  [foreignTable](./sql.transformlimitoptions.md#transformlimitoptionsforeigntable) | string \| undefined | Legacy alias for [TransformLimitOptions.referencedTable](./sql.transformlimitoptions.md#transformlimitoptionsreferencedtable)<!-- -->. Prefer <code>referencedTable</code> for new code. Defaults to <code>undefined</code>. |
+|  [referencedTable](./sql.transformlimitoptions.md#transformlimitoptionsreferencedtable) | string \| undefined | Embedded child relation name (or alias) whose nested array length should be capped per parent row (<code>?&lt;referencedTable&gt;.limit=...</code>). Defaults to <code>undefined</code>. |
 
 ## TransformLimitOptions.foreignTable
 
-> Warning: This API is now obsolete.
-> 
-> Use [TransformLimitOptions.referencedTable](./sql.transformlimitoptions.md#transformlimitoptionsreferencedtable) instead.
-> 
-
-Legacy alias for [TransformLimitOptions.referencedTable](./sql.transformlimitoptions.md#transformlimitoptionsreferencedtable)<!-- -->. Prefer `referencedTable`<!-- -->.
+Legacy alias for [TransformLimitOptions.referencedTable](./sql.transformlimitoptions.md#transformlimitoptionsreferencedtable)<!-- -->. Prefer `referencedTable` for new code. Defaults to `undefined`<!-- -->.
 
 <b>Signature:</b>
 
@@ -42,7 +37,7 @@ foreignTable?: string | undefined;
 
 ## TransformLimitOptions.referencedTable
 
-Embedded child relation name (or alias) whose nested array length should be capped per parent row (`?<referencedTable>.limit=...`<!-- -->).
+Embedded child relation name (or alias) whose nested array length should be capped per parent row (`?<referencedTable>.limit=...`<!-- -->). Defaults to `undefined`<!-- -->.
 
 <b>Signature:</b>
 
@@ -52,7 +47,7 @@ referencedTable?: string | undefined;
 
 ### Example
 
-\*\*Cap nested `registrations` to 5 items per parent event\*\*
+Cap nested `registrations` to 5 items per parent event:
 
 ```ts
 import type { TransformLimitOptions } from 'firebase/sql';

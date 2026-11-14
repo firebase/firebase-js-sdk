@@ -12,9 +12,9 @@ https://github.com/firebase/firebase-js-sdk
 # SqlServiceSettings interface
 Connection and routing configuration for a [FirebaseSql](./sql.firebasesql.md#firebasesql_class) service client instance initialized via [getSql()](./sql.md#getsql_e89ea77)<!-- -->.
 
-Passed to [getSql()](./sql.md#getsql_e89ea77)<!-- -->, which validates all fields, creates a deep frozen copy, and resolves the PostgREST endpoint URL as: `{http|https}://{host}[:{port}]/v1/projects/{projectId}/locations/{location}/services/{serviceId}/postgrest`<!-- -->.
+Passed to [getSql()](./sql.md#getsql_e89ea77)<!-- -->, which validates `serviceId`<!-- -->, `location`<!-- -->, `port`<!-- -->, and protected `headers` keys, creates a deep frozen copy, and resolves the PostgREST endpoint URL as `{http|https}://{host}[:{port}]/v1/projects/{projectId}/locations/{location}/services/{serviceId}/postgrest`<!-- -->.
 
-\*\*Instance Caching:\*\* [getSql()](./sql.md#getsql_e89ea77) deduplicates instances by `(app, resolvedUrl, schemaName)`<!-- -->. Different `headers` objects passed with an already-initialized `(app, resolvedUrl, schemaName)` reuse the cached [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instance and its original `headers`<!-- -->; use [Builder.setHeader()](./sql.builder.md#buildersetheader) for per-request header overrides.
+Instance caching: [getSql()](./sql.md#getsql_e89ea77) deduplicates instances by `(app, resolvedUrl, schemaName)`<!-- -->. Different `headers` objects passed with an already-initialized `(app, resolvedUrl, schemaName)` reuse the cached [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instance and its original `headers`<!-- -->; use [Builder.setHeader()](./sql.builder.md#buildersetheader) for per-request header overrides. See [getSql()](./sql.md#getsql_e89ea77) for client initialization and error rules.
 
 <b>Signature:</b>
 
@@ -38,9 +38,9 @@ export interface SqlServiceSettings
 
 Static custom HTTP headers included on every outgoing request from this client instance.
 
-\*\*Do NOT use\*\* for authentication or App Check tokens (`Authorization`<!-- -->, `x-firebase-auth-token`<!-- -->, `x-firebase-appcheck`<!-- -->) or reserved Firebase telemetry/routing headers (`x-goog-api-client`<!-- -->, `x-client-version`<!-- -->, `x-firebase-gmpid`<!-- -->, `x-firebase-client`<!-- -->, `x-firebase-client-log-type`<!-- -->, `x-goog-request-params`<!-- -->, `x-firebase-sqlconnect-affinity`<!-- -->). Supplying any protected header key (case-insensitive) causes [getSql()](./sql.md#getsql_e89ea77) to throw [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->). Firebase Auth and App Check tokens are attached automatically when configured on the bound `FirebaseApp`<!-- -->.
+Defaults to `undefined`<!-- -->. Do not use for authentication or App Check tokens (`Authorization`<!-- -->, `x-firebase-auth-token`<!-- -->, `x-firebase-appcheck`<!-- -->) or reserved Firebase telemetry and routing headers (`x-goog-api-client`<!-- -->, `x-client-version`<!-- -->, `x-firebase-gmpid`<!-- -->, `x-firebase-client`<!-- -->, `x-firebase-client-log-type`<!-- -->, `x-goog-request-params`<!-- -->, `x-firebase-sqlconnect-affinity`<!-- -->). Supplying any protected header key (case-insensitive) causes [getSql()](./sql.md#getsql_e89ea77) to throw [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->). Every header name and value must also be a valid HTTP header accepted by the Fetch `Headers` constructor (no spaces in header names, no CR/LF, and Latin-1 characters only), or [getSql()](./sql.md#getsql_e89ea77) throws a `TypeError` synchronously. Firebase Auth and App Check tokens are attached automatically when configured on the bound `FirebaseApp`<!-- -->.
 
-Not included in the [getSql()](./sql.md#getsql_e89ea77) instance cache key; use [Builder.setHeader()](./sql.builder.md#buildersetheader) for request-scoped headers.
+Excluded from the [getSql()](./sql.md#getsql_e89ea77) instance cache key; use [Builder.setHeader()](./sql.builder.md#buildersetheader) for request-scoped headers.
 
 <b>Signature:</b>
 
@@ -52,7 +52,7 @@ headers?: Record<string, string> | undefined;
 
 Custom endpoint hostname (without protocol or path) overriding the default Firebase SQL service host.
 
-Defaults to `'firebasedataconnect.googleapis.com'` when omitted. Must be a valid hostname accepted by the WHATWG `URL` constructor (do not pass `''` or include `http://` / `https://`<!-- -->, or [getSql()](./sql.md#getsql_e89ea77) will throw a `TypeError`<!-- -->).
+Defaults to `'firebasedataconnect.googleapis.com'`<!-- -->. Must be a bare hostname (optionally `host:port`<!-- -->) with no scheme or path. Only values rejected by the WHATWG `URL` parser when prefixed with `https://` (such as `''`<!-- -->) cause [getSql()](./sql.md#getsql_e89ea77) to throw a `TypeError`<!-- -->; passing a scheme or path is not rejected and silently produces a wrong endpoint (for example, `'http://example.com'` resolves to hostname `'http'`<!-- -->, and any path segment is overwritten).
 
 <b>Signature:</b>
 
@@ -64,7 +64,7 @@ host?: string | undefined;
 
 Non-empty Google Cloud region hosting the Firebase SQL service (for example, `'us-central1'`<!-- -->).
 
-Required. Passing an empty string causes [getSql()](./sql.md#getsql_e89ea77) to throw [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->). Percent-encoded when constructing the `/locations/{location}/` path.
+Required. Passing an empty string causes [getSql()](./sql.md#getsql_e89ea77) to throw [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->). Percent-encoded when constructing the `/locations/{location}/` URL path.
 
 <b>Signature:</b>
 
@@ -76,7 +76,7 @@ location: string;
 
 Custom TCP port number appended to the resolved service endpoint URL.
 
-When provided, must be an integer between `1` and `65535` inclusive; non-integers or out-of-range values cause [getSql()](./sql.md#getsql_e89ea77) to throw [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->).
+Defaults to `undefined`<!-- -->. When provided, must be an integer between `1` and `65535` inclusive; non-integers or out-of-range values cause [getSql()](./sql.md#getsql_e89ea77) to throw [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->).
 
 <b>Signature:</b>
 
@@ -88,7 +88,9 @@ port?: number | undefined;
 
 Target PostgreSQL schema exposed by PostgREST (for example, `'analytics'`<!-- -->).
 
-When specified, sends `Accept-Profile: <schemaName>` on `GET`<!-- -->/`HEAD` requests and `Content-Profile: <schemaName>` on `POST`<!-- -->/`PATCH`<!-- -->/`DELETE` mutations. Omitting `schemaName` (or passing `undefined`<!-- -->) omits profile headers and uses the server's default exposed schema, so specifying `'public'` is unnecessary when `'public'` is the default schema. \*\*Do NOT pass an empty string `''`<!-- -->\*\*—it sends an empty profile header that PostgREST rejects with HTTP `406` (`'PGRST106'`<!-- -->). Note that omitting `schemaName` and passing an explicit `schemaName` string produce distinct cached [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instances.
+Defaults to `undefined`<!-- -->. When specified, sends `Accept-Profile: <schemaName>` on `GET` and `HEAD` requests and `Content-Profile: <schemaName>` on `POST`<!-- -->, `PATCH`<!-- -->, and `DELETE` mutations. Omitting `schemaName` (or passing `undefined`<!-- -->) omits profile headers and uses the server's default exposed schema, so specifying `'public'` is unnecessary when `'public'` is the default schema.
+
+Do not pass an empty string `''`<!-- -->—it sends an empty profile header that PostgREST rejects with HTTP `406` (`'PGRST106'`<!-- -->). Must be a valid HTTP header value (Latin-1 characters with no CR or LF); otherwise awaiting any builder on the client rejects with a `TypeError` when setting the profile header. Note that omitting `schemaName` and passing an explicit `schemaName` string produce distinct cached [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instances.
 
 <b>Signature:</b>
 
@@ -100,7 +102,7 @@ schemaName?: string | undefined;
 
 Non-empty Firebase SQL service identifier within the Firebase project (for example, `'events-db'`<!-- -->).
 
-Required. Passing an empty string causes [getSql()](./sql.md#getsql_e89ea77) to throw [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->). Percent-encoded when constructing the `/services/{serviceId}/postgrest` path.
+Required. Passing an empty string causes [getSql()](./sql.md#getsql_e89ea77) to throw [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->). Percent-encoded when constructing the `/services/{serviceId}/postgrest` URL path.
 
 <b>Signature:</b>
 
@@ -112,7 +114,7 @@ serviceId: string;
 
 Controls whether requests use `https:` (`true` or `undefined`<!-- -->) or `http:` (`false`<!-- -->).
 
-Omitting `sslEnabled` and setting `sslEnabled: true` resolve to the same `https:` endpoint and share the same cached [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instance.
+Defaults to `true`<!-- -->. Omitting `sslEnabled` and setting `sslEnabled: true` resolve to the same `https:` endpoint and share the same cached [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instance.
 
 <b>Signature:</b>
 
@@ -122,7 +124,7 @@ sslEnabled?: boolean | undefined;
 
 ### Example 1
 
-\*\*Configure settings using the default schema\*\*
+Configure settings using the default schema:
 
 ```ts
 import type { SqlServiceSettings } from 'firebase/sql';
@@ -136,7 +138,7 @@ const settings: SqlServiceSettings = {
 
 ### Example 2
 
-\*\*Configure settings targeting a non-default PostgreSQL schema\*\*
+Configure settings targeting a non-default PostgreSQL schema:
 
 ```ts
 import type { SqlServiceSettings } from 'firebase/sql';

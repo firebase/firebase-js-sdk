@@ -28,6 +28,8 @@ export interface QueryDeleteOptions
 
 Row-counting algorithm used to populate `result.count` with the number of deleted rows.
 
+Defaults to `undefined` (`result.count` is `null`<!-- -->). Only exact lowercase `'exact'`<!-- -->, `'planned'`<!-- -->, or `'estimated'` populate `result.count`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -36,13 +38,19 @@ count?: QueryCountStrategy | undefined;
 
 ### Example
 
-\*\*Count rows removed by a `delete()`<!-- -->\*\*
+Count rows removed by a `delete()`<!-- -->:
 
 ```ts
 import type { QueryDeleteOptions } from 'firebase/sql';
 
 const deleteOpts: QueryDeleteOptions = { count: 'exact' };
-const res = await sql.from('events').delete(deleteOpts).eq('status', 'cancelled');
+const res = await sql
+  .from('events')
+  .delete(deleteOpts)
+  .eq('status', 'cancelled');
+if (!res.success) {
+  console.error('Delete failed:', res.error.message);
+}
 
 ```
 

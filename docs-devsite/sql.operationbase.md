@@ -22,12 +22,12 @@ export interface OperationBase
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [status](./sql.operationbase.md#operationbasestatus) | number | HTTP response status code (such as <code>200</code>, <code>201</code>, <code>204</code>, <code>406</code>, <code>409</code>), or <code>0</code> when the request failed locally before receiving an HTTP response (network error, <code>AbortSignal</code>, missing <code>fetch</code>, or terminated client). |
-|  [statusText](./sql.operationbase.md#operationbasestatustext) | string | HTTP status text returned by the server (for example, <code>'OK'</code>, <code>'Created'</code>, <code>'No Content'</code>), or <code>''</code> when <code>status</code> is <code>0</code>. |
+|  [status](./sql.operationbase.md#operationbasestatus) | number | HTTP response status code (such as <code>200</code>, <code>201</code>, <code>204</code>, <code>406</code>, <code>409</code>), or <code>0</code> when the request failed locally before receiving an HTTP response (network error, <code>AbortSignal</code>, circular JSON body, missing <code>fetch</code>, or terminated client). |
+|  [statusText](./sql.operationbase.md#operationbasestatustext) | string | Status text reported by <code>fetch</code> (often <code>''</code> over HTTP/2, or <code>''</code> when <code>status</code> is <code>0</code>) or synthesized client-side (<code>'OK'</code>, <code>'No Content'</code>, <code>'Not Acceptable'</code>); do not branch application logic on <code>statusText</code>. |
 
 ## OperationBase.status
 
-HTTP response status code (such as `200`<!-- -->, `201`<!-- -->, `204`<!-- -->, `406`<!-- -->, `409`<!-- -->), or `0` when the request failed locally before receiving an HTTP response (network error, `AbortSignal`<!-- -->, missing `fetch`<!-- -->, or terminated client).
+HTTP response status code (such as `200`<!-- -->, `201`<!-- -->, `204`<!-- -->, `406`<!-- -->, `409`<!-- -->), or `0` when the request failed locally before receiving an HTTP response (network error, `AbortSignal`<!-- -->, circular JSON body, missing `fetch`<!-- -->, or terminated client).
 
 <b>Signature:</b>
 
@@ -37,7 +37,7 @@ status: number;
 
 ## OperationBase.statusText
 
-HTTP status text returned by the server (for example, `'OK'`<!-- -->, `'Created'`<!-- -->, `'No Content'`<!-- -->), or `''` when `status` is `0`<!-- -->.
+Status text reported by `fetch` (often `''` over HTTP/2, or `''` when `status` is `0`<!-- -->) or synthesized client-side (`'OK'`<!-- -->, `'No Content'`<!-- -->, `'Not Acceptable'`<!-- -->); do not branch application logic on `statusText`<!-- -->.
 
 <b>Signature:</b>
 
@@ -47,13 +47,13 @@ statusText: string;
 
 ### Example
 
-\*\*Log HTTP status metadata from any operation result\*\*
+Log HTTP status metadata from any operation result:
 
 ```ts
 import type { OperationBase } from 'firebase/sql';
 
 function logHttpStatus(meta: OperationBase): void {
-  console.log(`HTTP ${meta.status} ${meta.statusText}`);
+  console.log(`HTTP ${meta.status}`);
 }
 
 const res = await sql.from('venues').select('id').limit(1);

@@ -29,7 +29,7 @@ export interface FilterTextSearchOptions
 
 PostgreSQL text search configuration name (such as `'english'`<!-- -->, `'simple'`<!-- -->, or `'spanish'`<!-- -->) sent as `fts(<config>).<query>`<!-- -->.
 
-When omitted, PostgreSQL uses the server's `default_text_search_config` setting.
+Defaults to `undefined` (PostgreSQL uses the server's `default_text_search_config` setting).
 
 <b>Signature:</b>
 
@@ -41,7 +41,7 @@ config?: string | undefined;
 
 Query parser mode (`'plain'`<!-- -->, `'phrase'`<!-- -->, or `'websearch'`<!-- -->).
 
-When omitted, PostgREST applies `to_tsquery` (`fts`<!-- -->), which requires explicit boolean operators (such as `'firebase' & 'sql'`<!-- -->) and rejects malformed user strings.
+Defaults to `undefined` (PostgREST applies `to_tsquery` / `fts`<!-- -->, which requires explicit boolean operators such as `'firebase' & 'sql'` and rejects malformed user strings).
 
 <b>Signature:</b>
 
@@ -51,7 +51,7 @@ type?: FilterTextSearchType | undefined;
 
 ### Example
 
-\*\*Configure English stemming with `'websearch'` query parsing\*\*
+Configure English stemming with `'websearch'` query parsing:
 
 ```ts
 import type { FilterTextSearchOptions } from 'firebase/sql';

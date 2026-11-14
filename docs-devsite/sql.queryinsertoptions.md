@@ -23,11 +23,13 @@ export interface QueryInsertOptions
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [count](./sql.queryinsertoptions.md#queryinsertoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined | Row-counting algorithm used to populate <code>result.count</code> with the number of inserted rows. |
-|  [defaultToNull](./sql.queryinsertoptions.md#queryinsertoptionsdefaulttonull) | boolean \| undefined | Controls how omitted columns in \*\*bulk array\*\* inserts are populated by PostgreSQL. |
+|  [defaultToNull](./sql.queryinsertoptions.md#queryinsertoptionsdefaulttonull) | boolean \| undefined | Controls how omitted columns in bulk array inserts are populated by PostgreSQL. |
 
 ## QueryInsertOptions.count
 
 Row-counting algorithm used to populate `result.count` with the number of inserted rows.
+
+Defaults to `undefined` (`result.count` is `null`<!-- -->). Only exact lowercase `'exact'`<!-- -->, `'planned'`<!-- -->, or `'estimated'` populate `result.count`<!-- -->.
 
 <b>Signature:</b>
 
@@ -37,9 +39,11 @@ count?: QueryCountStrategy | undefined;
 
 ## QueryInsertOptions.defaultToNull
 
-Controls how omitted columns in \*\*bulk array\*\* inserts are populated by PostgreSQL.
+Controls how omitted columns in bulk array inserts are populated by PostgreSQL.
 
-Only affects array inputs (single-object `insert({...})` never sets `?columns=...` and always uses PostgreSQL column `DEFAULT` expressions for omitted keys). When inserting an array of objects, the SDK sets `?columns="..."` to the `Object.keys(...)` union across all elements: - `true` (default): Omitted keys (or keys explicitly set to `undefined`<!-- -->, which `Object.keys` includes in `?columns` while `JSON.stringify` strips from the body) are inserted as `NULL`<!-- -->. - `false`<!-- -->: Appends `Prefer: missing=default` so PostgreSQL applies each column's schema `DEFAULT` expression instead of `NULL`<!-- -->.
+Defaults to `true`<!-- -->. Only affects array inputs (single-object `insert({...})` never sets `?columns=...` and always uses PostgreSQL column `DEFAULT` expressions for omitted keys).
+
+When inserting an array of objects, the SDK sets `?columns="..."` to the `Object.keys(...)` union across all elements. When `defaultToNull` is `true` (default), omitted keys (or keys explicitly set to `undefined`<!-- -->, which `Object.keys` includes in `?columns` while `JSON.stringify` strips from the body) are inserted as `NULL`<!-- -->. When `defaultToNull` is `false`<!-- -->, the SDK appends `Prefer: missing=default` so PostgreSQL applies each column's schema `DEFAULT` expression instead of `NULL`<!-- -->.
 
 <b>Signature:</b>
 
@@ -49,7 +53,7 @@ defaultToNull?: boolean | undefined;
 
 ### Example
 
-\*\*Preserve PostgreSQL column `DEFAULT` expressions on sparse bulk inserts\*\*
+Preserve PostgreSQL column `DEFAULT` expressions on sparse bulk inserts:
 
 ```ts
 import type { QueryInsertOptions } from 'firebase/sql';
@@ -62,6 +66,9 @@ const res = await sql.from('events').insert(
   ],
   insertOpts
 );
+if (!res.success) {
+  console.error('Bulk insert failed:', res.error.code, res.error.message);
+}
 
 ```
 

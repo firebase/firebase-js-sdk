@@ -34,13 +34,15 @@ export interface QueryBuilder
 
 Starts a lazy `DELETE` operation to remove all rows matching subsequent filters.
 
-\*\*When to use:\*\* Permanently removing one or more rows targeted via [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) predicates (such as `.eq('id', id)` or `.in('id', ids)`<!-- -->).
+When to use: permanently removing one or more rows targeted via [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) predicates (such as `.eq('id', id)` or `.in('id', ids)`<!-- -->; when passing `.in('id', ids)`<!-- -->, every ID is encoded into the URL query string, so chunk large ID lists to stay within HTTP URL limits).
 
-\*\*Do NOT use:\*\* Unfiltered `delete()` calls unless intentionally deleting every visible row in the table—always chain explicit [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) predicates and consider [TransformBuilder.maxAffected()](./sql.transformbuilder.md#transformbuildermaxaffected) as a row-count safety guard.
+Do not use unfiltered `delete()` calls unless intentionally deleting every visible row in the table—always chain explicit [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) predicates and consider [TransformBuilder.maxAffected()](./sql.transformbuilder.md#transformbuildermaxaffected) (on PostgREST v13+) as a row-count cap.
 
-\*\*Behavior &amp; Side Effects:\*\* - \*\*Builder Progression:\*\* `QueryBuilder -> FilterBuilder<null, 'DELETE', false>`<!-- -->. - \*\*Returns `null` by default:\*\* Resolves with `status: 204` and `data: null` unless [.select(columns?)](./sql.transformbuilder.md#transformbuilderselect) is chained to return deleted rows. - Matching zero rows—including when PostgreSQL Row-Level Security `USING` policies hide the target row—is \*\*not\*\* an error (resolves with `success: true`<!-- -->, `status: 204`<!-- -->, or `data: []` when `.select()` is chained). Pass `{ count: 'exact' }` and check `result.count === 0` (or chain `.select('id').single()`<!-- -->) when a missing or RLS-filtered row must be detected!
+Behavior and side effects: builder progression is `QueryBuilder -> FilterBuilder<null, 'DELETE', false>`<!-- -->. Each `await` or `.then()` call sends a new `DELETE` request; awaiting a `delete()` builder more than once repeats the request, so await each mutation builder at most once.
 
-\*\*Error Handling &amp; Remediation:\*\* - Foreign-key `RESTRICT`<!-- -->/`NO ACTION` references from child tables fail with SQLSTATE `'23503'` (`category === 'sql-postgrest'`<!-- -->); delete dependent rows first or configure `ON DELETE CASCADE`<!-- -->. - Exceeding [TransformBuilder.maxAffected()](./sql.transformbuilder.md#transformbuildermaxaffected) rolls back the deletion and returns `'PGRST124'`<!-- -->.
+Returns `null` by default: resolves with `status: 204` and `data: null` unless [.select(columns?)](./sql.transformbuilder.md#transformbuilderselect) is chained to return deleted rows. Matching zero rows—including when PostgreSQL Row-Level Security `USING` policies hide the target row—is not an error (`success: true`<!-- -->, `status: 204`<!-- -->, or `data: []` when `.select()` is chained). Pass `{ count: 'exact' }` and check `result.count === 0` (or chain `.select('id').single()`<!-- -->) when a missing or RLS-filtered row must be detected.
+
+Error handling: foreign-key `RESTRICT` or `NO ACTION` references from child tables fail with SQLSTATE `'23503'` (`res.error.category === 'sql-postgrest'`<!-- -->); delete dependent rows first or configure `ON DELETE CASCADE`<!-- -->. On PostgREST v13+, exceeding [TransformBuilder.maxAffected()](./sql.transformbuilder.md#transformbuildermaxaffected) rolls back the deletion and returns `'PGRST124'`<!-- -->.
 
 <b>Signature:</b>
 
@@ -62,7 +64,7 @@ A lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) with meth
 
 ### Example 1
 
-\*\*Full `DELETE` chain: filter rows, guard with `maxAffected`<!-- -->, attach timeout, and return deleted records\*\*
+Full `DELETE` chain filtering rows, capping `maxAffected`<!-- -->, and returning deleted records:
 
 ```ts
 interface DeletedRegistration {
@@ -70,6 +72,8 @@ interface DeletedRegistration {
   attendee_email: string;
 }
 
+// Note: abortSignal cancels only the client fetch; if a timeout fires after the request
+// reaches the server, the delete may still commit even though result.status === 0.
 const result = await sql
   .from('registrations')
   .delete({ count: 'exact' })
@@ -80,7 +84,9 @@ const result = await sql
   .select('id, attendee_email')
   .overrideTypes<DeletedRegistration[], { merge: false }>();
 
-if (result.success) {
+if (!result.success) {
+  console.error('Delete failed or timed out:', result.error.code, result.error.message);
+} else {
   console.log(`Removed ${result.count} unchecked-in registrations:`, result.data);
 }
 
@@ -88,7 +94,7 @@ if (result.success) {
 
 ### Example 2
 
-\*\*Delete a single record by primary key without returning row payload (`status: 204`<!-- -->)\*\*
+Delete a single record by primary key without returning row payload (`status: 204`<!-- -->):
 
 ```ts
 const delRes = await sql
@@ -97,11 +103,15 @@ const delRes = await sql
   .eq('id', 'c9a646d3-9c61-4cb7-bfcd-ee2522c8f633')
   .maxAffected(1);
 
+if (!delRes.success) {
+  console.error('Delete failed:', delRes.error.message);
+}
+
 ```
 
 ### Example 3
 
-\*\*Batch-delete multiple draft events by ID list\*\*
+Batch-delete multiple draft events by ID list:
 
 ```ts
 const batchDel = await sql
@@ -110,19 +120,27 @@ const batchDel = await sql
   .in('id', ['11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222'])
   .eq('status', 'draft');
 
+if (!batchDel.success) {
+  console.error('Batch delete failed:', batchDel.error.message);
+}
+
 ```
 
 ## QueryBuilder.insert()
 
 Starts a lazy `INSERT` (`POST`<!-- -->) operation to create a single row or a bulk batch of rows.
 
-\*\*When to use:\*\* Inserting new records that must fail on primary-key or unique-constraint collisions.
+When to use: inserting new records that must fail on primary-key or unique-constraint collisions.
 
-\*\*Do NOT use:\*\* Idempotent insert-or-update workflows where existing rows should be merged or skipped on conflict; use [QueryBuilder.upsert()](./sql.querybuilder.md#querybuilderupsert) instead.
+Do not use for idempotent insert-or-update workflows where existing rows should be merged or skipped on conflict; use [QueryBuilder.upsert()](./sql.querybuilder.md#querybuilderupsert) instead.
 
-\*\*Behavior &amp; Side Effects:\*\* - \*\*Builder Progression:\*\* `QueryBuilder -> FilterBuilder<null, 'POST', false>`<!-- -->. - \*\*Returns `null` by default:\*\* PostgREST omits inserted row payloads (`status: 201`<!-- -->, `data: null`<!-- -->) unless you chain [.select(columns?)](./sql.transformbuilder.md#transformbuilderselect) to send `Prefer: return=representation`<!-- -->. - Single-object inputs automatically apply PostgreSQL column `DEFAULT` values for omitted keys. For \*\*array\*\* inputs, the SDK sets `?columns="..."` to the union of `Object.keys(...)` across all elements; pass `{ defaultToNull: false }` (and avoid `{ key: undefined }` properties) so omitted keys in sparse array elements receive PostgreSQL `DEFAULT` values instead of `NULL`<!-- -->. - Non-idempotent (`POST`<!-- -->): automatic transient-error retries are not performed (except a single automatic Firebase Auth token refresh retry on HTTP 401).
+Behavior and side effects: builder progression is `QueryBuilder -> FilterBuilder<null, 'POST', false>`<!-- -->. Each `await` or `.then()` call sends a new `POST` request; awaiting an `insert()` builder more than once duplicates inserted rows, so await each mutation builder at most once.
 
-\*\*Error Handling &amp; Remediation:\*\* - Unique-constraint or primary-key conflicts resolve to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) with SQLSTATE `code === '23505'` (`category === 'sql-postgrest'`<!-- -->, HTTP 409); inspect `error.details` for the conflicting key or switch to [QueryBuilder.upsert()](./sql.querybuilder.md#querybuilderupsert)<!-- -->. Chain [Builder.throwOnError()](./sql.builder.md#builderthrowonerror) to throw [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) instead.
+Returns `null` by default: PostgREST omits inserted row payloads (`status: 201`<!-- -->, `data: null`<!-- -->) unless you chain [.select(columns?)](./sql.transformbuilder.md#transformbuilderselect) to send `Prefer: return=representation`<!-- -->.
+
+Single-object inputs automatically apply PostgreSQL column `DEFAULT` values for omitted keys. For array inputs, the SDK computes `?columns="..."` as the union of `Object.keys(...)` across all elements (in `O(rows^2)` time on the client thread—chunk large bulk inserts to at most `1,000` rows per call); pass `{ defaultToNull: false }` (and avoid `{ key: undefined }` properties) so omitted keys in sparse array elements receive PostgreSQL `DEFAULT` values instead of `NULL`<!-- -->. Automatic transient-error retries are not performed for `POST` requests (except a single automatic Firebase Auth token refresh retry on HTTP 401).
+
+Error handling: unique-constraint or primary-key conflicts resolve to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) with SQLSTATE `code === '23505'` (`category === 'sql-postgrest'`<!-- -->, HTTP 409); inspect `error.details` for the conflicting key or switch to [QueryBuilder.upsert()](./sql.querybuilder.md#querybuilderupsert)<!-- -->. Chain [Builder.throwOnError()](./sql.builder.md#builderthrowonerror) to throw [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) instead.
 
 <b>Signature:</b>
 
@@ -136,7 +154,7 @@ insert<Row extends NonIterable<object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  values | Row \| readonly Row\[\] | Single row object or readonly array of row objects to insert. |
+|  values | Row \| readonly Row\[\] | Single row object or readonly array of row objects to insert. Serialized via <code>JSON.stringify</code> (<code>bigint</code> values serialize via <code>.toString()</code>, <code>undefined</code> property values and functions are omitted, <code>NaN</code>/<code>Infinity</code> serialize as <code>null</code>, <code>Date</code> serializes to ISO-8601, and circular references resolve at <code>await</code> time as <code>res.status === 0</code>, <code>res.error.category === 'sql-client'</code>, <code>res.error.code === 'other'</code>). |
 |  options | Readonly&lt;[QueryInsertOptions](./sql.queryinsertoptions.md#queryinsertoptions_interface)<!-- -->&gt; \| undefined | Optional <code>count</code> strategy and <code>defaultToNull</code> handling for sparse bulk inserts. See [QueryInsertOptions](./sql.queryinsertoptions.md#queryinsertoptions_interface)<!-- -->. |
 
 <b>Returns:</b>
@@ -147,7 +165,7 @@ A lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) with `dat
 
 ### Example 1
 
-\*\*Full `INSERT` chain: create row using DB defaults, return single typed record, and throw on error\*\*
+Full `INSERT` chain creating a row with DB defaults, returning a single typed record, and throwing on error:
 
 ```ts
 import { FirebaseSqlError } from 'firebase/sql';
@@ -188,7 +206,7 @@ try {
 
 ### Example 2
 
-\*\*Bulk insert sparse rows preserving PostgreSQL `DEFAULT` values (`defaultToNull: false`<!-- -->)\*\*
+Bulk insert sparse rows preserving PostgreSQL `DEFAULT` values (`defaultToNull: false`<!-- -->):
 
 ```ts
 const batchRes = await sql
@@ -216,11 +234,15 @@ const batchRes = await sql
     { merge: false }
   >();
 
+if (!batchRes.success) {
+  console.error('Batch insert failed:', batchRes.error.code, batchRes.error.message);
+}
+
 ```
 
 ### Example 3
 
-\*\*Minimal insert without returning row payloads (`data` is `null`<!-- -->) and duplicate-key check\*\*
+Minimal insert without returning row payloads (`data` is `null`<!-- -->) and duplicate-key check:
 
 ```ts
 const res = await sql.from('venues').insert({
@@ -240,17 +262,19 @@ if (!res.success && res.error.code === '23505') {
 
 Starts a lazy `SELECT` (`GET` or `HEAD`<!-- -->) query on the target table or view, supporting column projection, aliases, JSON path extraction, and embedded foreign-key joins.
 
-\*\*When to use:\*\* Reading rows, embedding parent/child relations via foreign keys, or counting matching rows (`{ head: true, count: 'exact' }`<!-- -->).
+When to use: reading rows, embedding parent/child relations via foreign keys, or counting matching rows (`{ head: true, count: 'exact' }`<!-- -->). Chain [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) predicates and [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) ordering/pagination methods before awaiting.
 
-\*\*Do NOT use:\*\* Returning mutated rows from `insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, or `delete`<!-- -->—call [TransformBuilder.select()](./sql.transformbuilder.md#transformbuilderselect) \*after\* those mutation verbs instead.
+Do not use to return mutated rows from `insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, or `delete`<!-- -->—call [TransformBuilder.select()](./sql.transformbuilder.md#transformbuilderselect) after those mutation verbs instead.
 
-\*\*Behavior &amp; Side Effects:\*\* - \*\*Builder Progression:\*\* `QueryBuilder -> FilterBuilder<Array<Record<string, unknown>>, 'GET', false>`<!-- -->. - Lazy: performs no network I/O until `await`<!-- -->ed or `.then()` is invoked. Unquoted whitespace in `columns` is stripped automatically while preserving whitespace inside double-quoted identifiers (such as `'id, "display name"'`<!-- -->). - Untyped `data` defaults to `Array<Record<string, unknown>>`<!-- -->. Chain `.overrideTypes<MyRow[], { merge: false }>()` at the end of the chain—or `.single()` + `.overrideTypes<MyRow, { merge: false }>()` for single-row lookups—to strongly type `result.data`<!-- -->. - \*\*Compile-Time Type Caveat (`head: true`<!-- -->):\*\* When `options.head` is `true`<!-- -->, `result.data` resolves to `null` at runtime, even though TypeScript still statically types `result.data` as `Array<Record<string, unknown>>`<!-- -->—read `result.count` only and never access `.length` on `result.data`<!-- -->. - Idempotent retries (`retry(true)`<!-- -->) are enabled by default for transient network errors and HTTP `503`<!-- -->/`520` responses.
+Behavior and side effects: builder progression is `QueryBuilder -> FilterBuilder<Array<Record<string, unknown>>, 'GET', false>`<!-- -->. Lazy—performs no network I/O until `await`<!-- -->ed or `.then()` is invoked (each `await` sends a new HTTP request). Unquoted whitespace in `columns` is stripped automatically while preserving whitespace inside double-quoted identifiers (such as `'id, "display name"'`<!-- -->). Untyped `data` defaults to `Array<Record<string, unknown>>`<!-- -->; chain `.overrideTypes<MyRow[], { merge: false }>()` at the end of the chain—or `.single()` + `.overrideTypes<MyRow, { merge: false }>()` for single-row lookups—to strongly type `result.data`<!-- -->. Automatic retries (`retry(true)`<!-- -->) are enabled by default for transient network errors and HTTP `503`<!-- -->/`520` responses.
 
-\*\*Embedded Relation Syntax &amp; `.overrideTypes()` Shapes:\*\* - \*\*Many-to-one\*\* (FK on parent, e.g. `events.venue_id -> venues.id`<!-- -->) or \*\*one-to-one\*\* (`UNIQUE` FK): resolves to `RelatedRow | null` by default, or non-null `RelatedRow` when `!inner` is appended (`'venue:venues!inner(name, city)'`<!-- -->). - \*\*One-to-many\*\* (FK on child, e.g. `registrations.event_id -> events.id`<!-- -->) or \*\*many-to-many\*\* (join table): resolves to `RelatedRow[]` (`[]` when empty, never `null`<!-- -->). - \*\*Filter parent rows without returning child columns:\*\* Use an empty `!inner()` projection (`select('id, title, venues!inner()').eq('venues.city', 'Seattle')`<!-- -->). - \*\*Embedded child count:\*\* `select('id, title, registrations(count)')` returns `registrations: Array<{ count: number }>`<!-- -->. - \*\*FK disambiguation &amp; alias targeting:\*\* Place `!fkey_name` \*before\* `!inner` (`'venue:venues!events_venue_id_fkey!inner(name)'`<!-- -->), and once aliased (`venue:venues(...)`<!-- -->), reference the \*\*alias\*\* in filters and transforms (`'venue.city'`<!-- -->, `{ referencedTable: 'venue' }`<!-- -->).
+`head: true` caveats: when `options.head` is `true`<!-- -->, `result.data` resolves to `null` at runtime even though TypeScript still statically types `result.data` as `Array<Record<string, unknown>>`<!-- -->—never access `.length` on `result.data`<!-- -->. Because `HEAD` responses carry no body, an HTTP `404` (for example, an unknown table) resolves as `status: 204` with `success: true` and `count: null`<!-- -->, and other `HEAD` failures carry no PostgREST/SQLSTATE code (mapping to `'sql-platform'`<!-- -->); treat `count === null` as a failure when `count` was requested.
 
-\*\*`jsonb` Operators (`->` vs. `->>`<!-- -->):\*\* - Single arrow `'level:metadata->level'` extracts a \*\*typed JSON value\*\* (`number | boolean | object | null`<!-- -->); use `->` for numeric/boolean comparisons and numeric sorting. - Double arrow `'track:metadata->>track'` extracts \*\*plain `text`<!-- -->\*\* (`string | null`<!-- -->); use `->>` for string equality (`.eq()`<!-- -->) and pattern matching (`.ilike()`<!-- -->).
+Embedded relation syntax and `.overrideTypes()` shapes: many-to-one (FK on parent, such as `events.venue_id -> venues.id`<!-- -->) or one-to-one (`UNIQUE` FK) embeds resolve to `RelatedRow | null` by default, or non-null `RelatedRow` when `!inner` is appended (`'venue:venues!inner(name, city)'`<!-- -->). One-to-many (FK on child, such as `registrations.event_id -> events.id`<!-- -->) or many-to-many embeds resolve to `RelatedRow[]` (`[]` when empty, never `null`<!-- -->). Use an empty `!inner()` projection (`select('id, title, venues!inner()').eq('venues.city', 'Seattle')`<!-- -->) to filter parent rows without returning child columns, or `select('id, title, registrations(count)')` to receive `registrations: Array<{ count: number }>`<!-- -->. Place `!fkey_name` before `!inner` (`'venue:venues!events_venue_id_fkey!inner(name)'`<!-- -->), and once aliased (`venue:venues(...)`<!-- -->), reference the alias in filters and transforms (`'venue.city'`<!-- -->, `{ referencedTable: 'venue' }`<!-- -->).
 
-\*\*Error Handling &amp; Remediation:\*\* - Resolves to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) (`{ success: false, error: FirebaseSqlError }`<!-- -->) on invalid column names (`'42703'`<!-- -->), ambiguous foreign-key embeddings (`'PGRST201'`<!-- -->—disambiguate using `alias:table!fkey_name(...)` from `error.hint`<!-- -->), out-of-bounds `.range()` offsets (`'PGRST103'`<!-- -->, HTTP `416`<!-- -->), RLS/privilege denials (`'42501'`<!-- -->), or gateway auth failures (`Code.UNAUTHORIZED`<!-- -->). Chain [Builder.throwOnError()](./sql.builder.md#builderthrowonerror) to reject instead.
+`jsonb` operators (`->` vs. `->>`<!-- -->): single-arrow `'level:metadata->level'` extracts a typed JSON value (`number | boolean | object | null`<!-- -->) for numeric/boolean comparisons and numeric sorting; double-arrow `'track:metadata->>track'` extracts plain `text` (`string | null`<!-- -->) for string equality (`.eq()`<!-- -->) and pattern matching (`.ilike()`<!-- -->).
+
+Error handling: resolves to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) (`{ success: false, error: FirebaseSqlError }`<!-- -->) on invalid column names (`'42703'`<!-- -->), ambiguous foreign-key embeddings (`'PGRST201'`<!-- -->—disambiguate using `alias:table!fkey_name(...)` from `error.hint`<!-- -->), out-of-bounds `.range()` offsets (`'PGRST103'`<!-- -->, HTTP `416`<!-- -->), missing table privileges (`'42501'`<!-- -->; note that PostgreSQL Row-Level Security `USING` policies never raise errors on reads—they silently omit unauthorized rows and return `200`<!-- -->), or gateway auth failures (`Code.UNAUTHORIZED`<!-- -->). Chain [Builder.throwOnError()](./sql.builder.md#builderthrowonerror) to reject instead.
 
 <b>Signature:</b>
 
@@ -273,7 +297,7 @@ A lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for chain
 
 ### Example 1
 
-\*\*Full `SELECT` chain: filters, embedded relations, type narrowing, pagination, and exact count\*\*
+Full `SELECT` chain with filters, embedded relations, type narrowing, pagination, and exact count:
 
 ```ts
 interface EventFeedItem {
@@ -316,7 +340,7 @@ if (!result.success) {
 
 ### Example 2
 
-\*\*Filter parent rows by an embedded foreign table using `!inner` join\*\*
+Filter parent rows by an embedded foreign table using `!inner` join:
 
 ```ts
 // Without `!inner`, non-matching venues return `venue: null` while keeping parent event rows.
@@ -334,7 +358,7 @@ const seattleEvents = await sql
 
 ### Example 3
 
-\*\*Column aliasing and `jsonb` path extraction (`->>` as text vs. `->` as typed JSON)\*\*
+Column aliasing and `jsonb` path extraction (`->>` as text vs. `->` as typed JSON):
 
 ```ts
 const tracksRes = await sql
@@ -350,7 +374,7 @@ const tracksRes = await sql
 
 ### Example 4
 
-\*\*Count-only query without transferring row payloads (`head: true`<!-- -->)\*\*
+Count-only query without transferring row payloads (`head: true`<!-- -->):
 
 ```ts
 const countRes = await sql
@@ -358,7 +382,7 @@ const countRes = await sql
   .select('*', { head: true, count: 'exact' })
   .eq('event_id', '6ba7b810-9dad-11d1-80b4-00c04fd430c8');
 
-if (countRes.success) {
+if (countRes.success && countRes.count !== null) {
   console.log('Total registrations:', countRes.count); // countRes.data is null at runtime
 }
 
@@ -368,13 +392,15 @@ if (countRes.success) {
 
 Starts a lazy `UPDATE` (`PATCH`<!-- -->) operation to modify columns on all rows matching subsequent filters.
 
-\*\*When to use:\*\* Modifying a subset of columns on existing row(s) selected via [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) predicates (`.eq()`<!-- -->, `.in()`<!-- -->, `.lt()`<!-- -->, etc.).
+When to use: modifying a subset of columns on existing row(s) selected via [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) predicates (`.eq()`<!-- -->, `.in()`<!-- -->, `.lt()`<!-- -->, etc.).
 
-\*\*Do NOT use:\*\* - Unfiltered `update(values)` calls unless intentionally updating every visible row in the table—always chain at least one [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) predicate and consider [TransformBuilder.maxAffected()](./sql.transformbuilder.md#transformbuildermaxaffected) to guard against accidental broad updates. - Passing an array of rows (`update` accepts a single partial-row patch object; for per-row bulk writes use [QueryBuilder.upsert()](./sql.querybuilder.md#querybuilderupsert)<!-- -->).
+Do not use unfiltered `update(values)` calls unless intentionally updating every visible row in the table—always chain at least one [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) predicate and consider [TransformBuilder.maxAffected()](./sql.transformbuilder.md#transformbuildermaxaffected) (on PostgREST v13+) or [TransformBuilder.single()](./sql.transformbuilder.md#transformbuildersingle) to guard against accidental broad updates. Do not rely on [TransformBuilder.maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle) to guard an `update()`<!-- -->, because `maybeSingle()` checks row count client-side after the server has already committed updates to all matched rows. `update` accepts a single partial-row patch object (for per-row bulk writes, use [QueryBuilder.upsert()](./sql.querybuilder.md#querybuilderupsert)<!-- -->).
 
-\*\*Behavior &amp; Side Effects:\*\* - \*\*Builder Progression:\*\* `QueryBuilder -> FilterBuilder<null, 'PATCH', false>`<!-- -->. - \*\*Returns `null` by default:\*\* Resolves with `status: 204` and `data: null` unless [.select(columns?)](./sql.transformbuilder.md#transformbuilderselect) is chained to return updated rows. - Updating a `jsonb` column (such as `events.metadata`<!-- -->) replaces the column value as a whole; for server-side partial JSON merges, use [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->.
+Behavior and side effects: builder progression is `QueryBuilder -> FilterBuilder<null, 'PATCH', false>`<!-- -->. Each `await` or `.then()` call sends a new `PATCH` request; awaiting an `update()` builder more than once executes the update repeatedly, so await each mutation builder at most once.
 
-\*\*Error Handling &amp; Remediation:\*\* - Exceeding [TransformBuilder.maxAffected()](./sql.transformbuilder.md#transformbuildermaxaffected) aborts the transaction on PostgREST and resolves to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) (`category === 'sql-postgrest'`<!-- -->, code `'PGRST124'`<!-- -->). - \*\*Silent 0-Row RLS Filtering:\*\* Rows hidden by PostgreSQL Row-Level Security `USING` policies are silently skipped (`status: 204`<!-- -->, `success: true`<!-- -->, `0` rows updated) rather than raising `'42501'`<!-- -->—pass `{ count: 'exact' }` and check `result.count === 0`<!-- -->, or chain `.select('id').single()`<!-- -->, when a missing or unauthorized target row must be detected! (Chaining `.select()` also requires a `SELECT` policy permitting visibility of the updated row.)
+Returns `null` by default: resolves with `status: 204` and `data: null` unless [.select(columns?)](./sql.transformbuilder.md#transformbuilderselect) is chained to return updated rows. Updating a `jsonb` column (such as `events.metadata`<!-- -->) replaces the column value as a whole; for server-side partial JSON merges, use [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->.
+
+Error handling: on PostgREST v13+, exceeding [TransformBuilder.maxAffected()](./sql.transformbuilder.md#transformbuildermaxaffected) aborts the transaction and resolves to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) (`res.error.category === 'sql-postgrest'`<!-- -->, `res.error.code === 'PGRST124'`<!-- -->). Rows hidden by PostgreSQL Row-Level Security `USING` policies are silently skipped (`status: 204`<!-- -->, `success: true`<!-- -->, `0` rows updated) rather than raising `'42501'`<!-- -->—pass `{ count: 'exact' }` and check `result.count === 0`<!-- -->, or chain `.select('id').single()`<!-- -->, when a missing or unauthorized target row must be detected (chaining `.select()` also requires a `SELECT` policy permitting visibility of the updated row).
 
 <b>Signature:</b>
 
@@ -388,7 +414,7 @@ update<Row extends NonIterable<object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  values | Row | Column-value map of fields to update on matching rows. |
+|  values | Row | Column-value map of fields to update on matching rows. Serialized via <code>JSON.stringify</code> (<code>bigint</code> values serialize via <code>.toString()</code>, <code>undefined</code> property values and functions are omitted, <code>NaN</code>/<code>Infinity</code> serialize as <code>null</code>, <code>Date</code> serializes to ISO-8601, and circular references resolve at <code>await</code> time as <code>res.status === 0</code>, <code>res.error.category === 'sql-client'</code>, <code>res.error.code === 'other'</code>). |
 |  options | Readonly&lt;[QueryUpdateOptions](./sql.queryupdateoptions.md#queryupdateoptions_interface)<!-- -->&gt; \| undefined | Optional <code>count</code> strategy for counting updated rows. See [QueryUpdateOptions](./sql.queryupdateoptions.md#queryupdateoptions_interface)<!-- -->. |
 
 <b>Returns:</b>
@@ -399,7 +425,7 @@ A lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) with meth
 
 ### Example 1
 
-\*\*Full `UPDATE` chain: filter target row, cap blast radius with `maxAffected(1)`<!-- -->, and unwrap via `maybeSingle()`<!-- -->\*\*
+Full `UPDATE` chain filtering a unique row and capping affected rows with `maxAffected(1)`<!-- -->:
 
 ```ts
 interface UpdatedEventSummary {
@@ -409,6 +435,7 @@ interface UpdatedEventSummary {
   is_featured: boolean;
 }
 
+// `code` is UNIQUE and `maxAffected(1)` enforces the 1-row ceiling on PostgREST v13+
 const result = await sql
   .from('events')
   .update({ status: 'published', is_featured: true }, { count: 'exact' })
@@ -416,22 +443,21 @@ const result = await sql
   .eq('status', 'draft')
   .maxAffected(1)
   .select('id, code, status, is_featured')
-  .maybeSingle()
-  .overrideTypes<UpdatedEventSummary, { merge: false }>();
+  .overrideTypes<UpdatedEventSummary[], { merge: false }>();
 
 if (!result.success) {
   console.error('Update failed:', result.error.code, result.error.message);
-} else if (result.data === null) {
+} else if (result.data.length === 0) {
   console.warn('No draft event matched FIREBASE-SUMMIT-2026.');
 } else {
-  console.log('Published event:', result.data.id);
+  console.log('Published event:', result.data[0]?.id);
 }
 
 ```
 
 ### Example 2
 
-\*\*Batch-archive past published events and count affected rows (`data` is `null`<!-- -->)\*\*
+Batch-archive past published events and count affected rows (`data` is `null`<!-- -->):
 
 ```ts
 const archiveRes = await sql
@@ -440,7 +466,9 @@ const archiveRes = await sql
   .eq('status', 'published')
   .lt('created_at', '2026-01-01T00:00:00Z');
 
-if (archiveRes.success) {
+if (!archiveRes.success) {
+  console.error('Archive failed:', archiveRes.error.message);
+} else {
   console.log(`Archived ${archiveRes.count} events.`);
 }
 
@@ -448,16 +476,23 @@ if (archiveRes.success) {
 
 ### Example 3
 
-\*\*Dry-run a price update without committing changes using `.rollback()`<!-- -->\*\*
+Request a rolled-back preview of an update (only if the server permits `Prefer: tx=rollback`<!-- -->):
 
 ```ts
+// WARNING: If the backend's PostgREST db-tx-end setting does not allow overrides,
+// PostgREST ignores Prefer: tx=rollback and this UPDATE COMMITS while still returning 2xx.
 const previewRes = await sql
   .from('events')
   .update({ ticket_price: 79.0 })
-  .contains('tags', ['workshop'])
+  .eq('code', 'FIREBASE-SUMMIT-2026')
+  .maxAffected(1)
   .select('id, code, ticket_price')
   .rollback()
   .overrideTypes<Array<{ id: string; code: string; ticket_price: number }>, { merge: false }>();
+
+if (!previewRes.success) {
+  console.error('Preview failed:', previewRes.error.message);
+}
 
 ```
 
@@ -465,15 +500,19 @@ const previewRes = await sql
 
 Starts a lazy `UPSERT` (`POST` with `Prefer: resolution=merge-duplicates` or `ignore-duplicates`<!-- -->) to insert rows or resolve conflicts on a primary key or unique constraint.
 
-\*\*When to use:\*\* Idempotent writes, synchronization jobs, or "create-or-update" operations keyed on a primary key (`id`<!-- -->), single unique column (`code`<!-- -->, `slug`<!-- -->), or composite unique constraint (`event_id,attendee_email`<!-- -->).
+When to use: idempotent writes, synchronization jobs, or create-or-update operations keyed on a primary key (`id`<!-- -->), single unique column (`code`<!-- -->, `slug`<!-- -->), or composite unique constraint (`event_id,attendee_email`<!-- -->). See [QueryUpsertOptions](./sql.queryupsertoptions.md#queryupsertoptions_interface)<!-- -->.
 
-\*\*Do NOT use:\*\* Partial updates to existing rows when non-nullable `INSERT` columns are unknown; because PostgreSQL evaluates `INSERT` constraints before `ON CONFLICT DO UPDATE`<!-- -->, omitted `NOT NULL` columns without defaults will fail—use [QueryBuilder.update()](./sql.querybuilder.md#querybuilderupdate) with filters instead.
+Do not use for partial updates to existing rows when non-nullable `INSERT` columns are unknown; because PostgreSQL evaluates `INSERT` constraints before `ON CONFLICT DO UPDATE`<!-- -->, omitted `NOT NULL` columns without defaults will fail—use [QueryBuilder.update()](./sql.querybuilder.md#querybuilderupdate) with filters instead.
 
-\*\*Preconditions:\*\* - Every column participating in the target `PRIMARY KEY` or `options.onConflict` `UNIQUE` constraint must be present in `values` (or generated by a non-conflicting default).
+Preconditions: every column participating in the target `PRIMARY KEY` or `options.onConflict` `UNIQUE` constraint must be present in `values` (or generated by a non-conflicting default).
 
-\*\*Behavior &amp; Side Effects:\*\* - \*\*Builder Progression:\*\* `QueryBuilder -> FilterBuilder<null, 'POST', false>`<!-- -->. - \*\*Returns `null` by default:\*\* Chain [.select(columns?)](./sql.transformbuilder.md#transformbuilderselect) to return the inserted/merged rows. Note: when `ignoreDuplicates: true` skips a conflicting row, PostgREST omits the skipped row from `.select()` output (so `.maybeSingle()` is safer than `.single()` on single-row `ignoreDuplicates: true` upserts). - In bulk array upserts, avoid setting optional keys to `undefined` (or set `defaultToNull: false`<!-- -->), because `Object.keys(...)` includes `undefined`<!-- -->-valued keys in `?columns="..."` while `JSON.stringify` omits them, causing PostgreSQL to treat them as `NULL`<!-- -->.
+Behavior and side effects: builder progression is `QueryBuilder -> FilterBuilder<null, 'POST', false>`<!-- -->. Each `await` or `.then()` call sends a new `POST` request; awaiting an `upsert()` builder more than once executes the write repeatedly, so await each mutation builder at most once.
 
-\*\*Error Handling &amp; Remediation:\*\* - SQLSTATE `'42P10'` ("there is no unique or exclusion constraint matching the ON CONFLICT specification") indicates `options.onConflict` does not match a `UNIQUE` or `PRIMARY KEY` constraint on the table. - SQLSTATE `'23505'` occurs when `onConflict` was omitted (defaulting to primary key) while a \*different\* unique column (such as `events.code`<!-- -->) collided; set `onConflict: 'code'`<!-- -->.
+Returns `null` by default: chain [.select(columns?)](./sql.transformbuilder.md#transformbuilderselect) to return inserted or merged rows. When `ignoreDuplicates: true` skips a conflicting row, PostgREST omits the skipped row from `.select()` output.
+
+Bulk array column-overwrite warning: for array inputs, the SDK builds `?columns="..."` as the union of `Object.keys(...)` across all elements (in `O(rows^2)` time on the client thread—chunk large batches to at most `1,000` rows per call), and on `merge-duplicates` conflicts PostgREST updates every column in `?columns` (`DO UPDATE SET col = EXCLUDED.col`<!-- -->). Any key omitted (or set to `undefined`<!-- -->) on one element overwrites that column on conflicting existing rows with `NULL` (`defaultToNull: true`<!-- -->) or the column `DEFAULT` (`defaultToNull: false`<!-- -->). Always supply identical keys on every object in a bulk upsert array, or split batches by key set.
+
+Error handling: SQLSTATE `'42P10'` indicates `options.onConflict` does not match a `UNIQUE` or `PRIMARY KEY` constraint on the table. SQLSTATE `'23505'` occurs when `onConflict` was omitted (defaulting to primary key) while a different unique column (such as `events.code`<!-- -->) collided; set `onConflict: 'code'`<!-- -->.
 
 <b>Signature:</b>
 
@@ -487,7 +526,7 @@ upsert<Row extends NonIterable<object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  values | Row \| readonly Row\[\] | Single row object or readonly array of row objects to upsert. |
+|  values | Row \| readonly Row\[\] | Single row object or readonly array of row objects to upsert. Serialized via <code>JSON.stringify</code> (<code>bigint</code> values serialize via <code>.toString()</code>, <code>undefined</code> property values and functions are omitted, <code>NaN</code>/<code>Infinity</code> serialize as <code>null</code>, <code>Date</code> serializes to ISO-8601, and circular references resolve at <code>await</code> time as <code>res.status === 0</code>, <code>res.error.category === 'sql-client'</code>, <code>res.error.code === 'other'</code>). |
 |  options | Readonly&lt;[QueryUpsertOptions](./sql.queryupsertoptions.md#queryupsertoptions_interface)<!-- -->&gt; \| undefined | Conflict target (<code>onConflict</code>), duplicate strategy (<code>ignoreDuplicates</code>), <code>count</code>, and <code>defaultToNull</code>. See [QueryUpsertOptions](./sql.queryupsertoptions.md#queryupsertoptions_interface)<!-- -->. |
 
 <b>Returns:</b>
@@ -498,7 +537,7 @@ A lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) with `dat
 
 ### Example 1
 
-\*\*Full `UPSERT` chain: batch-sync rows on a composite unique constraint and return sorted results\*\*
+Full `UPSERT` chain batch-syncing uniform rows on a composite unique constraint:
 
 ```ts
 interface SyncedRegistration {
@@ -527,7 +566,6 @@ const result = await sql
     {
       onConflict: 'event_id,attendee_email',
       ignoreDuplicates: false,
-      defaultToNull: false,
       count: 'exact'
     }
   )
@@ -535,7 +573,9 @@ const result = await sql
   .order('attendee_email', { ascending: true })
   .overrideTypes<SyncedRegistration[], { merge: false }>();
 
-if (result.success) {
+if (!result.success) {
+  console.error('Upsert failed:', result.error.code, result.error.message);
+} else {
   console.log(`Synced ${result.count} registrations:`, result.data);
 }
 
@@ -543,7 +583,7 @@ if (result.success) {
 
 ### Example 2
 
-\*\*Single-row upsert on a unique `slug` column (`ON CONFLICT DO UPDATE`<!-- -->)\*\*
+Single-row upsert on a unique `slug` column (`ON CONFLICT DO UPDATE`<!-- -->):
 
 ```ts
 const venueRes = await sql
@@ -556,14 +596,18 @@ const venueRes = await sql
   .single()
   .overrideTypes<{ id: string; slug: string; capacity: number }, { merge: false }>();
 
+if (!venueRes.success) {
+  console.error('Venue upsert failed:', venueRes.error.message);
+}
+
 ```
 
 ### Example 3
 
-\*\*Insert-if-absent (`ignoreDuplicates: true` / `DO NOTHING`<!-- -->) paired with `.maybeSingle()`<!-- -->\*\*
+Insert-if-absent (`ignoreDuplicates: true` / `DO NOTHING`<!-- -->) returning `0` or `1` row:
 
 ```ts
-// Returns the newly inserted row, or `data: null` if `(event_id, attendee_email)` already existed
+// Conflict target `(event_id, attendee_email)` is UNIQUE, so at most 1 row can be inserted
 const seedRes = await sql
   .from('registrations')
   .upsert(
@@ -578,11 +622,15 @@ const seedRes = await sql
   .maybeSingle()
   .overrideTypes<{ id: string; role: string }, { merge: false }>();
 
+if (!seedRes.success) {
+  console.error('Seed upsert failed:', seedRes.error.message);
+}
+
 ```
 
 ### Example
 
-\*\*Store a reusable `QueryBuilder` for a table\*\*
+Store a reusable `QueryBuilder` for a table:
 
 ```ts
 import type { QueryBuilder } from 'firebase/sql';

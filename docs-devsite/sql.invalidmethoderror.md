@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # InvalidMethodError interface
 Compile-time sentinel type returned instead of a valid builder when a method is chained onto an incompatible HTTP verb (for example, calling [TransformBuilder.maxAffected()](./sql.transformbuilder.md#transformbuildermaxaffected) on a `select()` or `insert()` builder).
 
-Not constructible as a runtime error—surfaces as a non-awaitable `{ Error: S }` return type in TypeScript so invalid chains fail to type-check.
+Type-level marker only. At runtime the method still mutates and returns the underlying builder, so a bare `await` expression compiles without error in TypeScript and sends the HTTP request; TypeScript reports an error only when the returned value is used or assigned as a [Builder](./sql.builder.md#builder_interface) (for example, chaining further methods or reading `.data`<!-- -->).
 
 <b>Signature:</b>
 
@@ -38,7 +38,7 @@ Error: S;
 
 ### Example
 
-\*\*Observe compile-time `InvalidMethodError` on an unsupported `select()` chain\*\*
+Observe compile-time `InvalidMethodError` on an unsupported `select()` chain:
 
 ```ts
 import type { InvalidMethodError } from 'firebase/sql';

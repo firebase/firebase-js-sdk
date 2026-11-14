@@ -21,15 +21,15 @@ import { FirebaseError } from '@firebase/util';
  * Canonical client and platform error codes emitted by Firebase SQL operations.
  *
  * @remarks
- * Note that {@link FirebaseSqlError.code} is typed as `string` because errors with
+ * {@link FirebaseSqlError.code} is typed as `string` because errors with
  * `category === 'sql-postgrest'` preserve raw PostgreSQL SQLSTATE codes (such as `'23505'` for
  * unique-constraint violations or `'42501'` for insufficient privilege) and PostgREST `PGRST*`
  * codes (such as `'PGRST116'` when `.single()` or `.maybeSingle()` row-count expectations fail).
- * Client (`'sql-client'`) and Google Cloud gateway (`'sql-platform'`) errors emit values from
- * `FirebaseSqlErrorCode`.
+ * Client (`'sql-client'`) and non-PostgREST (`'sql-platform'`) errors emit values from
+ * `FirebaseSqlErrorCode` (see runtime constants in {@link (Code:variable) | Code}).
  *
  * @example
- * **Type-annotate a helper handling client and platform error codes**
+ * Type-annotate a helper handling client and platform error codes:
  * ```ts
  * import { Code, type FirebaseSqlErrorCode } from 'firebase/sql';
  *
@@ -38,7 +38,6 @@ import { FirebaseError } from '@firebase/util';
  * }
  * ```
  *
- * @see {@link (Code:variable) | Code} for enum-like runtime constants matching these literals.
  * @public
  */
 export type FirebaseSqlErrorCode =
@@ -54,7 +53,7 @@ export type FirebaseSqlErrorCode =
  * Alias for {@link FirebaseSqlErrorCode}.
  *
  * @example
- * **Reference `Code` as both a type and a runtime constant map**
+ * Reference `Code` as both a type and a runtime constant map:
  * ```ts
  * import { Code } from 'firebase/sql';
  *
@@ -69,17 +68,32 @@ export type Code = FirebaseSqlErrorCode;
  * Frozen map of canonical client and platform error code constants.
  *
  * @remarks
- * Compare against `error.code` when handling `'sql-client'` and `'sql-platform'` errors:
- * - `Code.INVALID_ARGUMENT` (`'invalid-argument'`): Missing `projectId`, `serviceId`, `location`, invalid `port`, dot-segment resource name (`'.'`/`'..'`), disallowed HTTP header, or HTTP 400 gateway rejection.
- * - `Code.NOT_INITIALIZED` (`'not-initialized'`): Operation called or settled after {@link terminate} or `deleteApp()`.
- * - `Code.NOT_SUPPORTED` (`'not-supported'`): Global `fetch` unavailable in runtime (`'sql-client'`), or HTTP 501 / `UNIMPLEMENTED` gateway rejection (`'sql-platform'`).
- * - `Code.UNAUTHORIZED` (`'unauthorized'`): Emitted for `'sql-platform'` HTTP 401/403 or `UNAUTHENTICATED`/`PERMISSION_DENIED` gateway, IAM, or App Check rejections. (PostgreSQL/PostgREST privilege errors preserve SQLSTATE `'42501'` or `'PGRST*'` under `'sql-postgrest'`, and client-side Auth `getToken()` failures map to `Code.OTHER` under `'sql-client'`.)
- * - `Code.OTHER` (`'other'`): Network failure, aborted request, client-side Auth token retrieval failure (`status === 0`, `'sql-client'`), or unmapped gateway error (`'sql-platform'`).
- * - `Code.ALREADY_INITIALIZED` (`'already-initialized'`): Reserved lifecycle conflict code.
- * - `Code.PARTIAL_ERROR` (`'partial-error'`): Reserved partial failure code.
+ * Compare against `error.code` when handling `'sql-client'` and `'sql-platform'` errors.
+ *
+ * `Code.INVALID_ARGUMENT` (`'invalid-argument'`): missing `projectId`, `serviceId`, or `location`,
+ * invalid `port`, dot-segment resource name (`'.'` or `'..'`), disallowed HTTP header, or HTTP 400
+ * non-PostgREST gateway rejection.
+ *
+ * `Code.NOT_INITIALIZED` (`'not-initialized'`): operation called or settled after {@link terminate}
+ * or `deleteApp()`.
+ *
+ * `Code.NOT_SUPPORTED` (`'not-supported'`): global `fetch` unavailable in runtime (`'sql-client'`),
+ * or HTTP 501 / `UNIMPLEMENTED` gateway rejection (`'sql-platform'`).
+ *
+ * `Code.UNAUTHORIZED` (`'unauthorized'`): emitted for `'sql-platform'` HTTP 401/403 or
+ * `UNAUTHENTICATED` / `PERMISSION_DENIED` gateway, IAM, or App Check rejections. PostgreSQL and
+ * PostgREST privilege errors preserve SQLSTATE `'42501'` or `'PGRST*'` under `'sql-postgrest'`, and
+ * client-side Auth `getToken()` failures map to `Code.OTHER` under `'sql-client'`.
+ *
+ * `Code.OTHER` (`'other'`): network failure, aborted request, circular JSON request body,
+ * client-side Auth token retrieval failure (`res.status === 0`, `'sql-client'`), or unmapped
+ * `'sql-platform'` response (such as HTTP 502/504 or unparseable 2xx body).
+ *
+ * `Code.ALREADY_INITIALIZED` (`'already-initialized'`) and `Code.PARTIAL_ERROR` (`'partial-error'`):
+ * reserved error codes.
  *
  * @example
- * **Branch on client and platform error codes**
+ * Branch on client and platform error codes:
  * ```ts
  * import { Code } from 'firebase/sql';
  *
@@ -106,20 +120,39 @@ export const Code = Object.freeze({
  * Origin tier discriminator identifying which layer produced a {@link FirebaseSqlError}.
  *
  * @remarks
- * Note that {@link FirebaseSqlError.category} is typed as `string` at compile time, while SDK-generated
- * errors emit one of these three values:
- * - `'sql-client'`: Local SDK validation, missing `fetch`, network drop, Auth `getToken()` rejection, or terminated client (`error.status` is `undefined`, while {@link OperationBase.status | OperationFailure.status} is `0`).
- * - `'sql-platform'`: Google Cloud gateway / IAM / App Check rejection prior to reaching PostgREST.
- * - `'sql-postgrest'`: PostgREST or PostgreSQL database execution failure (`code` contains SQLSTATE or `PGRST*`).
+ * {@link FirebaseSqlError.category} is typed as `string` at compile time, while SDK-generated
+ * errors emit one of three values.
+ *
+ * `'sql-client'`: local SDK validation, missing `fetch`, network drop, `AbortSignal` cancellation,
+ * circular JSON body, Auth `getToken()` rejection, or terminated client (`error.status` is
+ * `undefined`, while {@link OperationBase.status | OperationFailure.status} is `0`).
+ *
+ * `'sql-platform'`: any HTTP failure response whose body is not a PostgREST error envelope—typically
+ * a Google Cloud gateway, IAM, or App Check rejection, but also proxy or gateway errors (such as
+ * HTTP 502 or 504), body-less `HEAD` failures, or `2xx` responses with unparseable JSON bodies. Do
+ * not assume the request had no effect on the server.
+ *
+ * `'sql-postgrest'`: PostgREST or PostgreSQL database execution failure (`code` contains a
+ * PostgreSQL SQLSTATE or PostgREST `PGRST*` code).
  *
  * @example
- * **Narrow error category in logging middleware**
+ * Inspect an error category in a telemetry helper:
  * ```ts
- * import type { FirebaseSqlErrorCategory } from 'firebase/sql';
+ * import { Code, FirebaseSqlErrorCategory, type FirebaseSqlError } from 'firebase/sql';
  *
- * const retryableCategories: ReadonlySet<FirebaseSqlErrorCategory | string> = new Set([
- *   'sql-client'
- * ]);
+ * function describeOrigin(err: FirebaseSqlError): FirebaseSqlErrorCategory | 'custom' {
+ *   if (
+ *     err.category === FirebaseSqlErrorCategory.SQL_CLIENT ||
+ *     err.category === FirebaseSqlErrorCategory.SQL_PLATFORM ||
+ *     err.category === FirebaseSqlErrorCategory.SQL_POSTGREST
+ *   ) {
+ *     if (err.category === FirebaseSqlErrorCategory.SQL_CLIENT && err.code === Code.OTHER) {
+ *       // Transport/abort failure: an in-flight write may or may not have reached the server.
+ *     }
+ *     return err.category;
+ *   }
+ *   return 'custom';
+ * }
  * ```
  *
  * @public
@@ -131,7 +164,7 @@ export type FirebaseSqlErrorCategory =
  * Frozen map of {@link (FirebaseSqlErrorCategory:type) | FirebaseSqlErrorCategory} constants for discriminating error origin tiers.
  *
  * @example
- * **Distinguish PostgreSQL errors from gateway or client failures**
+ * Distinguish PostgreSQL errors from gateway or client failures:
  * ```ts
  * import { FirebaseSqlErrorCategory } from 'firebase/sql';
  *
@@ -153,7 +186,7 @@ export const FirebaseSqlErrorCategory = Object.freeze({
  * Plain JSON-serializable object returned by {@link FirebaseSqlError.toJSON}.
  *
  * @example
- * **Serialize a `FirebaseSqlError` for structured telemetry**
+ * Serialize a `FirebaseSqlError` for structured telemetry:
  * ```ts
  * import type { SerializedFirebaseSqlError } from 'firebase/sql';
  *
@@ -193,10 +226,12 @@ export interface SerializedFirebaseSqlError {
  * Extends `FirebaseError` from `@firebase/util`. Inspect {@link FirebaseSqlError.category},
  * {@link FirebaseSqlError.code}, {@link FirebaseSqlError.details}, and {@link FirebaseSqlError.hint}
  * together—PostgreSQL and PostgREST frequently populate `hint` and `details` with the exact column,
- * constraint, or SQL grant needed to fix a failing query.
+ * constraint, or SQL grant needed to fix a failing query. See {@link (Code:variable) | Code} for
+ * client and platform error codes and
+ * {@link (FirebaseSqlErrorCategory:variable) | FirebaseSqlErrorCategory} for origin tiers.
  *
  * @example
- * **Inspect error origin category, code, details, and hint**
+ * Inspect error origin category, code, details, and hint:
  * ```ts
  * import { Code, FirebaseSqlErrorCategory } from 'firebase/sql';
  *
@@ -204,15 +239,13 @@ export interface SerializedFirebaseSqlError {
  * if (!res.success) {
  *   const { category, code, message, details, hint, status } = res.error;
  *   if (category === FirebaseSqlErrorCategory.SQL_POSTGREST && code === '42501') {
- *     console.error('Database RLS/privilege error:', message, hint);
+ *     console.error('Database privilege error:', message, hint);
  *   } else if (code === Code.UNAUTHORIZED) {
  *     console.error('Auth or App Check rejected:', status, details);
  *   }
  * }
  * ```
  *
- * @see {@link (Code:variable) | Code} for client and platform error codes.
- * @see {@link (FirebaseSqlErrorCategory:variable) | FirebaseSqlErrorCategory} for error origin tiers.
  * @public
  */
 export class FirebaseSqlError extends FirebaseError {
@@ -235,12 +268,12 @@ export class FirebaseSqlError extends FirebaseError {
   /**
    * Constructs a new `FirebaseSqlError` instance.
    *
-   * @param code - PostgREST/SQLSTATE code or {@link FirebaseSqlErrorCode}.
-   * @param message - Human-readable failure description.
-   * @param category - Error origin tier (see {@link (FirebaseSqlErrorCategory:variable) | FirebaseSqlErrorCategory}).
-   * @param details - Optional diagnostic detail text.
-   * @param hint - Optional server remediation hint.
-   * @param status - Optional HTTP status code (`> 0`).
+   * @param code - PostgREST/SQLSTATE error code or {@link FirebaseSqlErrorCode} literal stored on `error.code`.
+   * @param message - Human-readable failure description stored on `error.message`.
+   * @param category - Origin tier identifier (see {@link (FirebaseSqlErrorCategory:variable) | FirebaseSqlErrorCategory}).
+   * @param details - Server-supplied diagnostic detail string, JSON-serialized structured details, or client error stack; `undefined` when absent.
+   * @param hint - Server-supplied remediation or URL-length hint; `undefined` when absent.
+   * @param status - HTTP response status code, or `undefined` for client-side errors (stored verbatim without runtime validation).
    */
   constructor(
     code: string,
@@ -269,7 +302,7 @@ export class FirebaseSqlError extends FirebaseError {
    * @returns Plain {@link SerializedFirebaseSqlError} snapshot suitable for structured logging.
    *
    * @example
-   * **Convert a `FirebaseSqlError` to JSON**
+   * Convert a `FirebaseSqlError` to JSON:
    * ```ts
    * const res = await sql.from('venues').select('id').eq('slug', 'missing').single();
    * if (!res.success) {

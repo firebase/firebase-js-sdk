@@ -24,17 +24,18 @@ import { FirebaseSqlErrorCategory, Code, FirebaseSqlError } from './error';
  * initialized via {@link (getSql:1) | getSql()}.
  *
  * @remarks
- * Passed to {@link (getSql:1) | getSql()}, which validates all fields, creates a deep frozen copy, and resolves
- * the PostgREST endpoint URL as:
+ * Passed to {@link (getSql:1) | getSql()}, which validates `serviceId`, `location`, `port`, and
+ * protected `headers` keys, creates a deep frozen copy, and resolves the PostgREST endpoint URL as
  * `{http|https}://{host}[:{port}]/v1/projects/{projectId}/locations/{location}/services/{serviceId}/postgrest`.
  *
- * **Instance Caching:** {@link (getSql:1) | getSql()} deduplicates instances by `(app, resolvedUrl, schemaName)`.
+ * Instance caching: {@link (getSql:1) | getSql()} deduplicates instances by `(app, resolvedUrl, schemaName)`.
  * Different `headers` objects passed with an already-initialized `(app, resolvedUrl, schemaName)`
  * reuse the cached {@link FirebaseSql} instance and its original `headers`; use
- * {@link Builder.setHeader} for per-request header overrides.
+ * {@link Builder.setHeader} for per-request header overrides. See {@link (getSql:1) | getSql()} for
+ * client initialization and error rules.
  *
  * @example
- * **Configure settings using the default schema**
+ * Configure settings using the default schema:
  * ```ts
  * import type { SqlServiceSettings } from 'firebase/sql';
  *
@@ -45,7 +46,7 @@ import { FirebaseSqlErrorCategory, Code, FirebaseSqlError } from './error';
  * ```
  *
  * @example
- * **Configure settings targeting a non-default PostgreSQL schema**
+ * Configure settings targeting a non-default PostgreSQL schema:
  * ```ts
  * import type { SqlServiceSettings } from 'firebase/sql';
  *
@@ -56,7 +57,6 @@ import { FirebaseSqlErrorCategory, Code, FirebaseSqlError } from './error';
  * };
  * ```
  *
- * @see {@link (getSql:1) | getSql()} for client initialization and validation rules.
  * @public
  */
 export interface SqlServiceSettings {
@@ -64,15 +64,17 @@ export interface SqlServiceSettings {
    * Target PostgreSQL schema exposed by PostgREST (for example, `'analytics'`).
    *
    * @remarks
-   * When specified, sends `Accept-Profile: <schemaName>` on `GET`/`HEAD` requests and
-   * `Content-Profile: <schemaName>` on `POST`/`PATCH`/`DELETE` mutations. Omitting `schemaName`
-   * (or passing `undefined`) omits profile headers and uses the server's default exposed schema,
-   * so specifying `'public'` is unnecessary when `'public'` is the default schema.
-   * **Do NOT pass an empty string `''`**—it sends an empty profile header that PostgREST rejects
-   * with HTTP `406` (`'PGRST106'`). Note that omitting `schemaName` and passing an explicit
-   * `schemaName` string produce distinct cached {@link FirebaseSql} instances.
+   * Defaults to `undefined`. When specified, sends `Accept-Profile: <schemaName>` on `GET` and
+   * `HEAD` requests and `Content-Profile: <schemaName>` on `POST`, `PATCH`, and `DELETE` mutations.
+   * Omitting `schemaName` (or passing `undefined`) omits profile headers and uses the server's
+   * default exposed schema, so specifying `'public'` is unnecessary when `'public'` is the default
+   * schema.
    *
-   * @defaultValue `undefined`
+   * Do not pass an empty string `''`—it sends an empty profile header that PostgREST rejects with
+   * HTTP `406` (`'PGRST106'`). Must be a valid HTTP header value (Latin-1 characters with no CR or
+   * LF); otherwise awaiting any builder on the client rejects with a `TypeError` when setting the
+   * profile header. Note that omitting `schemaName` and passing an explicit `schemaName` string
+   * produce distinct cached {@link FirebaseSql} instances.
    */
   schemaName?: string | undefined;
 
@@ -80,18 +82,19 @@ export interface SqlServiceSettings {
    * Static custom HTTP headers included on every outgoing request from this client instance.
    *
    * @remarks
-   * **Do NOT use** for authentication or App Check tokens (`Authorization`,
-   * `x-firebase-auth-token`, `x-firebase-appcheck`) or reserved Firebase telemetry/routing headers
-   * (`x-goog-api-client`, `x-client-version`, `x-firebase-gmpid`, `x-firebase-client`,
+   * Defaults to `undefined`. Do not use for authentication or App Check tokens (`Authorization`,
+   * `x-firebase-auth-token`, `x-firebase-appcheck`) or reserved Firebase telemetry and routing
+   * headers (`x-goog-api-client`, `x-client-version`, `x-firebase-gmpid`, `x-firebase-client`,
    * `x-firebase-client-log-type`, `x-goog-request-params`, `x-firebase-sqlconnect-affinity`).
-   * Supplying any protected header key (case-insensitive) causes {@link (getSql:1) | getSql()} to throw
-   * {@link FirebaseSqlError} (`invalid-argument`). Firebase Auth and App Check tokens are attached
-   * automatically when configured on the bound `FirebaseApp`.
+   * Supplying any protected header key (case-insensitive) causes {@link (getSql:1) | getSql()} to
+   * throw {@link FirebaseSqlError} (`invalid-argument`). Every header name and value must also be a
+   * valid HTTP header accepted by the Fetch `Headers` constructor (no spaces in header names, no
+   * CR/LF, and Latin-1 characters only), or {@link (getSql:1) | getSql()} throws a `TypeError`
+   * synchronously. Firebase Auth and App Check tokens are attached automatically when configured on
+   * the bound `FirebaseApp`.
    *
-   * Not included in the {@link (getSql:1) | getSql()} instance cache key; use {@link Builder.setHeader} for
-   * request-scoped headers.
-   *
-   * @defaultValue `undefined`
+   * Excluded from the {@link (getSql:1) | getSql()} instance cache key; use {@link Builder.setHeader}
+   * for request-scoped headers.
    */
   headers?: Record<string, string> | undefined;
 
@@ -99,8 +102,9 @@ export interface SqlServiceSettings {
    * Non-empty Firebase SQL service identifier within the Firebase project (for example, `'events-db'`).
    *
    * @remarks
-   * Required. Passing an empty string causes {@link (getSql:1) | getSql()} to throw {@link FirebaseSqlError}
-   * (`invalid-argument`). Percent-encoded when constructing the `/services/{serviceId}/postgrest` path.
+   * Required. Passing an empty string causes {@link (getSql:1) | getSql()} to throw
+   * {@link FirebaseSqlError} (`invalid-argument`). Percent-encoded when constructing the
+   * `/services/{serviceId}/postgrest` URL path.
    */
   serviceId: string;
 
@@ -108,8 +112,9 @@ export interface SqlServiceSettings {
    * Non-empty Google Cloud region hosting the Firebase SQL service (for example, `'us-central1'`).
    *
    * @remarks
-   * Required. Passing an empty string causes {@link (getSql:1) | getSql()} to throw {@link FirebaseSqlError}
-   * (`invalid-argument`). Percent-encoded when constructing the `/locations/{location}/` path.
+   * Required. Passing an empty string causes {@link (getSql:1) | getSql()} to throw
+   * {@link FirebaseSqlError} (`invalid-argument`). Percent-encoded when constructing the
+   * `/locations/{location}/` URL path.
    */
   location: string;
 
@@ -117,11 +122,12 @@ export interface SqlServiceSettings {
    * Custom endpoint hostname (without protocol or path) overriding the default Firebase SQL service host.
    *
    * @remarks
-   * Defaults to `'firebasedataconnect.googleapis.com'` when omitted. Must be a valid hostname
-   * accepted by the WHATWG `URL` constructor (do not pass `''` or include `http://` / `https://`,
-   * or {@link (getSql:1) | getSql()} will throw a `TypeError`).
-   *
-   * @defaultValue `'firebasedataconnect.googleapis.com'`
+   * Defaults to `'firebasedataconnect.googleapis.com'`. Must be a bare hostname (optionally
+   * `host:port`) with no scheme or path. Only values rejected by the WHATWG `URL` parser when
+   * prefixed with `https://` (such as `''`) cause {@link (getSql:1) | getSql()} to throw a
+   * `TypeError`; passing a scheme or path is not rejected and silently produces a wrong endpoint
+   * (for example, `'http://example.com'` resolves to hostname `'http'`, and any path segment is
+   * overwritten).
    */
   host?: string | undefined;
 
@@ -129,10 +135,9 @@ export interface SqlServiceSettings {
    * Custom TCP port number appended to the resolved service endpoint URL.
    *
    * @remarks
-   * When provided, must be an integer between `1` and `65535` inclusive; non-integers or
-   * out-of-range values cause {@link (getSql:1) | getSql()} to throw {@link FirebaseSqlError} (`invalid-argument`).
-   *
-   * @defaultValue `undefined`
+   * Defaults to `undefined`. When provided, must be an integer between `1` and `65535` inclusive;
+   * non-integers or out-of-range values cause {@link (getSql:1) | getSql()} to throw
+   * {@link FirebaseSqlError} (`invalid-argument`).
    */
   port?: number | undefined;
 
@@ -140,10 +145,8 @@ export interface SqlServiceSettings {
    * Controls whether requests use `https:` (`true` or `undefined`) or `http:` (`false`).
    *
    * @remarks
-   * Omitting `sslEnabled` and setting `sslEnabled: true` resolve to the same `https:` endpoint
-   * and share the same cached {@link FirebaseSql} instance.
-   *
-   * @defaultValue `true`
+   * Defaults to `true`. Omitting `sslEnabled` and setting `sslEnabled: true` resolve to the same
+   * `https:` endpoint and share the same cached {@link FirebaseSql} instance.
    */
   sslEnabled?: boolean | undefined;
 }
@@ -152,11 +155,11 @@ export interface SqlServiceSettings {
  * Creates a mutable deep copy of a {@link SqlServiceSettings} object, cloning nested `headers` if present.
  *
  * @remarks
- * **When to use:** Cloning a frozen `sql.settings` object (returned by {@link FirebaseSql.settings})
+ * When to use: cloning a frozen `sql.settings` object (returned by {@link FirebaseSql.settings})
  * to derive configuration for another {@link FirebaseSql} instance (such as targeting a different
  * `schemaName` or `serviceId`).
  *
- * **Behavior & Side Effects:** Pure synchronous clone with no network I/O or validation. Unlike
+ * Behavior and side effects: pure synchronous clone with no network I/O or validation. Unlike
  * `sql.settings`, the returned object and its `headers` map are unfrozen and safe to mutate before
  * passing to {@link (getSql:1) | getSql()}.
  *
@@ -164,7 +167,7 @@ export interface SqlServiceSettings {
  * @returns A new mutable {@link SqlServiceSettings} object with an independent copy of `headers`.
  *
  * @example
- * **Derive a secondary schema client from existing settings**
+ * Derive a secondary schema client from existing settings:
  * ```ts
  * import { copySqlServiceSettings, getSql } from 'firebase/sql';
  *
@@ -175,8 +178,6 @@ export interface SqlServiceSettings {
  * const analyticsSql = getSql(sql.app, analyticsSettings);
  * ```
  *
- * @see {@link SqlServiceSettings} for supported fields.
- * @see {@link (getSql:1) | getSql()} for initializing a client from the cloned settings.
  * @public
  */
 export function copySqlServiceSettings(

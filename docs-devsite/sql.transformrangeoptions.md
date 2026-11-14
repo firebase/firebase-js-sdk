@@ -22,17 +22,12 @@ export interface TransformRangeOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [foreignTable](./sql.transformrangeoptions.md#transformrangeoptionsforeigntable) | string \| undefined | Legacy alias for [TransformRangeOptions.referencedTable](./sql.transformrangeoptions.md#transformrangeoptionsreferencedtable)<!-- -->. Prefer <code>referencedTable</code>. |
-|  [referencedTable](./sql.transformrangeoptions.md#transformrangeoptionsreferencedtable) | string \| undefined | Embedded child relation name (or alias) to paginate per parent row (<code>?&lt;referencedTable&gt;.offset=...&amp;&lt;referencedTable&gt;.limit=...</code>). |
+|  [foreignTable](./sql.transformrangeoptions.md#transformrangeoptionsforeigntable) | string \| undefined | Legacy alias for [TransformRangeOptions.referencedTable](./sql.transformrangeoptions.md#transformrangeoptionsreferencedtable)<!-- -->. Prefer <code>referencedTable</code> for new code. Defaults to <code>undefined</code>. |
+|  [referencedTable](./sql.transformrangeoptions.md#transformrangeoptionsreferencedtable) | string \| undefined | Embedded child relation name (or alias) to paginate per parent row (<code>?&lt;referencedTable&gt;.offset=...&amp;&lt;referencedTable&gt;.limit=...</code>). Defaults to <code>undefined</code>. |
 
 ## TransformRangeOptions.foreignTable
 
-> Warning: This API is now obsolete.
-> 
-> Use [TransformRangeOptions.referencedTable](./sql.transformrangeoptions.md#transformrangeoptionsreferencedtable) instead.
-> 
-
-Legacy alias for [TransformRangeOptions.referencedTable](./sql.transformrangeoptions.md#transformrangeoptionsreferencedtable)<!-- -->. Prefer `referencedTable`<!-- -->.
+Legacy alias for [TransformRangeOptions.referencedTable](./sql.transformrangeoptions.md#transformrangeoptionsreferencedtable)<!-- -->. Prefer `referencedTable` for new code. Defaults to `undefined`<!-- -->.
 
 <b>Signature:</b>
 
@@ -42,7 +37,7 @@ foreignTable?: string | undefined;
 
 ## TransformRangeOptions.referencedTable
 
-Embedded child relation name (or alias) to paginate per parent row (`?<referencedTable>.offset=...&<referencedTable>.limit=...`<!-- -->).
+Embedded child relation name (or alias) to paginate per parent row (`?<referencedTable>.offset=...&<referencedTable>.limit=...`<!-- -->). Defaults to `undefined`<!-- -->.
 
 <b>Signature:</b>
 
@@ -52,7 +47,7 @@ referencedTable?: string | undefined;
 
 ### Example
 
-\*\*Paginate nested `registrations` to indices `0..9` per parent event\*\*
+Paginate nested `registrations` to indices `0..9` per parent event:
 
 ```ts
 import type { TransformRangeOptions } from 'firebase/sql';

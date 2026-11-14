@@ -29,7 +29,7 @@ export interface QuerySelectOptions
 
 Row-counting algorithm used to populate `result.count` on [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface)<!-- -->.
 
-When omitted, PostgREST does not compute a total count and `result.count` is `null`<!-- -->.
+Defaults to `undefined` (PostgREST does not compute a total count and `result.count` is `null`<!-- -->). Only exact lowercase `'exact'`<!-- -->, `'planned'`<!-- -->, or `'estimated'` populate `result.count`<!-- -->.
 
 <b>Signature:</b>
 
@@ -41,7 +41,11 @@ count?: QueryCountStrategy | undefined;
 
 Sends an HTTP `HEAD` request so PostgREST returns headers (including `count`<!-- -->) with an empty body (`result.data` resolves to `null`<!-- -->).
 
-Combine with `count: 'exact'` (or `'estimated'`<!-- -->) to count matching rows without transferring row payloads. \*\*Compile-Time Type Caveat:\*\* Setting `head: true` does \*\*not\*\* narrow the static TypeScript type of `result.data` away from `Array<Record<string, unknown>>`<!-- -->, even though `result.data` is `null` at runtime—read `result.count` only and never access array properties (such as `.length`<!-- -->) on `result.data`<!-- -->.
+Defaults to `false`<!-- -->. Combine with `count: 'exact'` (or `'estimated'`<!-- -->) to count matching rows without transferring row payloads.
+
+Compile-time type caveat: setting `head: true` does not narrow the static TypeScript type of `result.data` away from `Array<Record<string, unknown>>`<!-- -->, even though `result.data` is `null` at runtime—read `result.count` only and never access array properties (such as `.length`<!-- -->) on `result.data`<!-- -->.
+
+Empty-body `HEAD` error caveat: because `HEAD` responses have no body, an HTTP `404` (such as a misspelled or unexposed table) is normalized to `status: 204` with `success: true` and `count: null`<!-- -->, and other `HEAD` failures carry no PostgREST or SQLSTATE error code (mapping to category `'sql-platform'`<!-- -->). Always treat `count === null` as a failed count when `count` was requested with `head: true`<!-- -->.
 
 <b>Signature:</b>
 
@@ -51,13 +55,16 @@ head?: boolean | undefined;
 
 ### Example
 
-\*\*Request an exact row count via a metadata-only `HEAD` request\*\*
+Request an exact row count via a metadata-only `HEAD` request:
 
 ```ts
 import type { QuerySelectOptions } from 'firebase/sql';
 
 const selectOpts: QuerySelectOptions = { head: true, count: 'exact' };
 const res = await sql.from('events').select('*', selectOpts);
+if (res.success && res.count !== null) {
+  console.log('Exact row count:', res.count);
+}
 
 ```
 

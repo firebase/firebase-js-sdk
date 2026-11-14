@@ -23,17 +23,17 @@ export interface TransformExplainOptions
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [analyze](./sql.transformexplainoptions.md#transformexplainoptionsanalyze) | boolean \| undefined | Executes the statement to include actual runtime timings and row counts (<code>ANALYZE</code>) in addition to planner estimates. |
-|  [buffers](./sql.transformexplainoptions.md#transformexplainoptionsbuffers) | boolean \| undefined | Includes shared/local/temp buffer hit and read counts (<code>BUFFERS</code>). Typically paired with <code>analyze: true</code>. |
-|  [format](./sql.transformexplainoptions.md#transformexplainoptionsformat) | [TransformExplainFormat](./sql.md#transformexplainformat) \| undefined | Serialization format of <code>result.data</code>: <code>'text'</code> (<code>string</code>) or <code>'json'</code> (<code>Array&lt;Record&lt;string, unknown&gt;&gt;</code>). |
-|  [settings](./sql.transformexplainoptions.md#transformexplainoptionssettings) | boolean \| undefined | Includes non-default planner configuration parameters affecting the plan (<code>SETTINGS</code>). |
-|  [verbose](./sql.transformexplainoptions.md#transformexplainoptionsverbose) | boolean \| undefined | Includes output column lists, schema-qualified relation names, and query identifiers (<code>VERBOSE</code>). |
-|  [wal](./sql.transformexplainoptions.md#transformexplainoptionswal) | boolean \| undefined | Includes Write-Ahead Log record generation statistics (<code>WAL</code>). Only meaningful when <code>analyze: true</code> is also set on data-modifying queries. |
+|  [buffers](./sql.transformexplainoptions.md#transformexplainoptionsbuffers) | boolean \| undefined | Includes shared, local, and temp buffer hit and read counts (<code>BUFFERS</code>). Defaults to <code>false</code>. Typically paired with <code>analyze: true</code>. |
+|  [format](./sql.transformexplainoptions.md#transformexplainoptionsformat) | [TransformExplainFormat](./sql.md#transformexplainformat) \| undefined | Serialization format of <code>result.data</code>: <code>'text'</code> (<code>string</code>) or <code>'json'</code> (<code>Array&lt;Record&lt;string, unknown&gt;&gt;</code>). Defaults to <code>'text'</code>. |
+|  [settings](./sql.transformexplainoptions.md#transformexplainoptionssettings) | boolean \| undefined | Includes non-default planner configuration parameters affecting the plan (<code>SETTINGS</code>). Defaults to <code>false</code>. |
+|  [verbose](./sql.transformexplainoptions.md#transformexplainoptionsverbose) | boolean \| undefined | Includes output column lists, schema-qualified relation names, and query identifiers (<code>VERBOSE</code>). Defaults to <code>false</code>. |
+|  [wal](./sql.transformexplainoptions.md#transformexplainoptionswal) | boolean \| undefined | Includes Write-Ahead Log record generation statistics (<code>WAL</code>). Defaults to <code>false</code>. Requires <code>analyze: true</code>; PostgreSQL rejects <code>EXPLAIN (WAL)</code> without <code>ANALYZE</code>. |
 
 ## TransformExplainOptions.analyze
 
 Executes the statement to include actual runtime timings and row counts (`ANALYZE`<!-- -->) in addition to planner estimates.
 
-When chained onto a write query (`insert`<!-- -->, `update`<!-- -->, `upsert`<!-- -->, `delete`<!-- -->), `analyze: true` \*\*actually executes\*\* the write unless combined with [.rollback()](./sql.transformbuilder.md#transformbuilderrollback)<!-- -->!
+Defaults to `false`<!-- -->. When chained onto a write query (`insert`<!-- -->, `update`<!-- -->, `upsert`<!-- -->, `delete`<!-- -->), `analyze: true` executes the write on the server; chaining [.rollback()](./sql.transformbuilder.md#transformbuilderrollback) prevents committing only if the backend's PostgREST `db-tx-end` setting permits transaction rollback overrides (otherwise `Prefer: tx=rollback` is ignored and the write commits).
 
 <b>Signature:</b>
 
@@ -43,7 +43,7 @@ analyze?: boolean | undefined;
 
 ## TransformExplainOptions.buffers
 
-Includes shared/local/temp buffer hit and read counts (`BUFFERS`<!-- -->). Typically paired with `analyze: true`<!-- -->.
+Includes shared, local, and temp buffer hit and read counts (`BUFFERS`<!-- -->). Defaults to `false`<!-- -->. Typically paired with `analyze: true`<!-- -->.
 
 <b>Signature:</b>
 
@@ -53,7 +53,7 @@ buffers?: boolean | undefined;
 
 ## TransformExplainOptions.format
 
-Serialization format of `result.data`<!-- -->: `'text'` (`string`<!-- -->) or `'json'` (`Array<Record<string, unknown>>`<!-- -->).
+Serialization format of `result.data`<!-- -->: `'text'` (`string`<!-- -->) or `'json'` (`Array<Record<string, unknown>>`<!-- -->). Defaults to `'text'`<!-- -->.
 
 <b>Signature:</b>
 
@@ -63,7 +63,7 @@ format?: TransformExplainFormat | undefined;
 
 ## TransformExplainOptions.settings
 
-Includes non-default planner configuration parameters affecting the plan (`SETTINGS`<!-- -->).
+Includes non-default planner configuration parameters affecting the plan (`SETTINGS`<!-- -->). Defaults to `false`<!-- -->.
 
 <b>Signature:</b>
 
@@ -73,7 +73,7 @@ settings?: boolean | undefined;
 
 ## TransformExplainOptions.verbose
 
-Includes output column lists, schema-qualified relation names, and query identifiers (`VERBOSE`<!-- -->).
+Includes output column lists, schema-qualified relation names, and query identifiers (`VERBOSE`<!-- -->). Defaults to `false`<!-- -->.
 
 <b>Signature:</b>
 
@@ -83,7 +83,7 @@ verbose?: boolean | undefined;
 
 ## TransformExplainOptions.wal
 
-Includes Write-Ahead Log record generation statistics (`WAL`<!-- -->). Only meaningful when `analyze: true` is also set on data-modifying queries.
+Includes Write-Ahead Log record generation statistics (`WAL`<!-- -->). Defaults to `false`<!-- -->. Requires `analyze: true`<!-- -->; PostgreSQL rejects `EXPLAIN (WAL)` without `ANALYZE`<!-- -->.
 
 <b>Signature:</b>
 
@@ -93,7 +93,7 @@ wal?: boolean | undefined;
 
 ### Example
 
-\*\*Configure `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` options\*\*
+Configure `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` options:
 
 ```ts
 import type { TransformExplainOptions } from 'firebase/sql';
