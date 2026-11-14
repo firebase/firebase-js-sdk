@@ -112,6 +112,7 @@ import {
   key,
   localViewChanges,
   mapAsArray,
+  mergeMutation,
   namedQuery,
   noChangeEvent,
   orderBy,
@@ -885,6 +886,34 @@ function genericLocalStoreTests(
       .afterAcknowledgingMutation({ documentVersion: 1 })
       .toReturnChanged(unknownDoc('foo/bar', 1))
       .toNotContainIfEager(unknownDoc('foo/bar', 1))
+      .finish();
+  });
+
+  it('handles MergeMutation -> Document -> Ack', () => {
+    // setDoc(merge) with no cached remote version. The server fields must
+    // survive once that document arrives (getDocFromServer during the write).
+    return expectLocalStore()
+      .after(mergeMutation('foo/bar', { foo: 'bar' }, [field('foo')]))
+      .toReturnChanged(doc('foo/bar', 0, { foo: 'bar' }).setHasLocalMutations())
+      .toContain(doc('foo/bar', 0, { foo: 'bar' }).setHasLocalMutations())
+      .afterAllocatingQuery(query('foo'))
+      .toReturnTargetId(2)
+      .after(docUpdateRemoteEvent(doc('foo/bar', 1, { it: 'base' }), [2]))
+      .toReturnChanged(
+        doc('foo/bar', 1, { foo: 'bar', it: 'base' }).setHasLocalMutations()
+      )
+      .toContain(
+        doc('foo/bar', 1, { foo: 'bar', it: 'base' }).setHasLocalMutations()
+      )
+      .afterAcknowledgingMutation({ documentVersion: 2 })
+      .toReturnChanged(
+        doc('foo/bar', 2, { foo: 'bar', it: 'base' }).setHasCommittedMutations()
+      )
+      .after(
+        docUpdateRemoteEvent(doc('foo/bar', 2, { foo: 'bar', it: 'base' }), [2])
+      )
+      .toReturnChanged(doc('foo/bar', 2, { foo: 'bar', it: 'base' }))
+      .toContain(doc('foo/bar', 2, { foo: 'bar', it: 'base' }))
       .finish();
   });
 
