@@ -60,7 +60,7 @@ export function querystringDecode(querystring: string): Record<string, string> {
  */
 export function extractQuerystring(url: string): string {
   const queryStart = url.indexOf('?');
-  if (!queryStart) {
+  if (queryStart < 0) {
     return '';
   }
   const fragmentStart = url.indexOf('#', queryStart);
