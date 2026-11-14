@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TransformExplainOptions interface
+PostgreSQL `EXPLAIN` execution flags and output format options for [TransformBuilder.explain()](./sql.transformbuilder.md#transformbuilderexplain)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,14 +22,18 @@ export interface TransformExplainOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [analyze](./sql.transformexplainoptions.md#transformexplainoptionsanalyze) | boolean \| undefined |  |
-|  [buffers](./sql.transformexplainoptions.md#transformexplainoptionsbuffers) | boolean \| undefined |  |
-|  [format](./sql.transformexplainoptions.md#transformexplainoptionsformat) | [TransformExplainFormat](./sql.md#transformexplainformat) \| undefined |  |
-|  [settings](./sql.transformexplainoptions.md#transformexplainoptionssettings) | boolean \| undefined |  |
-|  [verbose](./sql.transformexplainoptions.md#transformexplainoptionsverbose) | boolean \| undefined |  |
-|  [wal](./sql.transformexplainoptions.md#transformexplainoptionswal) | boolean \| undefined |  |
+|  [analyze](./sql.transformexplainoptions.md#transformexplainoptionsanalyze) | boolean \| undefined | Executes the statement to include actual runtime timings and row counts (<code>ANALYZE</code>) in addition to planner estimates. |
+|  [buffers](./sql.transformexplainoptions.md#transformexplainoptionsbuffers) | boolean \| undefined | Includes shared/local/temp buffer hit and read counts (<code>BUFFERS</code>). Typically paired with <code>analyze: true</code>. |
+|  [format](./sql.transformexplainoptions.md#transformexplainoptionsformat) | [TransformExplainFormat](./sql.md#transformexplainformat) \| undefined | Serialization format of <code>result.data</code>: <code>'text'</code> (<code>string</code>) or <code>'json'</code> (<code>Array&lt;Record&lt;string, unknown&gt;&gt;</code>). |
+|  [settings](./sql.transformexplainoptions.md#transformexplainoptionssettings) | boolean \| undefined | Includes non-default planner configuration parameters affecting the plan (<code>SETTINGS</code>). |
+|  [verbose](./sql.transformexplainoptions.md#transformexplainoptionsverbose) | boolean \| undefined | Includes output column lists, schema-qualified relation names, and query identifiers (<code>VERBOSE</code>). |
+|  [wal](./sql.transformexplainoptions.md#transformexplainoptionswal) | boolean \| undefined | Includes Write-Ahead Log record generation statistics (<code>WAL</code>). Only meaningful when <code>analyze: true</code> is also set on data-modifying queries. |
 
 ## TransformExplainOptions.analyze
+
+Executes the statement to include actual runtime timings and row counts (`ANALYZE`<!-- -->) in addition to planner estimates.
+
+When chained onto a write query (`insert`<!-- -->, `update`<!-- -->, `upsert`<!-- -->, `delete`<!-- -->), `analyze: true` \*\*actually executes\*\* the write unless combined with [.rollback()](./sql.transformbuilder.md#transformbuilderrollback)<!-- -->!
 
 <b>Signature:</b>
 
@@ -37,6 +43,8 @@ analyze?: boolean | undefined;
 
 ## TransformExplainOptions.buffers
 
+Includes shared/local/temp buffer hit and read counts (`BUFFERS`<!-- -->). Typically paired with `analyze: true`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -44,6 +52,8 @@ buffers?: boolean | undefined;
 ```
 
 ## TransformExplainOptions.format
+
+Serialization format of `result.data`<!-- -->: `'text'` (`string`<!-- -->) or `'json'` (`Array<Record<string, unknown>>`<!-- -->).
 
 <b>Signature:</b>
 
@@ -53,6 +63,8 @@ format?: TransformExplainFormat | undefined;
 
 ## TransformExplainOptions.settings
 
+Includes non-default planner configuration parameters affecting the plan (`SETTINGS`<!-- -->).
+
 <b>Signature:</b>
 
 ```typescript
@@ -60,6 +72,8 @@ settings?: boolean | undefined;
 ```
 
 ## TransformExplainOptions.verbose
+
+Includes output column lists, schema-qualified relation names, and query identifiers (`VERBOSE`<!-- -->).
 
 <b>Signature:</b>
 
@@ -69,8 +83,31 @@ verbose?: boolean | undefined;
 
 ## TransformExplainOptions.wal
 
+Includes Write-Ahead Log record generation statistics (`WAL`<!-- -->). Only meaningful when `analyze: true` is also set on data-modifying queries.
+
 <b>Signature:</b>
 
 ```typescript
 wal?: boolean | undefined;
 ```
+
+### Example
+
+\*\*Configure `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` options\*\*
+
+```ts
+import type { TransformExplainOptions } from 'firebase/sql';
+
+const explainOpts: TransformExplainOptions = {
+  analyze: true,
+  buffers: true,
+  format: 'json'
+};
+const res = await sql
+  .from('events')
+  .select('id, code, title')
+  .eq('status', 'published')
+  .explain(explainOpts);
+
+```
+

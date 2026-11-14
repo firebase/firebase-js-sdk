@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QueryDeleteOptions interface
+Execution options for [QueryBuilder.delete()](./sql.querybuilder.md#querybuilderdelete)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,12 +22,27 @@ export interface QueryDeleteOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [count](./sql.querydeleteoptions.md#querydeleteoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined |  |
+|  [count](./sql.querydeleteoptions.md#querydeleteoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined | Row-counting algorithm used to populate <code>result.count</code> with the number of deleted rows. |
 
 ## QueryDeleteOptions.count
+
+Row-counting algorithm used to populate `result.count` with the number of deleted rows.
 
 <b>Signature:</b>
 
 ```typescript
 count?: QueryCountStrategy | undefined;
 ```
+
+### Example
+
+\*\*Count rows removed by a `delete()`<!-- -->\*\*
+
+```ts
+import type { QueryDeleteOptions } from 'firebase/sql';
+
+const deleteOpts: QueryDeleteOptions = { count: 'exact' };
+const res = await sql.from('events').delete(deleteOpts).eq('status', 'cancelled');
+
+```
+

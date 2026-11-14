@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # SerializedFirebaseSqlError interface
-Plain JSON-serializable representation of a `FirebaseSqlError`<!-- -->.
+Plain JSON-serializable object returned by [FirebaseSqlError.toJSON()](./sql.firebasesqlerror.md#firebasesqlerrortojson)<!-- -->.
 
 <b>Signature:</b>
 
@@ -22,16 +22,16 @@ export interface SerializedFirebaseSqlError
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [category](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorcategory) | string | Error origin discriminator ('sql-postgrest' \| 'sql-platform' \| 'sql-client'). |
-|  [code](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorcode) | string | PostgREST wire error code or Firebase SQL platform/client error code. |
-|  [details](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrordetails) | string \| undefined | Optional detailed error explanation returned by the server. |
-|  [hint](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorhint) | string \| undefined | Optional remediation hint returned by the server. |
+|  [category](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorcategory) | string | Origin tier (<code>'sql-postgrest'</code>, <code>'sql-platform'</code>, or <code>'sql-client'</code>). |
+|  [code](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorcode) | string | PostgREST/PostgreSQL wire code (<code>'sql-postgrest'</code>) or [FirebaseSqlErrorCode](./sql.md#firebasesqlerrorcode) (<code>'sql-platform'</code> / <code>'sql-client'</code>). |
+|  [details](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrordetails) | string \| undefined | Optional server-supplied diagnostic detail or JSON-serialized structured error details. |
+|  [hint](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorhint) | string \| undefined | Optional PostgreSQL or PostgREST remediation hint (for example, suggested <code>GRANT</code> or relationship disambiguation). |
 |  [message](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrormessage) | string | Human-readable error message. |
-|  [status](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorstatus) | number \| undefined | Optional HTTP status code associated with the failure. |
+|  [status](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorstatus) | number \| undefined | HTTP status code when an HTTP response was received; omitted (<code>undefined</code>) for local/network <code>'sql-client'</code> errors. |
 
 ## SerializedFirebaseSqlError.category
 
-Error origin discriminator ('sql-postgrest' \| 'sql-platform' \| 'sql-client').
+Origin tier (`'sql-postgrest'`<!-- -->, `'sql-platform'`<!-- -->, or `'sql-client'`<!-- -->).
 
 <b>Signature:</b>
 
@@ -41,7 +41,7 @@ category: string;
 
 ## SerializedFirebaseSqlError.code
 
-PostgREST wire error code or Firebase SQL platform/client error code.
+PostgREST/PostgreSQL wire code (`'sql-postgrest'`<!-- -->) or [FirebaseSqlErrorCode](./sql.md#firebasesqlerrorcode) (`'sql-platform'` / `'sql-client'`<!-- -->).
 
 <b>Signature:</b>
 
@@ -51,7 +51,7 @@ code: string;
 
 ## SerializedFirebaseSqlError.details
 
-Optional detailed error explanation returned by the server.
+Optional server-supplied diagnostic detail or JSON-serialized structured error details.
 
 <b>Signature:</b>
 
@@ -61,7 +61,7 @@ details?: string | undefined;
 
 ## SerializedFirebaseSqlError.hint
 
-Optional remediation hint returned by the server.
+Optional PostgreSQL or PostgREST remediation hint (for example, suggested `GRANT` or relationship disambiguation).
 
 <b>Signature:</b>
 
@@ -81,10 +81,26 @@ message: string;
 
 ## SerializedFirebaseSqlError.status
 
-Optional HTTP status code associated with the failure.
+HTTP status code when an HTTP response was received; omitted (`undefined`<!-- -->) for local/network `'sql-client'` errors.
 
 <b>Signature:</b>
 
 ```typescript
 status?: number | undefined;
 ```
+
+### Example
+
+\*\*Serialize a `FirebaseSqlError` for structured telemetry\*\*
+
+```ts
+import type { SerializedFirebaseSqlError } from 'firebase/sql';
+
+const res = await sql.from('events').select('id');
+if (!res.success) {
+  const payload: SerializedFirebaseSqlError = res.error.toJSON();
+  console.error(JSON.stringify(payload));
+}
+
+```
+

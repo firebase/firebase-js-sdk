@@ -10,7 +10,11 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # SqlServiceSettings interface
-Service connection settings for configuring a Firebase SQL client instance.
+Connection and routing configuration for a [FirebaseSql](./sql.firebasesql.md#firebasesql_class) service client instance initialized via [getSql()](./sql.md#getsql_e89ea77)<!-- -->.
+
+Passed to [getSql()](./sql.md#getsql_e89ea77)<!-- -->, which validates all fields, creates a deep frozen copy, and resolves the PostgREST endpoint URL as: `{http|https}://{host}[:{port}]/v1/projects/{projectId}/locations/{location}/services/{serviceId}/postgrest`<!-- -->.
+
+\*\*Instance Caching:\*\* [getSql()](./sql.md#getsql_e89ea77) deduplicates instances by `(app, resolvedUrl, schemaName)`<!-- -->. Different `headers` objects passed with an already-initialized `(app, resolvedUrl, schemaName)` reuse the cached [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instance and its original `headers`<!-- -->; use [Builder.setHeader()](./sql.builder.md#buildersetheader) for per-request header overrides.
 
 <b>Signature:</b>
 
@@ -22,17 +26,21 @@ export interface SqlServiceSettings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [headers](./sql.sqlservicesettings.md#sqlservicesettingsheaders) | Record&lt;string, string&gt; \| undefined | Custom HTTP headers to include with outgoing requests. |
-|  [host](./sql.sqlservicesettings.md#sqlservicesettingshost) | string \| undefined | Optional custom host for emulator or proxy routing. |
-|  [location](./sql.sqlservicesettings.md#sqlservicesettingslocation) | string | Firebase SQL service location identifier. |
-|  [port](./sql.sqlservicesettings.md#sqlservicesettingsport) | number \| undefined | Optional custom port for emulator or proxy routing. Must be a number between <code>1</code> and <code>65535</code>. |
-|  [schemaName](./sql.sqlservicesettings.md#sqlservicesettingsschemaname) | string \| undefined | Optional PostgreSQL schema name. |
-|  [serviceId](./sql.sqlservicesettings.md#sqlservicesettingsserviceid) | string | Firebase SQL service identifier. |
-|  [sslEnabled](./sql.sqlservicesettings.md#sqlservicesettingssslenabled) | boolean \| undefined | Whether SSL is enabled (defaults to true; set to false for local HTTP). |
+|  [headers](./sql.sqlservicesettings.md#sqlservicesettingsheaders) | Record&lt;string, string&gt; \| undefined | Static custom HTTP headers included on every outgoing request from this client instance. |
+|  [host](./sql.sqlservicesettings.md#sqlservicesettingshost) | string \| undefined | Custom endpoint hostname (without protocol or path) overriding the default Firebase SQL service host. |
+|  [location](./sql.sqlservicesettings.md#sqlservicesettingslocation) | string | Non-empty Google Cloud region hosting the Firebase SQL service (for example, <code>'us-central1'</code>). |
+|  [port](./sql.sqlservicesettings.md#sqlservicesettingsport) | number \| undefined | Custom TCP port number appended to the resolved service endpoint URL. |
+|  [schemaName](./sql.sqlservicesettings.md#sqlservicesettingsschemaname) | string \| undefined | Target PostgreSQL schema exposed by PostgREST (for example, <code>'analytics'</code>). |
+|  [serviceId](./sql.sqlservicesettings.md#sqlservicesettingsserviceid) | string | Non-empty Firebase SQL service identifier within the Firebase project (for example, <code>'events-db'</code>). |
+|  [sslEnabled](./sql.sqlservicesettings.md#sqlservicesettingssslenabled) | boolean \| undefined | Controls whether requests use <code>https:</code> (<code>true</code> or <code>undefined</code>) or <code>http:</code> (<code>false</code>). |
 
 ## SqlServiceSettings.headers
 
-Custom HTTP headers to include with outgoing requests.
+Static custom HTTP headers included on every outgoing request from this client instance.
+
+\*\*Do NOT use\*\* for authentication or App Check tokens (`Authorization`<!-- -->, `x-firebase-auth-token`<!-- -->, `x-firebase-appcheck`<!-- -->) or reserved Firebase telemetry/routing headers (`x-goog-api-client`<!-- -->, `x-client-version`<!-- -->, `x-firebase-gmpid`<!-- -->, `x-firebase-client`<!-- -->, `x-firebase-client-log-type`<!-- -->, `x-goog-request-params`<!-- -->, `x-firebase-sqlconnect-affinity`<!-- -->). Supplying any protected header key (case-insensitive) causes [getSql()](./sql.md#getsql_e89ea77) to throw [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->). Firebase Auth and App Check tokens are attached automatically when configured on the bound `FirebaseApp`<!-- -->.
+
+Not included in the [getSql()](./sql.md#getsql_e89ea77) instance cache key; use [Builder.setHeader()](./sql.builder.md#buildersetheader) for request-scoped headers.
 
 <b>Signature:</b>
 
@@ -42,7 +50,9 @@ headers?: Record<string, string> | undefined;
 
 ## SqlServiceSettings.host
 
-Optional custom host for emulator or proxy routing.
+Custom endpoint hostname (without protocol or path) overriding the default Firebase SQL service host.
+
+Defaults to `'firebasedataconnect.googleapis.com'` when omitted. Must be a valid hostname accepted by the WHATWG `URL` constructor (do not pass `''` or include `http://` / `https://`<!-- -->, or [getSql()](./sql.md#getsql_e89ea77) will throw a `TypeError`<!-- -->).
 
 <b>Signature:</b>
 
@@ -52,7 +62,9 @@ host?: string | undefined;
 
 ## SqlServiceSettings.location
 
-Firebase SQL service location identifier.
+Non-empty Google Cloud region hosting the Firebase SQL service (for example, `'us-central1'`<!-- -->).
+
+Required. Passing an empty string causes [getSql()](./sql.md#getsql_e89ea77) to throw [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->). Percent-encoded when constructing the `/locations/{location}/` path.
 
 <b>Signature:</b>
 
@@ -62,7 +74,9 @@ location: string;
 
 ## SqlServiceSettings.port
 
-Optional custom port for emulator or proxy routing. Must be a number between `1` and `65535`<!-- -->.
+Custom TCP port number appended to the resolved service endpoint URL.
+
+When provided, must be an integer between `1` and `65535` inclusive; non-integers or out-of-range values cause [getSql()](./sql.md#getsql_e89ea77) to throw [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->).
 
 <b>Signature:</b>
 
@@ -72,7 +86,9 @@ port?: number | undefined;
 
 ## SqlServiceSettings.schemaName
 
-Optional PostgreSQL schema name.
+Target PostgreSQL schema exposed by PostgREST (for example, `'analytics'`<!-- -->).
+
+When specified, sends `Accept-Profile: <schemaName>` on `GET`<!-- -->/`HEAD` requests and `Content-Profile: <schemaName>` on `POST`<!-- -->/`PATCH`<!-- -->/`DELETE` mutations. Omitting `schemaName` (or passing `undefined`<!-- -->) omits profile headers and uses the server's default exposed schema, so specifying `'public'` is unnecessary when `'public'` is the default schema. \*\*Do NOT pass an empty string `''`<!-- -->\*\*—it sends an empty profile header that PostgREST rejects with HTTP `406` (`'PGRST106'`<!-- -->). Note that omitting `schemaName` and passing an explicit `schemaName` string produce distinct cached [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instances.
 
 <b>Signature:</b>
 
@@ -82,7 +98,9 @@ schemaName?: string | undefined;
 
 ## SqlServiceSettings.serviceId
 
-Firebase SQL service identifier.
+Non-empty Firebase SQL service identifier within the Firebase project (for example, `'events-db'`<!-- -->).
+
+Required. Passing an empty string causes [getSql()](./sql.md#getsql_e89ea77) to throw [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->). Percent-encoded when constructing the `/services/{serviceId}/postgrest` path.
 
 <b>Signature:</b>
 
@@ -92,10 +110,42 @@ serviceId: string;
 
 ## SqlServiceSettings.sslEnabled
 
-Whether SSL is enabled (defaults to true; set to false for local HTTP).
+Controls whether requests use `https:` (`true` or `undefined`<!-- -->) or `http:` (`false`<!-- -->).
+
+Omitting `sslEnabled` and setting `sslEnabled: true` resolve to the same `https:` endpoint and share the same cached [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instance.
 
 <b>Signature:</b>
 
 ```typescript
 sslEnabled?: boolean | undefined;
 ```
+
+### Example 1
+
+\*\*Configure settings using the default schema\*\*
+
+```ts
+import type { SqlServiceSettings } from 'firebase/sql';
+
+const settings: SqlServiceSettings = {
+  serviceId: 'events-db',
+  location: 'us-central1'
+};
+
+```
+
+### Example 2
+
+\*\*Configure settings targeting a non-default PostgreSQL schema\*\*
+
+```ts
+import type { SqlServiceSettings } from 'firebase/sql';
+
+const analyticsSettings: SqlServiceSettings = {
+  serviceId: 'events-db',
+  location: 'us-central1',
+  schemaName: 'analytics'
+};
+
+```
+

@@ -10,6 +10,14 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FilterBuilder interface
+Lazy PostgREST filter builder returned by [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) verbs, [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->, and [TransformBuilder.select()](./sql.transformbuilder.md#transformbuilderselect)<!-- -->.
+
+\*\*Builder Progression:\*\* Extends [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) (and [Builder](./sql.builder.md#builder_interface) / `PromiseLike`<!-- -->). Chaining multiple filter methods combines predicates with logical `AND` in the outgoing URL query string (use [.or()](./sql.filterbuilder.md#filterbuilderor) for logical `OR`<!-- -->).
+
+\*\*Value Serialization Guardrails (`Date` &amp; `undefined`<!-- -->):\*\* - \*\*Timestamps (`Date`<!-- -->):\*\* Never pass a raw `Date` object to filter methods—URL parameter string interpolation calls `Date.prototype.toString()` (locale string), which PostgreSQL rejects with SQLSTATE `'22007'`<!-- -->. Always pass ISO-8601 strings via `date.toISOString()`<!-- -->. - \*\*Optional Variables (`undefined`<!-- -->):\*\* Methods typed with `value: unknown` (`neq`<!-- -->, `gt`<!-- -->, `gte`<!-- -->, `lt`<!-- -->, `lte`<!-- -->, `isDistinct`<!-- -->, `not`<!-- -->, `filter`<!-- -->) accept `undefined` at compile time and serialize the literal string `'undefined'` into the URL (`?col=gte.undefined`<!-- -->). Always guard optional filter inputs with `if (value !== undefined)` before chaining!
+
+\*\*Mutability &amp; Reuse:\*\* Filter methods mutate the current `FilterBuilder` instance in place and return `this`<!-- -->—do \*\*not\*\* branch two conflicting filter chains off the same `FilterBuilder` variable (branch from [sql.from(table)](./sql.firebasesql.md#firebasesqlfrom) instead). Re-awaiting or concurrently awaiting the \*same\* finalized `FilterBuilder` via `Promise.all` is safe and execution-isolated.
+
 <b>Signature:</b>
 
 ```typescript
@@ -21,41 +29,47 @@ export interface FilterBuilder<T, Method = unknown, ThrowOnError extends boolean
 
 |  Method | Description |
 |  --- | --- |
-|  [containedBy(column, value)](./sql.filterbuilder.md#filterbuildercontainedby) |  |
-|  [contains(column, value)](./sql.filterbuilder.md#filterbuildercontains) |  |
-|  [eq(column, value)](./sql.filterbuilder.md#filterbuildereq) |  |
-|  [filter(column, operator, value)](./sql.filterbuilder.md#filterbuilderfilter) |  |
-|  [gt(column, value)](./sql.filterbuilder.md#filterbuildergt) |  |
-|  [gte(column, value)](./sql.filterbuilder.md#filterbuildergte) |  |
-|  [ilike(column, pattern)](./sql.filterbuilder.md#filterbuilderilike) |  |
-|  [ilikeAllOf(column, patterns)](./sql.filterbuilder.md#filterbuilderilikeallof) |  |
-|  [ilikeAnyOf(column, patterns)](./sql.filterbuilder.md#filterbuilderilikeanyof) |  |
-|  [in(column, values)](./sql.filterbuilder.md#filterbuilderin) |  |
-|  [is(column, value)](./sql.filterbuilder.md#filterbuilderis) |  |
-|  [isDistinct(column, value)](./sql.filterbuilder.md#filterbuilderisdistinct) |  |
-|  [like(column, pattern)](./sql.filterbuilder.md#filterbuilderlike) |  |
-|  [likeAllOf(column, patterns)](./sql.filterbuilder.md#filterbuilderlikeallof) |  |
-|  [likeAnyOf(column, patterns)](./sql.filterbuilder.md#filterbuilderlikeanyof) |  |
-|  [lt(column, value)](./sql.filterbuilder.md#filterbuilderlt) |  |
-|  [lte(column, value)](./sql.filterbuilder.md#filterbuilderlte) |  |
-|  [match(query)](./sql.filterbuilder.md#filterbuildermatch) |  |
-|  [neq(column, value)](./sql.filterbuilder.md#filterbuilderneq) |  |
-|  [not(column, operator, value)](./sql.filterbuilder.md#filterbuildernot) |  |
-|  [not(column, operator, value)](./sql.filterbuilder.md#filterbuildernot) |  |
-|  [notIn(column, values)](./sql.filterbuilder.md#filterbuildernotin) |  |
-|  [or(filters, options)](./sql.filterbuilder.md#filterbuilderor) |  |
-|  [overlaps(column, value)](./sql.filterbuilder.md#filterbuilderoverlaps) |  |
-|  [rangeAdjacent(column, range)](./sql.filterbuilder.md#filterbuilderrangeadjacent) |  |
-|  [rangeGt(column, range)](./sql.filterbuilder.md#filterbuilderrangegt) |  |
-|  [rangeGte(column, range)](./sql.filterbuilder.md#filterbuilderrangegte) |  |
-|  [rangeLt(column, range)](./sql.filterbuilder.md#filterbuilderrangelt) |  |
-|  [rangeLte(column, range)](./sql.filterbuilder.md#filterbuilderrangelte) |  |
-|  [regexIMatch(column, pattern)](./sql.filterbuilder.md#filterbuilderregeximatch) |  |
-|  [regexMatch(column, pattern)](./sql.filterbuilder.md#filterbuilderregexmatch) |  |
-|  [textSearch(column, query, options)](./sql.filterbuilder.md#filterbuildertextsearch) |  |
-|  [throwOnError()](./sql.filterbuilder.md#filterbuilderthrowonerror) |  |
+|  [containedBy(column, value)](./sql.filterbuilder.md#filterbuildercontainedby) | Filters array, <code>jsonb</code>, or range <code>column</code> values that are completely contained within <code>value</code> (<code>?column=cd.&lt;value&gt;</code>, PostgreSQL <code>&lt;@</code> operator). |
+|  [contains(column, value)](./sql.filterbuilder.md#filterbuildercontains) | Filters array, <code>jsonb</code>, or range <code>column</code> values that contain all elements, key-value pairs, or bounds of <code>value</code> (<code>?column=cs.&lt;value&gt;</code>, PostgreSQL <code>@&gt;</code> operator). |
+|  [eq(column, value)](./sql.filterbuilder.md#filterbuildereq) | Filters rows where <code>column</code> equals <code>value</code> (<code>?column=eq.&lt;value&gt;</code>). |
+|  [filter(column, operator, value)](./sql.filterbuilder.md#filterbuilderfilter) | Appends a raw PostgREST filter parameter (<code>?column=&lt;operator&gt;.&lt;value&gt;</code>) as an escape hatch for custom or composite operators. |
+|  [gt(column, value)](./sql.filterbuilder.md#filterbuildergt) | Filters rows where <code>column</code> is strictly greater than <code>value</code> (<code>?column=gt.&lt;value&gt;</code>, SQL <code>&gt;</code>). |
+|  [gte(column, value)](./sql.filterbuilder.md#filterbuildergte) | Filters rows where <code>column</code> is greater than or equal to <code>value</code> (<code>?column=gte.&lt;value&gt;</code>, SQL <code>&gt;=</code>). |
+|  [ilike(column, pattern)](./sql.filterbuilder.md#filterbuilderilike) | Filters rows where text <code>column</code> matches SQL <code>ILIKE</code> <code>pattern</code> \*\*case-insensitively\*\* (<code>?column=ilike.&lt;pattern&gt;</code>). |
+|  [ilikeAllOf(column, patterns)](./sql.filterbuilder.md#filterbuilderilikeallof) | Filters rows where text <code>column</code> \*\*case-insensitively\*\* matches \*\*every\*\* SQL <code>ILIKE</code> pattern in <code>patterns</code> (<code>?column=ilike(all).{...}</code>). |
+|  [ilikeAnyOf(column, patterns)](./sql.filterbuilder.md#filterbuilderilikeanyof) | Filters rows where text <code>column</code> \*\*case-insensitively\*\* matches \*\*at least one\*\* SQL <code>ILIKE</code> pattern in <code>patterns</code> (<code>?column=ilike(any).{...}</code>). |
+|  [in(column, values)](./sql.filterbuilder.md#filterbuilderin) | Filters rows where <code>column</code> equals any element in <code>values</code> (<code>?column=in.(...)</code>, SQL <code>IN</code>). |
+|  [is(column, value)](./sql.filterbuilder.md#filterbuilderis) | Filters rows where <code>column</code> <code>IS NULL</code>, <code>IS TRUE</code>, or <code>IS FALSE</code> (<code>?column=is.&lt;value&gt;</code>). |
+|  [isDistinct(column, value)](./sql.filterbuilder.md#filterbuilderisdistinct) | Filters rows where <code>column IS DISTINCT FROM value</code> (<code>?column=isdistinct.&lt;value&gt;</code>), treating <code>NULL</code> as a comparable value. |
+|  [like(column, pattern)](./sql.filterbuilder.md#filterbuilderlike) | Filters rows where text <code>column</code> matches SQL <code>LIKE</code> <code>pattern</code> \*\*case-sensitively\*\* (<code>?column=like.&lt;pattern&gt;</code>). |
+|  [likeAllOf(column, patterns)](./sql.filterbuilder.md#filterbuilderlikeallof) | Filters rows where text <code>column</code> \*\*case-sensitively\*\* matches \*\*every\*\* SQL <code>LIKE</code> pattern in <code>patterns</code> (<code>?column=like(all).{...}</code>). |
+|  [likeAnyOf(column, patterns)](./sql.filterbuilder.md#filterbuilderlikeanyof) | Filters rows where text <code>column</code> \*\*case-sensitively\*\* matches \*\*at least one\*\* SQL <code>LIKE</code> pattern in <code>patterns</code> (<code>?column=like(any).{...}</code>). |
+|  [lt(column, value)](./sql.filterbuilder.md#filterbuilderlt) | Filters rows where <code>column</code> is strictly less than <code>value</code> (<code>?column=lt.&lt;value&gt;</code>, SQL <code>&lt;</code>). |
+|  [lte(column, value)](./sql.filterbuilder.md#filterbuilderlte) | Filters rows where <code>column</code> is less than or equal to <code>value</code> (<code>?column=lte.&lt;value&gt;</code>, SQL <code>&lt;=</code>). |
+|  [match(query)](./sql.filterbuilder.md#filterbuildermatch) | Appends an equality filter (<code>?col=eq.&lt;val&gt;</code>) for every defined key-value pair in <code>query</code>. |
+|  [neq(column, value)](./sql.filterbuilder.md#filterbuilderneq) | Filters rows where <code>column</code> does not equal <code>value</code> (<code>?column=neq.&lt;value&gt;</code>, SQL <code>&lt;&gt;</code>). |
+|  [not(column, operator, value)](./sql.filterbuilder.md#filterbuildernot) | Filters rows where <code>column IS NOT NULL</code> (<code>?column=not.is.null</code>) and narrows <code>column</code> on <code>T</code> to <code>NonNullable</code> via [NarrowResultColumn](./sql.md#narrowresultcolumn)<!-- -->. |
+|  [not(column, operator, value)](./sql.filterbuilder.md#filterbuildernot) | Negates a PostgREST filter operator on <code>column</code> (<code>?column=not.&lt;operator&gt;.&lt;value&gt;</code>). |
+|  [notIn(column, values)](./sql.filterbuilder.md#filterbuildernotin) | Filters rows where <code>column</code> does not equal any element in <code>values</code> (<code>?column=not.in.(...)</code>, SQL <code>NOT IN</code>). |
+|  [or(filters, options)](./sql.filterbuilder.md#filterbuilderor) | Filters rows satisfying \*\*at least one\*\* comma-separated raw PostgREST predicate (<code>?or=(&lt;filters&gt;)</code> or <code>?&lt;referencedTable&gt;.or=(&lt;filters&gt;)</code>). |
+|  [overlaps(column, value)](./sql.filterbuilder.md#filterbuilderoverlaps) | Filters PostgreSQL array or range <code>column</code> values that share \*\*at least one element or point\*\* in common with <code>value</code> (<code>?column=ov.&lt;value&gt;</code>, PostgreSQL <code>&amp;&amp;</code> operator). |
+|  [rangeAdjacent(column, range)](./sql.filterbuilder.md#filterbuilderrangeadjacent) | Filters PostgreSQL range <code>column</code> values that are \*\*immediately adjacent\*\* to <code>range</code> with no gap and no overlap (<code>?column=adj.&lt;range&gt;</code>, PostgreSQL <code>-&#124;-</code> operator). |
+|  [rangeGt(column, range)](./sql.filterbuilder.md#filterbuilderrangegt) | Filters PostgreSQL range <code>column</code> values positioned \*\*strictly right of\*\* (after) <code>range</code> (<code>?column=sr.&lt;range&gt;</code>, PostgreSQL <code>&gt;&gt;</code> operator). |
+|  [rangeGte(column, range)](./sql.filterbuilder.md#filterbuilderrangegte) | Filters PostgreSQL range <code>column</code> values that \*\*do not extend to the left of\*\* <code>range</code> (<code>?column=nxl.&lt;range&gt;</code>, PostgreSQL <code>&amp;&gt;</code> operator). |
+|  [rangeLt(column, range)](./sql.filterbuilder.md#filterbuilderrangelt) | Filters PostgreSQL range <code>column</code> values positioned \*\*strictly left of\*\* (before) <code>range</code> (<code>?column=sl.&lt;range&gt;</code>, PostgreSQL <code>&lt;&lt;</code> operator). |
+|  [rangeLte(column, range)](./sql.filterbuilder.md#filterbuilderrangelte) | Filters PostgreSQL range <code>column</code> values that \*\*do not extend to the right of\*\* <code>range</code> (<code>?column=nxr.&lt;range&gt;</code>, PostgreSQL <code>&amp;&lt;</code> operator). |
+|  [regexIMatch(column, pattern)](./sql.filterbuilder.md#filterbuilderregeximatch) | Filters rows where text <code>column</code> matches POSIX regular expression <code>pattern</code> \*\*case-insensitively\*\* (<code>?column=imatch.&lt;pattern&gt;</code>, PostgreSQL <code>~*</code> operator). |
+|  [regexMatch(column, pattern)](./sql.filterbuilder.md#filterbuilderregexmatch) | Filters rows where text <code>column</code> matches POSIX regular expression <code>pattern</code> \*\*case-sensitively\*\* (<code>?column=match.&lt;pattern&gt;</code>, PostgreSQL <code>~</code> operator). |
+|  [textSearch(column, query, options)](./sql.filterbuilder.md#filterbuildertextsearch) | Filters <code>tsvector</code> or <code>text</code> <code>column</code> values matching full-text search <code>query</code> (<code>?column=[pl&#124;ph&#124;w]fts[(config)].&lt;query&gt;</code>, PostgreSQL <code>@@</code> operator). |
+|  [throwOnError()](./sql.filterbuilder.md#filterbuilderthrowonerror) | Switches this builder into throwing mode so awaiting it rejects with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) on failure instead of resolving to [OperationFailure](./sql.operationfailure.md#operationfailure_interface)<!-- -->, while preserving [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) chaining. |
 
 ## FilterBuilder.containedBy()
+
+Filters array, `jsonb`<!-- -->, or range `column` values that are completely contained within `value` (`?column=cd.<value>`<!-- -->, PostgreSQL `<@` operator).
+
+\*\*When to use:\*\* - \*\*Range columns\*\* (`schedule tstzrange`<!-- -->): Pass a bounding window string (`'[2026-10-15T00:00:00Z,2026-10-16T00:00:00Z)'`<!-- -->) to find events scheduled \*entirely\* inside that window. - \*\*Array columns\*\* (`tags text[]`<!-- -->): Pass a superset JS array so only rows whose elements are a subset of `value` match. - \*\*`jsonb` columns\*\* (`metadata jsonb`<!-- -->): Pass a superset plain object.
+
+\*\*Behavior &amp; Side Effects:\*\* Serializes strings verbatim, JS arrays via unquoted comma-joining `{a,b}` (pass a pre-quoted PostgreSQL array literal `string` such as `'{"cloud, sql","ai"}'` if elements contain `,`<!-- -->, `"`<!-- -->, `{`<!-- -->, `}`<!-- -->, or leading/trailing whitespace), and plain objects via `JSON.stringify`<!-- -->, mutating URL query parameters in place without network I/O.
 
 <b>Signature:</b>
 
@@ -71,14 +85,36 @@ containedBy<Value extends object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | string \| readonly unknown\[\] \| Value |  |
+|  column | string | PostgreSQL array, <code>jsonb</code>, or range column name. |
+|  value | string \| readonly unknown\[\] \| Value | Superset JS array, plain object, or PostgreSQL range/array literal string. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Find events scheduled entirely within a single conference day\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, title, schedule')
+  .containedBy('schedule', '[2026-10-15T00:00:00Z,2026-10-16T00:00:00Z)');
+
+```
+
 ## FilterBuilder.contains()
+
+Filters array, `jsonb`<!-- -->, or range `column` values that contain all elements, key-value pairs, or bounds of `value` (`?column=cs.<value>`<!-- -->, PostgreSQL `@>` operator).
+
+\*\*When to use:\*\* - \*\*Array columns\*\* (`tags text[]`<!-- -->): Pass a JS array (such as `['firebase', 'sql']`<!-- -->) to match rows whose array contains \*every\* listed element. - \*\*`jsonb` columns\*\* (`metadata jsonb`<!-- -->): Pass a plain JS object (such as `{ track: 'ai' }`<!-- -->) to match rows whose JSON document structurally contains those key-value pairs. - \*\*Range columns\*\* (`schedule tstzrange`<!-- -->): Pass a PostgreSQL range literal string (or scalar timestamp string) to match ranges containing that sub-range or point.
+
+\*\*Do NOT use:\*\* Matching rows where an array column shares \*at least one\* tag with `value`<!-- -->; use [FilterBuilder.overlaps()](./sql.filterbuilder.md#filterbuilderoverlaps) instead.
+
+\*\*Behavior &amp; Side Effects:\*\* Serializes strings verbatim, JS arrays via unquoted comma-joining `{a,b}` (if any array element contains `,`<!-- -->, `"`<!-- -->, `{`<!-- -->, `}`<!-- -->, or leading/trailing whitespace, pass a pre-quoted PostgreSQL array literal `string` such as `'{"cloud, sql","ai"}'` instead of a JS array), and plain objects via `JSON.stringify`<!-- -->, mutating URL query parameters in place without network I/O.
 
 <b>Signature:</b>
 
@@ -94,14 +130,37 @@ contains<Value extends object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | string \| readonly unknown\[\] \| Value |  |
+|  column | string | PostgreSQL array (<code>text[]</code>), <code>jsonb</code>, or range (<code>tstzrange</code>) column name. |
+|  value | string \| readonly unknown\[\] \| Value | JS array (for simple SQL array elements), plain object (for <code>jsonb</code>), or PostgreSQL range/array literal string. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Match events tagged with both `'firebase'` and `'postgres'`<!-- -->, and `jsonb` metadata `{ track: 'backend' }`<!-- -->\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, title, tags, metadata')
+  .contains('tags', ['firebase', 'postgres'])
+  .contains('metadata', { track: 'backend' });
+
+```
+
 ## FilterBuilder.eq()
+
+Filters rows where `column` equals `value` (`?column=eq.<value>`<!-- -->).
+
+\*\*When to use:\*\* Exact equality matching on non-null strings, numbers, UUIDs, or booleans (including dot-qualified embedded columns such as `'venues.city'`<!-- -->). For `jsonb` columns, use double-arrow `->>` (`'metadata->>track'`<!-- -->) when comparing strings, and single-arrow `->` (`'metadata->level'`<!-- -->) when comparing numbers or booleans (comparing a string against `->` fails with PostgreSQL `'22P02'`<!-- -->).
+
+\*\*Do NOT use:\*\* - Checking for SQL `NULL`<!-- -->—passing `null` is rejected by `NonNullable<unknown>`<!-- -->; use [.is(column, null)](./sql.filterbuilder.md#filterbuilderis) instead. - Passing raw `Date` instances—pass `date.toISOString()` instead.
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -113,14 +172,36 @@ eq(column: string, value: NonNullable<unknown>): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | NonNullable&lt;unknown&gt; |  |
+|  column | string | PostgreSQL column name, JSON path expression (<code>metadata-&gt;&gt;key</code> or <code>metadata-&gt;numKey</code>), or <code>embedded_table.column</code> reference. |
+|  value | NonNullable&lt;unknown&gt; | Non-null primitive value serialized into the <code>eq.</code> PostgREST filter parameter. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Filter published events on a specific column value\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, title')
+  .eq('status', 'published');
+
+```
+
 ## FilterBuilder.filter()
+
+Appends a raw PostgREST filter parameter (`?column=<operator>.<value>`<!-- -->) as an escape hatch for custom or composite operators.
+
+\*\*When to use:\*\* Invoking PostgREST operators or modifiers (such as `'not.ov'` or custom server operators) not covered by dedicated [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) methods.
+
+\*\*Do NOT use:\*\* Standard comparisons, arrays, or `NULL` checks where typed helpers ([FilterBuilder.eq()](./sql.filterbuilder.md#filterbuildereq)<!-- -->, [FilterBuilder.in()](./sql.filterbuilder.md#filterbuilderin)<!-- -->, [FilterBuilder.contains()](./sql.filterbuilder.md#filterbuildercontains)<!-- -->, [FilterBuilder.is()](./sql.filterbuilder.md#filterbuilderis)<!-- -->) handle value quoting and formatting automatically.
+
+\*\*Behavior &amp; Side Effects:\*\* Appends `${operator}.${value}` verbatim to URL query parameter `column` without quoting or escaping `value`<!-- -->, and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -132,15 +213,33 @@ filter(column: string, operator: `${'' | 'not.'}${FilterOperator}` | (string & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  operator | \`${'' \| 'not.'}${[FilterOperator](./sql.md#filteroperator)<!-- -->}\` \| (string &amp; {}) |  |
-|  value | unknown |  |
+|  column | string | PostgreSQL column name, JSON path, or <code>embedded_table.column</code> reference. |
+|  operator | \`${'' \| 'not.'}${[FilterOperator](./sql.md#filteroperator)<!-- -->}\` \| (string &amp; {}) | PostgREST [FilterOperator](./sql.md#filteroperator) (optionally prefixed with <code>'not.'</code>). |
+|  value | unknown | Raw PostgREST-formatted operand (such as <code>'(speaker,organizer)'</code> for <code>'in'</code> or <code>'{ai,sql}'</code> for <code>'cs'</code>). |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Apply a raw PostgREST `'in'` filter on `registrations.role`<!-- -->\*\*
+
+```ts
+const res = await sql
+  .from('registrations')
+  .select('id, attendee_email, role')
+  .filter('role', 'in', '(speaker,organizer)');
+
+```
+
 ## FilterBuilder.gt()
+
+Filters rows where `column` is strictly greater than `value` (`?column=gt.<value>`<!-- -->, SQL `>`<!-- -->).
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->. Pass ISO-8601 strings (`date.toISOString()`<!-- -->, never raw `Date` instances) for timestamps, guard optional bounds with `if (val !== undefined)`<!-- -->, use `'metadata->key'` (not `->>`<!-- -->) for numeric `jsonb` comparisons, and quote PostgreSQL reserved-word column names with double quotes (`'"order"'`<!-- -->).
 
 <b>Signature:</b>
 
@@ -152,14 +251,32 @@ gt(column: string, value: unknown): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | unknown |  |
+|  column | string | Numeric, timestamp, date, JSON numeric path (<code>metadata-&gt;key</code>), or lexicographically ordered PostgreSQL column name. |
+|  value | unknown | Defined lower bound (exclusive) serialized into <code>gt.&lt;value&gt;</code>. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Find large venues with capacity strictly above 1,000\*\*
+
+```ts
+const res = await sql
+  .from('venues')
+  .select('id, name, city, capacity')
+  .gt('capacity', 1000);
+
+```
+
 ## FilterBuilder.gte()
+
+Filters rows where `column` is greater than or equal to `value` (`?column=gte.<value>`<!-- -->, SQL `>=`<!-- -->).
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->. Pass ISO-8601 strings (`date.toISOString()`<!-- -->, never raw `Date` instances) for timestamps, guard optional bounds with `if (val !== undefined)`<!-- -->, and use `'metadata->key'` (not `->>`<!-- -->) for numeric `jsonb` comparisons.
 
 <b>Signature:</b>
 
@@ -171,14 +288,34 @@ gte(column: string, value: unknown): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | unknown |  |
+|  column | string | Numeric, timestamp, date, JSON numeric path (<code>metadata-&gt;key</code>), or lexicographically ordered PostgreSQL column name. |
+|  value | unknown | Defined lower bound (inclusive) serialized into <code>gte.&lt;value&gt;</code>. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Fetch events created on or after a specific ISO-8601 timestamp\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, title, created_at')
+  .gte('created_at', '2026-01-01T00:00:00Z');
+
+```
+
 ## FilterBuilder.ilike()
+
+Filters rows where text `column` matches SQL `ILIKE` `pattern` \*\*case-insensitively\*\* (`?column=ilike.<pattern>`<!-- -->).
+
+\*\*When to use:\*\* Case-insensitive prefix, suffix, or substring matching using `%` and `_` SQL wildcards.
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -190,14 +327,32 @@ ilike(column: string, pattern: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  pattern | string |  |
+|  column | string | Text PostgreSQL column name or JSON text path (<code>metadata-&gt;&gt;key</code>). |
+|  pattern | string | Case-insensitive SQL <code>ILIKE</code> pattern containing <code>%</code> or <code>_</code> wildcards. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Search event titles containing `'summit'` regardless of case\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, title')
+  .ilike('title', '%summit%');
+
+```
+
 ## FilterBuilder.ilikeAllOf()
+
+Filters rows where text `column` \*\*case-insensitively\*\* matches \*\*every\*\* SQL `ILIKE` pattern in `patterns` (`?column=ilike(all).{...}`<!-- -->).
+
+\*\*Behavior &amp; Side Effects:\*\* Joins `patterns` with commas inside a PostgREST array literal without quoting (do not pass patterns containing commas, double quotes, `{`<!-- -->, or `}`<!-- -->) and mutates URL query parameters in place without network I/O.
 
 <b>Signature:</b>
 
@@ -209,14 +364,32 @@ ilikeAllOf(column: string, patterns: readonly string[]): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  patterns | readonly string\[\] |  |
+|  column | string | Text PostgreSQL column name. |
+|  patterns | readonly string\[\] | Non-empty list of SQL <code>ILIKE</code> patterns (<code>%</code> / <code>_</code>) that must \*\*all\*\* match <code>column</code>. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Find events whose title mentions both `'firebase'` and `'workshop'` (any case)\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, title')
+  .ilikeAllOf('title', ['%firebase%', '%workshop%']);
+
+```
+
 ## FilterBuilder.ilikeAnyOf()
+
+Filters rows where text `column` \*\*case-insensitively\*\* matches \*\*at least one\*\* SQL `ILIKE` pattern in `patterns` (`?column=ilike(any).{...}`<!-- -->).
+
+\*\*Behavior &amp; Side Effects:\*\* Joins `patterns` with commas inside a PostgREST array literal without quoting (do not pass patterns containing commas, double quotes, `{`<!-- -->, or `}`<!-- -->) and mutates URL query parameters in place without network I/O.
 
 <b>Signature:</b>
 
@@ -228,14 +401,36 @@ ilikeAnyOf(column: string, patterns: readonly string[]): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  patterns | readonly string\[\] |  |
+|  column | string | Text PostgreSQL column name. |
+|  patterns | readonly string\[\] | Non-empty list of SQL <code>ILIKE</code> patterns (<code>%</code> / <code>_</code>) where any match qualifies the row. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Find registrations with `@example.com` or `@google.com` email domains (case-insensitive)\*\*
+
+```ts
+const res = await sql
+  .from('registrations')
+  .select('id, attendee_email, role')
+  .ilikeAnyOf('attendee_email', ['%@example.com', '%@google.com']);
+
+```
+
 ## FilterBuilder.in()
+
+Filters rows where `column` equals any element in `values` (`?column=in.(...)`<!-- -->, SQL `IN`<!-- -->).
+
+\*\*When to use:\*\* Matching a scalar column against a finite set of candidate IDs, slugs, or enum strings.
+
+\*\*Do NOT use:\*\* - Filtering PostgreSQL array columns (`tags text[]`<!-- -->) for element membership; use [FilterBuilder.contains()](./sql.filterbuilder.md#filterbuildercontains) or [FilterBuilder.overlaps()](./sql.filterbuilder.md#filterbuilderoverlaps) instead. - Passing hundreds of UUIDs that push the URL length past server header limits (\~8 KB); pass large ID lists to a stored function via [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc) instead.
+
+\*\*Behavior &amp; Side Effects:\*\* Deduplicates `values` via `Set`<!-- -->, wraps string elements containing `,`<!-- -->, `(`<!-- -->, or `)` in double quotes (note: embedded `"` or `\` characters inside strings are not escaped automatically), and mutates URL query parameters in place without network I/O. Passing an empty array `[]` sends `in.()`<!-- -->, matching zero rows.
 
 <b>Signature:</b>
 
@@ -247,14 +442,36 @@ in(column: string, values: readonly unknown[]): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  values | readonly unknown\[\] |  |
+|  column | string | Scalar PostgreSQL column name. |
+|  values | readonly unknown\[\] | Candidate scalar values to include. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Fetch events that are either `'draft'` or `'published'`<!-- -->\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, status')
+  .in('status', ['draft', 'published']);
+
+```
+
 ## FilterBuilder.is()
+
+Filters rows where `column` `IS NULL`<!-- -->, `IS TRUE`<!-- -->, or `IS FALSE` (`?column=is.<value>`<!-- -->).
+
+\*\*When to use:\*\* Testing nullable columns (`venue_id`<!-- -->, `checked_in_at`<!-- -->) against `null`<!-- -->, or testing boolean columns (`is_featured`<!-- -->) with SQL `IS TRUE` / `IS FALSE` semantics.
+
+\*\*Do NOT use:\*\* - Testing `IS NOT NULL`<!-- -->; use [.not(column, 'is', null)](./sql.filterbuilder.md#filterbuildernot) instead. - Comparing arbitrary strings or numbers; use [FilterBuilder.eq()](./sql.filterbuilder.md#filterbuildereq) or [FilterBuilder.isDistinct()](./sql.filterbuilder.md#filterbuilderisdistinct)<!-- -->.
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -266,14 +483,37 @@ is(column: string, value: boolean | null): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | boolean \| null |  |
+|  column | string | PostgreSQL column name to test with SQL <code>IS</code>. |
+|  value | boolean \| null | Literal <code>null</code>, <code>true</code>, or <code>false</code>. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Find registrations that have not checked in yet (`checked_in_at IS NULL`<!-- -->)\*\*
+
+```ts
+const uncheckedRes = await sql
+  .from('registrations')
+  .select('id, attendee_email')
+  .eq('event_id', '6ba7b810-9dad-11d1-80b4-00c04fd430c8')
+  .is('checked_in_at', null);
+
+```
+
 ## FilterBuilder.isDistinct()
+
+Filters rows where `column IS DISTINCT FROM value` (`?column=isdistinct.<value>`<!-- -->), treating `NULL` as a comparable value.
+
+\*\*When to use:\*\* Null-safe inequality checks where rows with `column IS NULL` \*\*should\*\* match when `value` is non-null (and `NULL` vs `NULL` evaluates to `false` / not distinct).
+
+\*\*Do NOT use:\*\* Standard SQL inequality that should ignore `NULL` rows; use [FilterBuilder.neq()](./sql.filterbuilder.md#filterbuilderneq) instead.
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -285,14 +525,36 @@ isDistinct(column: string, value: unknown): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | unknown |  |
+|  column | string | PostgreSQL column name to compare with <code>IS DISTINCT FROM</code>. |
+|  value | unknown | Value (including <code>null</code>) to test distinctness against. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Match events assigned to a different venue OR virtual events (`venue_id IS NULL`<!-- -->)\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, venue_id')
+  .isDistinct('venue_id', '550e8400-e29b-41d4-a716-446655440000');
+
+```
+
 ## FilterBuilder.like()
+
+Filters rows where text `column` matches SQL `LIKE` `pattern` \*\*case-sensitively\*\* (`?column=like.<pattern>`<!-- -->).
+
+\*\*When to use:\*\* Case-sensitive prefix, suffix, or substring matching using SQL wildcards (`%` for zero or more characters, `_` for a single character; `*` is also accepted by PostgREST as an alias for `%`<!-- -->).
+
+\*\*Do NOT use:\*\* Case-insensitive user search; use [FilterBuilder.ilike()](./sql.filterbuilder.md#filterbuilderilike) or [FilterBuilder.textSearch()](./sql.filterbuilder.md#filterbuildertextsearch) instead.
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -304,14 +566,32 @@ like(column: string, pattern: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  pattern | string |  |
+|  column | string | Text PostgreSQL column name or JSON text path (<code>metadata-&gt;&gt;key</code>). |
+|  pattern | string | SQL <code>LIKE</code> pattern containing <code>%</code> or <code>_</code> wildcards. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Match event codes starting with an uppercase `'FB-'` prefix\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, title')
+  .like('code', 'FB-%');
+
+```
+
 ## FilterBuilder.likeAllOf()
+
+Filters rows where text `column` \*\*case-sensitively\*\* matches \*\*every\*\* SQL `LIKE` pattern in `patterns` (`?column=like(all).{...}`<!-- -->).
+
+\*\*Behavior &amp; Side Effects:\*\* Joins `patterns` with commas inside a PostgREST array literal without quoting (do not pass patterns containing commas, double quotes, `{`<!-- -->, or `}`<!-- -->) and mutates URL query parameters in place without network I/O.
 
 <b>Signature:</b>
 
@@ -323,14 +603,32 @@ likeAllOf(column: string, patterns: readonly string[]): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  patterns | readonly string\[\] |  |
+|  column | string | Text PostgreSQL column name. |
+|  patterns | readonly string\[\] | Non-empty list of SQL <code>LIKE</code> patterns (<code>%</code> / <code>_</code>) that must \*\*all\*\* match <code>column</code>. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Match event codes that both start with `'FB-'` and end with `'-2026'`<!-- -->\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, title')
+  .likeAllOf('code', ['FB-%', '%-2026']);
+
+```
+
 ## FilterBuilder.likeAnyOf()
+
+Filters rows where text `column` \*\*case-sensitively\*\* matches \*\*at least one\*\* SQL `LIKE` pattern in `patterns` (`?column=like(any).{...}`<!-- -->).
+
+\*\*Behavior &amp; Side Effects:\*\* Joins `patterns` with commas inside a PostgREST array literal without quoting (do not pass patterns containing commas, double quotes, `{`<!-- -->, or `}`<!-- -->) and mutates URL query parameters in place without network I/O.
 
 <b>Signature:</b>
 
@@ -342,14 +640,32 @@ likeAnyOf(column: string, patterns: readonly string[]): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  patterns | readonly string\[\] |  |
+|  column | string | Text PostgreSQL column name. |
+|  patterns | readonly string\[\] | Non-empty list of SQL <code>LIKE</code> patterns (<code>%</code> / <code>_</code>) where any match qualifies the row. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Match event codes starting with either `'KEYNOTE-'` or `'WORKSHOP-'`<!-- -->\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, title')
+  .likeAnyOf('code', ['KEYNOTE-%', 'WORKSHOP-%']);
+
+```
+
 ## FilterBuilder.lt()
+
+Filters rows where `column` is strictly less than `value` (`?column=lt.<value>`<!-- -->, SQL `<`<!-- -->).
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->. Pass ISO-8601 strings (`date.toISOString()`<!-- -->, never raw `Date` instances) for timestamps, guard optional bounds with `if (val !== undefined)`<!-- -->, and use `'metadata->key'` (not `->>`<!-- -->) for numeric `jsonb` comparisons.
 
 <b>Signature:</b>
 
@@ -361,14 +677,32 @@ lt(column: string, value: unknown): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | unknown |  |
+|  column | string | Numeric, timestamp, date, JSON numeric path (<code>metadata-&gt;key</code>), or lexicographically ordered PostgreSQL column name. |
+|  value | unknown | Defined upper bound (exclusive) serialized into <code>lt.&lt;value&gt;</code>. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Find events priced strictly under $50\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, title, ticket_price')
+  .lt('ticket_price', 50);
+
+```
+
 ## FilterBuilder.lte()
+
+Filters rows where `column` is less than or equal to `value` (`?column=lte.<value>`<!-- -->, SQL `<=`<!-- -->).
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->. Pass ISO-8601 strings (`date.toISOString()`<!-- -->, never raw `Date` instances) for timestamps, guard optional bounds with `if (val !== undefined)`<!-- -->, and use `'metadata->key'` (not `->>`<!-- -->) for numeric `jsonb` comparisons.
 
 <b>Signature:</b>
 
@@ -380,14 +714,36 @@ lte(column: string, value: unknown): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | unknown |  |
+|  column | string | Numeric, timestamp, date, JSON numeric path (<code>metadata-&gt;key</code>), or lexicographically ordered PostgreSQL column name. |
+|  value | unknown | Defined upper bound (inclusive) serialized into <code>lte.&lt;value&gt;</code>. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Find intimate venues with capacity up to 300\*\*
+
+```ts
+const res = await sql
+  .from('venues')
+  .select('id, name, capacity')
+  .lte('capacity', 300);
+
+```
+
 ## FilterBuilder.match()
+
+Appends an equality filter (`?col=eq.<val>`<!-- -->) for every defined key-value pair in `query`<!-- -->.
+
+\*\*When to use:\*\* Concise multi-column equality filtering from a plain criteria object. Properties whose value is `undefined` are automatically omitted (ignored).
+
+\*\*Do NOT use:\*\* Properties whose value may be `null`<!-- -->—`match({ venue_id: null })` emits `?venue_id=eq.null` instead of `IS NULL`<!-- -->; use [.is('venue\_id', null)](./sql.filterbuilder.md#filterbuilderis) for `NULL` checks.
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -403,13 +759,35 @@ match<Query extends object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  query | Query |  |
+|  query | Query | Plain object of <code>{ column: value }</code> equality predicates (<code>undefined</code> values are skipped). |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Match featured published events using a single object\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, title')
+  .match({ status: 'published', is_featured: true });
+
+```
+
 ## FilterBuilder.neq()
+
+Filters rows where `column` does not equal `value` (`?column=neq.<value>`<!-- -->, SQL `<>`<!-- -->).
+
+\*\*When to use:\*\* Excluding a specific non-null scalar value on a column.
+
+\*\*Do NOT use:\*\* - Expecting rows where `column IS NULL` to match—standard SQL `NULL <> value` evaluates to `UNKNOWN`<!-- -->, excluding `NULL` rows. Use [FilterBuilder.isDistinct()](./sql.filterbuilder.md#filterbuilderisdistinct) if `NULL` rows should be included as distinct from `value`<!-- -->. - Testing `IS NOT NULL`<!-- -->; use [.not(column, 'is', null)](./sql.filterbuilder.md#filterbuildernot) instead. - Passing `undefined` or raw `Date` objects—guard optional values with `if (val !== undefined)` and convert dates via `date.toISOString()`<!-- -->.
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -421,14 +799,34 @@ neq(column: string, value: unknown): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | unknown |  |
+|  column | string | PostgreSQL column name, JSON path expression, or <code>embedded_table.column</code> reference. |
+|  value | unknown | Defined non-null value to exclude via <code>neq.</code>. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Exclude cancelled events\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, title, status')
+  .neq('status', 'cancelled');
+
+```
+
 ## FilterBuilder.not()
+
+Filters rows where `column IS NOT NULL` (`?column=not.is.null`<!-- -->) and narrows `column` on `T` to `NonNullable` via [NarrowResultColumn](./sql.md#narrowresultcolumn)<!-- -->.
+
+\*\*When to use:\*\* Excluding `NULL` values on nullable columns (such as `events.venue_id` or `registrations.checked_in_at`<!-- -->). Note that on default untyped chains (`T = Array<Record<string, unknown>>`<!-- -->), declare the narrowed column as non-null directly in your terminal `.overrideTypes<Row[], { merge: false }>()` interface (`NarrowResultColumn` only narrows pre-typed `FilterBuilder<Row[]>` references).
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -440,15 +838,36 @@ not<ColumnName extends string>(column: ColumnName, operator: 'is', value: null):
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | ColumnName |  |
-|  operator | 'is' |  |
-|  value | null |  |
+|  column | ColumnName | PostgreSQL column name that must be non-null. |
+|  operator | 'is' | Must be <code>'is'</code> for <code>IS NOT NULL</code> type narrowing. |
+|  value | null | Must be <code>null</code>. |
 
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;[NarrowResultColumn](./sql.md#narrowresultcolumn)<!-- -->&lt;T, ColumnName&gt;, Method, ThrowOnError&gt; &amp; this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) with `T`<!-- -->'s `ColumnName` property narrowed to `NonNullable`<!-- -->.
+
+### Example
+
+\*\*Exclude virtual events (`venue_id IS NOT NULL`<!-- -->)\*\*
+
+```ts
+const inPersonRes = await sql
+  .from('events')
+  .select('id, title, venue_id')
+  .not('venue_id', 'is', null)
+  .overrideTypes<Array<{ id: string; title: string; venue_id: string }>, { merge: false }>();
+
+```
+
 ## FilterBuilder.not()
+
+Negates a PostgREST filter operator on `column` (`?column=not.<operator>.<value>`<!-- -->).
+
+\*\*When to use:\*\* Negating operators that lack a dedicated negated helper (for example, `.not('tags', 'cs', '{archived}')` or `.not('title', 'ilike', '%test%')`<!-- -->).
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O. Note that array/list values passed to raw PostgREST operators must use PostgREST wire syntax (such as `'(draft,cancelled)'` for `'in'`<!-- -->); prefer [FilterBuilder.notIn()](./sql.filterbuilder.md#filterbuildernotin) for typed array negation.
 
 <b>Signature:</b>
 
@@ -460,15 +879,37 @@ not(column: string, operator: FilterOperator | (string & {}), value: unknown): t
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  operator | [FilterOperator](./sql.md#filteroperator) \| (string &amp; {}) |  |
-|  value | unknown |  |
+|  column | string | PostgreSQL column name to filter. |
+|  operator | [FilterOperator](./sql.md#filteroperator) \| (string &amp; {}) | PostgREST [FilterOperator](./sql.md#filteroperator) name (such as <code>'eq'</code>, <code>'ilike'</code>, <code>'cs'</code>, <code>'ov'</code>). |
+|  value | unknown | Operand formatted for the specified PostgREST <code>operator</code>. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Exclude archived events\*\*
+
+```ts
+const activeRes = await sql
+  .from('events')
+  .select('id, code, status')
+  .not('status', 'eq', 'archived');
+
+```
+
 ## FilterBuilder.notIn()
+
+Filters rows where `column` does not equal any element in `values` (`?column=not.in.(...)`<!-- -->, SQL `NOT IN`<!-- -->).
+
+\*\*When to use:\*\* Excluding a set of known scalar values on a column.
+
+\*\*Do NOT use:\*\* - Passing `null` inside `values`<!-- -->—in SQL, `col NOT IN (..., NULL)` never evaluates to `true` and matches \*\*zero\*\* rows! - Expecting rows where `column IS NULL` to match—SQL `NOT IN` excludes `NULL` rows unless combined with `IS NULL` via [FilterBuilder.or()](./sql.filterbuilder.md#filterbuilderor)<!-- -->.
+
+\*\*Behavior &amp; Side Effects:\*\* Deduplicates `values` via `Set`<!-- -->, wraps string elements containing `,`<!-- -->, `(`<!-- -->, or `)` in double quotes (embedded `"` or `\` characters inside strings are not escaped automatically), and mutates URL query parameters in place without network I/O.
 
 <b>Signature:</b>
 
@@ -480,14 +921,36 @@ notIn(column: string, values: readonly unknown[]): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  values | readonly unknown\[\] |  |
+|  column | string | Scalar PostgreSQL column name. |
+|  values | readonly unknown\[\] | Non-null scalar values to exclude. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Exclude cancelled and archived events\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, title, status')
+  .notIn('status', ['cancelled', 'archived']);
+
+```
+
 ## FilterBuilder.or()
+
+Filters rows satisfying \*\*at least one\*\* comma-separated raw PostgREST predicate (`?or=(<filters>)` or `?<referencedTable>.or=(<filters>)`<!-- -->).
+
+\*\*When to use:\*\* Logical `OR` conditions (including nested `and(...)` groups such as `'is_featured.eq.true,and(status.eq.published,ticket_price.eq.0)'`<!-- -->).
+
+\*\*Preconditions &amp; Security:\*\* - `filters` is interpolated verbatim inside `or=(...)` using raw PostgREST syntax (`column.operator.value`<!-- -->). Double-quote string operands that may contain commas or parentheses, and validate untrusted user input before interpolating. - Cannot span columns from different tables in a single `.or()` expression; pass `{ referencedTable }` to scope an `.or()` expression to one embedded relation.
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -499,14 +962,37 @@ or(filters: string, options?: Readonly<FilterOrOptions> | undefined): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  filters | string |  |
-|  options | Readonly&lt;[FilterOrOptions](./sql.filteroroptions.md#filteroroptions_interface)<!-- -->&gt; \| undefined |  |
+|  filters | string | Comma-separated PostgREST filter expressions (without surrounding <code>or=(...)</code> parentheses). |
+|  options | Readonly&lt;[FilterOrOptions](./sql.filteroroptions.md#filteroroptions_interface)<!-- -->&gt; \| undefined | Optional <code>referencedTable</code> to scope the disjunction to an embedded relation. See [FilterOrOptions](./sql.filteroroptions.md#filteroroptions_interface)<!-- -->. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Match events that are either free (`ticket_price = 0`<!-- -->) OR featured and under $50\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, title, ticket_price, is_featured')
+  .eq('status', 'published')
+  .or('ticket_price.eq.0,and(is_featured.eq.true,ticket_price.lt.50)');
+
+```
+
 ## FilterBuilder.overlaps()
+
+Filters PostgreSQL array or range `column` values that share \*\*at least one element or point\*\* in common with `value` (`?column=ov.<value>`<!-- -->, PostgreSQL `&&` operator).
+
+\*\*When to use:\*\* - \*\*Array columns\*\* (`tags text[]`<!-- -->): Match rows tagged with \*any\* tag in `value` (logical `OR` across tags). - \*\*Range columns\*\* (`schedule tstzrange`<!-- -->): Detect schedule conflicts or find events overlapping a time window.
+
+\*\*Do NOT use:\*\* `jsonb` columns—PostgreSQL's `&&` operator is defined on arrays and ranges, not `jsonb` (use [FilterBuilder.contains()](./sql.filterbuilder.md#filterbuildercontains) for `jsonb`<!-- -->).
+
+\*\*Behavior &amp; Side Effects:\*\* Serializes strings verbatim (for ranges or pre-quoted PostgreSQL array literals such as `'{"cloud, sql","ai"}'`<!-- -->) and JS arrays via unquoted comma-joining `{a,b}` (do not pass JS array elements containing `,`<!-- -->, `"`<!-- -->, `{`<!-- -->, `}`<!-- -->, or leading/trailing whitespace), mutating URL query parameters in place without network I/O.
 
 <b>Signature:</b>
 
@@ -518,14 +1004,33 @@ overlaps(column: string, value: string | readonly unknown[]): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  value | string \| readonly unknown\[\] |  |
+|  column | string | PostgreSQL array (<code>text[]</code>) or range (<code>tstzrange</code>) column name. |
+|  value | string \| readonly unknown\[\] | JS array of simple candidate elements (for SQL arrays) or PostgreSQL range/array literal string. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Find events overlapping a time slot OR carrying at least one target tag\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, title, tags, schedule')
+  .overlaps('tags', ['ai', 'serverless'])
+  .overlaps('schedule', '[2026-10-15T10:00:00Z,2026-10-15T12:00:00Z)');
+
+```
+
 ## FilterBuilder.rangeAdjacent()
+
+Filters PostgreSQL range `column` values that are \*\*immediately adjacent\*\* to `range` with no gap and no overlap (`?column=adj.<range>`<!-- -->, PostgreSQL `-|-` operator).
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -537,14 +1042,34 @@ rangeAdjacent(column: string, range: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  range | string |  |
+|  column | string | PostgreSQL range column name (such as <code>schedule</code>). |
+|  range | string | PostgreSQL range literal (for example, <code>'[2026-10-15T09:00:00Z,2026-10-15T10:00:00Z)'</code> is adjacent to <code>'[2026-10-15T10:00:00Z,2026-10-15T11:00:00Z)'</code>). |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Find sessions scheduled back-to-back with a `09:00–10:00 UTC` keynote\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, title, schedule')
+  .rangeAdjacent('schedule', '[2026-10-15T09:00:00Z,2026-10-15T10:00:00Z)');
+
+```
+
 ## FilterBuilder.rangeGt()
+
+Filters PostgreSQL range `column` values positioned \*\*strictly right of\*\* (after) `range` (`?column=sr.<range>`<!-- -->, PostgreSQL `>>` operator).
+
+\*\*When to use:\*\* Finding ranges (`tstzrange`<!-- -->, `daterange`<!-- -->, `int4range`<!-- -->) where every point in `column` is strictly greater than every point in `range`<!-- -->.
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -556,14 +1081,34 @@ rangeGt(column: string, range: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  range | string |  |
+|  column | string | PostgreSQL range column name (such as <code>schedule</code>). |
+|  range | string | PostgreSQL range literal using <code>[</code> / <code>]</code> for inclusive bounds and <code>(</code> / <code>)</code> for exclusive bounds. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Find events starting strictly after a morning keynote slot ends\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, title, schedule')
+  .rangeGt('schedule', '[2026-10-15T09:00:00Z,2026-10-15T10:00:00Z)');
+
+```
+
 ## FilterBuilder.rangeGte()
+
+Filters PostgreSQL range `column` values that \*\*do not extend to the left of\*\* `range` (`?column=nxl.<range>`<!-- -->, PostgreSQL `&>` operator).
+
+\*\*When to use:\*\* Matching ranges whose lower bound is greater than or equal to the lower bound of `range`<!-- -->.
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -575,14 +1120,34 @@ rangeGte(column: string, range: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  range | string |  |
+|  column | string | PostgreSQL range column name (such as <code>schedule</code>). |
+|  range | string | PostgreSQL range literal (for example, <code>'[2026-10-15T09:00:00Z,2026-10-15T12:00:00Z)'</code>). |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Find events whose `schedule` does not start before `09:00 UTC`<!-- -->\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, title, schedule')
+  .rangeGte('schedule', '[2026-10-15T09:00:00Z,2026-10-15T10:00:00Z)');
+
+```
+
 ## FilterBuilder.rangeLt()
+
+Filters PostgreSQL range `column` values positioned \*\*strictly left of\*\* (before) `range` (`?column=sl.<range>`<!-- -->, PostgreSQL `<<` operator).
+
+\*\*When to use:\*\* Finding ranges where every point in `column` is strictly less than every point in `range`<!-- -->.
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -594,14 +1159,34 @@ rangeLt(column: string, range: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  range | string |  |
+|  column | string | PostgreSQL range column name (such as <code>schedule</code>). |
+|  range | string | PostgreSQL range literal using <code>[</code> / <code>]</code> (inclusive) and <code>(</code> / <code>)</code> (exclusive). |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Find events finishing strictly before an evening reception slot begins\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, title, schedule')
+  .rangeLt('schedule', '[2026-10-15T18:00:00Z,2026-10-15T20:00:00Z)');
+
+```
+
 ## FilterBuilder.rangeLte()
+
+Filters PostgreSQL range `column` values that \*\*do not extend to the right of\*\* `range` (`?column=nxr.<range>`<!-- -->, PostgreSQL `&<` operator).
+
+\*\*When to use:\*\* Matching ranges whose upper bound is less than or equal to the upper bound of `range`<!-- -->.
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -613,14 +1198,32 @@ rangeLte(column: string, range: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  range | string |  |
+|  column | string | PostgreSQL range column name (such as <code>schedule</code>). |
+|  range | string | PostgreSQL range literal (for example, <code>'[2026-10-15T09:00:00Z,2026-10-15T17:00:00Z)'</code>). |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Find events whose `schedule` ends no later than `17:00 UTC`<!-- -->\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, title, schedule')
+  .rangeLte('schedule', '[2026-10-15T09:00:00Z,2026-10-15T17:00:00Z)');
+
+```
+
 ## FilterBuilder.regexIMatch()
+
+Filters rows where text `column` matches POSIX regular expression `pattern` \*\*case-insensitively\*\* (`?column=imatch.<pattern>`<!-- -->, PostgreSQL `~*` operator).
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -632,14 +1235,34 @@ regexIMatch(column: string, pattern: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  pattern | string |  |
+|  column | string | Text PostgreSQL column name. |
+|  pattern | string | Case-insensitive PostgreSQL POSIX regular expression pattern. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Match venue slugs ending in `-west` or `-east` regardless of case\*\*
+
+```ts
+const res = await sql
+  .from('venues')
+  .select('id, slug, name')
+  .regexIMatch('slug', '-(west|east)$');
+
+```
+
 ## FilterBuilder.regexMatch()
+
+Filters rows where text `column` matches POSIX regular expression `pattern` \*\*case-sensitively\*\* (`?column=match.<pattern>`<!-- -->, PostgreSQL `~` operator).
+
+\*\*When to use:\*\* Structural string validation (such as structured ticket codes or slugs) using PostgreSQL POSIX regular expressions.
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -651,14 +1274,34 @@ regexMatch(column: string, pattern: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  pattern | string |  |
+|  column | string | Text PostgreSQL column name. |
+|  pattern | string | Case-sensitive PostgreSQL POSIX regular expression pattern. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Match uppercase event codes formatted as `EVT-` followed by 4 digits\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, title')
+  .regexMatch('code', '^EVT-[0-9]{4}$');
+
+```
+
 ## FilterBuilder.textSearch()
+
+Filters `tsvector` or `text` `column` values matching full-text search `query` (`?column=[pl|ph|w]fts[(config)].<query>`<!-- -->, PostgreSQL `@@` operator).
+
+\*\*When to use:\*\* Stemmed, natural-language full-text search against indexed `tsvector` columns (such as `events.search_doc`<!-- -->) or `text` columns. - Always pass `{ type: 'websearch' }` (or `'plain'` / `'phrase'`<!-- -->) when `query` comes from raw user input; omitting `options.type` uses PostgreSQL `to_tsquery`<!-- -->, which fails with a syntax error if `query` is not valid `tsquery` boolean syntax (such as `'firebase' & 'sql'`<!-- -->).
+
+\*\*Behavior &amp; Side Effects:\*\* Mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
 <b>Signature:</b>
 
@@ -670,15 +1313,34 @@ textSearch(column: string, query: string, options?: Readonly<FilterTextSearchOpt
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  column | string |  |
-|  query | string |  |
-|  options | Readonly&lt;[FilterTextSearchOptions](./sql.filtertextsearchoptions.md#filtertextsearchoptions_interface)<!-- -->&gt; \| undefined |  |
+|  column | string | PostgreSQL <code>tsvector</code> or <code>text</code> column name. |
+|  query | string | Search query string interpreted according to <code>options.type</code>. |
+|  options | Readonly&lt;[FilterTextSearchOptions](./sql.filtertextsearchoptions.md#filtertextsearchoptions_interface)<!-- -->&gt; \| undefined | Optional text search dictionary (<code>config</code>) and parser mode (<code>type</code>). See [FilterTextSearchOptions](./sql.filtertextsearchoptions.md#filtertextsearchoptions_interface)<!-- -->. |
 
 <b>Returns:</b>
 
 this
 
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for continued chaining.
+
+### Example
+
+\*\*Search `events.search_doc` safely from user input using `'websearch'` mode\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, title')
+  .textSearch('search_doc', '"vector search" or postgres -draft', {
+    type: 'websearch',
+    config: 'english'
+  });
+
+```
+
 ## FilterBuilder.throwOnError()
+
+Switches this builder into throwing mode so awaiting it rejects with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) on failure instead of resolving to [OperationFailure](./sql.operationfailure.md#operationfailure_interface)<!-- -->, while preserving [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) chaining.
 
 <b>Signature:</b>
 
@@ -688,4 +1350,43 @@ throwOnError(): FilterBuilder<T, Method, true>;
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;T, Method, true&gt;
+
+This [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) narrowed to `ThrowOnError = true` (resolving to [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface) when awaited).
+
+### Example
+
+\*\*Enable throwing mode early in a filter chain\*\*
+
+```ts
+const { data } = await sql
+  .from('events')
+  .select('id, code, title')
+  .throwOnError()
+  .eq('status', 'published')
+  .overrideTypes<Array<{ id: string; code: string; title: string }>, { merge: false }>();
+
+```
+
+### Example
+
+\*\*Compose multiple `AND` predicates on a `FilterBuilder` before ordering and typing\*\*
+
+```ts
+interface PublishedEvent {
+  id: string;
+  code: string;
+  title: string;
+  ticket_price: number;
+}
+
+const res = await sql
+  .from('events')
+  .select('id, code, title, ticket_price')
+  .eq('status', 'published')
+  .lte('ticket_price', 150)
+  .contains('tags', ['firebase'])
+  .order('ticket_price', { ascending: true })
+  .overrideTypes<PublishedEvent[], { merge: false }>();
+
+```
 

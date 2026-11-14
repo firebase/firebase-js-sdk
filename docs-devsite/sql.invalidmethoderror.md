@@ -10,6 +10,10 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # InvalidMethodError interface
+Compile-time sentinel type returned instead of a valid builder when a method is chained onto an incompatible HTTP verb (for example, calling [TransformBuilder.maxAffected()](./sql.transformbuilder.md#transformbuildermaxaffected) on a `select()` or `insert()` builder).
+
+Not constructible as a runtime error—surfaces as a non-awaitable `{ Error: S }` return type in TypeScript so invalid chains fail to type-check.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,12 +24,27 @@ export interface InvalidMethodError<S extends string>
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [Error](./sql.invalidmethoderror.md#invalidmethoderrorerror) | S |  |
+|  [Error](./sql.invalidmethoderror.md#invalidmethoderrorerror) | S | Compile-time diagnostic message describing the unsupported HTTP method combination. |
 
 ## InvalidMethodError.Error
+
+Compile-time diagnostic message describing the unsupported HTTP method combination.
 
 <b>Signature:</b>
 
 ```typescript
 Error: S;
 ```
+
+### Example
+
+\*\*Observe compile-time `InvalidMethodError` on an unsupported `select()` chain\*\*
+
+```ts
+import type { InvalidMethodError } from 'firebase/sql';
+
+const invalid: InvalidMethodError<'maxAffected method only available on update or delete'> =
+  sql.from('events').select('id').maxAffected(1);
+
+```
+

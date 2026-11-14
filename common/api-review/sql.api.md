@@ -10,27 +10,22 @@ import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 import { Provider } from '@firebase/component';
 
-// @public (undocumented)
+// @public
 export interface Builder<T, ThrowOnError extends boolean = false> extends PromiseLike<ThrowOnError extends true ? OperationSuccess<T> : OperationResult<T>> {
-    // (undocumented)
     overrideTypes<NewResult, Options extends {
         merge?: boolean | undefined;
     } = {
         merge: true;
     }>(): Builder<IsValidResultOverride<T, NewResult, false, false> extends true ? ContainsNull<T> extends true ? MergePartialResult<NewResult, NonNullable<T>, Options> | null : MergePartialResult<NewResult, T, Options> : CheckMatchingArrayTypes<T, NewResult>, ThrowOnError>;
-    // (undocumented)
     retry(enabled: boolean): this;
-    // (undocumented)
+    // @deprecated
     returns<NewResult>(): Builder<CheckMatchingArrayTypes<T, NewResult>, ThrowOnError>;
-    // (undocumented)
     setHeader(name: string, value: string): this;
-    // (undocumented)
     stripNulls(): this;
-    // (undocumented)
     throwOnError(): Builder<T, true>;
 }
 
-// @public (undocumented)
+// @public
 export type CheckMatchingArrayTypes<T, NewResult> = T extends SelectQueryError<string> ? NewResult : IsValidResultOverride<T, NewResult, {
     Error: 'Type mismatch: Cannot cast array result to a single object. Use .overrideTypes<Array<YourType>> or .returns<Array<YourType>> (deprecated) for array results or .single() to convert the result to a single object';
 }, {
@@ -51,119 +46,83 @@ export const Code: Readonly<{
     UNAUTHORIZED: "unauthorized";
 }>;
 
-// @public (undocumented)
+// @public
 export type ContainsNull<T> = unknown extends T ? false : null extends T ? true : false;
 
 // @public
 export function copySqlServiceSettings(settings: SqlServiceSettings): SqlServiceSettings;
 
-// @public (undocumented)
+// @public
 export type ExplicitKeys<T> = {
     [K in keyof T]: string extends K ? never : K;
 }[keyof T];
 
-// @public (undocumented)
+// @public
 export interface FilterBuilder<T, Method = unknown, ThrowOnError extends boolean = false> extends TransformBuilder<T, Method, ThrowOnError> {
-    // (undocumented)
     containedBy<Value extends object & {
         readonly [K in keyof Value]: unknown;
     } & {
         readonly [Symbol.iterator]?: never;
     } = Record<string, unknown>>(column: string, value: string | readonly unknown[] | Value): this;
-    // (undocumented)
     contains<Value extends object & {
         readonly [K in keyof Value]: unknown;
     } & {
         readonly [Symbol.iterator]?: never;
     } = Record<string, unknown>>(column: string, value: string | readonly unknown[] | Value): this;
-    // (undocumented)
     eq(column: string, value: NonNullable<unknown>): this;
-    // (undocumented)
     filter(column: string, operator: `${'' | 'not.'}${FilterOperator}` | (string & {}), value: unknown): this;
-    // (undocumented)
     gt(column: string, value: unknown): this;
-    // (undocumented)
     gte(column: string, value: unknown): this;
-    // (undocumented)
     ilike(column: string, pattern: string): this;
-    // (undocumented)
     ilikeAllOf(column: string, patterns: readonly string[]): this;
-    // (undocumented)
     ilikeAnyOf(column: string, patterns: readonly string[]): this;
-    // (undocumented)
     in(column: string, values: readonly unknown[]): this;
-    // (undocumented)
     is(column: string, value: boolean | null): this;
-    // (undocumented)
     isDistinct(column: string, value: unknown): this;
-    // (undocumented)
     like(column: string, pattern: string): this;
-    // (undocumented)
     likeAllOf(column: string, patterns: readonly string[]): this;
-    // (undocumented)
     likeAnyOf(column: string, patterns: readonly string[]): this;
-    // (undocumented)
     lt(column: string, value: unknown): this;
-    // (undocumented)
     lte(column: string, value: unknown): this;
-    // (undocumented)
     match<Query extends object & {
         readonly [K in keyof Query]: unknown;
     } & {
         readonly [Symbol.iterator]?: never;
     } = Record<string, unknown>>(query: Query): this;
-    // (undocumented)
     neq(column: string, value: unknown): this;
-    // (undocumented)
     not<ColumnName extends string>(column: ColumnName, operator: 'is', value: null): FilterBuilder<NarrowResultColumn<T, ColumnName>, Method, ThrowOnError> & this;
-    // (undocumented)
     not(column: string, operator: FilterOperator | (string & {}), value: unknown): this;
-    // (undocumented)
     notIn(column: string, values: readonly unknown[]): this;
-    // (undocumented)
     or(filters: string, options?: Readonly<FilterOrOptions> | undefined): this;
-    // (undocumented)
     overlaps(column: string, value: string | readonly unknown[]): this;
-    // (undocumented)
     rangeAdjacent(column: string, range: string): this;
-    // (undocumented)
     rangeGt(column: string, range: string): this;
-    // (undocumented)
     rangeGte(column: string, range: string): this;
-    // (undocumented)
     rangeLt(column: string, range: string): this;
-    // (undocumented)
     rangeLte(column: string, range: string): this;
-    // (undocumented)
     regexIMatch(column: string, pattern: string): this;
-    // (undocumented)
     regexMatch(column: string, pattern: string): this;
-    // (undocumented)
     textSearch(column: string, query: string, options?: Readonly<FilterTextSearchOptions> | undefined): this;
-    // (undocumented)
     throwOnError(): FilterBuilder<T, Method, true>;
 }
 
-// @public (undocumented)
+// @public
 export type FilterOperator = 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'ilike' | 'is' | 'isdistinct' | 'in' | 'cs' | 'cd' | 'sl' | 'sr' | 'nxl' | 'nxr' | 'adj' | 'ov' | 'fts' | 'plfts' | 'phfts' | 'wfts' | 'match' | 'imatch';
 
-// @public (undocumented)
+// @public
 export interface FilterOrOptions {
-    // (undocumented)
+    // @deprecated
     foreignTable?: string | undefined;
-    // (undocumented)
     referencedTable?: string | undefined;
 }
 
-// @public (undocumented)
+// @public
 export interface FilterTextSearchOptions {
-    // (undocumented)
     config?: string | undefined;
-    // (undocumented)
     type?: FilterTextSearchType | undefined;
 }
 
-// @public (undocumented)
+// @public
 export type FilterTextSearchType = 'plain' | 'phrase' | 'websearch';
 
 // @public
@@ -178,7 +137,6 @@ export class FirebaseSql {
     readonly app: FirebaseApp;
     // @internal (undocumented)
     _delete(): Promise<void>;
-    // (undocumented)
     from(table: string): QueryBuilder;
     // @internal (undocumented)
     readonly _instanceIdentifier: string;
@@ -220,13 +178,10 @@ export const FirebaseSqlErrorCategory: Readonly<{
 // @public
 export type FirebaseSqlErrorCode = 'other' | 'already-initialized' | 'not-initialized' | 'not-supported' | 'invalid-argument' | 'partial-error' | 'unauthorized';
 
-// @public (undocumented)
+// @public
 export interface FirebaseSqlRpcOptions {
-    // (undocumented)
     count?: QueryCountStrategy | undefined;
-    // (undocumented)
     get?: boolean | undefined;
-    // (undocumented)
     head?: boolean | undefined;
 }
 
@@ -236,34 +191,33 @@ export function getSql(settings: SqlServiceSettings): FirebaseSql;
 // @public
 export function getSql(app: FirebaseApp, settings: SqlServiceSettings): FirebaseSql;
 
-// @public (undocumented)
+// @public
 export interface InvalidMethodError<S extends string> {
-    // (undocumented)
     Error: S;
 }
 
-// @public (undocumented)
+// @public
 export type IsPlainObject<T> = T extends unknown[] ? false : T extends object ? true : false;
 
-// @public (undocumented)
+// @public
 export type IsValidResultOverride<T, NewResult, ErrorResult, ErrorNewResult> = unknown extends T ? true : T extends unknown[] ? NewResult extends unknown[] ? true : ErrorResult : NewResult extends unknown[] ? ErrorNewResult : true;
 
-// @public (undocumented)
+// @public
 export type MergeDeep<New, Row> = Simplify<MergeExplicit<New, Row> & (string extends keyof Row ? {
     [K: string]: Row[string];
 } : {})>;
 
-// @public (undocumented)
+// @public
 export type MergeExplicit<New, Row> = {
     [K in ExplicitKeys<New> | ExplicitKeys<Row>]: K extends keyof New ? K extends keyof Row ? Row[K] extends SelectQueryError<string> ? New[K] : New[K] extends unknown[] ? Row[K] extends unknown[] ? Array<Simplify<MergeDeep<NonNullable<New[K][number]>, NonNullable<Row[K][number]>>>> : New[K] : IsPlainObject<NonNullable<New[K]>> extends true ? IsPlainObject<NonNullable<Row[K]>> extends true ? ContainsNull<New[K]> extends true ? Simplify<MergeDeep<NonNullable<New[K]>, NonNullable<Row[K]>>> | null : Simplify<MergeDeep<New[K], NonNullable<Row[K]>>> : New[K] : New[K] : New[K] : K extends keyof Row ? Row[K] : never;
 };
 
-// @public (undocumented)
+// @public
 export type MergePartialResult<NewResult, Result$1, Options> = Options extends {
     merge: true;
 } ? unknown extends Result$1 ? NewResult : Result$1 extends unknown[] ? NewResult extends unknown[] ? Array<Simplify<MergeDeep<NewResult[number], Result$1[number]>>> : never : Simplify<MergeDeep<NewResult, Result$1>> : NewResult;
 
-// @public (undocumented)
+// @public
 export type NarrowResultColumn<T, Col extends string> = T extends Array<infer Item> ? Item extends object ? Col extends keyof Item ? Array<{
     [K in keyof Item]: K extends Col ? NonNullable<Item[K]> : Item[K];
 }> : T : T : T extends object ? Col extends keyof T ? {
@@ -275,104 +229,80 @@ export type NonIterable<T> = T & {
     readonly [Symbol.iterator]?: never;
 };
 
-// @public (undocumented)
+// @public
 export interface OperationBase {
-    // (undocumented)
     status: number;
-    // (undocumented)
     statusText: string;
 }
 
-// @public (undocumented)
+// @public
 export interface OperationFailure extends OperationBase {
-    // (undocumented)
     count: null;
-    // (undocumented)
     data: null;
-    // (undocumented)
     error: FirebaseSqlError;
-    // (undocumented)
     success: false;
 }
 
-// @public (undocumented)
+// @public
 export type OperationResult<T> = OperationSuccess<T> | OperationFailure;
 
-// @public (undocumented)
+// @public
 export interface OperationSuccess<T> extends OperationBase {
-    // (undocumented)
     count: number | null;
-    // (undocumented)
     data: T;
-    // (undocumented)
     error: null;
-    // (undocumented)
     success: true;
 }
 
-// @public (undocumented)
+// @public
 export interface QueryBuilder {
-    // (undocumented)
     delete(options?: Readonly<QueryDeleteOptions> | undefined): FilterBuilder<null, 'DELETE'>;
-    // (undocumented)
     insert<Row extends NonIterable<object & {
         readonly [K in keyof Row]: unknown;
     }> = Record<string, unknown>>(values: Row | readonly Row[], options?: Readonly<QueryInsertOptions> | undefined): FilterBuilder<null, 'POST'>;
     select(columns?: string | undefined, options?: Readonly<QuerySelectOptions> | undefined): FilterBuilder<Array<Record<string, unknown>>, 'GET'>;
-    // (undocumented)
     update<Row extends NonIterable<object & {
         readonly [K in keyof Row]: unknown;
     }> = Record<string, unknown>>(values: Row, options?: Readonly<QueryUpdateOptions> | undefined): FilterBuilder<null, 'PATCH'>;
-    // (undocumented)
     upsert<Row extends NonIterable<object & {
         readonly [K in keyof Row]: unknown;
     }> = Record<string, unknown>>(values: Row | readonly Row[], options?: Readonly<QueryUpsertOptions> | undefined): FilterBuilder<null, 'POST'>;
 }
 
-// @public (undocumented)
+// @public
 export type QueryCountStrategy = 'exact' | 'planned' | 'estimated' | (string & {});
 
-// @public (undocumented)
+// @public
 export interface QueryDeleteOptions {
-    // (undocumented)
     count?: QueryCountStrategy | undefined;
 }
 
-// @public (undocumented)
+// @public
 export interface QueryInsertOptions {
-    // (undocumented)
     count?: QueryCountStrategy | undefined;
-    // (undocumented)
     defaultToNull?: boolean | undefined;
 }
 
-// @public (undocumented)
+// @public
 export interface QuerySelectOptions {
-    // (undocumented)
     count?: QueryCountStrategy | undefined;
-    // (undocumented)
     head?: boolean | undefined;
 }
 
-// @public (undocumented)
+// @public
 export interface QueryUpdateOptions {
-    // (undocumented)
     count?: QueryCountStrategy | undefined;
 }
 
-// @public (undocumented)
+// @public
 export interface QueryUpsertOptions {
-    // (undocumented)
     count?: QueryCountStrategy | undefined;
-    // (undocumented)
     defaultToNull?: boolean | undefined;
-    // (undocumented)
     ignoreDuplicates?: boolean | undefined;
-    // (undocumented)
     onConflict?: string | undefined;
 }
 
-// @public (undocumented)
+// @public
 export type SelectQueryError<Message extends string> = {
     error: true;
 } & Message;
@@ -389,7 +319,7 @@ export interface SerializedFirebaseSqlError {
     status?: number | undefined;
 }
 
-// @public (undocumented)
+// @public
 export type Simplify<T> = T extends object ? {
     [K in keyof T]: T[K];
 } : T;
@@ -408,85 +338,59 @@ export interface SqlServiceSettings {
 // @public
 export function terminate(sql: FirebaseSql): Promise<void>;
 
-// @public (undocumented)
+// @public
 export interface TransformBuilder<Result$1, Method = unknown, ThrowOnError extends boolean = false> extends Builder<Result$1, ThrowOnError> {
-    // (undocumented)
     abortSignal(signal: AbortSignal): this;
-    // (undocumented)
     csv(): Builder<string, ThrowOnError>;
-    // (undocumented)
     explain(options?: Readonly<TransformExplainOptions> | undefined): Builder<Array<Record<string, unknown>>, ThrowOnError> | Builder<string, ThrowOnError>;
-    // (undocumented)
     geojson(): Builder<Record<string, unknown>, ThrowOnError>;
-    // (undocumented)
     limit(rows: number, options?: Readonly<TransformLimitOptions> | undefined): this;
-    // (undocumented)
     maxAffected(rows: number): Method extends 'PATCH' | 'DELETE' | 'RPC' ? this : InvalidMethodError<'maxAffected method only available on update or delete'>;
-    // (undocumented)
     maybeSingle<ResultOne = unknown extends Result$1 ? Record<string, unknown> : Result$1 extends ReadonlyArray<infer R> ? R : never>(): Builder<ResultOne | null, ThrowOnError>;
-    // (undocumented)
     order(column: string, options?: Readonly<TransformOrderOptions> | undefined): this;
-    // (undocumented)
     range(from: number, to: number, options?: Readonly<TransformRangeOptions> | undefined): this;
-    // (undocumented)
+    // @deprecated
     returns<NewResult>(): TransformBuilder<CheckMatchingArrayTypes<Result$1, NewResult>, Method, ThrowOnError>;
-    // (undocumented)
     rollback(): this;
-    // (undocumented)
     select(columns?: string | undefined): FilterBuilder<Method extends 'RPC' ? unknown extends Result$1 ? Result$1 : Result$1 extends readonly unknown[] ? Array<Record<string, unknown>> : Record<string, unknown> : Array<Record<string, unknown>>, Method, ThrowOnError>;
-    // (undocumented)
     single<ResultOne = unknown extends Result$1 ? Record<string, unknown> : Result$1 extends ReadonlyArray<infer R> ? R : never>(): Builder<ResultOne, ThrowOnError>;
-    // (undocumented)
     throwOnError(): TransformBuilder<Result$1, Method, true>;
 }
 
-// @public (undocumented)
+// @public
 export type TransformExplainFormat = 'json' | 'text';
 
-// @public (undocumented)
+// @public
 export interface TransformExplainOptions {
-    // (undocumented)
     analyze?: boolean | undefined;
-    // (undocumented)
     buffers?: boolean | undefined;
-    // (undocumented)
     format?: TransformExplainFormat | undefined;
-    // (undocumented)
     settings?: boolean | undefined;
-    // (undocumented)
     verbose?: boolean | undefined;
-    // (undocumented)
     wal?: boolean | undefined;
 }
 
-// @public (undocumented)
+// @public
 export interface TransformLimitOptions {
-    // (undocumented)
+    // @deprecated
     foreignTable?: string | undefined;
-    // (undocumented)
     referencedTable?: string | undefined;
 }
 
-// @public (undocumented)
+// @public
 export interface TransformOrderOptions {
-    // (undocumented)
     ascending?: boolean | undefined;
-    // (undocumented)
+    // @deprecated
     foreignTable?: string | undefined;
-    // (undocumented)
     nullsFirst?: boolean | undefined;
-    // (undocumented)
     referencedTable?: string | undefined;
 }
 
-// @public (undocumented)
+// @public
 export interface TransformRangeOptions {
-    // (undocumented)
+    // @deprecated
     foreignTable?: string | undefined;
-    // (undocumented)
     referencedTable?: string | undefined;
 }
-
-// (No @packageDocumentation comment for this package)
 
 ```

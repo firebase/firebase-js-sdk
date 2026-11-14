@@ -10,6 +10,10 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QueryBuilder interface
+Entry builder scoped to a single PostgreSQL table or view, returned by [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom)<!-- -->.
+
+Stateless and safely reusable: every verb method (`select`<!-- -->, `insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, `delete`<!-- -->) clones the underlying URL and headers before returning a fresh lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,13 +24,23 @@ export interface QueryBuilder
 
 |  Method | Description |
 |  --- | --- |
-|  [delete(options)](./sql.querybuilder.md#querybuilderdelete) |  |
-|  [insert(values, options)](./sql.querybuilder.md#querybuilderinsert) |  |
-|  [select(columns, options)](./sql.querybuilder.md#querybuilderselect) | Performs a SELECT query on the table.<!-- -->Untyped queries default to returning <code>Array&lt;Record&lt;string, unknown&gt;&gt;</code> for type safety. Call <code>.returns&lt;T[]&gt;()</code> or <code>.overrideTypes&lt;T[]&gt;()</code> on the returned builder to cast rows to a strongly-typed schema. |
-|  [update(values, options)](./sql.querybuilder.md#querybuilderupdate) |  |
-|  [upsert(values, options)](./sql.querybuilder.md#querybuilderupsert) |  |
+|  [delete(options)](./sql.querybuilder.md#querybuilderdelete) | Starts a lazy <code>DELETE</code> operation to remove all rows matching subsequent filters. |
+|  [insert(values, options)](./sql.querybuilder.md#querybuilderinsert) | Starts a lazy <code>INSERT</code> (<code>POST</code>) operation to create a single row or a bulk batch of rows. |
+|  [select(columns, options)](./sql.querybuilder.md#querybuilderselect) | Starts a lazy <code>SELECT</code> (<code>GET</code> or <code>HEAD</code>) query on the target table or view, supporting column projection, aliases, JSON path extraction, and embedded foreign-key joins. |
+|  [update(values, options)](./sql.querybuilder.md#querybuilderupdate) | Starts a lazy <code>UPDATE</code> (<code>PATCH</code>) operation to modify columns on all rows matching subsequent filters. |
+|  [upsert(values, options)](./sql.querybuilder.md#querybuilderupsert) | Starts a lazy <code>UPSERT</code> (<code>POST</code> with <code>Prefer: resolution=merge-duplicates</code> or <code>ignore-duplicates</code>) to insert rows or resolve conflicts on a primary key or unique constraint. |
 
 ## QueryBuilder.delete()
+
+Starts a lazy `DELETE` operation to remove all rows matching subsequent filters.
+
+\*\*When to use:\*\* Permanently removing one or more rows targeted via [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) predicates (such as `.eq('id', id)` or `.in('id', ids)`<!-- -->).
+
+\*\*Do NOT use:\*\* Unfiltered `delete()` calls unless intentionally deleting every visible row in the table—always chain explicit [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) predicates and consider [TransformBuilder.maxAffected()](./sql.transformbuilder.md#transformbuildermaxaffected) as a row-count safety guard.
+
+\*\*Behavior &amp; Side Effects:\*\* - \*\*Builder Progression:\*\* `QueryBuilder -> FilterBuilder<null, 'DELETE', false>`<!-- -->. - \*\*Returns `null` by default:\*\* Resolves with `status: 204` and `data: null` unless [.select(columns?)](./sql.transformbuilder.md#transformbuilderselect) is chained to return deleted rows. - Matching zero rows—including when PostgreSQL Row-Level Security `USING` policies hide the target row—is \*\*not\*\* an error (resolves with `success: true`<!-- -->, `status: 204`<!-- -->, or `data: []` when `.select()` is chained). Pass `{ count: 'exact' }` and check `result.count === 0` (or chain `.select('id').single()`<!-- -->) when a missing or RLS-filtered row must be detected!
+
+\*\*Error Handling &amp; Remediation:\*\* - Foreign-key `RESTRICT`<!-- -->/`NO ACTION` references from child tables fail with SQLSTATE `'23503'` (`category === 'sql-postgrest'`<!-- -->); delete dependent rows first or configure `ON DELETE CASCADE`<!-- -->. - Exceeding [TransformBuilder.maxAffected()](./sql.transformbuilder.md#transformbuildermaxaffected) rolls back the deletion and returns `'PGRST124'`<!-- -->.
 
 <b>Signature:</b>
 
@@ -38,13 +52,77 @@ delete(options?: Readonly<QueryDeleteOptions> | undefined): FilterBuilder<null, 
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | Readonly&lt;[QueryDeleteOptions](./sql.querydeleteoptions.md#querydeleteoptions_interface)<!-- -->&gt; \| undefined |  |
+|  options | Readonly&lt;[QueryDeleteOptions](./sql.querydeleteoptions.md#querydeleteoptions_interface)<!-- -->&gt; \| undefined | Optional <code>count</code> strategy for counting deleted rows. See [QueryDeleteOptions](./sql.querydeleteoptions.md#querydeleteoptions_interface)<!-- -->. |
 
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;null, 'DELETE'&gt;
 
+A lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) with method tag `'DELETE'` (supporting [TransformBuilder.maxAffected()](./sql.transformbuilder.md#transformbuildermaxaffected)<!-- -->).
+
+### Example 1
+
+\*\*Full `DELETE` chain: filter rows, guard with `maxAffected`<!-- -->, attach timeout, and return deleted records\*\*
+
+```ts
+interface DeletedRegistration {
+  id: string;
+  attendee_email: string;
+}
+
+const result = await sql
+  .from('registrations')
+  .delete({ count: 'exact' })
+  .eq('event_id', '6ba7b810-9dad-11d1-80b4-00c04fd430c8')
+  .is('checked_in_at', null)
+  .maxAffected(100)
+  .abortSignal(AbortSignal.timeout(5000))
+  .select('id, attendee_email')
+  .overrideTypes<DeletedRegistration[], { merge: false }>();
+
+if (result.success) {
+  console.log(`Removed ${result.count} unchecked-in registrations:`, result.data);
+}
+
+```
+
+### Example 2
+
+\*\*Delete a single record by primary key without returning row payload (`status: 204`<!-- -->)\*\*
+
+```ts
+const delRes = await sql
+  .from('registrations')
+  .delete()
+  .eq('id', 'c9a646d3-9c61-4cb7-bfcd-ee2522c8f633')
+  .maxAffected(1);
+
+```
+
+### Example 3
+
+\*\*Batch-delete multiple draft events by ID list\*\*
+
+```ts
+const batchDel = await sql
+  .from('events')
+  .delete({ count: 'exact' })
+  .in('id', ['11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222'])
+  .eq('status', 'draft');
+
+```
+
 ## QueryBuilder.insert()
+
+Starts a lazy `INSERT` (`POST`<!-- -->) operation to create a single row or a bulk batch of rows.
+
+\*\*When to use:\*\* Inserting new records that must fail on primary-key or unique-constraint collisions.
+
+\*\*Do NOT use:\*\* Idempotent insert-or-update workflows where existing rows should be merged or skipped on conflict; use [QueryBuilder.upsert()](./sql.querybuilder.md#querybuilderupsert) instead.
+
+\*\*Behavior &amp; Side Effects:\*\* - \*\*Builder Progression:\*\* `QueryBuilder -> FilterBuilder<null, 'POST', false>`<!-- -->. - \*\*Returns `null` by default:\*\* PostgREST omits inserted row payloads (`status: 201`<!-- -->, `data: null`<!-- -->) unless you chain [.select(columns?)](./sql.transformbuilder.md#transformbuilderselect) to send `Prefer: return=representation`<!-- -->. - Single-object inputs automatically apply PostgreSQL column `DEFAULT` values for omitted keys. For \*\*array\*\* inputs, the SDK sets `?columns="..."` to the union of `Object.keys(...)` across all elements; pass `{ defaultToNull: false }` (and avoid `{ key: undefined }` properties) so omitted keys in sparse array elements receive PostgreSQL `DEFAULT` values instead of `NULL`<!-- -->. - Non-idempotent (`POST`<!-- -->): automatic transient-error retries are not performed (except a single automatic Firebase Auth token refresh retry on HTTP 401).
+
+\*\*Error Handling &amp; Remediation:\*\* - Unique-constraint or primary-key conflicts resolve to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) with SQLSTATE `code === '23505'` (`category === 'sql-postgrest'`<!-- -->, HTTP 409); inspect `error.details` for the conflicting key or switch to [QueryBuilder.upsert()](./sql.querybuilder.md#querybuilderupsert)<!-- -->. Chain [Builder.throwOnError()](./sql.builder.md#builderthrowonerror) to throw [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) instead.
 
 <b>Signature:</b>
 
@@ -58,18 +136,121 @@ insert<Row extends NonIterable<object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  values | Row \| readonly Row\[\] |  |
-|  options | Readonly&lt;[QueryInsertOptions](./sql.queryinsertoptions.md#queryinsertoptions_interface)<!-- -->&gt; \| undefined |  |
+|  values | Row \| readonly Row\[\] | Single row object or readonly array of row objects to insert. |
+|  options | Readonly&lt;[QueryInsertOptions](./sql.queryinsertoptions.md#queryinsertoptions_interface)<!-- -->&gt; \| undefined | Optional <code>count</code> strategy and <code>defaultToNull</code> handling for sparse bulk inserts. See [QueryInsertOptions](./sql.queryinsertoptions.md#queryinsertoptions_interface)<!-- -->. |
 
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;null, 'POST'&gt;
 
+A lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) with `data` typed as `null` until `.select()` is chained.
+
+### Example 1
+
+\*\*Full `INSERT` chain: create row using DB defaults, return single typed record, and throw on error\*\*
+
+```ts
+import { FirebaseSqlError } from 'firebase/sql';
+
+interface CreatedEvent {
+  id: string;
+  code: string;
+  title: string;
+  status: 'draft' | 'published' | 'cancelled' | 'archived';
+  created_at: string;
+}
+
+try {
+  const { data: created } = await sql
+    .from('events')
+    .insert({
+      venue_id: '8f14e45f-ceea-467a-9538-1536b58f2b01',
+      code: 'FIREBASE-SUMMIT-2026',
+      title: 'Firebase SQL Deep Dive',
+      ticket_price: 49.0,
+      tags: ['firebase', 'postgres'],
+      metadata: { track: 'backend', level: 300 },
+      schedule: '[2026-10-15T16:00:00Z,2026-10-15T18:00:00Z)'
+    })
+    .select('id, code, title, status, created_at')
+    .single()
+    .overrideTypes<CreatedEvent, { merge: false }>()
+    .throwOnError();
+
+  console.log('Created event:', created.id, created.status);
+} catch (err) {
+  if (err instanceof FirebaseSqlError) {
+    console.error(err.code, err.details, err.hint);
+  }
+}
+
+```
+
+### Example 2
+
+\*\*Bulk insert sparse rows preserving PostgreSQL `DEFAULT` values (`defaultToNull: false`<!-- -->)\*\*
+
+```ts
+const batchRes = await sql
+  .from('registrations')
+  .insert(
+    [
+      // Omitted `role` receives PostgreSQL DEFAULT `'attendee'` instead of NULL
+      {
+        event_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        user_uid: 'uid_dan',
+        attendee_email: 'dan@example.com'
+      },
+      {
+        event_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        user_uid: 'uid_erin',
+        attendee_email: 'erin@example.com',
+        role: 'organizer'
+      }
+    ],
+    { defaultToNull: false, count: 'exact' }
+  )
+  .select('id, attendee_email, role')
+  .overrideTypes<
+    Array<{ id: string; attendee_email: string; role: 'attendee' | 'speaker' | 'organizer' }>,
+    { merge: false }
+  >();
+
+```
+
+### Example 3
+
+\*\*Minimal insert without returning row payloads (`data` is `null`<!-- -->) and duplicate-key check\*\*
+
+```ts
+const res = await sql.from('venues').insert({
+  slug: 'moscone-west',
+  name: 'Moscone West',
+  city: 'San Francisco',
+  capacity: 2500
+});
+
+if (!res.success && res.error.code === '23505') {
+  console.warn('Venue slug already exists:', res.error.details);
+}
+
+```
+
 ## QueryBuilder.select()
 
-Performs a SELECT query on the table.
+Starts a lazy `SELECT` (`GET` or `HEAD`<!-- -->) query on the target table or view, supporting column projection, aliases, JSON path extraction, and embedded foreign-key joins.
 
-Untyped queries default to returning `Array<Record<string, unknown>>` for type safety. Call `.returns<T[]>()` or `.overrideTypes<T[]>()` on the returned builder to cast rows to a strongly-typed schema.
+\*\*When to use:\*\* Reading rows, embedding parent/child relations via foreign keys, or counting matching rows (`{ head: true, count: 'exact' }`<!-- -->).
+
+\*\*Do NOT use:\*\* Returning mutated rows from `insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, or `delete`<!-- -->—call [TransformBuilder.select()](./sql.transformbuilder.md#transformbuilderselect) \*after\* those mutation verbs instead.
+
+\*\*Behavior &amp; Side Effects:\*\* - \*\*Builder Progression:\*\* `QueryBuilder -> FilterBuilder<Array<Record<string, unknown>>, 'GET', false>`<!-- -->. - Lazy: performs no network I/O until `await`<!-- -->ed or `.then()` is invoked. Unquoted whitespace in `columns` is stripped automatically while preserving whitespace inside double-quoted identifiers (such as `'id, "display name"'`<!-- -->). - Untyped `data` defaults to `Array<Record<string, unknown>>`<!-- -->. Chain `.overrideTypes<MyRow[], { merge: false }>()` at the end of the chain—or `.single()` + `.overrideTypes<MyRow, { merge: false }>()` for single-row lookups—to strongly type `result.data`<!-- -->. - \*\*Compile-Time Type Caveat (`head: true`<!-- -->):\*\* When `options.head` is `true`<!-- -->, `result.data` resolves to `null` at runtime, even though TypeScript still statically types `result.data` as `Array<Record<string, unknown>>`<!-- -->—read `result.count` only and never access `.length` on `result.data`<!-- -->. - Idempotent retries (`retry(true)`<!-- -->) are enabled by default for transient network errors and HTTP `503`<!-- -->/`520` responses.
+
+\*\*Embedded Relation Syntax &amp; `.overrideTypes()` Shapes:\*\* - \*\*Many-to-one\*\* (FK on parent, e.g. `events.venue_id -> venues.id`<!-- -->) or \*\*one-to-one\*\* (`UNIQUE` FK): resolves to `RelatedRow | null` by default, or non-null `RelatedRow` when `!inner` is appended (`'venue:venues!inner(name, city)'`<!-- -->). - \*\*One-to-many\*\* (FK on child, e.g. `registrations.event_id -> events.id`<!-- -->) or \*\*many-to-many\*\* (join table): resolves to `RelatedRow[]` (`[]` when empty, never `null`<!-- -->). - \*\*Filter parent rows without returning child columns:\*\* Use an empty `!inner()` projection (`select('id, title, venues!inner()').eq('venues.city', 'Seattle')`<!-- -->). - \*\*Embedded child count:\*\* `select('id, title, registrations(count)')` returns `registrations: Array<{ count: number }>`<!-- -->. - \*\*FK disambiguation &amp; alias targeting:\*\* Place `!fkey_name` \*before\* `!inner` (`'venue:venues!events_venue_id_fkey!inner(name)'`<!-- -->), and once aliased (`venue:venues(...)`<!-- -->), reference the \*\*alias\*\* in filters and transforms (`'venue.city'`<!-- -->, `{ referencedTable: 'venue' }`<!-- -->).
+
+\*\*`jsonb` Operators (`->` vs. `->>`<!-- -->):\*\* - Single arrow `'level:metadata->level'` extracts a \*\*typed JSON value\*\* (`number | boolean | object | null`<!-- -->); use `->` for numeric/boolean comparisons and numeric sorting. - Double arrow `'track:metadata->>track'` extracts \*\*plain `text`<!-- -->\*\* (`string | null`<!-- -->); use `->>` for string equality (`.eq()`<!-- -->) and pattern matching (`.ilike()`<!-- -->).
+
+\*\*Error Handling &amp; Remediation:\*\* - Resolves to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) (`{ success: false, error: FirebaseSqlError }`<!-- -->) on invalid column names (`'42703'`<!-- -->), ambiguous foreign-key embeddings (`'PGRST201'`<!-- -->—disambiguate using `alias:table!fkey_name(...)` from `error.hint`<!-- -->), out-of-bounds `.range()` offsets (`'PGRST103'`<!-- -->, HTTP `416`<!-- -->), RLS/privilege denials (`'42501'`<!-- -->), or gateway auth failures (`Code.UNAUTHORIZED`<!-- -->). Chain [Builder.throwOnError()](./sql.builder.md#builderthrowonerror) to reject instead.
 
 <b>Signature:</b>
 
@@ -81,14 +262,119 @@ select(columns?: string | undefined, options?: Readonly<QuerySelectOptions> | un
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  columns | string \| undefined | The columns to select, separated by commas. Defaults to <code>'*'</code>. |
-|  options | Readonly&lt;[QuerySelectOptions](./sql.queryselectoptions.md#queryselectoptions_interface)<!-- -->&gt; \| undefined | Additional query options. |
+|  columns | string \| undefined | Comma-separated PostgREST projection string (defaults to <code>'*'</code>). Supports aliases (<code>'eventCode:code'</code>), JSON operators (<code>'metadata-&gt;level, metadata-&gt;&gt;track'</code>), and foreign-table embeddings (<code>'*, venue:venues(name, city), registrations(attendee_email, role)'</code> or <code>'venues!inner(city)'</code>). |
+|  options | Readonly&lt;[QuerySelectOptions](./sql.queryselectoptions.md#queryselectoptions_interface)<!-- -->&gt; \| undefined | Optional <code>head</code> (metadata-only <code>HEAD</code> request) and <code>count</code> strategy. See [QuerySelectOptions](./sql.queryselectoptions.md#queryselectoptions_interface)<!-- -->. |
 
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;Array&lt;Record&lt;string, unknown&gt;&gt;, 'GET'&gt;
 
+A lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) for chaining row filters, ordering, pagination, and type overrides.
+
+### Example 1
+
+\*\*Full `SELECT` chain: filters, embedded relations, type narrowing, pagination, and exact count\*\*
+
+```ts
+interface EventFeedItem {
+  id: string;
+  code: string;
+  title: string;
+  ticket_price: number;
+  venue_id: string;
+  venue: { name: string; city: string } | null;
+  registrations: Array<{ attendee_email: string; role: 'attendee' | 'speaker' | 'organizer' }>;
+}
+
+const result = await sql
+  .from('events')
+  .select(
+    'id, code, title, ticket_price, venue_id, venue:venues(name, city), registrations(attendee_email, role)',
+    { count: 'exact' }
+  )
+  .eq('status', 'published')
+  .not('venue_id', 'is', null)
+  .order('created_at', { ascending: false })
+  .order('checked_in_at', {
+    referencedTable: 'registrations',
+    ascending: false,
+    nullsFirst: false
+  })
+  .limit(5, { referencedTable: 'registrations' })
+  .range(0, 19)
+  .overrideTypes<EventFeedItem[], { merge: false }>();
+
+if (!result.success) {
+  console.error(`[${result.error.category}] ${result.error.code}: ${result.error.message}`);
+} else {
+  const page: EventFeedItem[] = result.data;
+  const totalCount: number | null = result.count;
+  console.log(`Loaded ${page.length} of ${totalCount} published events`);
+}
+
+```
+
+### Example 2
+
+\*\*Filter parent rows by an embedded foreign table using `!inner` join\*\*
+
+```ts
+// Without `!inner`, non-matching venues return `venue: null` while keeping parent event rows.
+// With `!inner`, only events hosted at a venue in Seattle are returned.
+const seattleEvents = await sql
+  .from('events')
+  .select('id, code, title, venue:venues!inner(name, city)')
+  .eq('venue.city', 'Seattle')
+  .overrideTypes<
+    Array<{ id: string; code: string; title: string; venue: { name: string; city: string } }>,
+    { merge: false }
+  >();
+
+```
+
+### Example 3
+
+\*\*Column aliasing and `jsonb` path extraction (`->>` as text vs. `->` as typed JSON)\*\*
+
+```ts
+const tracksRes = await sql
+  .from('events')
+  .select('id, eventCode:code, track:metadata->>track, level:metadata->level')
+  .eq('status', 'published')
+  .overrideTypes<
+    Array<{ id: string; eventCode: string; track: string | null; level: number | null }>,
+    { merge: false }
+  >();
+
+```
+
+### Example 4
+
+\*\*Count-only query without transferring row payloads (`head: true`<!-- -->)\*\*
+
+```ts
+const countRes = await sql
+  .from('registrations')
+  .select('*', { head: true, count: 'exact' })
+  .eq('event_id', '6ba7b810-9dad-11d1-80b4-00c04fd430c8');
+
+if (countRes.success) {
+  console.log('Total registrations:', countRes.count); // countRes.data is null at runtime
+}
+
+```
+
 ## QueryBuilder.update()
+
+Starts a lazy `UPDATE` (`PATCH`<!-- -->) operation to modify columns on all rows matching subsequent filters.
+
+\*\*When to use:\*\* Modifying a subset of columns on existing row(s) selected via [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) predicates (`.eq()`<!-- -->, `.in()`<!-- -->, `.lt()`<!-- -->, etc.).
+
+\*\*Do NOT use:\*\* - Unfiltered `update(values)` calls unless intentionally updating every visible row in the table—always chain at least one [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) predicate and consider [TransformBuilder.maxAffected()](./sql.transformbuilder.md#transformbuildermaxaffected) to guard against accidental broad updates. - Passing an array of rows (`update` accepts a single partial-row patch object; for per-row bulk writes use [QueryBuilder.upsert()](./sql.querybuilder.md#querybuilderupsert)<!-- -->).
+
+\*\*Behavior &amp; Side Effects:\*\* - \*\*Builder Progression:\*\* `QueryBuilder -> FilterBuilder<null, 'PATCH', false>`<!-- -->. - \*\*Returns `null` by default:\*\* Resolves with `status: 204` and `data: null` unless [.select(columns?)](./sql.transformbuilder.md#transformbuilderselect) is chained to return updated rows. - Updating a `jsonb` column (such as `events.metadata`<!-- -->) replaces the column value as a whole; for server-side partial JSON merges, use [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->.
+
+\*\*Error Handling &amp; Remediation:\*\* - Exceeding [TransformBuilder.maxAffected()](./sql.transformbuilder.md#transformbuildermaxaffected) aborts the transaction on PostgREST and resolves to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) (`category === 'sql-postgrest'`<!-- -->, code `'PGRST124'`<!-- -->). - \*\*Silent 0-Row RLS Filtering:\*\* Rows hidden by PostgreSQL Row-Level Security `USING` policies are silently skipped (`status: 204`<!-- -->, `success: true`<!-- -->, `0` rows updated) rather than raising `'42501'`<!-- -->—pass `{ count: 'exact' }` and check `result.count === 0`<!-- -->, or chain `.select('id').single()`<!-- -->, when a missing or unauthorized target row must be detected! (Chaining `.select()` also requires a `SELECT` policy permitting visibility of the updated row.)
 
 <b>Signature:</b>
 
@@ -102,14 +388,92 @@ update<Row extends NonIterable<object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  values | Row |  |
-|  options | Readonly&lt;[QueryUpdateOptions](./sql.queryupdateoptions.md#queryupdateoptions_interface)<!-- -->&gt; \| undefined |  |
+|  values | Row | Column-value map of fields to update on matching rows. |
+|  options | Readonly&lt;[QueryUpdateOptions](./sql.queryupdateoptions.md#queryupdateoptions_interface)<!-- -->&gt; \| undefined | Optional <code>count</code> strategy for counting updated rows. See [QueryUpdateOptions](./sql.queryupdateoptions.md#queryupdateoptions_interface)<!-- -->. |
 
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;null, 'PATCH'&gt;
 
+A lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) with method tag `'PATCH'` (supporting [TransformBuilder.maxAffected()](./sql.transformbuilder.md#transformbuildermaxaffected)<!-- -->).
+
+### Example 1
+
+\*\*Full `UPDATE` chain: filter target row, cap blast radius with `maxAffected(1)`<!-- -->, and unwrap via `maybeSingle()`<!-- -->\*\*
+
+```ts
+interface UpdatedEventSummary {
+  id: string;
+  code: string;
+  status: 'draft' | 'published' | 'cancelled' | 'archived';
+  is_featured: boolean;
+}
+
+const result = await sql
+  .from('events')
+  .update({ status: 'published', is_featured: true }, { count: 'exact' })
+  .eq('code', 'FIREBASE-SUMMIT-2026')
+  .eq('status', 'draft')
+  .maxAffected(1)
+  .select('id, code, status, is_featured')
+  .maybeSingle()
+  .overrideTypes<UpdatedEventSummary, { merge: false }>();
+
+if (!result.success) {
+  console.error('Update failed:', result.error.code, result.error.message);
+} else if (result.data === null) {
+  console.warn('No draft event matched FIREBASE-SUMMIT-2026.');
+} else {
+  console.log('Published event:', result.data.id);
+}
+
+```
+
+### Example 2
+
+\*\*Batch-archive past published events and count affected rows (`data` is `null`<!-- -->)\*\*
+
+```ts
+const archiveRes = await sql
+  .from('events')
+  .update({ status: 'archived', is_featured: false }, { count: 'exact' })
+  .eq('status', 'published')
+  .lt('created_at', '2026-01-01T00:00:00Z');
+
+if (archiveRes.success) {
+  console.log(`Archived ${archiveRes.count} events.`);
+}
+
+```
+
+### Example 3
+
+\*\*Dry-run a price update without committing changes using `.rollback()`<!-- -->\*\*
+
+```ts
+const previewRes = await sql
+  .from('events')
+  .update({ ticket_price: 79.0 })
+  .contains('tags', ['workshop'])
+  .select('id, code, ticket_price')
+  .rollback()
+  .overrideTypes<Array<{ id: string; code: string; ticket_price: number }>, { merge: false }>();
+
+```
+
 ## QueryBuilder.upsert()
+
+Starts a lazy `UPSERT` (`POST` with `Prefer: resolution=merge-duplicates` or `ignore-duplicates`<!-- -->) to insert rows or resolve conflicts on a primary key or unique constraint.
+
+\*\*When to use:\*\* Idempotent writes, synchronization jobs, or "create-or-update" operations keyed on a primary key (`id`<!-- -->), single unique column (`code`<!-- -->, `slug`<!-- -->), or composite unique constraint (`event_id,attendee_email`<!-- -->).
+
+\*\*Do NOT use:\*\* Partial updates to existing rows when non-nullable `INSERT` columns are unknown; because PostgreSQL evaluates `INSERT` constraints before `ON CONFLICT DO UPDATE`<!-- -->, omitted `NOT NULL` columns without defaults will fail—use [QueryBuilder.update()](./sql.querybuilder.md#querybuilderupdate) with filters instead.
+
+\*\*Preconditions:\*\* - Every column participating in the target `PRIMARY KEY` or `options.onConflict` `UNIQUE` constraint must be present in `values` (or generated by a non-conflicting default).
+
+\*\*Behavior &amp; Side Effects:\*\* - \*\*Builder Progression:\*\* `QueryBuilder -> FilterBuilder<null, 'POST', false>`<!-- -->. - \*\*Returns `null` by default:\*\* Chain [.select(columns?)](./sql.transformbuilder.md#transformbuilderselect) to return the inserted/merged rows. Note: when `ignoreDuplicates: true` skips a conflicting row, PostgREST omits the skipped row from `.select()` output (so `.maybeSingle()` is safer than `.single()` on single-row `ignoreDuplicates: true` upserts). - In bulk array upserts, avoid setting optional keys to `undefined` (or set `defaultToNull: false`<!-- -->), because `Object.keys(...)` includes `undefined`<!-- -->-valued keys in `?columns="..."` while `JSON.stringify` omits them, causing PostgreSQL to treat them as `NULL`<!-- -->.
+
+\*\*Error Handling &amp; Remediation:\*\* - SQLSTATE `'42P10'` ("there is no unique or exclusion constraint matching the ON CONFLICT specification") indicates `options.onConflict` does not match a `UNIQUE` or `PRIMARY KEY` constraint on the table. - SQLSTATE `'23505'` occurs when `onConflict` was omitted (defaulting to primary key) while a \*different\* unique column (such as `events.code`<!-- -->) collided; set `onConflict: 'code'`<!-- -->.
 
 <b>Signature:</b>
 
@@ -123,10 +487,108 @@ upsert<Row extends NonIterable<object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  values | Row \| readonly Row\[\] |  |
-|  options | Readonly&lt;[QueryUpsertOptions](./sql.queryupsertoptions.md#queryupsertoptions_interface)<!-- -->&gt; \| undefined |  |
+|  values | Row \| readonly Row\[\] | Single row object or readonly array of row objects to upsert. |
+|  options | Readonly&lt;[QueryUpsertOptions](./sql.queryupsertoptions.md#queryupsertoptions_interface)<!-- -->&gt; \| undefined | Conflict target (<code>onConflict</code>), duplicate strategy (<code>ignoreDuplicates</code>), <code>count</code>, and <code>defaultToNull</code>. See [QueryUpsertOptions](./sql.queryupsertoptions.md#queryupsertoptions_interface)<!-- -->. |
 
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;null, 'POST'&gt;
+
+A lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) with `data` typed as `null` until `.select()` is chained.
+
+### Example 1
+
+\*\*Full `UPSERT` chain: batch-sync rows on a composite unique constraint and return sorted results\*\*
+
+```ts
+interface SyncedRegistration {
+  id: string;
+  attendee_email: string;
+  role: 'attendee' | 'speaker' | 'organizer';
+}
+
+const result = await sql
+  .from('registrations')
+  .upsert(
+    [
+      {
+        event_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        user_uid: 'uid_alice',
+        attendee_email: 'alice@example.com',
+        role: 'speaker'
+      },
+      {
+        event_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        user_uid: 'uid_bob',
+        attendee_email: 'bob@example.com',
+        role: 'attendee'
+      }
+    ],
+    {
+      onConflict: 'event_id,attendee_email',
+      ignoreDuplicates: false,
+      defaultToNull: false,
+      count: 'exact'
+    }
+  )
+  .select('id, attendee_email, role')
+  .order('attendee_email', { ascending: true })
+  .overrideTypes<SyncedRegistration[], { merge: false }>();
+
+if (result.success) {
+  console.log(`Synced ${result.count} registrations:`, result.data);
+}
+
+```
+
+### Example 2
+
+\*\*Single-row upsert on a unique `slug` column (`ON CONFLICT DO UPDATE`<!-- -->)\*\*
+
+```ts
+const venueRes = await sql
+  .from('venues')
+  .upsert(
+    { slug: 'bell-harbor', name: 'Bell Harbor International Conference Center', city: 'Seattle', capacity: 1200 },
+    { onConflict: 'slug' }
+  )
+  .select('id, slug, capacity')
+  .single()
+  .overrideTypes<{ id: string; slug: string; capacity: number }, { merge: false }>();
+
+```
+
+### Example 3
+
+\*\*Insert-if-absent (`ignoreDuplicates: true` / `DO NOTHING`<!-- -->) paired with `.maybeSingle()`<!-- -->\*\*
+
+```ts
+// Returns the newly inserted row, or `data: null` if `(event_id, attendee_email)` already existed
+const seedRes = await sql
+  .from('registrations')
+  .upsert(
+    {
+      event_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      user_uid: 'uid_alice',
+      attendee_email: 'alice@example.com'
+    },
+    { onConflict: 'event_id,attendee_email', ignoreDuplicates: true }
+  )
+  .select('id, role')
+  .maybeSingle()
+  .overrideTypes<{ id: string; role: string }, { merge: false }>();
+
+```
+
+### Example
+
+\*\*Store a reusable `QueryBuilder` for a table\*\*
+
+```ts
+import type { QueryBuilder } from 'firebase/sql';
+
+const venues: QueryBuilder = sql.from('venues');
+const seattleVenues = await venues.select('id, slug, name').eq('city', 'Seattle');
+
+```
 

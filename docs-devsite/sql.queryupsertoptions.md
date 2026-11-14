@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QueryUpsertOptions interface
+Conflict-resolution and execution options for [QueryBuilder.upsert()](./sql.querybuilder.md#querybuilderupsert)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,12 +22,14 @@ export interface QueryUpsertOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [count](./sql.queryupsertoptions.md#queryupsertoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined |  |
-|  [defaultToNull](./sql.queryupsertoptions.md#queryupsertoptionsdefaulttonull) | boolean \| undefined |  |
-|  [ignoreDuplicates](./sql.queryupsertoptions.md#queryupsertoptionsignoreduplicates) | boolean \| undefined |  |
-|  [onConflict](./sql.queryupsertoptions.md#queryupsertoptionsonconflict) | string \| undefined |  |
+|  [count](./sql.queryupsertoptions.md#queryupsertoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined | Row-counting algorithm used to populate <code>result.count</code> with the number of affected rows. |
+|  [defaultToNull](./sql.queryupsertoptions.md#queryupsertoptionsdefaulttonull) | boolean \| undefined | Controls whether omitted (or <code>undefined</code>-valued) properties in \*\*bulk array\*\* upserts default to <code>NULL</code> (<code>true</code>) or use PostgreSQL column <code>DEFAULT</code> expressions (<code>false</code>, sends <code>Prefer: missing=default</code>). |
+|  [ignoreDuplicates](./sql.queryupsertoptions.md#queryupsertoptionsignoreduplicates) | boolean \| undefined | Conflict action applied when an incoming row matches an existing row on <code>onConflict</code> (or primary key). |
+|  [onConflict](./sql.queryupsertoptions.md#queryupsertoptionsonconflict) | string \| undefined | Comma-separated column name(s) forming a <code>PRIMARY KEY</code> or <code>UNIQUE</code> constraint used to detect conflicts (sent as <code>?on_conflict=...</code>). |
 
 ## QueryUpsertOptions.count
+
+Row-counting algorithm used to populate `result.count` with the number of affected rows.
 
 <b>Signature:</b>
 
@@ -35,6 +39,10 @@ count?: QueryCountStrategy | undefined;
 
 ## QueryUpsertOptions.defaultToNull
 
+Controls whether omitted (or `undefined`<!-- -->-valued) properties in \*\*bulk array\*\* upserts default to `NULL` (`true`<!-- -->) or use PostgreSQL column `DEFAULT` expressions (`false`<!-- -->, sends `Prefer: missing=default`<!-- -->).
+
+Only affects newly inserted rows during bulk array upserts; does not overwrite existing columns during conflict merges, and is unnecessary for single-object upserts.
+
 <b>Signature:</b>
 
 ```typescript
@@ -42,6 +50,10 @@ defaultToNull?: boolean | undefined;
 ```
 
 ## QueryUpsertOptions.ignoreDuplicates
+
+Conflict action applied when an incoming row matches an existing row on `onConflict` (or primary key).
+
+- `false` (default): Sends `Prefer: resolution=merge-duplicates` (`ON CONFLICT DO UPDATE`<!-- -->), overwriting conflicting rows. - `true`<!-- -->: Sends `Prefer: resolution=ignore-duplicates` (`ON CONFLICT DO NOTHING`<!-- -->), silently skipping conflicting rows.
 
 <b>Signature:</b>
 
@@ -51,8 +63,29 @@ ignoreDuplicates?: boolean | undefined;
 
 ## QueryUpsertOptions.onConflict
 
+Comma-separated column name(s) forming a `PRIMARY KEY` or `UNIQUE` constraint used to detect conflicts (sent as `?on_conflict=...`<!-- -->).
+
+Do \*\*not\*\* include spaces around commas (for example, `'event_id,attendee_email'`<!-- -->, or `'code'` for a single column). When omitted, PostgREST defaults conflict detection to the table's primary key.
+
 <b>Signature:</b>
 
 ```typescript
 onConflict?: string | undefined;
 ```
+
+### Example
+
+\*\*Configure conflict resolution on a composite unique key\*\*
+
+```ts
+import type { QueryUpsertOptions } from 'firebase/sql';
+
+const upsertOpts: QueryUpsertOptions = {
+  onConflict: 'event_id,attendee_email',
+  ignoreDuplicates: false,
+  defaultToNull: false,
+  count: 'exact'
+};
+
+```
+

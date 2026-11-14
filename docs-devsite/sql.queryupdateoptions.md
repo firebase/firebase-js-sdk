@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QueryUpdateOptions interface
+Execution options for [QueryBuilder.update()](./sql.querybuilder.md#querybuilderupdate)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,12 +22,27 @@ export interface QueryUpdateOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [count](./sql.queryupdateoptions.md#queryupdateoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined |  |
+|  [count](./sql.queryupdateoptions.md#queryupdateoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined | Row-counting algorithm used to populate <code>result.count</code> with the number of updated rows. |
 
 ## QueryUpdateOptions.count
+
+Row-counting algorithm used to populate `result.count` with the number of updated rows.
 
 <b>Signature:</b>
 
 ```typescript
 count?: QueryCountStrategy | undefined;
 ```
+
+### Example
+
+\*\*Count rows modified by an `update()`<!-- -->\*\*
+
+```ts
+import type { QueryUpdateOptions } from 'firebase/sql';
+
+const updateOpts: QueryUpdateOptions = { count: 'exact' };
+const res = await sql.from('events').update({ is_featured: false }, updateOpts).eq('status', 'archived');
+
+```
+

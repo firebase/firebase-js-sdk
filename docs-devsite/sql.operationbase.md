@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # OperationBase interface
+HTTP status metadata shared by both [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface) and [OperationFailure](./sql.operationfailure.md#operationfailure_interface)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,10 +22,12 @@ export interface OperationBase
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [status](./sql.operationbase.md#operationbasestatus) | number |  |
-|  [statusText](./sql.operationbase.md#operationbasestatustext) | string |  |
+|  [status](./sql.operationbase.md#operationbasestatus) | number | HTTP response status code (such as <code>200</code>, <code>201</code>, <code>204</code>, <code>406</code>, <code>409</code>), or <code>0</code> when the request failed locally before receiving an HTTP response (network error, <code>AbortSignal</code>, missing <code>fetch</code>, or terminated client). |
+|  [statusText](./sql.operationbase.md#operationbasestatustext) | string | HTTP status text returned by the server (for example, <code>'OK'</code>, <code>'Created'</code>, <code>'No Content'</code>), or <code>''</code> when <code>status</code> is <code>0</code>. |
 
 ## OperationBase.status
+
+HTTP response status code (such as `200`<!-- -->, `201`<!-- -->, `204`<!-- -->, `406`<!-- -->, `409`<!-- -->), or `0` when the request failed locally before receiving an HTTP response (network error, `AbortSignal`<!-- -->, missing `fetch`<!-- -->, or terminated client).
 
 <b>Signature:</b>
 
@@ -33,8 +37,27 @@ status: number;
 
 ## OperationBase.statusText
 
+HTTP status text returned by the server (for example, `'OK'`<!-- -->, `'Created'`<!-- -->, `'No Content'`<!-- -->), or `''` when `status` is `0`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
 statusText: string;
 ```
+
+### Example
+
+\*\*Log HTTP status metadata from any operation result\*\*
+
+```ts
+import type { OperationBase } from 'firebase/sql';
+
+function logHttpStatus(meta: OperationBase): void {
+  console.log(`HTTP ${meta.status} ${meta.statusText}`);
+}
+
+const res = await sql.from('venues').select('id').limit(1);
+logHttpStatus(res);
+
+```
+

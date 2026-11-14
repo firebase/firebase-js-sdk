@@ -10,6 +10,12 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # Builder interface
+Terminal `PromiseLike` builder interface providing execution modifiers (`throwOnError`<!-- -->, `stripNulls`<!-- -->, `setHeader`<!-- -->, `retry`<!-- -->) and static result-type overrides (`overrideTypes`<!-- -->, `returns`<!-- -->).
+
+\*\*Lazy Execution:\*\* No HTTP request is issued until the builder is `await`<!-- -->ed or `.then()` is called. Concurrent or repeated `await` calls on the same finalized `Builder` instance execute with isolated per-request error tracking.
+
+\*\*Builder Progression:\*\* `Builder` is the base interface of [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) and [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->. Once a chain narrows to `Builder` (via `.single()`<!-- -->, `.maybeSingle()`<!-- -->, `.csv()`<!-- -->, `.geojson()`<!-- -->, `.explain()`<!-- -->, or `.overrideTypes()`<!-- -->), filter and transform methods are no longer available—only `Builder` methods and `await` remain.
+
 <b>Signature:</b>
 
 ```typescript
@@ -21,14 +27,24 @@ export interface Builder<T, ThrowOnError extends boolean = false> extends Promis
 
 |  Method | Description |
 |  --- | --- |
-|  [overrideTypes()](./sql.builder.md#builderoverridetypes) |  |
-|  [retry(enabled)](./sql.builder.md#builderretry) |  |
-|  [returns()](./sql.builder.md#builderreturns) |  |
-|  [setHeader(name, value)](./sql.builder.md#buildersetheader) |  |
-|  [stripNulls()](./sql.builder.md#builderstripnulls) |  |
-|  [throwOnError()](./sql.builder.md#builderthrowonerror) |  |
+|  [overrideTypes()](./sql.builder.md#builderoverridetypes) | Overrides the static TypeScript type of <code>result.data</code> at compile time without performing runtime validation. |
+|  [retry(enabled)](./sql.builder.md#builderretry) | Enables or disables automatic transient-failure retries for \*\*idempotent\*\* HTTP requests on this builder. |
+|  [returns()](./sql.builder.md#builderreturns) | Replaces the static TypeScript type of <code>result.data</code> on this [Builder](./sql.builder.md#builder_interface)<!-- -->. |
+|  [setHeader(name, value)](./sql.builder.md#buildersetheader) | Sets a custom HTTP header on \*\*this single request\*\*, overriding any client-level header of the same name from [SqlServiceSettings.headers](./sql.sqlservicesettings.md#sqlservicesettingsheaders)<!-- -->. |
+|  [stripNulls()](./sql.builder.md#builderstripnulls) | Instructs PostgREST to omit keys whose value is <code>null</code> from returned JSON row objects (<code>Accept: application/vnd.pgrst.array+json;nulls=stripped</code> or <code>application/vnd.pgrst.object+json;nulls=stripped</code>). |
+|  [throwOnError()](./sql.builder.md#builderthrowonerror) | Configures this builder to reject its promise with a [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) on any client, platform, or PostgREST failure instead of resolving an [OperationFailure](./sql.operationfailure.md#operationfailure_interface)<!-- -->, narrowing the resolved envelope to [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface)<!-- -->. |
 
 ## Builder.overrideTypes()
+
+Overrides the static TypeScript type of `result.data` at compile time without performing runtime validation.
+
+\*\*When to use:\*\* Assigning a strongly typed row or payload interface at the \*\*end\*\* of any `select()`<!-- -->, mutation + `.select()`<!-- -->, or `rpc()` chain (since [getSql()](./sql.md#getsql_e89ea77) and [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) are untyped by default).
+
+\*\*Do NOT use:\*\* - Mid-chain before `.eq()`<!-- -->, `.order()`<!-- -->, `.limit()`<!-- -->, or `.single()`<!-- -->—`overrideTypes()` returns a base [Builder](./sql.builder.md#builder_interface) that does not expose filter or transform methods. Always place `overrideTypes()` after filters, transforms, and `.single()` / `.maybeSingle()`<!-- -->. - After [.explain()](./sql.transformbuilder.md#transformbuilderexplain)<!-- -->—`explain()` returns a union of array and `string` builders that rejects both array and non-array overrides; narrow `res.data` with `typeof res.data === 'string'` instead. - Mismatched array cardinality: pass `MyRow[]` for list queries, and `MyRow` (non-array) after `.single()` or `.maybeSingle()` (passing an array after `.single()`<!-- -->, or a non-array on a list query, produces a compile-time `{ Error: 'Type mismatch: ...' }` type). When called after `.maybeSingle()`<!-- -->, `| null` is preserved automatically (`MyRow | null`<!-- -->).
+
+\*\*Choosing `Options` (`{ merge: false }` vs. default `{ merge: true }`<!-- -->):\*\* - On table queries (`select()` / `.single()` / `.maybeSingle()`<!-- -->), the untyped base row is `Record<string, unknown>`<!-- -->, so the default `{ merge: true }` intersects `[K: string]: unknown` onto `NewResult`<!-- -->. Pass \*\*`{ merge: false }`<!-- -->\*\* (for example, `.overrideTypes<EventRow[], { merge: false }>()`<!-- -->) for an exact, closed `EventRow[]` type with no index signature. - On direct [sql.rpc()](./sql.firebasesql.md#firebasesqlrpc) chains, the untyped base result is `unknown`<!-- -->, which short-circuits directly to `NewResult`<!-- -->—so `.overrideTypes<EventRow[]>()` works without `{ merge: false }`<!-- -->. \*\*Exception:\*\* Chaining `.single()` or `.maybeSingle()` onto `sql.rpc()` narrows `unknown` to `Record<string, unknown>`<!-- -->, so pass \*\*`{ merge: false }`<!-- -->\*\* whenever `.single()` or `.maybeSingle()` precedes `overrideTypes()` on an `rpc()` chain!
+
+\*\*Behavior &amp; Side Effects:\*\* Compile-time type cast only; performs no network I/O or runtime schema parsing.
 
 <b>Signature:</b>
 
@@ -43,7 +59,54 @@ overrideTypes<NewResult, Options extends {
 
 [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;[IsValidResultOverride](./sql.md#isvalidresultoverride)<!-- -->&lt;T, NewResult, false, false&gt; extends true ? [ContainsNull](./sql.md#containsnull)<!-- -->&lt;T&gt; extends true ? [MergePartialResult](./sql.md#mergepartialresult)<!-- -->&lt;NewResult, NonNullable&lt;T&gt;, Options&gt; \| null : [MergePartialResult](./sql.md#mergepartialresult)<!-- -->&lt;NewResult, T, Options&gt; : [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->&lt;T, NewResult&gt;, ThrowOnError&gt;
 
+This [Builder](./sql.builder.md#builder_interface) with `data` statically typed according to `NewResult` and `Options`<!-- -->.
+
+### Example 1
+
+\*\*Replace untyped table `select()` rows with an exact `Venue[]` type (`{ merge: false }`<!-- -->)\*\*
+
+```ts
+interface Venue {
+  id: string;
+  slug: string;
+  name: string;
+  city: string;
+  capacity: number;
+}
+
+const res = await sql
+  .from('venues')
+  .select('id, slug, name, city, capacity')
+  .overrideTypes<Venue[], { merge: false }>();
+
+if (res.success) {
+  const venues: Venue[] = res.data;
+}
+
+```
+
+### Example 2
+
+\*\*Type a `.maybeSingle()` lookup (`| null` preserved automatically)\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, title')
+  .eq('code', 'FIREBASE-SUMMIT-2026')
+  .maybeSingle()
+  .overrideTypes<{ id: string; code: string; title: string }, { merge: false }>();
+// res.data is typed as { id: string; code: string; title: string } | null on success
+
+```
+
 ## Builder.retry()
+
+Enables or disables automatic transient-failure retries for \*\*idempotent\*\* HTTP requests on this builder.
+
+\*\*Default Behavior (`enabled = true`<!-- -->):\*\* - Retries are \*\*enabled by default\*\* on every builder, but \*\*only\*\* execute for idempotent HTTP methods (`GET`<!-- -->, `HEAD`<!-- -->, `OPTIONS`<!-- -->—such as `select()`<!-- -->, `rpc(..., { get: true })`<!-- -->, and `rpc(..., { head: true })` when `params` has no nested objects; if `rpc(..., { head: true })` contains object arguments, it falls back to `POST` and is not retried). - Non-idempotent requests (`POST`<!-- -->, `PATCH`<!-- -->, `DELETE`<!-- -->—including `insert()`<!-- -->, `upsert()`<!-- -->, `update()`<!-- -->, `delete()`<!-- -->, and default `POST`<!-- -->-mode `rpc()`<!-- -->) and requests cancelled via `AbortSignal` are \*\*never\*\* retried even when `enabled` is `true`<!-- -->. - Eligible requests retry up to `3` times (`4` total attempts) on network `fetch` rejections or HTTP status `503` / `520`<!-- -->, backing off exponentially (`1s`<!-- -->, `2s`<!-- -->, `4s`<!-- -->, or honoring the server's `Retry-After` header on `503` / `520`<!-- -->) and sending an `X-Retry-Count` header on retry attempts. - Note: `retry(false)` disables PostgREST backoff retries on `503`<!-- -->/`520`<!-- -->/network errors, whereas the Firebase transport's single HTTP `401` Auth token refresh-and-retry remains active whenever Firebase Auth is attached.
+
+\*\*When to use:\*\* Pass `false` on latency-sensitive `select()` queries where failing fast on the first transient error is preferred over waiting through backoff delays.
 
 <b>Signature:</b>
 
@@ -55,13 +118,38 @@ retry(enabled: boolean): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  enabled | boolean |  |
+|  enabled | boolean | <code>false</code> to disable automatic retries for this request; <code>true</code> to re-enable default idempotent retry behavior. |
 
 <b>Returns:</b>
 
 this
 
+This builder for continued chaining.
+
+### Example
+
+\*\*Fail fast without backoff retries on an interactive autocomplete query\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, title')
+  .ilike('title', 'fire%')
+  .limit(5)
+  .retry(false);
+
+```
+
 ## Builder.returns()
+
+> Warning: This API is now obsolete.
+> 
+> Use [.overrideTypes()](./sql.builder.md#builderoverridetypes) with `{ merge: false }` at the end of your call chain instead.
+> 
+
+Replaces the static TypeScript type of `result.data` on this [Builder](./sql.builder.md#builder_interface)<!-- -->.
+
+Enforces array-vs-object cardinality compatibility via [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes) while preserving `| null` after [TransformBuilder.maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle)<!-- -->.
 
 <b>Signature:</b>
 
@@ -72,7 +160,31 @@ returns<NewResult>(): Builder<CheckMatchingArrayTypes<T, NewResult>, ThrowOnErro
 
 [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;[CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->&lt;T, NewResult&gt;, ThrowOnError&gt;
 
+This [Builder](./sql.builder.md#builder_interface) with `data` typed as `CheckMatchingArrayTypes<T, NewResult>`<!-- -->.
+
+### Example
+
+\*\*Legacy type override on a `Builder` (prefer `.overrideTypes()` instead)\*\*
+
+```ts
+const res = await sql
+  .from('venues')
+  .select('id, slug, name')
+  .eq('slug', 'moscone-west')
+  .single()
+  .returns<{ id: string; slug: string; name: string }>();
+
+```
+
 ## Builder.setHeader()
+
+Sets a custom HTTP header on \*\*this single request\*\*, overriding any client-level header of the same name from [SqlServiceSettings.headers](./sql.sqlservicesettings.md#sqlservicesettingsheaders)<!-- -->.
+
+\*\*When to use:\*\* Attaching per-request correlation, tracing, or custom application headers.
+
+\*\*Do NOT use:\*\* Setting authentication, App Check, or Firebase telemetry headers—passing any protected header name (matched case-insensitively after trimming: `'authorization'`<!-- -->, `'x-firebase-auth-token'`<!-- -->, `'x-firebase-appcheck'`<!-- -->, `'x-goog-api-client'`<!-- -->, `'x-client-version'`<!-- -->, `'x-firebase-gmpid'`<!-- -->, `'x-firebase-client'`<!-- -->, `'x-firebase-client-log-type'`<!-- -->, `'x-goog-request-params'`<!-- -->, `'x-firebase-sqlconnect-affinity'`<!-- -->) synchronously throws a [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class)<!-- -->. Firebase Auth and App Check tokens are injected automatically by the SDK transport.
+
+\*\*Behavior &amp; Side Effects:\*\* Clones this builder's internal `Headers` map, sets `name: value`<!-- -->, and returns `this` without network I/O.
 
 <b>Signature:</b>
 
@@ -84,14 +196,40 @@ setHeader(name: string, value: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  name | string |  |
-|  value | string |  |
+|  name | string | Allowed HTTP header name. |
+|  value | string | Header value string. |
 
 <b>Returns:</b>
 
 this
 
+This builder for continued chaining.
+
+#### Exceptions
+
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) synchronously with `code: 'invalid-argument'` (INVALID\_ARGUMENT<!-- -->) and `category: 'sql-client'` if `name` is a protected Firebase or `Authorization` header.
+
+### Example
+
+\*\*Attach a trace ID header to a single query\*\*
+
+```ts
+const res = await sql
+  .from('events')
+  .select('id, code, title')
+  .setHeader('x-trace-id', 'req-9c4b2e10');
+
+```
+
 ## Builder.stripNulls()
+
+Instructs PostgREST to omit keys whose value is `null` from returned JSON row objects (`Accept: application/vnd.pgrst.array+json;nulls=stripped` or `application/vnd.pgrst.object+json;nulls=stripped`<!-- -->).
+
+\*\*When to use:\*\* Reducing JSON payload size when rows contain many sparse nullable columns (such as `events.venue_id` or `registrations.checked_in_at`<!-- -->). Note that stripped keys become `undefined` at runtime, so reflect optional properties (`prop?: Type`<!-- -->) in your `.overrideTypes()` interface!
+
+\*\*Do NOT use:\*\* - After [.csv()](./sql.transformbuilder.md#transformbuildercsv)<!-- -->—calling `.csv().stripNulls()` throws a synchronous `Error('stripNulls() cannot be used with csv()')`<!-- -->. (Calling `.stripNulls()` before `.csv()`<!-- -->, `.geojson()`<!-- -->, or `.explain()` has no effect because `nulls=stripped` is only applied when `Accept` is JSON or `application/vnd.pgrst.object+json`<!-- -->.)
+
+\*\*Preconditions:\*\* Requires PostgREST 11.2.0 or newer on the backend.
 
 <b>Signature:</b>
 
@@ -102,7 +240,40 @@ stripNulls(): this;
 
 this
 
+This builder for continued chaining.
+
+#### Exceptions
+
+`Error` synchronously if `Accept` is already `'text/csv'` (after calling [.csv()](./sql.transformbuilder.md#transformbuildercsv)<!-- -->).
+
+### Example
+
+\*\*Omit `null` properties from returned registration JSON objects\*\*
+
+```ts
+interface SparseRegistration {
+  id: string;
+  attendee_email: string;
+  checked_in_at?: string;
+}
+
+const res = await sql
+  .from('registrations')
+  .select('id, attendee_email, checked_in_at')
+  .stripNulls()
+  .overrideTypes<SparseRegistration[], { merge: false }>();
+
+```
+
 ## Builder.throwOnError()
+
+Configures this builder to reject its promise with a [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) on any client, platform, or PostgREST failure instead of resolving an [OperationFailure](./sql.operationfailure.md#operationfailure_interface)<!-- -->, narrowing the resolved envelope to [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface)<!-- -->.
+
+\*\*When to use:\*\* `try / catch` workflows, helper functions, or data-fetching hooks (such as React Query / SWR) that expect failed promises to throw.
+
+\*\*Do NOT use:\*\* Code paths that prefer exhaustive discriminated-union checking (`if (!res.success)`<!-- -->) without `try / catch`<!-- -->; omit `throwOnError()` to receive [OperationResult](./sql.md#operationresult)<!-- -->.
+
+\*\*Behavior &amp; Side Effects:\*\* - \*\*Resolves `OperationSuccess<T>`<!-- -->, NOT raw `T`<!-- -->:\*\* Even with `throwOnError()`<!-- -->, awaiting the builder resolves to `{ success: true, data: T, count, error: null, status, statusText }`<!-- -->—always destructure `const { data } = await query.throwOnError()` rather than assigning the awaited result directly to `T`<!-- -->. - Mutates this builder's error-handling flag in place without network I/O. Can be chained at any stage (`FilterBuilder`<!-- -->, `TransformBuilder`<!-- -->, or `Builder`<!-- -->), and `ThrowOnError = true` is preserved across `.select()`<!-- -->, `.single()`<!-- -->, `.maybeSingle()`<!-- -->, `.returns()`<!-- -->, and `.overrideTypes()`<!-- -->.
 
 <b>Signature:</b>
 
@@ -112,4 +283,53 @@ throwOnError(): Builder<T, true>;
 <b>Returns:</b>
 
 [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;T, true&gt;
+
+This builder narrowed to `ThrowOnError = true` (resolving to [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface) or rejecting with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class)<!-- -->).
+
+### Example
+
+\*\*Destructure `{ data }` from `OperationSuccess` inside `try / catch` with `throwOnError()`<!-- -->\*\*
+
+```ts
+import { FirebaseSqlError } from 'firebase/sql';
+
+try {
+  const { data } = await sql
+    .from('venues')
+    .select('id, name, city')
+    .eq('slug', 'moscone-west')
+    .single()
+    .overrideTypes<{ id: string; name: string; city: string }, { merge: false }>()
+    .throwOnError();
+
+  console.log(data.name);
+} catch (err) {
+  if (err instanceof FirebaseSqlError) {
+    console.error(err.category, err.code, err.message);
+  }
+}
+
+```
+
+### Example
+
+\*\*Configure execution modifiers and static result types on a terminal `Builder`<!-- -->\*\*
+
+```ts
+interface VenueDetail {
+  id: string;
+  slug: string;
+  name: string;
+  city: string;
+}
+
+const res = await sql
+  .from('venues')
+  .select('id, slug, name, city')
+  .eq('slug', 'moscone-west')
+  .single()
+  .setHeader('x-request-trace', 'venue-detail-lookup')
+  .overrideTypes<VenueDetail, { merge: false }>();
+
+```
 

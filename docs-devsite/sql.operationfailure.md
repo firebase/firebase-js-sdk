@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # OperationFailure interface
+Failure response envelope resolved when awaiting a [Builder](./sql.builder.md#builder_interface) in default (`ThrowOnError = false`<!-- -->) mode.
+
 <b>Signature:</b>
 
 ```typescript
@@ -21,12 +23,14 @@ export interface OperationFailure extends OperationBase
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [count](./sql.operationfailure.md#operationfailurecount) | null |  |
-|  [data](./sql.operationfailure.md#operationfailuredata) | null |  |
-|  [error](./sql.operationfailure.md#operationfailureerror) | [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) |  |
-|  [success](./sql.operationfailure.md#operationfailuresuccess) | false |  |
+|  [count](./sql.operationfailure.md#operationfailurecount) | null | Always <code>null</code> on a failed operation. |
+|  [data](./sql.operationfailure.md#operationfailuredata) | null | Always <code>null</code> on a failed operation. |
+|  [error](./sql.operationfailure.md#operationfailureerror) | [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) | Structured [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) describing the failure origin (<code>category</code>), <code>code</code>, <code>details</code>, and <code>hint</code>. |
+|  [success](./sql.operationfailure.md#operationfailuresuccess) | false | Discriminator literal <code>false</code> indicating a client, platform, or PostgREST error occurred. |
 
 ## OperationFailure.count
+
+Always `null` on a failed operation.
 
 <b>Signature:</b>
 
@@ -36,6 +40,8 @@ count: null;
 
 ## OperationFailure.data
 
+Always `null` on a failed operation.
+
 <b>Signature:</b>
 
 ```typescript
@@ -43,6 +49,8 @@ data: null;
 ```
 
 ## OperationFailure.error
+
+Structured [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) describing the failure origin (`category`<!-- -->), `code`<!-- -->, `details`<!-- -->, and `hint`<!-- -->.
 
 <b>Signature:</b>
 
@@ -52,8 +60,31 @@ error: FirebaseSqlError;
 
 ## OperationFailure.success
 
+Discriminator literal `false` indicating a client, platform, or PostgREST error occurred.
+
 <b>Signature:</b>
 
 ```typescript
 success: false;
 ```
+
+### Example
+
+\*\*Inspect structured `FirebaseSqlError` fields on an `OperationFailure`<!-- -->\*\*
+
+```ts
+import type { OperationFailure } from 'firebase/sql';
+
+function reportFailure(failure: OperationFailure): void {
+  console.error(
+    `[${failure.status}] ${failure.error.category}/${failure.error.code}: ${failure.error.message}`
+  );
+}
+
+const res = await sql.from('venues').select('id').eq('slug', 'missing').single();
+if (!res.success) {
+  reportFailure(res);
+}
+
+```
+

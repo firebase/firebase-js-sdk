@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TransformLimitOptions interface
+Embedded-table targeting options for [TransformBuilder.limit()](./sql.transformbuilder.md#transformbuilderlimit)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,10 +22,17 @@ export interface TransformLimitOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [foreignTable](./sql.transformlimitoptions.md#transformlimitoptionsforeigntable) | string \| undefined |  |
-|  [referencedTable](./sql.transformlimitoptions.md#transformlimitoptionsreferencedtable) | string \| undefined |  |
+|  [foreignTable](./sql.transformlimitoptions.md#transformlimitoptionsforeigntable) | string \| undefined | Legacy alias for [TransformLimitOptions.referencedTable](./sql.transformlimitoptions.md#transformlimitoptionsreferencedtable)<!-- -->. Prefer <code>referencedTable</code>. |
+|  [referencedTable](./sql.transformlimitoptions.md#transformlimitoptionsreferencedtable) | string \| undefined | Embedded child relation name (or alias) whose nested array length should be capped per parent row (<code>?&lt;referencedTable&gt;.limit=...</code>). |
 
 ## TransformLimitOptions.foreignTable
+
+> Warning: This API is now obsolete.
+> 
+> Use [TransformLimitOptions.referencedTable](./sql.transformlimitoptions.md#transformlimitoptionsreferencedtable) instead.
+> 
+
+Legacy alias for [TransformLimitOptions.referencedTable](./sql.transformlimitoptions.md#transformlimitoptionsreferencedtable)<!-- -->. Prefer `referencedTable`<!-- -->.
 
 <b>Signature:</b>
 
@@ -33,8 +42,26 @@ foreignTable?: string | undefined;
 
 ## TransformLimitOptions.referencedTable
 
+Embedded child relation name (or alias) whose nested array length should be capped per parent row (`?<referencedTable>.limit=...`<!-- -->).
+
 <b>Signature:</b>
 
 ```typescript
 referencedTable?: string | undefined;
 ```
+
+### Example
+
+\*\*Cap nested `registrations` to 5 items per parent event\*\*
+
+```ts
+import type { TransformLimitOptions } from 'firebase/sql';
+
+const limitOpts: TransformLimitOptions = { referencedTable: 'registrations' };
+const res = await sql
+  .from('events')
+  .select('id, title, registrations(id, attendee_email)')
+  .limit(5, limitOpts);
+
+```
+

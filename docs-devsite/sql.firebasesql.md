@@ -10,7 +10,11 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FirebaseSql class
-The Firebase SQL service client instance.
+Service client bound to a `FirebaseApp` and a specific Firebase SQL PostgREST endpoint.
+
+\*\*Do NOT instantiate directly:\*\* Obtain instances via [getSql()](./sql.md#getsql_e89ea77)<!-- -->, which validates settings and deduplicates clients per `(app, resolvedEndpoint, schemaName)`<!-- -->. `FirebaseSql` does \*\*not\*\* expose a `.schema(name)` method—configure `schemaName` in [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) when calling [getSql()](./sql.md#getsql_e89ea77) (or clone `sql.settings` via [copySqlServiceSettings()](./sql.md#copysqlservicesettings_e89ea77) to create a client for another schema).
+
+Automatically attaches Firebase Authentication ID tokens (`x-firebase-auth-token`<!-- -->, with a single automatic token refresh and retry on HTTP 401 when the authenticated UID is unchanged) and Firebase App Check tokens (`x-firebase-appcheck`<!-- -->) when those services are registered on `app` (including static `authIdToken` and `appCheckToken` credentials configured on a `FirebaseServerApp` via `initializeServerApp` for SSR/server environments).
 
 The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `FirebaseSql` class.
 
@@ -24,19 +28,19 @@ export declare class FirebaseSql
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [app](./sql.firebasesql.md#firebasesqlapp) |  | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The bound FirebaseApp instance. |
-|  [settings](./sql.firebasesql.md#firebasesqlsettings) |  | [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Resolved configuration settings. |
+|  [app](./sql.firebasesql.md#firebasesqlapp) |  | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The bound [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance. |
+|  [settings](./sql.firebasesql.md#firebasesqlsettings) |  | [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Deeply frozen copy of the validated [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) used by this client. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [from(table)](./sql.firebasesql.md#firebasesqlfrom) |  |  |
-|  [rpc(fn, params, options)](./sql.firebasesql.md#firebasesqlrpc) |  | Calls a Postgres stored procedure or function (RPC).<!-- -->Untyped RPC results default to <code>unknown</code> for type safety. Call <code>.returns&lt;T&gt;()</code> or <code>.overrideTypes&lt;T&gt;()</code> on the returned builder to specify the expected return type. |
+|  [from(table)](./sql.firebasesql.md#firebasesqlfrom) |  | Creates a reusable [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) scoped to a PostgreSQL table, view, or materialized view. |
+|  [rpc(fn, params, options)](./sql.firebasesql.md#firebasesqlrpc) |  | Creates a lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) that invokes a PostgreSQL stored function or procedure (<code>RPC</code>). |
 
 ## FirebaseSql.app
 
-The bound FirebaseApp instance.
+The bound [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.
 
 <b>Signature:</b>
 
@@ -46,7 +50,7 @@ readonly app: FirebaseApp;
 
 ## FirebaseSql.settings
 
-Resolved configuration settings.
+Deeply frozen copy of the validated [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) used by this client.
 
 <b>Signature:</b>
 
@@ -55,6 +59,16 @@ readonly settings: SqlServiceSettings;
 ```
 
 ## FirebaseSql.from()
+
+Creates a reusable [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) scoped to a PostgreSQL table, view, or materialized view.
+
+\*\*When to use:\*\* Starting any `SELECT`<!-- -->, `INSERT`<!-- -->, `UPSERT`<!-- -->, `UPDATE`<!-- -->, or `DELETE` chain against a relation in the client's configured PostgreSQL schema (`settings.schemaName`<!-- -->, or the server default schema).
+
+\*\*Do NOT use:\*\* - Calling stored functions or procedures; use [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc) instead. - Passing `<Row>` type generics (`sql.from<EventRow>('events')` is not supported); apply [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) or [TransformBuilder.returns()](./sql.transformbuilder.md#transformbuilderreturns) later in the chain. - Schema-qualifying `table` as `'analytics.events'`<!-- -->—`table` is URI-encoded as a single path segment; configure `schemaName: 'analytics'` in [getSql()](./sql.md#getsql_e89ea77) instead.
+
+\*\*Preconditions:\*\* - This `FirebaseSql` instance must not have been terminated via [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->.
+
+\*\*Behavior &amp; Side Effects:\*\* Synchronous and performs no network I/O. The returned [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) clones URL and header state on each verb call (`select`<!-- -->, `insert`<!-- -->, etc.), so a single `sql.from('events')` reference can be safely stored and reused across concurrent queries. Special URI characters (`/`<!-- -->, `?`<!-- -->, `#`<!-- -->) in `table` are percent-encoded to prevent path traversal.
 
 <b>Signature:</b>
 
@@ -66,17 +80,76 @@ from(table: string): QueryBuilder;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  table | string |  |
+|  table | string | Non-empty PostgreSQL table or view name (must not be <code>'.'</code>, <code>'..'</code>, or blank/whitespace). |
 
 <b>Returns:</b>
 
 [QueryBuilder](./sql.querybuilder.md#querybuilder_interface)
 
+A stateless [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) for starting SQL verb chains on `table`<!-- -->.
+
+#### Exceptions
+
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when called after [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->. \*\*Remediation:\*\* Obtain a fresh client via [getSql()](./sql.md#getsql_e89ea77)<!-- -->.
+
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when `table` is `'.'` or `'..'`<!-- -->. \*\*Remediation:\*\* Pass a valid PostgreSQL relation identifier.
+
+`Error` Thrown synchronously when `table` is empty (`''`<!-- -->) or whitespace-only. \*\*Remediation:\*\* Provide a non-blank table or view name.
+
+### Example 1
+
+\*\*Reuse a table `QueryBuilder` across concurrent `Promise.all` reads\*\*
+
+```ts
+const eventsTable = sql.from('events');
+
+const [featuredRes, countRes] = await Promise.all([
+  eventsTable.select('id, code, title').eq('is_featured', true),
+  eventsTable.select('*', { head: true, count: 'exact' }).eq('status', 'published')
+]);
+
+```
+
+### Example 2
+
+\*\*Perform CRUD operations against a shared table reference\*\*
+
+```ts
+const registrationsTable = sql.from('registrations');
+
+// Insert a new registration and return its generated UUID
+const created = await registrationsTable
+  .insert({
+    event_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+    user_uid: 'uid_carol',
+    attendee_email: 'carol@example.com'
+  })
+  .select('id')
+  .single()
+  .overrideTypes<{ id: string }, { merge: false }>();
+
+// Mark attendee checked in
+if (created.success) {
+  await registrationsTable
+    .update({ checked_in_at: '2026-10-15T15:55:00Z' })
+    .eq('id', created.data.id);
+}
+
+```
+
 ## FirebaseSql.rpc()
 
-Calls a Postgres stored procedure or function (RPC).
+Creates a lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) that invokes a PostgreSQL stored function or procedure (`RPC`<!-- -->).
 
-Untyped RPC results default to `unknown` for type safety. Call `.returns<T>()` or `.overrideTypes<T>()` on the returned builder to specify the expected return type.
+\*\*When to use:\*\* Calling custom server-side SQL or PL/pgSQL functions—including multi-statement transactional workflows, server-side aggregations (`remaining_seats`<!-- -->), or set-returning functions (`RETURNS SETOF` / `RETURNS TABLE` such as `list_events_by_city`<!-- -->) whose output rows need further PostgREST filtering, ordering, or pagination.
+
+\*\*Do NOT use:\*\* Standard single-table CRUD operations; prefer [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom)<!-- -->.
+
+\*\*Preconditions:\*\* - This `FirebaseSql` instance must not have been terminated via [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->. - `Args` must be a plain non-iterable key-value object matching the PostgreSQL function's named parameter names (arrays cannot be passed as the top-level `params` argument; wrap array parameters inside an object key, such as `{ target_tags: ['firebase', 'ai'] }`<!-- -->).
+
+\*\*Behavior &amp; Side Effects:\*\* - \*\*Builder Progression:\*\* `FirebaseSql -> FilterBuilder<unknown, 'RPC', false>`<!-- -->. No HTTP request is sent until the returned builder is `await`<!-- -->ed or `.then()` is invoked. - Defaults to `POST /rpc/{fn}` with JSON body `params ?? {}` (omit `params` for zero-argument functions: `sql.rpc('fn')`<!-- -->). Set `options.get: true` for read-only functions to use `GET` with query parameters (enabling automatic transient-error retries). Functions declared `RETURNS void` resolve with HTTP `204` and `data: null`<!-- -->. - Untyped `data` defaults to `unknown`<!-- -->. Note that `<Args>` types \*\*input\*\* `params` only—chain `.overrideTypes<ReturnType>()` at the end of direct `rpc()` chains to type `result.data` (no `{ merge: false }` needed when `T` is `unknown`<!-- -->, \*\*except\*\* when `.single()` or `.maybeSingle()` is chained first—those methods narrow `unknown` to `Record<string, unknown>`<!-- -->, so pass `.overrideTypes<RowType, { merge: false }>()` after `.single()` / `.maybeSingle()`<!-- -->). - For set-returning functions (`RETURNS SETOF` / `RETURNS TABLE`<!-- -->), you can chain [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) filters (`.eq()`<!-- -->, `.overlaps()`<!-- -->), [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) modifiers (`.select()`<!-- -->, `.order()`<!-- -->, `.limit()`<!-- -->, `.single()`<!-- -->, `.maxAffected()`<!-- -->), and [Builder](./sql.builder.md#builder_interface) modifiers before awaiting.
+
+\*\*Error Handling &amp; Remediation:\*\* - Resolves to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) (`{ success: false, error: FirebaseSqlError }`<!-- -->) on HTTP, PostgREST (`'sql-postgrest'`<!-- -->, e.g. `'PGRST202'` when function signature or parameter names do not match), gateway (`'sql-platform'`<!-- -->), or network (`'sql-client'`<!-- -->) failures. Chain [Builder.throwOnError()](./sql.builder.md#builderthrowonerror) to reject with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) instead.
 
 <b>Signature:</b>
 
@@ -92,11 +165,122 @@ rpc<Args extends object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fn | string | The function name to call. |
-|  params | Args \| undefined | Named arguments to pass to the function. |
-|  options | Readonly&lt;[FirebaseSqlRpcOptions](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptions_interface)<!-- -->&gt; \| undefined | Execution options. |
+|  fn | string | PostgreSQL function name in the active schema (must not be <code>'.'</code> or <code>'..'</code>; special URI characters are percent-encoded). |
+|  params | Args \| undefined | Named arguments object passed to the PostgreSQL function. |
+|  options | Readonly&lt;[FirebaseSqlRpcOptions](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptions_interface)<!-- -->&gt; \| undefined | HTTP verb (<code>get</code>, <code>head</code>) and <code>count</code> configuration. See [FirebaseSqlRpcOptions](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptions_interface)<!-- -->. |
 
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;unknown, 'RPC'&gt;
+
+A lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) with untyped result `unknown` and method tag `'RPC'`<!-- -->.
+
+#### Exceptions
+
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when called after [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->. \*\*Remediation:\*\* Re-initialize a client with [getSql()](./sql.md#getsql_e89ea77)<!-- -->.
+
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when `fn` is `'.'` or `'..'`<!-- -->. \*\*Remediation:\*\* Pass a valid PostgreSQL function name.
+
+### Example 1
+
+\*\*Full RPC verb chain on a set-returning function (`RETURNS SETOF events`<!-- -->)\*\*
+
+```ts
+interface EventRow {
+  id: string;
+  venue_id: string | null;
+  code: string;
+  title: string;
+  status: 'draft' | 'published' | 'cancelled' | 'archived';
+  is_featured: boolean;
+  ticket_price: number;
+  tags: string[];
+  metadata: Record<string, unknown>;
+  schedule: string;
+  created_at: string;
+}
+
+const cityEvents = await sql
+  .rpc('list_events_by_city', { target_city: 'Seattle' }, { get: true, count: 'exact' })
+  .eq('status', 'published')
+  .overlaps('tags', ['firebase', 'postgres'])
+  .order('ticket_price', { ascending: true })
+  .limit(10)
+  .overrideTypes<EventRow[]>();
+
+if (!cityEvents.success) {
+  console.error(cityEvents.error.code, cityEvents.error.hint);
+} else {
+  console.log(`Showing ${cityEvents.data.length} of ${cityEvents.count} events`);
+}
+
+```
+
+### Example 2
+
+\*\*Scalar read-only RPC returning a primitive value (`{ get: true }`<!-- -->)\*\*
+
+```ts
+const seatsRes = await sql
+  .rpc(
+    'remaining_seats',
+    { target_event_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8' },
+    { get: true }
+  )
+  .overrideTypes<number>();
+
+if (seatsRes.success) {
+  console.log('Remaining seats:', seatsRes.data);
+}
+
+```
+
+### Example 3
+
+\*\*Transactional write RPC sent via default `POST` JSON body with `.throwOnError()`<!-- -->\*\*
+
+```ts
+const { data } = await sql
+  .rpc('list_events_by_city', { target_city: 'San Francisco' })
+  .select('id, code, title')
+  .overrideTypes<Array<{ id: string; code: string; title: string }>>()
+  .throwOnError();
+
+```
+
+### Example 4
+
+\*\*Count-only `HEAD` RPC check (`data` resolves to `null`<!-- -->)\*\*
+
+```ts
+const headRes = await sql.rpc(
+  'list_events_by_city',
+  { target_city: 'Seattle' },
+  { head: true, count: 'exact' }
+);
+
+if (headRes.success) {
+  console.log('Matching Seattle events:', headRes.count);
+}
+
+```
+
+### Example
+
+\*\*Query a table and invoke a stored function using a `FirebaseSql` client\*\*
+
+```ts
+import { getSql, type FirebaseSql } from 'firebase/sql';
+
+const sql: FirebaseSql = getSql({
+  serviceId: 'events-db',
+  location: 'us-central1'
+});
+
+const venuesRes = await sql.from('venues').select('id, slug, name, city');
+const seatsRes = await sql
+  .rpc('remaining_seats', { target_event_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8' }, { get: true })
+  .overrideTypes<number>();
+
+```
 

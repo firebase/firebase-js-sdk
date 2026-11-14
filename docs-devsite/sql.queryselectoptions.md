@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QuerySelectOptions interface
+Execution options for [QueryBuilder.select()](./sql.querybuilder.md#querybuilderselect)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,10 +22,14 @@ export interface QuerySelectOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [count](./sql.queryselectoptions.md#queryselectoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined |  |
-|  [head](./sql.queryselectoptions.md#queryselectoptionshead) | boolean \| undefined |  |
+|  [count](./sql.queryselectoptions.md#queryselectoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined | Row-counting algorithm used to populate <code>result.count</code> on [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface)<!-- -->. |
+|  [head](./sql.queryselectoptions.md#queryselectoptionshead) | boolean \| undefined | Sends an HTTP <code>HEAD</code> request so PostgREST returns headers (including <code>count</code>) with an empty body (<code>result.data</code> resolves to <code>null</code>). |
 
 ## QuerySelectOptions.count
+
+Row-counting algorithm used to populate `result.count` on [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface)<!-- -->.
+
+When omitted, PostgREST does not compute a total count and `result.count` is `null`<!-- -->.
 
 <b>Signature:</b>
 
@@ -33,8 +39,25 @@ count?: QueryCountStrategy | undefined;
 
 ## QuerySelectOptions.head
 
+Sends an HTTP `HEAD` request so PostgREST returns headers (including `count`<!-- -->) with an empty body (`result.data` resolves to `null`<!-- -->).
+
+Combine with `count: 'exact'` (or `'estimated'`<!-- -->) to count matching rows without transferring row payloads. \*\*Compile-Time Type Caveat:\*\* Setting `head: true` does \*\*not\*\* narrow the static TypeScript type of `result.data` away from `Array<Record<string, unknown>>`<!-- -->, even though `result.data` is `null` at runtime—read `result.count` only and never access array properties (such as `.length`<!-- -->) on `result.data`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
 head?: boolean | undefined;
 ```
+
+### Example
+
+\*\*Request an exact row count via a metadata-only `HEAD` request\*\*
+
+```ts
+import type { QuerySelectOptions } from 'firebase/sql';
+
+const selectOpts: QuerySelectOptions = { head: true, count: 'exact' };
+const res = await sql.from('events').select('*', selectOpts);
+
+```
+

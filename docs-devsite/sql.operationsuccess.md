@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # OperationSuccess interface
+Successful response envelope resolved when awaiting a [Builder](./sql.builder.md#builder_interface) (`success === true`<!-- -->).
+
 <b>Signature:</b>
 
 ```typescript
@@ -21,12 +23,14 @@ export interface OperationSuccess<T> extends OperationBase
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [count](./sql.operationsuccess.md#operationsuccesscount) | number \| null |  |
-|  [data](./sql.operationsuccess.md#operationsuccessdata) | T |  |
-|  [error](./sql.operationsuccess.md#operationsuccesserror) | null |  |
-|  [success](./sql.operationsuccess.md#operationsuccesssuccess) | true |  |
+|  [count](./sql.operationsuccess.md#operationsuccesscount) | number \| null | Total row count when <code>count</code> (<code>'exact'</code>, <code>'planned'</code>, or <code>'estimated'</code>) was requested; otherwise <code>null</code>. |
+|  [data](./sql.operationsuccess.md#operationsuccessdata) | T | Deserialized response payload (<code>null</code> for mutations without <code>.select()</code> or <code>HEAD</code> requests). |
+|  [error](./sql.operationsuccess.md#operationsuccesserror) | null | Always <code>null</code> on a successful operation. |
+|  [success](./sql.operationsuccess.md#operationsuccesssuccess) | true | Discriminator literal <code>true</code> confirming the operation succeeded with a 2xx response. |
 
 ## OperationSuccess.count
+
+Total row count when `count` (`'exact'`<!-- -->, `'planned'`<!-- -->, or `'estimated'`<!-- -->) was requested; otherwise `null`<!-- -->.
 
 <b>Signature:</b>
 
@@ -36,6 +40,8 @@ count: number | null;
 
 ## OperationSuccess.data
 
+Deserialized response payload (`null` for mutations without `.select()` or `HEAD` requests).
+
 <b>Signature:</b>
 
 ```typescript
@@ -43,6 +49,8 @@ data: T;
 ```
 
 ## OperationSuccess.error
+
+Always `null` on a successful operation.
 
 <b>Signature:</b>
 
@@ -52,8 +60,35 @@ error: null;
 
 ## OperationSuccess.success
 
+Discriminator literal `true` confirming the operation succeeded with a 2xx response.
+
 <b>Signature:</b>
 
 ```typescript
 success: true;
 ```
+
+### Example
+
+\*\*Handle a narrowed `OperationSuccess` envelope\*\*
+
+```ts
+import type { OperationSuccess } from 'firebase/sql';
+
+interface VenueRow {
+  id: string;
+  name: string;
+}
+
+const res = await sql
+  .from('venues')
+  .select('id, name', { count: 'exact' })
+  .overrideTypes<VenueRow[], { merge: false }>();
+
+if (res.success) {
+  const ok: OperationSuccess<VenueRow[]> = res;
+  console.log(`Fetched ${ok.data.length} of ${ok.count ?? 0} venues`);
+}
+
+```
+
