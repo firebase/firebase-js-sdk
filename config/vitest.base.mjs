@@ -29,11 +29,42 @@ function getConcurrency() {
   }
   const totalMemGB = os.totalmem() / (1024 * 1024 * 1024);
   const memoryCap = Math.floor(totalMemGB / 1.5);
-  const cpuCap = process.env.CI ? 2 : Math.max(2, Math.floor(os.cpus().length / 2));
+  const cpuCap = process.env.CI
+    ? 2
+    : Math.max(2, Math.floor(os.cpus().length / 2));
   return Math.max(1, Math.min(12, Math.min(cpuCap, memoryCap)));
 }
 
 const maxForks = getConcurrency();
+
+const BROWSER_MAP = {
+  ChromeHeadless: 'chromium',
+  chromium: 'chromium',
+  chrome: 'chromium',
+  WebkitHeadless: 'webkit',
+  webkit: 'webkit',
+  safari: 'webkit',
+  Firefox: 'firefox',
+  FirefoxHeadless: 'firefox',
+  firefox: 'firefox'
+};
+
+function getBrowserInstances() {
+  if (!process.env.BROWSERS) {
+    return [{ browser: 'chromium' }];
+  }
+  const browsers = process.env.BROWSERS.split(',')
+    .map(b => BROWSER_MAP[b.trim()])
+    .filter(Boolean);
+  const uniqueBrowsers = [...new Set(browsers)];
+  if (uniqueBrowsers.length === 0) {
+    console.warn(
+      `Unsupported BROWSERS value "${process.env.BROWSERS}". Defaulting to chromium.`
+    );
+    return [{ browser: 'chromium' }];
+  }
+  return uniqueBrowsers.map(browser => ({ browser }));
+}
 
 /**
  * Wraps the Playwright browser provider so that when a session uses `vi.mock()`,
@@ -49,7 +80,18 @@ function createPlaywrightProvider(options) {
   return {
     ...baseProvider,
     providerFactory(project) {
-      const provider = baseProvider.providerFactory(project);
+      const browserName = project.config.browser.name;
+      const browserOptions =
+        browserName === 'chromium'
+          ? options
+          : {
+              ...options,
+              launchOptions: {
+                ...options?.launchOptions,
+                args: undefined
+              }
+            };
+      const provider = playwright(browserOptions).providerFactory(project);
       if (provider.mocker) {
         const routedSessions = new Set();
         const register = provider.mocker.register.bind(provider.mocker);
@@ -70,9 +112,12 @@ function createPlaywrightProvider(options) {
 }
 
 export function createBaseConfig(importMetaUrl, customConfig = {}) {
-  const packageDir = typeof importMetaUrl === 'string'
-    ? (importMetaUrl.startsWith('file:') ? path.dirname(fileURLToPath(importMetaUrl)) : importMetaUrl)
-    : process.cwd();
+  const packageDir =
+    typeof importMetaUrl === 'string'
+      ? importMetaUrl.startsWith('file:')
+        ? path.dirname(fileURLToPath(importMetaUrl))
+        : importMetaUrl
+      : process.cwd();
 
   const setupFile = path.resolve(packageDir, 'test/setup.ts');
   const setupFiles = fs.existsSync(setupFile) ? [setupFile] : [];
@@ -80,7 +125,9 @@ export function createBaseConfig(importMetaUrl, customConfig = {}) {
   const base = defineConfig({
     test: {
       globals: true,
-      reporters: process.env.GITHUB_ACTIONS ? ['default', 'github-actions'] : ['default'],
+      reporters: process.env.GITHUB_ACTIONS
+        ? ['default', 'github-actions']
+        : ['default'],
       projects: [
         {
           test: {
@@ -125,9 +172,7 @@ export function createBaseConfig(importMetaUrl, customConfig = {}) {
                   args: ['--disk-cache-size=1', '--media-cache-size=1']
                 }
               }),
-              instances: [
-                { browser: 'chromium' }
-              ],
+              instances: getBrowserInstances(),
               headless: true
             },
             isolate: true,
