@@ -25,7 +25,7 @@ import {
 import { encoder } from '../../test/unit/util/bundle_data';
 import { Firestore } from '../api/database';
 import { DatabaseId } from '../core/database_info';
-import { Query, queryToTarget } from '../core/query';
+import { LimitType, Query, queryToTarget, queryWithLimit } from '../core/query';
 import { DocumentData } from '../lite-api/reference';
 import { Timestamp } from '../lite-api/timestamp';
 import {
@@ -36,8 +36,10 @@ import {
 import { DocumentKey } from '../model/document_key';
 import {
   BundledDocumentMetadata as ProtoBundledDocumentMetadata,
+  BundledQuery as ProtoBundledQuery,
   BundleElement as ProtoBundleElement,
   BundleMetadata as ProtoBundleMetadata,
+  LimitType as ProtoLimitType,
   NamedQuery as ProtoNamedQuery
 } from '../protos/firestore_bundle_proto';
 import {
@@ -152,14 +154,23 @@ export class BundleBuilder {
         latestReadTime = docBundleData.readTime;
       }
     }
-    const queryTarget = toQueryTarget(
-      this.serializer,
-      queryToTarget(queryBundleData.query)
-    );
-    const bundledQuery = {
+    // `queryToTarget()` flips the ordering of limit-to-last queries. Like the
+    // server SDKs, store the equivalent limit-to-first query with limitType
+    // 'LAST' instead, which is what `fromBundledQuery()` expects.
+    let query = queryBundleData.query;
+    let limitType: ProtoLimitType | undefined;
+    if (query.limitType === LimitType.Last) {
+      query = queryWithLimit(query, query.limit, LimitType.First);
+      limitType = 'LAST';
+    }
+    const queryTarget = toQueryTarget(this.serializer, queryToTarget(query));
+    const bundledQuery: ProtoBundledQuery = {
       parent: queryBundleData.parent,
       structuredQuery: queryTarget.queryTarget.structuredQuery
     };
+    if (limitType) {
+      bundledQuery.limitType = limitType;
+    }
     this.namedQueries.set(queryBundleData.name, {
       name: queryBundleData.name,
       bundledQuery,
