@@ -37,6 +37,7 @@ import {
   HarmBlockMethod,
   HarmBlockThreshold,
   HarmCategory,
+  InferenceMode,
   InferenceSource,
   Language,
   Outcome
@@ -566,6 +567,20 @@ describe('generateContent()', () => {
       /firebasevertexai\.googleapis[\s\S]*my-project[\s\S]*api-not-enabled/
     );
     expect(mockFetch).toHaveBeenCalled();
+  });
+  it('throws without a cloud request if mode is ONLY_ON_DEVICE and there is no chromeAdapter', async () => {
+    const makeRequestStub = vi.spyOn(mockRequest, 'makeRequest');
+    const onlyOnDevice: ApiSettings = {
+      ...fakeApiSettings,
+      inferenceMode: InferenceMode.ONLY_ON_DEVICE
+    };
+    await expect(
+      generateContent(onlyOnDevice, 'model', fakeRequestParams)
+    ).rejects.toThrow(/on-device model is not available/);
+    await expect(
+      generateContentStream(onlyOnDevice, 'model', fakeRequestParams)
+    ).rejects.toThrow(/on-device model is not available/);
+    expect(makeRequestStub).not.toHaveBeenCalled();
   });
   describe('googleAI', () => {
     let makeRequestStub: MockInstance;

@@ -208,4 +208,16 @@ describe('countTokens()', () => {
       countTokens(fakeApiSettings, 'model', fakeRequestParams, chromeAdapter)
     ).rejects.toThrow(/countTokens\(\) is not supported for on-device models/);
   });
+  it('throws if mode is ONLY_ON_DEVICE and there is no chromeAdapter', async () => {
+    const fetchStub = vi.spyOn(globalThis, 'fetch');
+    await expect(
+      countTokens(
+        { ...fakeApiSettings, inferenceMode: InferenceMode.ONLY_ON_DEVICE },
+        'model',
+        fakeRequestParams,
+        undefined
+      )
+    ).rejects.toThrow(/countTokens\(\) is not supported for on-device models/);
+    expect(fetchStub).not.toHaveBeenCalled();
+  });
 });

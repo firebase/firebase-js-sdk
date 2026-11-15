@@ -123,6 +123,20 @@ describe('callCloudOrDevice', () => {
       expect(inCloudCall).not.toHaveBeenCalled();
       expect(onDeviceCall).not.toHaveBeenCalled();
     });
+
+    it('should throw, not call the cloud, if chromeAdapter is undefined', async () => {
+      await expect(
+        callCloudOrDevice(
+          request,
+          undefined,
+          onDeviceCall,
+          inCloudCall,
+          InferenceMode.ONLY_ON_DEVICE
+        )
+      ).rejects.toThrow(/on-device model is not available/);
+      expect(inCloudCall).not.toHaveBeenCalled();
+      expect(onDeviceCall).not.toHaveBeenCalled();
+    });
   });
 
   describe('ONLY_IN_CLOUD mode', () => {
