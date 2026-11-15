@@ -27,7 +27,6 @@ const URL =
   'https://firebasetelemetry.googleapis.com/v1alpha/projects/123/locations/global/apps/1:123:web:abc/clientConfig';
 const STORAGE_KEY = 'firebasecrashlytics.clientconfig:test';
 
-/** The configuration used when nothing has been fetched or cached yet: collect everything. */
 const DEFAULT_CONFIG: ClientConfig = { samplingRate: 1 };
 
 /** The `Cache-Control` header the server sends by default. */
