@@ -22,8 +22,8 @@ The Firebase Crashlytics Web SDK. This product is currently in public preview.
 |  [breadcrumbs()](./crashlytics.md#breadcrumbs) | <b>(EXPERIMENTAL)</b> Enables Crashlytics breadcrumb and trace telemetry collection when passed in [CrashlyticsOptions.features](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsfeatures)<!-- -->.<!-- -->When enabled, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions, and visibility lifecycle events), buffering them in memory and exporting them when an error occurs. |
 |  <b>function(crashlytics, ...)</b> |
 |  [flush(crashlytics)](./crashlytics.md#flush_16fdf66) | <b><i>(Public Preview)</i></b> Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching. |
-|  [log(crashlytics, message, attributes)](./crashlytics.md#log_a58b551) | <b>(EXPERIMENTAL)</b> Queues a log message to be uploaded to the Firebase Crashlytics API. |
-|  [recordError(crashlytics, error, attributes)](./crashlytics.md#recorderror_6824e74) | <b><i>(Public Preview)</i></b> Queues an error to be uploaded to the Firebase Crashlytics API. |
+|  [log(crashlytics, message, attributes)](./crashlytics.md#log_5ba066c) | <b>(EXPERIMENTAL)</b> Queues a log message to be uploaded to the Firebase Crashlytics API. |
+|  [recordError(crashlytics, error, attributes)](./crashlytics.md#recorderror_71ca165) | <b><i>(Public Preview)</i></b> Queues an error to be uploaded to the Firebase Crashlytics API. |
 
 ## Interfaces
 
@@ -125,14 +125,14 @@ Promise&lt;void&gt;
 
 a promise which is resolved when all flushes are complete
 
-### log(crashlytics, message, attributes) {:#log_a58b551}
+### log(crashlytics, message, attributes) {:#log_5ba066c}
 
 <b>(EXPERIMENTAL)</b> Queues a log message to be uploaded to the Firebase Crashlytics API.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function log(crashlytics: Crashlytics, message: string, attributes?: AnyValueMap): void;
+export declare function log(crashlytics: Crashlytics, message: string, attributes?: Attributes): void;
 ```
 
 #### Parameters
@@ -141,13 +141,13 @@ export declare function log(crashlytics: Crashlytics, message: string, attribute
 |  --- | --- | --- |
 |  crashlytics | [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) | The [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) instance. |
 |  message | string | The message to log. |
-|  attributes | AnyValueMap | Optional, arbitrary attributes to attach to the log. |
+|  attributes | Attributes | Optional, arbitrary attributes to attach to the log. |
 
 <b>Returns:</b>
 
 void
 
-### recordError(crashlytics, error, attributes) {:#recorderror_6824e74}
+### recordError(crashlytics, error, attributes) {:#recorderror_71ca165}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
@@ -157,7 +157,7 @@ Queues an error to be uploaded to the Firebase Crashlytics API.
 <b>Signature:</b>
 
 ```typescript
-export declare function recordError(crashlytics: Crashlytics, error: unknown, attributes?: AnyValueMap): void;
+export declare function recordError(crashlytics: Crashlytics, error: unknown, attributes?: Attributes): void;
 ```
 
 #### Parameters
@@ -166,7 +166,7 @@ export declare function recordError(crashlytics: Crashlytics, error: unknown, at
 |  --- | --- | --- |
 |  crashlytics | [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) | The [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) instance. |
 |  error | unknown | The caught exception, typically an Error object |
-|  attributes | AnyValueMap | Optional, arbitrary attributes to attach to the error log |
+|  attributes | Attributes | Optional, arbitrary attributes to attach to the error log |
 
 <b>Returns:</b>
 

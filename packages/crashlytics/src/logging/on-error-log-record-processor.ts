@@ -17,9 +17,9 @@
 
 import {
   BatchLogRecordProcessor,
-  BatchLogRecordProcessorBrowserOptions,
+  BatchLogRecordProcessorOptions,
   LogRecordExporter,
-  SdkLogRecord
+  ReadWriteLogRecord
 } from '@opentelemetry/sdk-logs';
 import { TelemetryStore } from '../telemetry-store';
 
@@ -34,11 +34,11 @@ export class OnErrorLogRecordProcessor extends BatchLogRecordProcessor {
     super({
       exporter,
       disableAutoFlushOnDocumentHide: true
-    } as BatchLogRecordProcessorBrowserOptions);
+    } as BatchLogRecordProcessorOptions);
     this._store = store;
   }
 
-  override onEmit(logRecord: SdkLogRecord): void {
+  override onEmit(logRecord: ReadWriteLogRecord): void {
     if (logRecord.attributes?.['browser.web_vital.rating'] === 'good') {
       return;
     }

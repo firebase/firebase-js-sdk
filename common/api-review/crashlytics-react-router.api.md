@@ -4,7 +4,7 @@
 
 ```ts
 
-import { AnyValueMap } from '@opentelemetry/api-logs';
+import { Attributes } from '@opentelemetry/api';
 import { default as default_2 } from 'react';
 import { FirebaseApp } from '@firebase/app';
 import { RoutesProps } from 'react-router-dom';
@@ -21,7 +21,7 @@ export interface CrashlyticsFeature {}
 export interface CrashlyticsOptions {
     appVersion?: string;
     captureUnhandledErrors?: boolean;
-    customAttributes?: AnyValueMap;
+    customAttributes?: Attributes;
     endpointUrl?: string;
     // @public
     features?: CrashlyticsFeature[];

@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-import { SeverityNumber, AnyValueMap } from '@opentelemetry/api-logs';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import {
   CrashlyticsFeatureInternal,
   CrashlyticsInternal,
   ErrorWithSymbol
 } from './types';
-import { type TimeInput } from '@opentelemetry/api';
+import { Attributes, SeverityNumber, type TimeInput } from '@opentelemetry/api';
 import { hrTimeToMilliseconds, timeInputToHrTime } from '@opentelemetry/core';
 import {
   ALREADY_LOGGED_FLAG,
@@ -260,7 +259,7 @@ export function logVisibilityEvent(
   const { loggerProvider, attributesStore } =
     crashlytics as CrashlyticsInternal;
   const logger = loggerProvider.getLogger('visibility-logger');
-  const customAttributes: AnyValueMap = attributesStore.getLogAttributes();
+  const customAttributes: Attributes = attributesStore.getLogAttributes();
 
   const body =
     visibilityState === 'hidden'

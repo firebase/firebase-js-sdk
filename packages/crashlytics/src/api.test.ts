@@ -20,16 +20,17 @@ import {
   LoggerProvider,
   LogRecordExporter,
   ReadableLogRecord,
-  SdkLogRecord
+  ReadWriteLogRecord
 } from '@opentelemetry/sdk-logs';
 import { resourceFromAttributes } from '@opentelemetry/resources';
-import { trace, TracerProvider } from '@opentelemetry/api';
 import {
   Logger,
   LogRecord,
   SeverityNumber,
-  logs
-} from '@opentelemetry/api-logs';
+  logs,
+  trace,
+  TracerProvider
+} from '@opentelemetry/api';
 import {
   FirebaseApp,
   initializeApp,
@@ -79,7 +80,7 @@ const fakeLoggerProvider = {
           fakeAttributesStore,
           PROJECT_ID
         );
-        processor.onEmit(logRecord as unknown as SdkLogRecord);
+        processor.onEmit(logRecord as unknown as ReadWriteLogRecord);
         emittedLogs.push(logRecord);
       },
       enabled: () => true

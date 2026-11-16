@@ -20,8 +20,7 @@ import { CrashlyticsInternal, ErrorWithSymbol } from './types';
 import { ALREADY_LOGGED_FLAG, CRASHLYTICS_TYPE } from './constants';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
-import { Attributes } from '@opentelemetry/api';
-import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
+import { Attributes, SeverityNumber } from '@opentelemetry/api';
 import { CrashlyticsService } from './service';
 import { deepEqual } from '@firebase/util';
 import { LOG_ATTR_KEY } from './attributes-store';
@@ -90,7 +89,7 @@ export function getCrashlytics(
 export function recordError(
   crashlytics: Crashlytics,
   error: unknown,
-  attributes?: AnyValueMap
+  attributes?: Attributes
 ): void {
   if (!crashlytics) {
     return;
@@ -112,7 +111,7 @@ export function recordError(
   } = crashlytics as CrashlyticsInternal;
 
   const logger = loggerProvider.getLogger('error-logger');
-  const customAttributes: AnyValueMap = attributes ? { ...attributes } : {};
+  const customAttributes: Attributes = attributes ? { ...attributes } : {};
 
   if (error instanceof Error) {
     logger.emit({
@@ -164,7 +163,7 @@ export function recordError(
 export function log(
   crashlytics: Crashlytics,
   message: string,
-  attributes?: AnyValueMap
+  attributes?: Attributes
 ): void {
   if (!crashlytics) {
     return;
@@ -172,7 +171,7 @@ export function log(
   // Cast to CrashlyticsInternal to access internal loggerProvider
   const { loggerProvider } = crashlytics as CrashlyticsInternal;
   const logger = loggerProvider.getLogger('custom-logger');
-  const customAttributes: AnyValueMap = attributes ? { ...attributes } : {};
+  const customAttributes: Attributes = attributes ? { ...attributes } : {};
 
   logger.emit({
     severityNumber: SeverityNumber.INFO,
