@@ -9,10 +9,10 @@
   dependencies:
     tslib "^2.3.0"
 
-"@angular/compiler@19.2.15":
-  version "19.2.15"
-  resolved "https://registry.npmjs.org/@angular/compiler/-/compiler-19.2.15.tgz#20fb21e77d6c6ace9a0c427a3ca9bcb4415b6336"
-  integrity sha512-hMHZU6/03xG0tbPDIm1hbVSTFLnRkGYfh+xdBwUMnIFYYTS0QJ2hdPfEZKCJIXm+fz9IAI5MPdDTfeyp0sgaHQ==
+"@angular/compiler@19.2.22":
+  version "19.2.22"
+  resolved "https://registry.npmjs.org/@angular/compiler/-/compiler-19.2.22.tgz#9217357fdbda55cee5bf915ddae6cb2799675513"
+  integrity sha512-NO3q39TMq88MRyBM9E/cSn4KFEItPrp79izX3nRkWlGQ0D9nJPdzm2cHtZoB9dCZ3N6EOazTgBK+2jKylQrUFQ==
   dependencies:
     tslib "^2.3.0"
 
