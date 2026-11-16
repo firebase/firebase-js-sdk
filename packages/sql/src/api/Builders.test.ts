@@ -788,8 +788,13 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
       interface UserRow {
         id: number;
         email: string;
+        metadata?: unknown;
       }
-      h.setResponder(() => jsonResponse([{ id: 1, email: 'ada@example.com' }]));
+      h.setResponder(() =>
+        jsonResponse([
+          { id: 1, email: 'ada@example.com', metadata: { role: 'admin' } }
+        ])
+      );
 
       const returnsRes = await qb
         .select()
@@ -800,9 +805,29 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
         expect(typedRows[0].email).toBe('ada@example.com');
       }
 
+      const partialOverrideBuilder: Builder<
+        Array<{ id: number; email: string; metadata: { role: string } }>,
+        false
+      > = qb
+        .select()
+        .returns<UserRow[]>()
+        .overrideTypes<Array<{ metadata: { role: string } }>>();
+      const partialRes = await partialOverrideBuilder;
+      expect(partialRes.success).toBe(true);
+      if (partialRes.success) {
+        expect(partialRes.data[0].metadata.role).toBe('admin');
+      }
+
+      const maybeSingleReturnsBuilder: Builder<UserRow | null, false> = qb
+        .select()
+        .maybeSingle()
+        .returns<UserRow>();
+      const maybeSingleRes = await maybeSingleReturnsBuilder;
+      expect(maybeSingleRes.success).toBe(true);
+
       const rpcTypedBuilder: Builder<UserRow[], false> = h
         .rpcBuilder('list_users')
-        .overrideTypes<UserRow[]>();
+        .returns<UserRow[]>();
       const rpcRes = await rpcTypedBuilder;
       expect(rpcRes.success).toBe(true);
       if (rpcRes.success) {

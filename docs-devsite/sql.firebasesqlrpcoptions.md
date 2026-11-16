@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FirebaseSqlRpcOptions interface
+HTTP method and row-counting options for [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,11 +22,15 @@ export interface FirebaseSqlRpcOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [count](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined |  |
-|  [get](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptionsget) | boolean \| undefined |  |
-|  [head](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptionshead) | boolean \| undefined |  |
+|  [count](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined | Row-counting strategy sent via the <code>Prefer: count=&lt;strategy&gt;</code> header for set-returning (<code>RETURNS SETOF</code> / <code>RETURNS TABLE</code>) functions. |
+|  [get](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptionsget) | boolean \| undefined | Calls the PostgreSQL function via HTTP <code>GET</code> with arguments encoded in the URL query string. |
+|  [head](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptionshead) | boolean \| undefined | Sends an HTTP <code>HEAD</code> request to retrieve response headers and <code>count</code> without a response body (<code>data</code> resolves to <code>null</code>). |
 
 ## FirebaseSqlRpcOptions.count
+
+Row-counting strategy sent via the `Prefer: count=<strategy>` header for set-returning (`RETURNS SETOF` / `RETURNS TABLE`<!-- -->) functions.
+
+Defaults to `undefined`<!-- -->. Only the exact lowercase literals `'exact'` (full `COUNT(*)` scan), `'planned'` (PostgreSQL planner estimate), and `'estimated'` (exact for small result sets, planner estimate above PostgREST's threshold) populate `result.count` on [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface)<!-- -->; other strings are sent verbatim in `Prefer` while `result.count` remains `null`<!-- -->.
 
 <b>Signature:</b>
 
@@ -34,6 +40,14 @@ count?: QueryCountStrategy | undefined;
 
 ## FirebaseSqlRpcOptions.get
 
+Calls the PostgreSQL function via HTTP `GET` with arguments encoded in the URL query string.
+
+Defaults to `false`<!-- -->.
+
+When to use: invoking `IMMUTABLE` or `STABLE` read-only PostgreSQL functions with primitive or flat-array arguments so automatic transient-error retries (`retry(true)`<!-- -->) apply.
+
+Do not use for functions that perform `INSERT`<!-- -->, `UPDATE`<!-- -->, or `DELETE` side effects or accept nested JSON object parameters; omit `get` (or pass `false`<!-- -->) so arguments are sent in a `POST` JSON body. Arguments with `undefined` values are omitted from the query string, top-level arrays are formatted unquoted as `{a,b}` (`{value.join(',')}`<!-- -->), and all other non-array values are stringified via `String(value)` (pass ISO strings via `date.toISOString()`<!-- -->, never raw `Date`<!-- -->).
+
 <b>Signature:</b>
 
 ```typescript
@@ -42,8 +56,31 @@ get?: boolean | undefined;
 
 ## FirebaseSqlRpcOptions.head
 
+Sends an HTTP `HEAD` request to retrieve response headers and `count` without a response body (`data` resolves to `null`<!-- -->).
+
+Defaults to `false`<!-- -->. Takes precedence over `get` when both are `true`<!-- -->.
+
+Parameters are serialized as URL query parameters unless any parameter value is a non-null object (including plain objects, `Date`<!-- -->, `Map`<!-- -->, or an array containing an object), in which case the client falls back to `POST` with `Prefer: return=minimal` because object arguments cannot be encoded as PostgREST URL parameters. That `POST` fallback executes the function in a read-write transaction on PostgREST and disables automatic `GET`<!-- -->/`HEAD` retries.
+
+Because `HEAD` responses carry no body, an HTTP `404` (for example, an unknown function) is normalized to `status: 204` with `success: true` and `count: null`<!-- -->, and other `HEAD` failures carry no PostgREST error code; treat `count === null` as a failed count when `count` was requested.
+
 <b>Signature:</b>
 
 ```typescript
 head?: boolean | undefined;
 ```
+
+### Example
+
+Configure read-only `GET` execution with exact row counting:
+
+```ts
+import type { FirebaseSqlRpcOptions } from 'firebase/sql';
+
+const rpcOptions: FirebaseSqlRpcOptions = {
+  get: true,
+  count: 'exact'
+};
+
+```
+

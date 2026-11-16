@@ -1,0 +1,13 @@
+{
+  "name": "firebase-sql-events-hub-example",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Comprehensive interactive example app and live documentation runner for @firebase/sql (Events & Venues Hub)",
+  "scripts": {
+    "dev": "../../../../node_modules/.bin/vite",
+    "build": "../../../../node_modules/.bin/tsc --noEmit && ../../../../node_modules/.bin/vite build",
+    "preview": "../../../../node_modules/.bin/vite preview",
+    "typecheck": "../../../../node_modules/.bin/tsc --noEmit"
+  }
+}
