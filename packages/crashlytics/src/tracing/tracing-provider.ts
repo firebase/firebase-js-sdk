@@ -19,7 +19,8 @@ import { resourceFromAttributes } from '@opentelemetry/resources';
 import {
   CompositePropagator,
   W3CTraceContextPropagator,
-  ExportResult
+  ExportResult,
+  ExportResultCode
 } from '@opentelemetry/core';
 import { TracerProvider, trace } from '@opentelemetry/api';
 import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
@@ -48,7 +49,8 @@ import {
   RESOURCE_ATTRIBUTE_KEYS
 } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
-import { getOtlpExportEndpointUrl } from '../helpers';
+import { getClientConfigUrl, getOtlpExportEndpointUrl } from '../helpers';
+import type { SessionSampler } from '../sampling/session-sampler';
 
 let unregisterInstrumentations: (() => void) | undefined;
 
@@ -72,7 +74,8 @@ export function createTracingProvider(
   crashlyticsOptions: CrashlyticsOptions,
   attributesStore: AttributesStore,
   telemetryStore: TelemetryStore,
-  dynamicHeaderProviders: DynamicHeaderProvider[] = []
+  dynamicHeaderProviders: DynamicHeaderProvider[] = [],
+  sessionSampler?: SessionSampler
 ): TracingProviderResult {
   if (typeof window === 'undefined') {
     return { tracingProvider: trace.getTracerProvider() };
@@ -116,7 +119,8 @@ export function createTracingProvider(
         }
       },
       dynamicHeaderProviders,
-      attributesStore
+      attributesStore,
+      sessionSampler
     );
   }
 
@@ -145,13 +149,19 @@ export function createTracingProvider(
      `?` -> makes the `s` optional so https://api.example.com/traceversion=1 will be ignored too
      Anchor with `^` so only requests actually targeting the endpoint are ignored.
   */
-  const cleanedRegexEndpointUrl = `^${endpointUrl.replace(
-    /[.*+?^${}()|[\]\\]/g,
-    '\\$&'
-  )}`;
+  const escapeRegExp = (value: string): string =>
+    value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const cleanedRegexEndpointUrl = `^${escapeRegExp(endpointUrl)}`;
+  // Also ignore the SDK's own GetClientConfig request, so the config fetch never produces a span.
+  const clientConfigUrl = getClientConfigUrl(app.options, crashlyticsOptions);
 
   const networkInstrumentationConfig = {
-    ignoreUrls: [new RegExp(cleanedRegexEndpointUrl)],
+    ignoreUrls: [
+      new RegExp(cleanedRegexEndpointUrl),
+      ...(clientConfigUrl
+        ? [new RegExp(`^${escapeRegExp(clientConfigUrl)}`)]
+        : [])
+    ],
     semconvStabilityOptIn: 'http'
   };
 
@@ -180,7 +190,8 @@ export class OTLPTraceExporter
   constructor(
     config: OTLPExporterConfigBase = {},
     dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-    private attributesStore?: AttributesStore
+    private attributesStore?: AttributesStore,
+    private sessionSampler?: SessionSampler
   ) {
     super(
       createOtlpNetworkExportDelegate(
@@ -207,6 +218,25 @@ export class OTLPTraceExporter
     spans: ReadableSpan[],
     resultCallback: (result: ExportResult) => void
   ): Promise<void> {
+    // Session sampling: drop spans of unsampled sessions before transmission and stamp the
+    // session sampling rate on spans of sampled sessions.
+    try {
+      if (
+        this.sessionSampler &&
+        !(await this.sessionSampler.applySampling(spans))
+      ) {
+        resultCallback({ code: ExportResultCode.SUCCESS });
+        return;
+      }
+    } catch (error) {
+      // The batch processor doesn't await export(), so fail the batch instead of rejecting.
+      resultCallback({
+        code: ExportResultCode.FAILED,
+        error: error instanceof Error ? error : new Error(String(error))
+      });
+      return;
+    }
+
     const installationIdAttribute =
       await this.attributesStore?.getInstallationIdAttribute();
 
