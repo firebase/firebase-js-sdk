@@ -32,6 +32,7 @@ export interface CrashlyticsOptions
 |  [features](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsfeatures) | [CrashlyticsFeature](./crashlytics.crashlyticsfeature.md#crashlyticsfeature_interface)<!-- -->\[\] | <b>(EXPERIMENTAL)</b> Optional list of Crashlytics features (such as [breadcrumbs()](./crashlytics.md#breadcrumbs)<!-- -->) to enable.<!-- -->When [breadcrumbs()](./crashlytics.md#breadcrumbs) is included, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions, and visibility lifecycle events), buffering them in memory and exporting them when an error occurs. |
 |  [region](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsregion) | string | <b><i>(Public Preview)</i></b> The Google Cloud region where the Crashlytics data should be sent.<!-- -->By default, data will be sent to the "global" region.<!-- -->Refer to https://cloud.google.com/logging/docs/regions for the list of available regions. |
 |  [registerGlobalLoggerProvider](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsregistergloballoggerprovider) | boolean | <b><i>(Public Preview)</i></b> Whether to register the underlying OpenTelemetry LoggerProvider globally with the OpenTelemetry API (<code>logs.setGlobalLoggerProvider()</code>).<!-- -->When enabled, other OpenTelemetry instrumentations (such as Core Web Vitals, Console, or Fetch) and custom application loggers can automatically route logs through Firebase Crashlytics.<!-- -->Defaults to <code>false</code>. |
+|  [registerGlobalTracerProvider](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsregisterglobaltracerprovider) | boolean | <b><i>(Public Preview)</i></b> Whether to register the underlying OpenTelemetry TracerProvider globally with the OpenTelemetry API (<code>trace.setGlobalTracerProvider()</code>).<!-- -->When enabled, other OpenTelemetry instrumentations and custom application tracers can automatically route spans through Firebase Crashlytics.<!-- -->Defaults to <code>false</code>. |
 
 ## CrashlyticsOptions.appVersion
 
@@ -143,4 +144,21 @@ Defaults to `false`<!-- -->.
 
 ```typescript
 registerGlobalLoggerProvider?: boolean;
+```
+
+## CrashlyticsOptions.registerGlobalTracerProvider
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Whether to register the underlying OpenTelemetry TracerProvider globally with the OpenTelemetry API (`trace.setGlobalTracerProvider()`<!-- -->).
+
+When enabled, other OpenTelemetry instrumentations and custom application tracers can automatically route spans through Firebase Crashlytics.
+
+Defaults to `false`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+registerGlobalTracerProvider?: boolean;
 ```

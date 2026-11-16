@@ -146,7 +146,9 @@ export function createTracingProvider(
     ]
   });
 
-  trace.setGlobalTracerProvider(tracingProvider);
+  if (crashlyticsOptions.registerGlobalTracerProvider) {
+    trace.setGlobalTracerProvider(tracingProvider);
+  }
   propagation.setGlobalPropagator(
     new CompositePropagator({
       propagators: [new W3CTraceContextPropagator()]
@@ -176,6 +178,7 @@ export function createTracingProvider(
   }
 
   unregisterInstrumentations = registerInstrumentations({
+    tracerProvider: tracingProvider,
     instrumentations: [
       new FetchInstrumentation(networkInstrumentationConfig),
       new XMLHttpRequestInstrumentation(networkInstrumentationConfig),

@@ -88,6 +88,17 @@ export interface CrashlyticsOptions {
   registerGlobalLoggerProvider?: boolean;
 
   /**
+   * Whether to register the underlying OpenTelemetry TracerProvider globally with the OpenTelemetry API
+   * (`trace.setGlobalTracerProvider()`).
+   *
+   * When enabled, other OpenTelemetry instrumentations and custom application tracers
+   * can automatically route spans through Firebase Crashlytics.
+   *
+   * Defaults to `false`.
+   */
+  registerGlobalTracerProvider?: boolean;
+
+  /**
    * Automatically capture uncaught browser exceptions ('error' and
    * 'unhandledrejection' window events).
    *

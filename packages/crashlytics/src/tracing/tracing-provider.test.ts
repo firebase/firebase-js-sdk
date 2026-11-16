@@ -15,16 +15,26 @@
  * limitations under the License.
  */
 
-import { createTracingProvider, OTLPTraceExporter } from './tracing-provider';
+import {
+  createTracingProvider,
+  OTLPTraceExporter,
+  unregisterTracingInstrumentations
+} from './tracing-provider';
 import { FirebaseApp } from '@firebase/app';
 import { CrashlyticsOptions } from '../public-types';
+import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
 import { context, propagation, trace } from '@opentelemetry/api';
 import { AttributesStore } from '../attributes-store';
 import { resourceFromAttributes } from '@opentelemetry/resources';
-import { StackContextManager } from '@opentelemetry/sdk-trace';
+import {
+  InMemorySpanExporter,
+  SimpleSpanProcessor,
+  StackContextManager,
+  TracerProvider as SdkTracerProvider
+} from '@opentelemetry/sdk-trace';
 import { CompositePropagator } from '@opentelemetry/core';
 import { TelemetryStore } from '../telemetry-store';
 import { FirebaseAttributesSpanProcessor } from './attributes-span-processor';
@@ -75,6 +85,10 @@ describe('createTracingProvider', () => {
   });
 
   afterEach(() => {
+    unregisterTracingInstrumentations();
+    trace.disable();
+    propagation.disable();
+    context.disable();
     vi.restoreAllMocks();
   });
 
@@ -92,7 +106,7 @@ describe('createTracingProvider', () => {
     expect(provider).toBe(trace.getTracerProvider());
   });
 
-  it('should register the TracerProvider globally with a W3CTraceContextPropagator', () => {
+  it('should not register TracerProvider globally by default while configuring propagator and context manager', () => {
     if (typeof window === 'undefined') {
       return;
     }
@@ -118,8 +132,7 @@ describe('createTracingProvider', () => {
       mockTelemetryStore
     );
 
-    expect(setGlobalTracerProviderSpy).toHaveBeenCalledTimes(1);
-    expect(setGlobalTracerProviderSpy).toHaveBeenCalledWith(provider);
+    expect(setGlobalTracerProviderSpy).not.toHaveBeenCalled();
 
     expect(setGlobalPropagatorSpy).toHaveBeenCalledTimes(1);
     const propagator = setGlobalPropagatorSpy.mock.calls[0][0];
@@ -152,6 +165,221 @@ describe('createTracingProvider', () => {
       '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01'
     );
     expect(provider).toBeTruthy();
+  });
+
+  it('should register TracerProvider globally when registerGlobalTracerProvider is true', () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const setGlobalTracerProviderSpy = vi.spyOn(
+      trace,
+      'setGlobalTracerProvider'
+    );
+
+    const { tracingProvider: provider } = createTracingProvider(
+      mockApp,
+      {
+        endpointUrl: 'http://localhost:4318',
+        registerGlobalTracerProvider: true
+      },
+      mockAttributesStore,
+      mockTelemetryStore
+    );
+
+    expect(setGlobalTracerProviderSpy).toHaveBeenCalledTimes(1);
+    expect(setGlobalTracerProviderSpy).toHaveBeenCalledWith(provider);
+  });
+
+  it('should bind all instrumentations directly to Crashlytics TracerProvider', () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const fetchSetProviderSpy = vi.spyOn(
+      FetchInstrumentation.prototype,
+      'setTracerProvider'
+    );
+    const xhrSetProviderSpy = vi.spyOn(
+      XMLHttpRequestInstrumentation.prototype,
+      'setTracerProvider'
+    );
+    const docLoadSetProviderSpy = vi.spyOn(
+      DocumentLoadInstrumentation.prototype,
+      'setTracerProvider'
+    );
+
+    const { tracingProvider } = createTracingProvider(
+      mockApp,
+      {},
+      mockAttributesStore,
+      mockTelemetryStore
+    );
+
+    expect(fetchSetProviderSpy).toHaveBeenCalledWith(tracingProvider);
+    expect(xhrSetProviderSpy).toHaveBeenCalledWith(tracingProvider);
+    expect(docLoadSetProviderSpy).toHaveBeenCalledWith(tracingProvider);
+  });
+
+  it('should coexist with a pre-registered host TracerProvider (host-before-crashlytics)', async () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const fetchStub = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('ok', { status: 200 }));
+
+    const hostExporter = new InMemorySpanExporter();
+    const hostProvider = new SdkTracerProvider({
+      spanProcessors: [new SimpleSpanProcessor({ exporter: hostExporter })]
+    });
+    trace.setGlobalTracerProvider(hostProvider);
+
+    const unregisterHostInstrumentations = registerInstrumentations({
+      instrumentations: [new FetchInstrumentation()]
+    });
+
+    const onErrorOnEndSpy = vi.spyOn(OnErrorSpanProcessor.prototype, 'onEnd');
+
+    try {
+      const { tracingProvider: crashlyticsProvider } = createTracingProvider(
+        mockApp,
+        {},
+        mockAttributesStore,
+        mockTelemetryStore
+      );
+
+      // 1. Verify host provider remains the global delegate
+      expect(
+        (
+          trace.getTracerProvider() as unknown as {
+            getDelegate: () => unknown;
+          }
+        ).getDelegate()
+      ).toBe(hostProvider);
+      expect(crashlyticsProvider).not.toBe(hostProvider);
+
+      // 2. Verify host global tracer routes custom spans to hostExporter
+      trace.getTracer('host-app').startSpan('host-span').end();
+
+      // 3. Trigger a fetch request and verify both host and Crashlytics capture it independently
+      await globalThis.fetch('https://example.com/api/test-endpoint');
+
+      // FetchInstrumentation ends spans after OBSERVER_WAIT_TIME_MS (300ms)
+      await vi.waitFor(
+        () => {
+          const hostSpanNames = hostExporter
+            .getFinishedSpans()
+            .map(s => s.name);
+          expect(hostSpanNames).toContain('host-span');
+          expect(
+            hostExporter
+              .getFinishedSpans()
+              .some(s =>
+                String(s.attributes['url.full'] ?? '').includes(
+                  '/api/test-endpoint'
+                )
+              )
+          ).toBe(true);
+
+          const crashlyticsSpanUrls = onErrorOnEndSpy.mock.calls.map(([span]) =>
+            String(span.attributes['url.full'] ?? '')
+          );
+          expect(
+            crashlyticsSpanUrls.some(url => url.includes('/api/test-endpoint'))
+          ).toBe(true);
+        },
+        { timeout: 2000 }
+      );
+    } finally {
+      unregisterTracingInstrumentations();
+      unregisterHostInstrumentations();
+      fetchStub.mockRestore();
+      await hostProvider.shutdown();
+    }
+  });
+
+  it('should allow host app to register global TracerProvider when Crashlytics initializes first (crashlytics-before-host)', async () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const fetchStub = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('ok', { status: 200 }));
+
+    const onErrorOnEndSpy = vi.spyOn(OnErrorSpanProcessor.prototype, 'onEnd');
+    let unregisterHostInstrumentations: (() => void) | undefined;
+    let hostProvider: SdkTracerProvider | undefined;
+
+    try {
+      const { tracingProvider: crashlyticsProvider } = createTracingProvider(
+        mockApp,
+        {},
+        mockAttributesStore,
+        mockTelemetryStore
+      );
+
+      const hostExporter = new InMemorySpanExporter();
+      hostProvider = new SdkTracerProvider({
+        spanProcessors: [new SimpleSpanProcessor({ exporter: hostExporter })]
+      });
+
+      // Host registration must succeed because Crashlytics left the global TracerProvider unset
+      const registered = trace.setGlobalTracerProvider(hostProvider);
+      expect(registered).toBe(true);
+      expect(
+        (
+          trace.getTracerProvider() as unknown as {
+            getDelegate: () => unknown;
+          }
+        ).getDelegate()
+      ).toBe(hostProvider);
+      expect(crashlyticsProvider).not.toBe(hostProvider);
+
+      unregisterHostInstrumentations = registerInstrumentations({
+        instrumentations: [new FetchInstrumentation()]
+      });
+
+      // Host global tracer captures host custom span into hostExporter
+      trace.getTracer('host-app').startSpan('qa-host-custom-op').end();
+
+      // Both host and Crashlytics capture the fetch span independently
+      await globalThis.fetch('https://example.com/api/test-endpoint');
+
+      // FetchInstrumentation ends spans after OBSERVER_WAIT_TIME_MS (300ms)
+      await vi.waitFor(
+        () => {
+          const hostSpanNames = hostExporter
+            .getFinishedSpans()
+            .map(s => s.name);
+          expect(hostSpanNames).toContain('qa-host-custom-op');
+          expect(
+            hostExporter
+              .getFinishedSpans()
+              .some(s =>
+                String(s.attributes['url.full'] ?? '').includes(
+                  '/api/test-endpoint'
+                )
+              )
+          ).toBe(true);
+
+          const crashlyticsSpanUrls = onErrorOnEndSpy.mock.calls.map(([span]) =>
+            String(span.attributes['url.full'] ?? '')
+          );
+          expect(
+            crashlyticsSpanUrls.some(url => url.includes('/api/test-endpoint'))
+          ).toBe(true);
+        },
+        { timeout: 2000 }
+      );
+    } finally {
+      unregisterHostInstrumentations?.();
+      unregisterTracingInstrumentations();
+      fetchStub.mockRestore();
+      await hostProvider?.shutdown();
+    }
   });
 
   it('should initialize TracerProvider with FirebaseAttributesSpanProcessor and OnErrorSpanProcessor', () => {

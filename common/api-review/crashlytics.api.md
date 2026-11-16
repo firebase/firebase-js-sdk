@@ -28,6 +28,7 @@ export interface CrashlyticsOptions {
     features?: CrashlyticsFeature[];
     region?: string;
     registerGlobalLoggerProvider?: boolean;
+    registerGlobalTracerProvider?: boolean;
 }
 
 // @beta
