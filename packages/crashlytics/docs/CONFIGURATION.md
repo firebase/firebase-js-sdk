@@ -287,7 +287,7 @@ Because Crashlytics for Web alerts are built on Google Cloud Monitoring and Clou
 
 ## Log Schema
 
-Here is the schema from a sample log with all of the fields that you can expect to see. With session sampling, `labels` also includes `session.sampling.rate`, plus `session.sampling.forced` for debug sessions:
+Here is the schema from a sample log with all of the fields that you can expect to see. Logs from debug sessions also have `session.sampling.forced` in `labels`:
 
 ```json
 {
@@ -319,6 +319,7 @@ Here is the schema from a sample log with all of the fields that you can expect 
     "app_id": "YOUR_APP_ID",
     "location": "global",
     "session.id": "YOUR_SESSION_ID",
+    "session.sampling.rate": "0.25",
     "exception.stacktrace": "stacktrace",
     "gcp.resource_type": "firebasetelemetry.googleapis.com/App",
     "exception.message": "test error",
