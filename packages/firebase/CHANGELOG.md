@@ -1,5 +1,24 @@
 # firebase
 
+## 13.4.0
+
+### Minor Changes
+
+- [`79b89f2`](https://github.com/firebase/firebase-js-sdk/commit/79b89f2939e584da90d3670dc576852fd1a6f4a7) [#10620](https://github.com/firebase/firebase-js-sdk/pull/10620) - Upgraded OpenTelemetry dependencies to 3.x (`@opentelemetry/api` 1.10.0, SDKs 3.1.1, exporters and instrumentations 0.301.2, `@opentelemetry/browser-instrumentation` 0.11.0, `@opentelemetry/instrumentation-document-load` 0.70.0, and `@opentelemetry/semantic-conventions` 1.45.0), removing deprecated `@opentelemetry/api-logs`, `@opentelemetry/sdk-trace-base`, and `@opentelemetry/sdk-trace-web` dependencies, and updated public attribute types (`CrashlyticsOptions.customAttributes`, `log()`, and `recordError()`) to use `Attributes` from `@opentelemetry/api`.
+
+### Patch Changes
+
+- Updated dependencies [[`79b89f2`](https://github.com/firebase/firebase-js-sdk/commit/79b89f2939e584da90d3670dc576852fd1a6f4a7), [`e101b00`](https://github.com/firebase/firebase-js-sdk/commit/e101b004a39fa9ad63212d69f8dc68e825cfcc6a)]:
+  - @firebase/crashlytics@0.2.0
+  - @firebase/app@0.16.7
+  - @firebase/auth@1.13.11
+  - @firebase/analytics@0.10.26
+  - @firebase/app-check@0.13.2
+  - @firebase/app-compat@0.5.23
+  - @firebase/auth-compat@0.6.16
+  - @firebase/analytics-compat@0.2.32
+  - @firebase/app-check-compat@0.4.8
+
 ## 13.3.0
 
 ### Minor Changes
