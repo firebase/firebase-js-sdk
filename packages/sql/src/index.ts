@@ -6,8 +6,8 @@
  * Application import path: install `firebase` and import from `firebase/sql` (do not import
  * `@firebase/sql` directly in application code).
  *
- * Builder state machine and chain order: queries and mutations progress through the entry client
- * and four lazy TypeScript builder interfaces: (1) {@link FirebaseSql}, the entry client exposing
+ * Builder state machine and chain order: queries and mutations progress through five stages (the
+ * entry client and four lazy TypeScript builder interfaces): (1) {@link FirebaseSql}, the entry client exposing
  * `sql.from(table)` and `sql.rpc(fn, params, options)`; (2) {@link QueryBuilder}, the SQL table
  * verb selector (`select`, `insert`, `upsert`, `update`, `delete`); (3) {@link FilterBuilder}, row
  * filters (`eq`, `in`, `gte`, `contains`, `or`, `not`, and related operators);

@@ -835,7 +835,6 @@ export interface QueryBuilder {
    *   .from('events')
    *   .update({ ticket_price: 79.0 })
    *   .eq('code', 'FIREBASE-SUMMIT-2026')
-   *   .maxAffected(1)
    *   .select('id, code, ticket_price')
    *   .rollback()
    *   .overrideTypes<Array<{ id: string; code: string; ticket_price: number }>, { merge: false }>();

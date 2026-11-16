@@ -93,7 +93,8 @@ export interface TransformOrderOptions {
    * @remarks
    * Defaults to `undefined`. Takes precedence over `foreignTable` when both are provided. Does not
    * change parent-row order (to sort parent rows by a many-to-one relation column, pass
-   * `'venue(name)'` as `column` with `referencedTable` omitted).
+   * `'venues(name)'` as `column` with `referencedTable` omitted, or `'venue(name)'` if aliased via
+   * `'venue:venues(name)'`).
    */
   referencedTable?: string | undefined;
 }
@@ -250,7 +251,9 @@ export interface TransformExplainOptions {
  * and `maxAffected()` before those terminal format modifiers.
  *
  * Note that `limit()` and `range()` both set the `limit` URL parameter on the target table (or
- * `referencedTable`), so chaining both overwrites the previous `limit` (last call wins).
+ * `referencedTable`), so chaining both overwrites the previous `limit` (last call wins for
+ * `limit`), whereas `range()` also sets `offset` and a subsequent `limit()` does not clear it (for
+ * example, `.range(20, 39).limit(5)` sends `offset=20&limit=5`).
  *
  * @typeParam Result$1 - Expected resolved `data` payload type prior to cardinality/format narrowing.
  * @typeParam Method - HTTP/RPC operation discriminator (`'GET'`, `'POST'`, `'PATCH'`, `'DELETE'`, `'RPC'`).
@@ -393,7 +396,8 @@ export interface TransformBuilder<
    * nested child arrays on each parent row via `options.referencedTable`.
    *
    * Do not use for offset-based pagination across pages; use {@link TransformBuilder.range} instead
-   * (note that `limit()` and `range()` overwrite each other's `limit` URL parameter—last call wins).
+   * (note that `limit()` and `range()` overwrite each other's `limit` URL parameter, whereas
+   * `limit()` does not clear an `offset` set by an earlier `range()`).
    *
    * Behavior and side effects: sends `limit=<rows>` verbatim without client-side validation,
    * mutating URL query parameters in place without network I/O, and returns `this`.
@@ -430,7 +434,8 @@ export interface TransformBuilder<
    *
    * Behavior and side effects: both `from` and `to` are inclusive (`range(0, 9)` returns up to `10`
    * rows). The SDK sends `offset=<from>` and `limit=<to - from + 1>` verbatim without client-side
-   * validation (overwriting any earlier `.limit()` on the same target table).
+   * validation (overwriting any earlier `.limit()` on the same target table; conversely, calling
+   * `.limit()` after `.range()` overwrites `limit` while leaving `offset=<from>` in place).
    *
    * Error handling: if PostgREST rejects the requested range (for example, an offset beyond total
    * matching rows when `count` is requested, or a negative `limit` when `to < from - 1`), it
@@ -567,8 +572,8 @@ export interface TransformBuilder<
    * Do not use to guard writes (`insert`, `upsert`, `update`, `delete`): `maybeSingle()` sets no
    * `Accept` header and no row `limit`, and runs its cardinality check client-side after the server
    * has already returned `2xx` and committed changes to every matched row. Use
-   * {@link TransformBuilder.maxAffected | .maxAffected(1)} (on PostgREST v13+) or
-   * {@link TransformBuilder.single} to enforce single-row writes on the server.
+   * {@link TransformBuilder.maxAffected | .maxAffected(1)} (for `update()` and `delete()` on
+   * PostgREST v13+) or {@link TransformBuilder.single} to enforce single-row writes on the server.
    *
    * Behavior and side effects: builder progression is
    * `TransformBuilder<R[]> -> Builder<R | null, ThrowOnError>`. Terminal cardinality modifier—apply
@@ -738,12 +743,15 @@ export interface TransformBuilder<
    * Requests (`Prefer: tx=rollback`) that PostgREST roll back this request's transaction instead of committing it.
    *
    * @remarks
-   * Preconditions and commit warning: PostgREST ignores `Prefer: tx=rollback` unless the backend
-   * server is explicitly configured with `db-tx-end` set to `commit-allow-override` or
-   * `rollback-allow-override`. On default PostgREST configurations, `Prefer: tx=rollback` is
-   * silently ignored, the mutation commits permanently, and the SDK still resolves
-   * `OperationSuccess` because `Preference-Applied` is not inspected. Never run `.rollback()`
-   * against production data unless you have verified the backend enforces `tx=rollback`.
+   * Preconditions and commit warning: PostgREST honors `Prefer: tx=rollback` only when the backend
+   * server is configured with `db-tx-end` set to `commit-allow-override`, `rollback-allow-override`,
+   * or `rollback` (where every transaction rolls back unconditionally). On default PostgREST
+   * configurations (`db-tx-end = commit`), `Prefer: tx=rollback` is silently ignored—even when
+   * `Prefer: handling=strict` is also present (such as via {@link TransformBuilder.maxAffected},
+   * because `handling=strict` only rejects unrecognized preference syntax)—so the mutation commits
+   * permanently and the SDK still resolves `OperationSuccess` because `Preference-Applied` is not
+   * inspected. Never run `.rollback()` against production data unless you have verified the backend
+   * enforces `tx=rollback`.
    *
    * Behavior and side effects: appends `Prefer: tx=rollback` to this single HTTP request in place
    * and returns `this`. Does not span multiple SDK calls (use a PostgreSQL function via
@@ -754,7 +762,7 @@ export interface TransformBuilder<
    * @example
    * Request a rolled-back insert preview (only when the server permits `Prefer: tx=rollback`):
    * ```ts
-   * // WARNING: If the server's db-tx-end does not allow overrides, PostgREST ignores
+   * // WARNING: If the server's db-tx-end is set to commit (the default), PostgREST ignores
    * // Prefer: tx=rollback and this INSERT COMMITS while returning success: true.
    * const res = await sql
    *   .from('events')
@@ -778,6 +786,8 @@ export interface TransformBuilder<
 
   /**
    * Legacy result-type override method replacing the static TypeScript type of `result.data` while keeping {@link TransformBuilder} methods available.
+   *
+   * @deprecated Use {@link Builder.overrideTypes} instead.
    *
    * @remarks
    * Prefer {@link Builder.overrideTypes | .overrideTypes()} with `{ merge: false }` at the end of
@@ -810,9 +820,10 @@ export interface TransformBuilder<
    * roll back the transaction if the operation affects more than `rows` rows.
    *
    * @remarks
-   * Preconditions: requires a PostgREST v13+ backend (older PostgREST servers do not enforce
-   * `max-affected`), and upstream PostgREST documents enforcement for `PATCH` (`update`) and
-   * `DELETE` (`delete`) methods.
+   * Preconditions: requires a PostgREST v13+ backend (PostgREST v12 servers supporting
+   * `handling=strict` reject the unrecognized `max-affected` preference with HTTP `400` `PGRST122`,
+   * whereas pre-v12 servers ignore both headers without enforcing the row cap), and upstream
+   * PostgREST documents enforcement for `PATCH` (`update`) and `DELETE` (`delete`) methods.
    *
    * When to use: protecting `update()` and `delete()` operations on PostgREST v13+ from overly
    * broad filter predicates (for example, `.maxAffected(1)` when updating a single record).

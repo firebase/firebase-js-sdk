@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # FirebaseSqlError class
 Structured error class returned in [OperationFailure.error](./sql.operationfailure.md#operationfailureerror) or thrown synchronously / via [Builder.throwOnError()](./sql.builder.md#builderthrowonerror)<!-- -->.
 
-Extends `FirebaseError` from `@firebase/util`<!-- -->. Inspect [FirebaseSqlError.category](./sql.firebasesqlerror.md#firebasesqlerrorcategory)<!-- -->, [FirebaseSqlError.code](./sql.firebasesqlerror.md#firebasesqlerrorcode)<!-- -->, [FirebaseSqlError.details](./sql.firebasesqlerror.md#firebasesqlerrordetails)<!-- -->, and [FirebaseSqlError.hint](./sql.firebasesqlerror.md#firebasesqlerrorhint) together—PostgreSQL and PostgREST frequently populate `hint` and `details` with the exact column, constraint, or SQL grant needed to fix a failing query. See [Code](./sql.md#code) for client and platform error codes and [FirebaseSqlErrorCategory](./sql.md#firebasesqlerrorcategory) for origin tiers.
+Extends `FirebaseError` from `@firebase/util`<!-- -->. Inspect [FirebaseSqlError.category](./sql.firebasesqlerror.md#firebasesqlerrorcategory)<!-- -->, [FirebaseSqlError.code](./sql.firebasesqlerror.md#firebasesqlerrorcode)<!-- -->, [FirebaseSqlError.details](./sql.firebasesqlerror.md#firebasesqlerrordetails)<!-- -->, and [FirebaseSqlError.hint](./sql.firebasesqlerror.md#firebasesqlerrorhint) together—PostgreSQL and PostgREST frequently populate `hint` and `details` with the exact column, constraint, or SQL grant needed to fix a failing query (and `'sql-client'` errors may populate them with client error stacks, `Caused by` chains, or cancellation/URL-length hints). See [Code](./sql.md#code) for client and platform error codes and [FirebaseSqlErrorCategory](./sql.md#firebasesqlerrorcategory) for origin tiers.
 
 <b>Signature:</b>
 
@@ -33,8 +33,8 @@ export declare class FirebaseSqlError extends FirebaseError
 |  --- | --- | --- | --- |
 |  [category](./sql.firebasesqlerror.md#firebasesqlerrorcategory) |  | string | Origin tier (<code>'sql-postgrest'</code>, <code>'sql-platform'</code>, or <code>'sql-client'</code>; typed as <code>string</code> at compile time). |
 |  [code](./sql.firebasesqlerror.md#firebasesqlerrorcode) |  | string | PostgREST/PostgreSQL wire code (<code>'23505'</code>, <code>'PGRST116'</code>, etc.) or [FirebaseSqlErrorCode](./sql.md#firebasesqlerrorcode)<!-- -->. |
-|  [details](./sql.firebasesqlerror.md#firebasesqlerrordetails) |  | string \| undefined | Optional server-supplied diagnostic explanation or serialized structured error payload. |
-|  [hint](./sql.firebasesqlerror.md#firebasesqlerrorhint) |  | string \| undefined | Optional actionable remediation hint from PostgreSQL or PostgREST. |
+|  [details](./sql.firebasesqlerror.md#firebasesqlerrordetails) |  | string \| undefined | Optional diagnostic explanation (server-supplied, JSON-serialized structured payload, or client error stack / cause chain on <code>'sql-client'</code> errors). |
+|  [hint](./sql.firebasesqlerror.md#firebasesqlerrorhint) |  | string \| undefined | Optional actionable remediation hint (from PostgreSQL/PostgREST, or client-generated on <code>'sql-client'</code> errors). |
 |  [status](./sql.firebasesqlerror.md#firebasesqlerrorstatus) |  | number \| undefined | HTTP status code when an HTTP response was received (<code>undefined</code> for <code>'sql-client'</code> errors, where [OperationFailure.status](./sql.operationbase.md#operationbasestatus) is <code>0</code>). |
 
 ## Methods
@@ -86,7 +86,7 @@ readonly code: string;
 
 ## FirebaseSqlError.details
 
-Optional server-supplied diagnostic explanation or serialized structured error payload.
+Optional diagnostic explanation (server-supplied, JSON-serialized structured payload, or client error stack / cause chain on `'sql-client'` errors).
 
 <b>Signature:</b>
 
@@ -96,7 +96,7 @@ readonly details?: string | undefined;
 
 ## FirebaseSqlError.hint
 
-Optional actionable remediation hint from PostgreSQL or PostgREST.
+Optional actionable remediation hint (from PostgreSQL/PostgREST, or client-generated on `'sql-client'` errors).
 
 <b>Signature:</b>
 

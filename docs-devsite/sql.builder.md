@@ -28,7 +28,7 @@ export interface Builder<T, ThrowOnError extends boolean = false> extends Promis
 |  Method | Description |
 |  --- | --- |
 |  [overrideTypes()](./sql.builder.md#builderoverridetypes) | Overrides the static TypeScript type of <code>result.data</code> at compile time without performing runtime validation. |
-|  [retry(enabled)](./sql.builder.md#builderretry) | Enables or disables automatic transient-failure retries for <code>GET</code>, <code>HEAD</code>, and <code>OPTIONS</code> HTTP requests on this builder. |
+|  [retry(enabled)](./sql.builder.md#builderretry) | Enables or disables automatic transient-failure retries for <code>GET</code> and <code>HEAD</code> HTTP requests on this builder. |
 |  [returns()](./sql.builder.md#builderreturns) | Legacy result-type override method replacing the static TypeScript type of <code>result.data</code> on this [Builder](./sql.builder.md#builder_interface)<!-- -->. |
 |  [setHeader(name, value)](./sql.builder.md#buildersetheader) | Sets a custom HTTP header on this single request, overriding any client-level header of the same name from [SqlServiceSettings.headers](./sql.sqlservicesettings.md#sqlservicesettingsheaders)<!-- -->. |
 |  [stripNulls()](./sql.builder.md#builderstripnulls) | Instructs PostgREST to omit keys whose value is <code>null</code> from returned JSON row objects (<code>Accept: application/vnd.pgrst.array+json;nulls=stripped</code> or <code>application/vnd.pgrst.object+json;nulls=stripped</code>). |
@@ -106,11 +106,11 @@ const res = await sql
 
 ## Builder.retry()
 
-Enables or disables automatic transient-failure retries for `GET`<!-- -->, `HEAD`<!-- -->, and `OPTIONS` HTTP requests on this builder.
+Enables or disables automatic transient-failure retries for `GET` and `HEAD` HTTP requests on this builder.
 
-Default behavior (`enabled = true`<!-- -->): retries are enabled by default on every builder, but only execute for `GET`<!-- -->, `HEAD`<!-- -->, and `OPTIONS` requests (such as `select()`<!-- -->, `rpc(..., { get: true })`<!-- -->, and `rpc(..., { head: true })` when `params` contains no object values; if `rpc(..., { head: true })` contains any non-null object argument, it falls back to `POST` and is not retried).
+Default behavior (`enabled = true`<!-- -->): retries are enabled by default on every builder, but only execute for `GET` and `HEAD` requests (such as `select()`<!-- -->, `rpc(..., { get: true })`<!-- -->, and `rpc(..., { head: true })` when `params` contains no plain object values or arrays of objects; primitive array arguments like `{ ids: [1, 2] }` stay `HEAD` and are retried, whereas plain objects or arrays containing objects fall back to `POST` and are not retried).
 
-Requests using methods other than `GET`<!-- -->, `HEAD`<!-- -->, or `OPTIONS` (including `POST`<!-- -->, `PATCH`<!-- -->, and `DELETE` for `insert()`<!-- -->, `upsert()`<!-- -->, `update()`<!-- -->, `delete()`<!-- -->, and `POST`<!-- -->-mode `rpc()`<!-- -->) and requests cancelled via `AbortSignal` are never retried even when `enabled` is `true`<!-- -->.
+Requests using `POST`<!-- -->, `PATCH`<!-- -->, or `DELETE` (including `insert()`<!-- -->, `upsert()`<!-- -->, `update()`<!-- -->, `delete()`<!-- -->, and `POST`<!-- -->-mode `rpc()`<!-- -->) and requests cancelled via `AbortSignal` are never retried even when `enabled` is `true`<!-- -->.
 
 Eligible requests retry up to `3` times (`4` total attempts) on network `fetch` rejections or HTTP status `503` / `520`<!-- -->, backing off exponentially (`1s`<!-- -->, `2s`<!-- -->, `4s`<!-- -->, or honoring the server's `Retry-After` header on `503` / `520`<!-- -->) and sending an `X-Retry-Count` header on retry attempts. Note that Firebase Auth `getToken()` rejections on `GET` or `HEAD` surface as `fetch` rejections and are retried with the same `1s`<!-- -->, `2s`<!-- -->, `4s` backoff before failing.
 
@@ -128,7 +128,7 @@ retry(enabled: boolean): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  enabled | boolean | <code>false</code> to disable automatic retries for this request; <code>true</code> to re-enable default <code>GET</code>/<code>HEAD</code>/<code>OPTIONS</code> retry behavior. |
+|  enabled | boolean | <code>false</code> to disable automatic retries for this request; <code>true</code> to re-enable default <code>GET</code>/<code>HEAD</code> retry behavior. |
 
 <b>Returns:</b>
 
@@ -151,6 +151,11 @@ const res = await sql
 ```
 
 ## Builder.returns()
+
+> Warning: This API is now obsolete.
+> 
+> Use [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) instead.
+> 
 
 Legacy result-type override method replacing the static TypeScript type of `result.data` on this [Builder](./sql.builder.md#builder_interface)<!-- -->.
 

@@ -24,8 +24,8 @@ export interface SerializedFirebaseSqlError
 |  --- | --- | --- |
 |  [category](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorcategory) | string | Origin tier (<code>'sql-postgrest'</code>, <code>'sql-platform'</code>, or <code>'sql-client'</code>). |
 |  [code](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorcode) | string | PostgREST/PostgreSQL wire code (<code>'sql-postgrest'</code>) or [FirebaseSqlErrorCode](./sql.md#firebasesqlerrorcode) (<code>'sql-platform'</code> / <code>'sql-client'</code>). |
-|  [details](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrordetails) | string \| undefined | Optional server-supplied diagnostic detail or JSON-serialized structured error details. |
-|  [hint](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorhint) | string \| undefined | Optional PostgreSQL or PostgREST remediation hint (for example, suggested <code>GRANT</code> or relationship disambiguation). |
+|  [details](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrordetails) | string \| undefined | Optional diagnostic detail (server-supplied, JSON-serialized structured details, or client error stack / cause chain on <code>'sql-client'</code> errors). |
+|  [hint](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorhint) | string \| undefined | Optional remediation hint (from PostgreSQL/PostgREST, or client-generated abort / header / URL-length hints on <code>'sql-client'</code> errors). |
 |  [message](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrormessage) | string | Human-readable error message. |
 |  [status](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerrorstatus) | number \| undefined | HTTP status code when an HTTP response was received; omitted (<code>undefined</code>) for local/network <code>'sql-client'</code> errors. |
 
@@ -51,7 +51,7 @@ code: string;
 
 ## SerializedFirebaseSqlError.details
 
-Optional server-supplied diagnostic detail or JSON-serialized structured error details.
+Optional diagnostic detail (server-supplied, JSON-serialized structured details, or client error stack / cause chain on `'sql-client'` errors).
 
 <b>Signature:</b>
 
@@ -61,7 +61,7 @@ details?: string | undefined;
 
 ## SerializedFirebaseSqlError.hint
 
-Optional PostgreSQL or PostgREST remediation hint (for example, suggested `GRANT` or relationship disambiguation).
+Optional remediation hint (from PostgreSQL/PostgREST, or client-generated abort / header / URL-length hints on `'sql-client'` errors).
 
 <b>Signature:</b>
 

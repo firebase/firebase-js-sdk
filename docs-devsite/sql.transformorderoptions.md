@@ -63,7 +63,7 @@ nullsFirst?: boolean | undefined;
 
 Embedded relation name (or alias) whose nested array elements should be sorted instead of the parent table (`?<referencedTable>.order=...`<!-- -->).
 
-Defaults to `undefined`<!-- -->. Takes precedence over `foreignTable` when both are provided. Does not change parent-row order (to sort parent rows by a many-to-one relation column, pass `'venue(name)'` as `column` with `referencedTable` omitted).
+Defaults to `undefined`<!-- -->. Takes precedence over `foreignTable` when both are provided. Does not change parent-row order (to sort parent rows by a many-to-one relation column, pass `'venues(name)'` as `column` with `referencedTable` omitted, or `'venue(name)'` if aliased via `'venue:venues(name)'`<!-- -->).
 
 <b>Signature:</b>
 

@@ -14,7 +14,7 @@ Lazy PostgREST result-shaping builder supporting post-mutation projection (`sele
 
 Builder progression: base interface of [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) and subtype of [Builder](./sql.builder.md#builder_interface)<!-- -->. Calling `.single()`<!-- -->, `.maybeSingle()`<!-- -->, `.csv()`<!-- -->, `.geojson()`<!-- -->, or `.explain()` narrows the static return type to [Builder](./sql.builder.md#builder_interface)<!-- -->—always apply filters (`eq`<!-- -->, `in`<!-- -->), `order()`<!-- -->, `limit()`<!-- -->, `range()`<!-- -->, and `maxAffected()` before those terminal format modifiers.
 
-Note that `limit()` and `range()` both set the `limit` URL parameter on the target table (or `referencedTable`<!-- -->), so chaining both overwrites the previous `limit` (last call wins).
+Note that `limit()` and `range()` both set the `limit` URL parameter on the target table (or `referencedTable`<!-- -->), so chaining both overwrites the previous `limit` (last call wins for `limit`<!-- -->), whereas `range()` also sets `offset` and a subsequent `limit()` does not clear it (for example, `.range(20, 39).limit(5)` sends `offset=20&limit=5`<!-- -->).
 
 <b>Signature:</b>
 
@@ -202,7 +202,7 @@ Caps the maximum number of rows returned (`?limit=<rows>` or `?<referencedTable>
 
 When to use: fetching the top `N` rows (combine with [TransformBuilder.order()](./sql.transformbuilder.md#transformbuilderorder)<!-- -->) or capping nested child arrays on each parent row via `options.referencedTable`<!-- -->.
 
-Do not use for offset-based pagination across pages; use [TransformBuilder.range()](./sql.transformbuilder.md#transformbuilderrange) instead (note that `limit()` and `range()` overwrite each other's `limit` URL parameter—last call wins).
+Do not use for offset-based pagination across pages; use [TransformBuilder.range()](./sql.transformbuilder.md#transformbuilderrange) instead (note that `limit()` and `range()` overwrite each other's `limit` URL parameter, whereas `limit()` does not clear an `offset` set by an earlier `range()`<!-- -->).
 
 Behavior and side effects: sends `limit=<rows>` verbatim without client-side validation, mutating URL query parameters in place without network I/O, and returns `this`<!-- -->.
 
@@ -242,7 +242,7 @@ const res = await sql
 
 Appends `Prefer: handling=strict` and `Prefer: max-affected=<rows>` to request that PostgREST roll back the transaction if the operation affects more than `rows` rows.
 
-Preconditions: requires a PostgREST v13+ backend (older PostgREST servers do not enforce `max-affected`<!-- -->), and upstream PostgREST documents enforcement for `PATCH` (`update`<!-- -->) and `DELETE` (`delete`<!-- -->) methods.
+Preconditions: requires a PostgREST v13+ backend (PostgREST v12 servers supporting `handling=strict` reject the unrecognized `max-affected` preference with HTTP `400` `PGRST122`<!-- -->, whereas pre-v12 servers ignore both headers without enforcing the row cap), and upstream PostgREST documents enforcement for `PATCH` (`update`<!-- -->) and `DELETE` (`delete`<!-- -->) methods.
 
 When to use: protecting `update()` and `delete()` operations on PostgREST v13+ from overly broad filter predicates (for example, `.maxAffected(1)` when updating a single record).
 
@@ -293,7 +293,7 @@ Unwraps a `0`<!-- -->-or-`1` row array result client-side into `ResultOne | null
 
 When to use: read-only `select()` lookups by unique key where `0` matching rows is a valid outcome (`0` rows resolves to `success: true, data: null`<!-- -->; use [TransformBuilder.single()](./sql.transformbuilder.md#transformbuildersingle) when `0` rows should fail).
 
-Do not use to guard writes (`insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, `delete`<!-- -->): `maybeSingle()` sets no `Accept` header and no row `limit`<!-- -->, and runs its cardinality check client-side after the server has already returned `2xx` and committed changes to every matched row. Use [.maxAffected(1)](./sql.transformbuilder.md#transformbuildermaxaffected) (on PostgREST v13+) or [TransformBuilder.single()](./sql.transformbuilder.md#transformbuildersingle) to enforce single-row writes on the server.
+Do not use to guard writes (`insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, `delete`<!-- -->): `maybeSingle()` sets no `Accept` header and no row `limit`<!-- -->, and runs its cardinality check client-side after the server has already returned `2xx` and committed changes to every matched row. Use [.maxAffected(1)](./sql.transformbuilder.md#transformbuildermaxaffected) (for `update()` and `delete()` on PostgREST v13+) or [TransformBuilder.single()](./sql.transformbuilder.md#transformbuildersingle) to enforce single-row writes on the server.
 
 Behavior and side effects: builder progression is `TransformBuilder<R[]> -> Builder<R | null, ThrowOnError>`<!-- -->. Terminal cardinality modifier—apply all filters and `.select()` before `.maybeSingle()`<!-- -->. Follow with `.overrideTypes<MyRow, { merge: false }>()` (pass `MyRow` without `| null` or `[]`<!-- -->; `overrideTypes` automatically preserves `| null` on `result.data`<!-- -->). Sends no `limit`<!-- -->, so all matching rows are transferred and parsed before checking `data.length > 1`<!-- -->; chain `.limit(2)` before `.maybeSingle()` on read queries to bound network transfer while still detecting duplicates.
 
@@ -382,7 +382,7 @@ Slices the result set to the 0-based inclusive index window `[from, to]` (`?offs
 
 When to use: page-based pagination (for example, page 1 of 20 items is `.range(0, 19)`<!-- -->, page 2 is `.range(20, 39)`<!-- -->). Always pair with a deterministic [TransformBuilder.order()](./sql.transformbuilder.md#transformbuilderorder) clause (such as ordering by a unique `id` tie-breaker) so rows cannot shift across pages. For simple top-N queries without an offset, use [TransformBuilder.limit()](./sql.transformbuilder.md#transformbuilderlimit)<!-- -->.
 
-Behavior and side effects: both `from` and `to` are inclusive (`range(0, 9)` returns up to `10` rows). The SDK sends `offset=<from>` and `limit=<to - from + 1>` verbatim without client-side validation (overwriting any earlier `.limit()` on the same target table).
+Behavior and side effects: both `from` and `to` are inclusive (`range(0, 9)` returns up to `10` rows). The SDK sends `offset=<from>` and `limit=<to - from + 1>` verbatim without client-side validation (overwriting any earlier `.limit()` on the same target table; conversely, calling `.limit()` after `.range()` overwrites `limit` while leaving `offset=<from>` in place).
 
 Error handling: if PostgREST rejects the requested range (for example, an offset beyond total matching rows when `count` is requested, or a negative `limit` when `to < from - 1`<!-- -->), it returns HTTP `416`<!-- -->, resolving to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) with `res.status === 416`<!-- -->, `res.error.category === 'sql-postgrest'`<!-- -->, and `res.error.code === 'PGRST103'`<!-- -->. Stop paginating once `from >= count` (or treat `'PGRST103'` as an empty page).
 
@@ -423,6 +423,11 @@ const page2 = await sql
 
 ## TransformBuilder.returns()
 
+> Warning: This API is now obsolete.
+> 
+> Use [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) instead.
+> 
+
 Legacy result-type override method replacing the static TypeScript type of `result.data` while keeping [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) methods available.
 
 Prefer [.overrideTypes()](./sql.builder.md#builderoverridetypes) with `{ merge: false }` at the end of the builder chain for new code. Enforces array-vs-object cardinality compatibility via [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->. Calling `returns()` on a [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) narrows the static type to [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) (filter methods are no longer exposed after `returns()`<!-- -->).
@@ -454,7 +459,7 @@ const res = await sql
 
 Requests (`Prefer: tx=rollback`<!-- -->) that PostgREST roll back this request's transaction instead of committing it.
 
-Preconditions and commit warning: PostgREST ignores `Prefer: tx=rollback` unless the backend server is explicitly configured with `db-tx-end` set to `commit-allow-override` or `rollback-allow-override`<!-- -->. On default PostgREST configurations, `Prefer: tx=rollback` is silently ignored, the mutation commits permanently, and the SDK still resolves `OperationSuccess` because `Preference-Applied` is not inspected. Never run `.rollback()` against production data unless you have verified the backend enforces `tx=rollback`<!-- -->.
+Preconditions and commit warning: PostgREST honors `Prefer: tx=rollback` only when the backend server is configured with `db-tx-end` set to `commit-allow-override`<!-- -->, `rollback-allow-override`<!-- -->, or `rollback` (where every transaction rolls back unconditionally). On default PostgREST configurations (`db-tx-end = commit`<!-- -->), `Prefer: tx=rollback` is silently ignored—even when `Prefer: handling=strict` is also present (such as via [TransformBuilder.maxAffected()](./sql.transformbuilder.md#transformbuildermaxaffected)<!-- -->, because `handling=strict` only rejects unrecognized preference syntax)—so the mutation commits permanently and the SDK still resolves `OperationSuccess` because `Preference-Applied` is not inspected. Never run `.rollback()` against production data unless you have verified the backend enforces `tx=rollback`<!-- -->.
 
 Behavior and side effects: appends `Prefer: tx=rollback` to this single HTTP request in place and returns `this`<!-- -->. Does not span multiple SDK calls (use a PostgreSQL function via [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc) for multi-statement transactions).
 
@@ -474,7 +479,7 @@ This builder for continued chaining.
 Request a rolled-back insert preview (only when the server permits `Prefer: tx=rollback`<!-- -->):
 
 ```ts
-// WARNING: If the server's db-tx-end does not allow overrides, PostgREST ignores
+// WARNING: If the server's db-tx-end is set to commit (the default), PostgREST ignores
 // Prefer: tx=rollback and this INSERT COMMITS while returning success: true.
 const res = await sql
   .from('events')

@@ -90,7 +90,9 @@ export interface SqlServiceSettings {
    * throw {@link FirebaseSqlError} (`invalid-argument`). Every header name and value must also be a
    * valid HTTP header accepted by the Fetch `Headers` constructor (no spaces in header names, no
    * CR/LF, and Latin-1 characters only), or {@link (getSql:1) | getSql()} throws a `TypeError`
-   * synchronously. Firebase Auth and App Check tokens are attached automatically when configured on
+   * synchronously when creating a new client (if a client is already cached for the same endpoint
+   * and `schemaName`, `getSql()` returns the cached client and ignores `settings.headers`).
+   * Firebase Auth and App Check tokens are attached automatically when configured on
    * the bound `FirebaseApp`.
    *
    * Excluded from the {@link (getSql:1) | getSql()} instance cache key; use {@link Builder.setHeader}

@@ -832,16 +832,21 @@ export interface FilterBuilder<
    *
    * Do not pass `null` or `undefined` inside `values`: elements are sent as the literal text
    * `'null'` or `'undefined'` and compared as strings (or rejected with SQLSTATE `'22P02'` on typed
-   * columns), not as SQL `NULL`. Also note that SQL `NOT IN` excludes rows where `column IS NULL`;
-   * to include `NULL` rows alongside non-matching values, combine with `is.null` inside
-   * {@link FilterBuilder.or | .or()}.
+   * columns), not as SQL `NULL`. When `values` is non-empty, SQL `NOT IN` also excludes rows where
+   * `column IS NULL`; to include `NULL` rows alongside non-matching values, combine with `is.null`
+   * inside {@link FilterBuilder.or | .or()}.
+   *
+   * Empty-array hazard: `values` is not validated client-side—passing an empty array `[]` sends
+   * `?column=not.in.()`, which evaluates to `true` in PostgREST and matches every row in the table
+   * (including rows where `column IS NULL`). Always guard dynamic arrays with `values.length > 0`
+   * before calling `notIn()`, especially on `update()` or `delete()`.
    *
    * Behavior and side effects: deduplicates `values` via `Set`, wraps string elements containing
    * `,`, `(`, or `)` in double quotes (embedded `"` or `\` characters inside strings are not
    * escaped automatically), and mutates URL query parameters in place without network I/O.
    *
    * @param column - Scalar PostgreSQL column name.
-   * @param values - Non-null scalar values to exclude.
+   * @param values - Non-empty list of non-null scalar values to exclude.
    * @returns This {@link FilterBuilder} for continued chaining.
    *
    * @example
@@ -1122,14 +1127,15 @@ export interface FilterBuilder<
    * (such as `events.search_doc`) or `text` columns. Always pass `{ type: 'websearch' }` (or
    * `'plain'` / `'phrase'`) in {@link FilterTextSearchOptions} when `query` comes from raw user
    * input; omitting `options.type` uses PostgreSQL `to_tsquery`, which fails with a syntax error if
-   * `query` is not valid `tsquery` boolean syntax (such as `'firebase' & 'sql'`).
+   * `query` is not valid `tsquery` boolean syntax (for example, raw multi-word input like
+   * `'firebase sql'` fails unless formatted as `'firebase' & 'sql'`).
    *
    * Behavior and side effects: mutates this builder's URL query parameters in place without network
    * I/O and returns `this`.
    *
    * @param column - PostgreSQL `tsvector` or `text` column name.
    * @param query - Search query string interpreted according to `options.type`.
-   * @param options - Optional text search dictionary (`config`) and parser mode (`type`, see {@link FilterTextSearchType}). See {@link FilterTextSearchOptions}.
+   * @param options - Optional text search configuration (`config`) and parser mode (`type`, see {@link FilterTextSearchType}). See {@link FilterTextSearchOptions}.
    * @returns This {@link FilterBuilder} for continued chaining.
    *
    * @example

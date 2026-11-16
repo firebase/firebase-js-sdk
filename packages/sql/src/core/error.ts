@@ -211,9 +211,9 @@ export interface SerializedFirebaseSqlError {
   message: string;
   /** Origin tier (`'sql-postgrest'`, `'sql-platform'`, or `'sql-client'`). */
   category: string;
-  /** Optional server-supplied diagnostic detail or JSON-serialized structured error details. */
+  /** Optional diagnostic detail (server-supplied, JSON-serialized structured details, or client error stack / cause chain on `'sql-client'` errors). */
   details?: string | undefined;
-  /** Optional PostgreSQL or PostgREST remediation hint (for example, suggested `GRANT` or relationship disambiguation). */
+  /** Optional remediation hint (from PostgreSQL/PostgREST, or client-generated abort / header / URL-length hints on `'sql-client'` errors). */
   hint?: string | undefined;
   /** HTTP status code when an HTTP response was received; omitted (`undefined`) for local/network `'sql-client'` errors. */
   status?: number | undefined;
@@ -226,8 +226,9 @@ export interface SerializedFirebaseSqlError {
  * Extends `FirebaseError` from `@firebase/util`. Inspect {@link FirebaseSqlError.category},
  * {@link FirebaseSqlError.code}, {@link FirebaseSqlError.details}, and {@link FirebaseSqlError.hint}
  * together—PostgreSQL and PostgREST frequently populate `hint` and `details` with the exact column,
- * constraint, or SQL grant needed to fix a failing query. See {@link (Code:variable) | Code} for
- * client and platform error codes and
+ * constraint, or SQL grant needed to fix a failing query (and `'sql-client'` errors may populate
+ * them with client error stacks, `Caused by` chains, or cancellation/URL-length hints). See
+ * {@link (Code:variable) | Code} for client and platform error codes and
  * {@link (FirebaseSqlErrorCategory:variable) | FirebaseSqlErrorCategory} for origin tiers.
  *
  * @example
@@ -258,9 +259,9 @@ export class FirebaseSqlError extends FirebaseError {
   readonly code: string;
   /** Origin tier (`'sql-postgrest'`, `'sql-platform'`, or `'sql-client'`; typed as `string` at compile time). */
   readonly category: string;
-  /** Optional server-supplied diagnostic explanation or serialized structured error payload. */
+  /** Optional diagnostic explanation (server-supplied, JSON-serialized structured payload, or client error stack / cause chain on `'sql-client'` errors). */
   readonly details?: string | undefined;
-  /** Optional actionable remediation hint from PostgreSQL or PostgREST. */
+  /** Optional actionable remediation hint (from PostgreSQL/PostgREST, or client-generated on `'sql-client'` errors). */
   readonly hint?: string | undefined;
   /** HTTP status code when an HTTP response was received (`undefined` for `'sql-client'` errors, where {@link OperationBase.status | OperationFailure.status} is `0`). */
   readonly status?: number | undefined;

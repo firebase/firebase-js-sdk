@@ -439,17 +439,18 @@ export type MergeDeep<New, Row> = Simplify<
 >;
 
 /**
- * Computes the resulting `data` type for {@link Builder.overrideTypes} based on `Options` (`{ merge: true }` vs. `{ merge: false }`).
+ * Computes the resulting `data` type for {@link Builder.overrideTypes} based on `Options` (`{ merge: true }` vs. replacement).
  *
  * @remarks
- * When `Options` is `{ merge: false }`, evaluates directly to `NewResult` (discarding `Result$1`'s
- * `Record<string, unknown>` index signature). When `Options` is `{ merge: true }` (the default on
+ * When `Options` extends `{ merge: true }` (the default when `Options` is omitted on
  * `overrideTypes`), short-circuits to `NewResult` if `Result$1` is `unknown` (such as untyped
- * `rpc()`), or applies {@link MergeDeep} across object or array elements.
+ * `rpc()`), or applies {@link MergeDeep} across object or array elements. When `Options` is anything
+ * other than `{ merge: true }` (such as `{ merge: false }` or `{}`), evaluates directly to
+ * `NewResult` (discarding `Result$1`'s `Record<string, unknown>` index signature).
  *
  * @typeParam NewResult - Target override type supplied to {@link Builder.overrideTypes}.
  * @typeParam Result$1 - Current `NonNullable` builder result type.
- * @typeParam Options - Merge configuration (`{ merge: true }` or `{ merge: false }`).
+ * @typeParam Options - Merge configuration (`{ merge: true }` to deep-merge; any other type such as `{ merge: false }` replaces `Result$1`).
  *
  * @example
  * Compare `{ merge: false }` replacement against `{ merge: true }` merging:
@@ -659,17 +660,18 @@ export interface Builder<
   setHeader(name: string, value: string): this;
 
   /**
-   * Enables or disables automatic transient-failure retries for `GET`, `HEAD`, and `OPTIONS` HTTP requests on this builder.
+   * Enables or disables automatic transient-failure retries for `GET` and `HEAD` HTTP requests on this builder.
    *
    * @remarks
    * Default behavior (`enabled = true`): retries are enabled by default on every builder, but only
-   * execute for `GET`, `HEAD`, and `OPTIONS` requests (such as `select()`, `rpc(..., { get: true })`,
-   * and `rpc(..., { head: true })` when `params` contains no object values; if `rpc(..., { head: true })`
-   * contains any non-null object argument, it falls back to `POST` and is not retried).
+   * execute for `GET` and `HEAD` requests (such as `select()`, `rpc(..., { get: true })`, and
+   * `rpc(..., { head: true })` when `params` contains no plain object values or arrays of objects;
+   * primitive array arguments like `{ ids: [1, 2] }` stay `HEAD` and are retried, whereas plain
+   * objects or arrays containing objects fall back to `POST` and are not retried).
    *
-   * Requests using methods other than `GET`, `HEAD`, or `OPTIONS` (including `POST`, `PATCH`, and
-   * `DELETE` for `insert()`, `upsert()`, `update()`, `delete()`, and `POST`-mode `rpc()`) and
-   * requests cancelled via `AbortSignal` are never retried even when `enabled` is `true`.
+   * Requests using `POST`, `PATCH`, or `DELETE` (including `insert()`, `upsert()`, `update()`,
+   * `delete()`, and `POST`-mode `rpc()`) and requests cancelled via `AbortSignal` are never retried
+   * even when `enabled` is `true`.
    *
    * Eligible requests retry up to `3` times (`4` total attempts) on network `fetch` rejections or
    * HTTP status `503` / `520`, backing off exponentially (`1s`, `2s`, `4s`, or honoring the
@@ -684,7 +686,7 @@ export interface Builder<
    * When to use: pass `false` on latency-sensitive `select()` queries where failing fast on the
    * first transient error is preferred over waiting through backoff delays.
    *
-   * @param enabled - `false` to disable automatic retries for this request; `true` to re-enable default `GET`/`HEAD`/`OPTIONS` retry behavior.
+   * @param enabled - `false` to disable automatic retries for this request; `true` to re-enable default `GET`/`HEAD` retry behavior.
    * @returns This builder for continued chaining.
    *
    * @example
@@ -704,6 +706,8 @@ export interface Builder<
 
   /**
    * Legacy result-type override method replacing the static TypeScript type of `result.data` on this {@link Builder}.
+   *
+   * @deprecated Use {@link Builder.overrideTypes} instead.
    *
    * @remarks
    * Prefer {@link Builder.overrideTypes | .overrideTypes()} with `{ merge: false }` at the end of
@@ -767,7 +771,7 @@ export interface Builder<
    * Behavior and side effects: compile-time type cast only; performs no network I/O or runtime schema parsing.
    *
    * @typeParam NewResult - Target TypeScript type (`MyRow[]` for list queries, `MyRow` after `.single()` / `.maybeSingle()`, or scalar/row type for `rpc()`).
-   * @typeParam Options - `{ merge?: boolean }` controlling whether `NewResult` is deep-merged with `T` (`{ merge: true }`, default) or replaces `T` (`{ merge: false }`).
+   * @typeParam Options - `{ merge?: boolean }` controlling whether `NewResult` is deep-merged with `T` (`{ merge: true }`, default when `Options` is omitted) or replaces `T` (any other type, such as `{ merge: false }`).
    * @returns This {@link Builder} with `data` statically typed according to `NewResult` and `Options`.
    *
    * @example

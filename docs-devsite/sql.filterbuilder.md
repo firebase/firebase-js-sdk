@@ -919,7 +919,9 @@ Filters rows where `column` does not equal any element in `values` (`?column=not
 
 When to use: excluding a set of known non-null scalar values on a column (see [FilterBuilder.in()](./sql.filterbuilder.md#filterbuilderin) for inclusion).
 
-Do not pass `null` or `undefined` inside `values`<!-- -->: elements are sent as the literal text `'null'` or `'undefined'` and compared as strings (or rejected with SQLSTATE `'22P02'` on typed columns), not as SQL `NULL`<!-- -->. Also note that SQL `NOT IN` excludes rows where `column IS NULL`<!-- -->; to include `NULL` rows alongside non-matching values, combine with `is.null` inside [.or()](./sql.filterbuilder.md#filterbuilderor)<!-- -->.
+Do not pass `null` or `undefined` inside `values`<!-- -->: elements are sent as the literal text `'null'` or `'undefined'` and compared as strings (or rejected with SQLSTATE `'22P02'` on typed columns), not as SQL `NULL`<!-- -->. When `values` is non-empty, SQL `NOT IN` also excludes rows where `column IS NULL`<!-- -->; to include `NULL` rows alongside non-matching values, combine with `is.null` inside [.or()](./sql.filterbuilder.md#filterbuilderor)<!-- -->.
+
+Empty-array hazard: `values` is not validated client-side—passing an empty array `[]` sends `?column=not.in.()`<!-- -->, which evaluates to `true` in PostgREST and matches every row in the table (including rows where `column IS NULL`<!-- -->). Always guard dynamic arrays with `values.length > 0` before calling `notIn()`<!-- -->, especially on `update()` or `delete()`<!-- -->.
 
 Behavior and side effects: deduplicates `values` via `Set`<!-- -->, wraps string elements containing `,`<!-- -->, `(`<!-- -->, or `)` in double quotes (embedded `"` or `\` characters inside strings are not escaped automatically), and mutates URL query parameters in place without network I/O.
 
@@ -934,7 +936,7 @@ notIn(column: string, values: readonly unknown[]): this;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  column | string | Scalar PostgreSQL column name. |
-|  values | readonly unknown\[\] | Non-null scalar values to exclude. |
+|  values | readonly unknown\[\] | Non-empty list of non-null scalar values to exclude. |
 
 <b>Returns:</b>
 
@@ -1318,7 +1320,7 @@ const res = await sql
 
 Filters `tsvector` or `text` `column` values matching full-text search `query` (`?column=[pl|ph|w]fts[(config)].<query>`<!-- -->, PostgreSQL `@@` operator).
 
-When to use: stemmed, natural-language full-text search against indexed `tsvector` columns (such as `events.search_doc`<!-- -->) or `text` columns. Always pass `{ type: 'websearch' }` (or `'plain'` / `'phrase'`<!-- -->) in [FilterTextSearchOptions](./sql.filtertextsearchoptions.md#filtertextsearchoptions_interface) when `query` comes from raw user input; omitting `options.type` uses PostgreSQL `to_tsquery`<!-- -->, which fails with a syntax error if `query` is not valid `tsquery` boolean syntax (such as `'firebase' & 'sql'`<!-- -->).
+When to use: stemmed, natural-language full-text search against indexed `tsvector` columns (such as `events.search_doc`<!-- -->) or `text` columns. Always pass `{ type: 'websearch' }` (or `'plain'` / `'phrase'`<!-- -->) in [FilterTextSearchOptions](./sql.filtertextsearchoptions.md#filtertextsearchoptions_interface) when `query` comes from raw user input; omitting `options.type` uses PostgreSQL `to_tsquery`<!-- -->, which fails with a syntax error if `query` is not valid `tsquery` boolean syntax (for example, raw multi-word input like `'firebase sql'` fails unless formatted as `'firebase' & 'sql'`<!-- -->).
 
 Behavior and side effects: mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
@@ -1334,7 +1336,7 @@ textSearch(column: string, query: string, options?: Readonly<FilterTextSearchOpt
 |  --- | --- | --- |
 |  column | string | PostgreSQL <code>tsvector</code> or <code>text</code> column name. |
 |  query | string | Search query string interpreted according to <code>options.type</code>. |
-|  options | Readonly&lt;[FilterTextSearchOptions](./sql.filtertextsearchoptions.md#filtertextsearchoptions_interface)<!-- -->&gt; \| undefined | Optional text search dictionary (<code>config</code>) and parser mode (<code>type</code>, see [FilterTextSearchType](./sql.md#filtertextsearchtype)<!-- -->). See [FilterTextSearchOptions](./sql.filtertextsearchoptions.md#filtertextsearchoptions_interface)<!-- -->. |
+|  options | Readonly&lt;[FilterTextSearchOptions](./sql.filtertextsearchoptions.md#filtertextsearchoptions_interface)<!-- -->&gt; \| undefined | Optional text search configuration (<code>config</code>) and parser mode (<code>type</code>, see [FilterTextSearchType](./sql.md#filtertextsearchtype)<!-- -->). See [FilterTextSearchOptions](./sql.filtertextsearchoptions.md#filtertextsearchoptions_interface)<!-- -->. |
 
 <b>Returns:</b>
 

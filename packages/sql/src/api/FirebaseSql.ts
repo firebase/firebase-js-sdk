@@ -140,10 +140,12 @@ export interface FirebaseSqlRpcOptions {
  * automatic token refresh and retry on HTTP 401 when the authenticated UID is unchanged) and
  * Firebase App Check tokens (`x-firebase-appcheck`) when those services are registered on `app`
  * (including static `authIdToken` and `appCheckToken` credentials configured on a `FirebaseServerApp`
- * via `initializeServerApp`). If App Check token retrieval fails, the error is ignored and the
- * request is sent without `x-firebase-appcheck` (whereas Auth `getToken()` rejections fail the
- * request). Requests issued before Auth or App Check initializes within a single macrotask (`setTimeout(..., 0)`)
- * are sent without tokens.
+ * via `initializeServerApp`). If App Check cannot obtain a real token, it resolves with a
+ * placeholder dummy token sent in `x-firebase-appcheck` (which the backend rejects when App Check
+ * is enforced; `x-firebase-appcheck` is omitted only if the App Check provider itself rejects).
+ * Auth `getToken()` rejections fail the request. When Auth or App Check has not finished
+ * initializing yet, the SDK waits one macrotask (`setTimeout(..., 0)`) for initialization and
+ * attaches the token if available; otherwise the request is sent without that token.
  *
  * @example
  * Query a table and invoke a stored function using a `FirebaseSql` client:
@@ -568,9 +570,10 @@ export class FirebaseSql {
  * `1..65535`, and remove disallowed auth/telemetry headers.
  * @throws `TypeError`
  * Thrown synchronously when `settings.host` is rejected by the WHATWG `URL` parser (such as `''`)
- * or when `settings.headers` contains an invalid HTTP header name or value (for example, spaces in
- * a header name, CR/LF, or non-Latin-1 characters). Note that a scheme or path in `settings.host`
- * is not rejected by `URL` and silently produces a wrong endpoint.
+ * or, when creating a new client, when `settings.headers` contains an invalid HTTP header name or
+ * value (for example, spaces in a header name, CR/LF, or non-Latin-1 characters; cached clients
+ * return before `Headers` construction). Note that a scheme or path in `settings.host` is not
+ * rejected by `URL` and silently produces a wrong endpoint.
  *
  * @example
  * Initialize Firebase SQL using the default schema:
@@ -636,8 +639,9 @@ export function getSql(settings: SqlServiceSettings): FirebaseSql;
  * protected header name.
  * @throws `TypeError`
  * Thrown synchronously when `settings.host` is rejected by the WHATWG `URL` parser (such as `''`)
- * or when `settings.headers` contains an invalid HTTP header name or value (for example, spaces in
- * a header name, CR/LF, or non-Latin-1 characters).
+ * or, when creating a new client, when `settings.headers` contains an invalid HTTP header name or
+ * value (for example, spaces in a header name, CR/LF, or non-Latin-1 characters; cached clients
+ * return before `Headers` construction).
  *
  * @example
  * Initialize Firebase SQL with an explicit `FirebaseApp` using the default schema:
