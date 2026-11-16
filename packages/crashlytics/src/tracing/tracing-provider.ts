@@ -49,7 +49,7 @@ import {
   RESOURCE_ATTRIBUTE_KEYS
 } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
-import { getOtlpExportEndpointUrl } from '../helpers';
+import { getClientConfigUrl, getOtlpExportEndpointUrl } from '../helpers';
 import type { SessionSampler } from '../sampling/session-sampler';
 
 let unregisterInstrumentations: (() => void) | undefined;
@@ -149,13 +149,19 @@ export function createTracingProvider(
      `?` -> makes the `s` optional so https://api.example.com/traceversion=1 will be ignored too
      Anchor with `^` so only requests actually targeting the endpoint are ignored.
   */
-  const cleanedRegexEndpointUrl = `^${endpointUrl.replace(
-    /[.*+?^${}()|[\]\\]/g,
-    '\\$&'
-  )}`;
+  const escapeRegExp = (value: string): string =>
+    value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const cleanedRegexEndpointUrl = `^${escapeRegExp(endpointUrl)}`;
+  // Also ignore the SDK's own GetClientConfig request, so the config fetch never produces a span.
+  const clientConfigUrl = getClientConfigUrl(app.options, crashlyticsOptions);
 
   const networkInstrumentationConfig = {
-    ignoreUrls: [new RegExp(cleanedRegexEndpointUrl)],
+    ignoreUrls: [
+      new RegExp(cleanedRegexEndpointUrl),
+      ...(clientConfigUrl
+        ? [new RegExp(`^${escapeRegExp(clientConfigUrl)}`)]
+        : [])
+    ],
     semconvStabilityOptIn: 'http'
   };
 

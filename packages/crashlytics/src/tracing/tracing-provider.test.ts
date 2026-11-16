@@ -204,7 +204,7 @@ describe('createTracingProvider', () => {
       fetchInstrumentationSpy.mock.calls.length - 1
     ][0] as any;
     expect(Array.isArray(fetchConfig.ignoreUrls)).toBe(true);
-    expect(fetchConfig.ignoreUrls).toHaveLength(1);
+    expect(fetchConfig.ignoreUrls).toHaveLength(2);
 
     const fetchPatterns = fetchConfig.ignoreUrls.map((r: RegExp) => r.source);
     expect(fetchPatterns).toContain('^https:\\/\\/my-custom-endpoint\\.url');
@@ -214,6 +214,17 @@ describe('createTracingProvider', () => {
     expect(
       fetchConfig.ignoreUrls[0].test(
         'https://other.com?url=https://my-custom-endpoint.url'
+      )
+    ).toBe(false);
+    // The SDK's own GetClientConfig request is ignored too, so the config fetch never produces a span.
+    expect(
+      fetchConfig.ignoreUrls[1].test(
+        'https://firebasetelemetry.googleapis.com/v1alpha/projects/test-project/locations/global/apps/test-app-id/clientConfig'
+      )
+    ).toBe(true);
+    expect(
+      fetchConfig.ignoreUrls[1].test(
+        'https://other.com?url=https://firebasetelemetry.googleapis.com'
       )
     ).toBe(false);
     expect(fetchConfig.semconvStabilityOptIn).toBe('http');
@@ -245,7 +256,7 @@ describe('createTracingProvider', () => {
       xhrInstrumentationSpy.mock.calls.length - 1
     ][0] as any;
     expect(Array.isArray(xhrConfig.ignoreUrls)).toBe(true);
-    expect(xhrConfig.ignoreUrls).toHaveLength(1);
+    expect(xhrConfig.ignoreUrls).toHaveLength(2);
 
     const xhrPatterns = xhrConfig.ignoreUrls.map((r: RegExp) => r.source);
     expect(xhrPatterns).toContain('^https:\\/\\/my-custom-endpoint\\.url');
@@ -255,6 +266,16 @@ describe('createTracingProvider', () => {
     expect(
       xhrConfig.ignoreUrls[0].test(
         'https://other.com?url=https://my-custom-endpoint.url'
+      )
+    ).toBe(false);
+    expect(
+      xhrConfig.ignoreUrls[1].test(
+        'https://firebasetelemetry.googleapis.com/v1alpha/projects/test-project/locations/global/apps/test-app-id/clientConfig'
+      )
+    ).toBe(true);
+    expect(
+      xhrConfig.ignoreUrls[1].test(
+        'https://other.com?url=https://firebasetelemetry.googleapis.com'
       )
     ).toBe(false);
     expect(xhrConfig.semconvStabilityOptIn).toBe('http');
