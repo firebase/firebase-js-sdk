@@ -66,7 +66,7 @@ export function isSessionSampled(sessionId: string, rate: number): boolean {
  *   so page reloads within the session do not flip it. Rate increases apply to new sessions only;
  *   rate decreases are enforced immediately by the backend.
  * - Once the decision is made or restored, the configuration isn't read again for the session, so
- *   its periodic refresh is stopped (see {@link ClientConfigStore.stop}). // TODO: short-lived pages and long-living pages
+ *   its periodic refresh is stopped (see {@link ClientConfigStore.stop}).
  * - The telemetry debug override (see {@link isTelemetryDebugEnabled}) forces the session to be
  *   sampled on the device with a stamped rate of `1.0`.
  *
