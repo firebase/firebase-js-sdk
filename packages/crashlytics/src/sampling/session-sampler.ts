@@ -96,13 +96,17 @@ export class SessionSampler {
    * Returns the decision for the current session, making it from the configuration in memory if
    * none has been made yet.
    *
-   * A debug session that isn't forced because telemetry is disabled stays unforced until the page
-   * reloads, even if telemetry is re-enabled: the configuration isn't re-fetched for the decision.
+   * While the debug override is on and the session isn't forced yet (e.g. because telemetry is
+   * disabled), this also refreshes the configuration without waiting for it, so a later export
+   * picks up a change such as telemetry being re-enabled.
    */
   getDecision(): SamplingDecision {
     const cached = this._cachedDecision();
     if (cached) {
       return cached;
+    }
+    if (isTelemetryDebugEnabled()) {
+      void this._configStore.refreshIfStale();
     }
     const decision = this._computeDecision(
       this._attributesStore.sessionId,

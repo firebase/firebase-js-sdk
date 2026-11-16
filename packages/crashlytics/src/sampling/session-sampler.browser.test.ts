@@ -451,7 +451,7 @@ describe('SessionSampler', () => {
       expect(records).toEqual([{ attributes: {} }]);
     });
 
-    it('does not re-fetch the config while waiting to be forced, so re-enabling telemetry applies after a reload', () => {
+    it('refreshes the config without waiting until the session is forced, so re-enabling telemetry is picked up', () => {
       (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
         true;
       const { sampler, store } = createSampler(
@@ -459,20 +459,31 @@ describe('SessionSampler', () => {
         SESSION_HIGH
       );
       expect(sampler.getDecision().sampled).toBe(false);
-      expect(sampler.getDecision().sampled).toBe(false);
-      expect(store.refreshCount).toBe(0);
+      expect(store.refreshCount).toBe(1);
 
-      // After a reload, the new page's store has the re-enabled config.
-      const { sampler: reloaded } = createSampler(
-        { samplingRate: 0.5, enabled: true },
-        SESSION_HIGH
-      );
-      expect(reloaded.getDecision()).toEqual({
+      // The refresh returns after that decision: telemetry was re-enabled.
+      store.config = { samplingRate: 0.5, enabled: true };
+      expect(sampler.getDecision()).toEqual({
         sessionId: SESSION_HIGH,
         sampled: true,
         samplingRate: 1,
         forced: true
       });
+      expect(store.refreshCount).toBe(2);
+
+      // The forced decision is kept without refreshing again.
+      sampler.getDecision();
+      expect(store.refreshCount).toBe(2);
+    });
+
+    it('does not refresh the config for decisions made without the debug override', () => {
+      const { sampler, store } = createSampler(
+        { samplingRate: 0, enabled: false },
+        SESSION_HIGH
+      );
+      sampler.getDecision();
+      sampler.getDecision();
+      expect(store.refreshCount).toBe(0);
     });
 
     it('overrides a previously cached unsampled decision when enabled mid-session', () => {
