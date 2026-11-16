@@ -71,7 +71,7 @@
     }
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.5.22",
+    "@firebase/app-compat": "0.5.23",
     "typescript": "5.5.4"
   },
   "repository": {
