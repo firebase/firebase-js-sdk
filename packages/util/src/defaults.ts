@@ -81,6 +81,15 @@ const LOOPBACK_HOSTNAME_RE =
 const LOOPBACK_HOST_RE =
   /^(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*localhost|127\.0\.0\.1|\[::1\]):(\d{1,5})$/i;
 
+const loggedCookieWarnings = new Set<string>();
+
+function warnAboutCookieOnce(message: string): void {
+  if (!loggedCookieWarnings.has(message)) {
+    loggedCookieWarnings.add(message);
+    console.warn(`[@firebase/util] ${message}`);
+  }
+}
+
 function isLoopbackHostWithPort(host: unknown): host is string {
   if (typeof host !== 'string') {
     return false;
@@ -111,20 +120,22 @@ function sanitizeCookieDefaults(
   }
   const sanitized = defaults as FirebaseDefaults;
   if ('forceEnvironment' in sanitized) {
-    console.warn(
-      '[@firebase/util] Ignoring `forceEnvironment` in __FIREBASE_DEFAULTS__ cookie.'
+    warnAboutCookieOnce(
+      'Ignoring `forceEnvironment` in the __FIREBASE_DEFAULTS__ cookie.'
     );
     delete sanitized.forceEnvironment;
   }
   if ('emulatorHosts' in sanitized) {
     const pageHostname =
-      typeof location !== 'undefined'
+      typeof location !== 'undefined' && location
         ? location.hostname
         : document.location?.hostname;
     if (!pageHostname || !LOOPBACK_HOSTNAME_RE.test(pageHostname)) {
-      console.warn(
-        '[@firebase/util] Ignoring `emulatorHosts` in __FIREBASE_DEFAULTS__ ' +
-          'cookie on non-loopback origin.'
+      warnAboutCookieOnce(
+        `Ignoring \`emulatorHosts\` in the __FIREBASE_DEFAULTS__ cookie because ` +
+          `'${pageHostname || 'unknown'}' is not a loopback address, so the SDK ` +
+          `will connect to production services. Call connect*Emulator() to use ` +
+          `the emulators here.`
       );
       delete sanitized.emulatorHosts;
     } else if (
@@ -137,9 +148,11 @@ function sanitizeCookieDefaults(
       for (const product of Object.keys(sanitized.emulatorHosts)) {
         const host = sanitized.emulatorHosts[product];
         if (!isLoopbackHostWithPort(host)) {
-          console.warn(
-            `[@firebase/util] Ignoring \`emulatorHosts.${product}\` in ` +
-              `__FIREBASE_DEFAULTS__ cookie: '${String(host)}' is not a loopback host.`
+          warnAboutCookieOnce(
+            `Ignoring \`emulatorHosts.${product}\` in the __FIREBASE_DEFAULTS__ ` +
+              `cookie because '${String(host)}' is not a loopback host, so ` +
+              `'${product}' will connect to production. Call connect*Emulator() ` +
+              `to use an emulator on another host.`
           );
           delete sanitized.emulatorHosts[product];
         }

@@ -269,10 +269,14 @@ describe('__FIREBASE_DEFAULTS__ cookie sanitization', () => {
       expect(getDefaultEmulatorHost('zeroPort')).to.be.undefined;
       expect(getDefaultEmulatorHost('highPort')).to.be.undefined;
       expect(getDefaultEmulatorHost('firestore')).to.equal('127.0.0.1:8080');
-      expect(warnSpy).toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalledTimes(7);
+
+      // Repeated reads of the same cookie do not re-log duplicate warnings.
+      expect(getDefaultEmulatorHost('auth')).to.be.undefined;
+      expect(warnSpy).toHaveBeenCalledTimes(7);
     });
 
-    it('preserves config and _authTokenSyncURL while stripping forceEnvironment', () => {
+    it('preserves config and _authTokenSyncURL while stripping forceEnvironment once', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       document.cookie = `${encodeCookie({
         config: { apiKey: 'test-key', projectId: 'demo-proj' },
@@ -287,7 +291,7 @@ describe('__FIREBASE_DEFAULTS__ cookie sanitization', () => {
       expect(getExperimentalSetting('authTokenSyncURL')).to.equal('/__session');
       expect(getDefaults()?.forceEnvironment).to.be.undefined;
       expect(isNode()).to.be.false;
-      expect(warnSpy).toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalledTimes(1);
     });
 
     it('returns undefined when cookie only contained rejected fields', () => {
@@ -298,6 +302,22 @@ describe('__FIREBASE_DEFAULTS__ cookie sanitization', () => {
       })}; path=/`;
 
       expect(getDefaults()).to.be.undefined;
+    });
+
+    it('ignores non-object JSON payloads and non-object emulatorHosts values', () => {
+      for (const nonObject of [null, 42, 'str', ['array']]) {
+        document.cookie = `${encodeCookie(nonObject)}; path=/`;
+        expect(getDefaults()).to.be.undefined;
+      }
+
+      for (const badHosts of [null, '127.0.0.1:8080', ['127.0.0.1:8080']]) {
+        document.cookie = `${encodeCookie({
+          config: { apiKey: 'test-key' },
+          emulatorHosts: badHosts
+        })}; path=/`;
+        expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
+        expect(getDefaultAppConfig()).to.eql({ apiKey: 'test-key' });
+      }
     });
   } else {
     const g = globalThis as Record<string, unknown>;
@@ -337,7 +357,11 @@ describe('__FIREBASE_DEFAULTS__ cookie sanitization', () => {
         expect(getExperimentalSetting('authTokenSyncURL')).to.equal(
           '/__session'
         );
-        expect(warnSpy).toHaveBeenCalled();
+        // Four getDefaults() calls above should only log the warning once.
+        expect(warnSpy).toHaveBeenCalledTimes(1);
+        expect(warnSpy.mock.calls[0][0]).to.contain(
+          'connect to production services'
+        );
       });
     }
 
@@ -377,15 +401,36 @@ describe('__FIREBASE_DEFAULTS__ cookie sanitization', () => {
       });
     }
 
-    it('falls back to document.location.hostname when global location is undefined', () => {
+    it('falls back to document.location.hostname when global location is undefined or null', () => {
       g.document = {
         location: { hostname: 'localhost' },
         cookie: encodeCookie({
           emulatorHosts: { auth: 'localhost:9099' }
         })
       };
-
       expect(getDefaultEmulatorHost('auth')).to.equal('localhost:9099');
+
+      g.location = null;
+      expect(getDefaultEmulatorHost('auth')).to.equal('localhost:9099');
+    });
+
+    it('ignores non-object JSON payloads and non-object emulatorHosts values', () => {
+      g.location = { hostname: 'localhost' };
+      for (const nonObject of [null, 42, 'str', ['array']]) {
+        g.document = { cookie: encodeCookie(nonObject) };
+        expect(getDefaults()).to.be.undefined;
+      }
+
+      for (const badHosts of [null, '127.0.0.1:8080', ['127.0.0.1:8080']]) {
+        g.document = {
+          cookie: encodeCookie({
+            config: { apiKey: 'test-key' },
+            emulatorHosts: badHosts
+          })
+        };
+        expect(getDefaultEmulatorHost('firestore')).to.be.undefined;
+        expect(getDefaultAppConfig()).to.eql({ apiKey: 'test-key' });
+      }
     });
   }
 });
