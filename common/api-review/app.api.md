@@ -145,5 +145,7 @@ export const _serverApps: Map<string, FirebaseServerApp>;
 // @public
 export function setLogLevel(logLevel: LogLevelString): void;
 
+// @internal
+export function _setTrustedScriptSrc(script: HTMLScriptElement, url: string): void;
 
 ```

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app';
+import { FirebaseApp, _setTrustedScriptSrc } from '@firebase/app';
 import { getStateReference } from './state';
 import { Deferred } from '@firebase/util';
 import { getRecaptcha, ensureActivated } from './util';
@@ -166,7 +166,7 @@ function renderInvisibleWidget(
 
 function loadReCAPTCHAV3Script(onload: () => void): void {
   const script = document.createElement('script');
-  script.src = RECAPTCHA_URL;
+  _setTrustedScriptSrc(script, RECAPTCHA_URL);
   script.onload = onload;
   document.head.appendChild(script);
 }
@@ -174,7 +174,7 @@ function loadReCAPTCHAV3Script(onload: () => void): void {
 function loadReCAPTCHAEnterpriseScript(onload: () => void): void {
   const script = document.createElement('script');
   // This param is required when we plan to render a widget explicitly.
-  script.src = RECAPTCHA_ENTERPRISE_URL + '?render=explicit';
+  _setTrustedScriptSrc(script, RECAPTCHA_ENTERPRISE_URL + '?render=explicit');
   script.onload = onload;
   document.head.appendChild(script);
 }
