@@ -59,13 +59,13 @@ export function registerSql(variant?: string): void {
         const id =
           instanceIdentifier ??
           getInstanceIdentifier(settings, app.options.projectId);
-        return new FirebaseSql(
+        return new FirebaseSql({
           app,
           settings,
-          id,
+          instanceIdentifier: id,
           authProvider,
           appCheckProvider
-        );
+        });
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)

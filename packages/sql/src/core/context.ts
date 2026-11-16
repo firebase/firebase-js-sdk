@@ -25,21 +25,21 @@ export interface BuilderExecutionTracker {
 }
 
 /** @internal */
-export interface SqlClientResources {
+export interface FirebaseSqlResources {
   readonly appId: string | undefined;
   readonly authTokenProvider: FirebaseAuthTokenProvider;
   readonly appCheckTokenProvider: AppCheckTokenProvider;
 }
 
 /** @internal */
-export interface SqlClientState {
-  active: SqlClientResources | null;
-  readonly terminationSignal?: AbortSignal;
+export interface FirebaseSqlContext {
+  resources: FirebaseSqlResources | null;
+  readonly abortSignal: AbortSignal;
 }
 
 /** @internal */
 export type CreateBuilderFetch = (
-  state: Readonly<SqlClientState>,
+  state: Readonly<FirebaseSqlContext>,
   tracker: BuilderExecutionTracker
 ) => typeof fetch;
 

@@ -20,8 +20,8 @@ import type { PostgrestQueryBuilder } from '@supabase/postgrest-js';
 import type {
   CreateBuilderFetch,
   MapPostgrestError,
-  SqlClientState
-} from '../../core/state';
+  FirebaseSqlContext
+} from '../../core/context';
 import type {
   UntypedClientOptions,
   UntypedSchema,
@@ -49,7 +49,7 @@ export class QueryBuilderImpl implements QueryBuilder {
     UntypedSchema,
     UntypedTable
   >;
-  private readonly _state: Readonly<SqlClientState>;
+  private readonly _context: Readonly<FirebaseSqlContext>;
   private readonly _createFetch: CreateBuilderFetch;
   private readonly _mapError: MapPostgrestError;
 
@@ -59,12 +59,12 @@ export class QueryBuilderImpl implements QueryBuilder {
       UntypedSchema,
       UntypedTable
     >,
-    state: Readonly<SqlClientState>,
+    context: Readonly<FirebaseSqlContext>,
     createFetch: CreateBuilderFetch,
     mapError: MapPostgrestError
   ) {
     this._delegate = delegate;
-    this._state = state;
+    this._context = context;
     this._createFetch = createFetch;
     this._mapError = mapError;
   }
@@ -74,7 +74,7 @@ export class QueryBuilderImpl implements QueryBuilder {
   ): FilterBuilder<T, Method> {
     return new FilterBuilderImpl<T, Method>(
       delegate,
-      this._state,
+      this._context,
       this._createFetch,
       this._mapError
     );

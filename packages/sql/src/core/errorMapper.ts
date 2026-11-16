@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
+import type { MapPostgrestError } from './context';
 import {
   Code,
   FirebaseSqlError,
   FirebaseSqlErrorCategory,
   type FirebaseSqlErrorCode
 } from './error';
-import type { MapPostgrestError } from './state';
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {

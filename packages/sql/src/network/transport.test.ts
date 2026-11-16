@@ -36,15 +36,21 @@ import {
 import { expect, vi } from 'vitest';
 
 import { MockAppCheckProvider, MockAuthProvider } from '../../test/mocks';
+import type {
+  BuilderExecutionTracker,
+  FirebaseSqlContext
+} from '../core/context';
 import {
   Code,
   FirebaseSqlError,
   FirebaseSqlErrorCategory
 } from '../core/error';
 import { SqlServiceSettings } from '../core/settings';
-import type { BuilderExecutionTracker, SqlClientState } from '../core/state';
 import { TokenOptions } from '../core/tokenProviders/AbstractTokenProvider';
-import { FirebaseAuthProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
+import {
+  FirebaseAuthProvider,
+  FirebaseAuthTokenProvider
+} from '../core/tokenProviders/FirebaseAuthTokenProvider';
 import { SDK_VERSION, setSDKVersion } from '../core/version';
 
 import { FirebaseHeaders, getGoogApiClientValue } from './headers';
@@ -951,7 +957,7 @@ describe('FirebaseSqlTransport', () => {
 
     it('aborts the combined signal and rejects the operation when terminationSignal aborts in flight', async () => {
       const terminationController = new AbortController();
-      let fetchSignal: AbortSignal | undefined;
+      let fetchSignal: AbortSignal | null | undefined;
       mockFetch.mockImplementation(async (_url: string, init?: RequestInit) => {
         fetchSignal = init?.signal;
         return new Promise<Response>((_resolve, reject) => {
@@ -1017,9 +1023,12 @@ describe('FirebaseSqlTransport', () => {
         expect(headers['x-override-header']).toBe('from-init');
       });
 
-      it('fails fast when state.active is null', async () => {
-        const state: SqlClientState = { active: null };
-        const transport = new FirebaseSqlTransport({ state });
+      it('fails fast when context.resources is null', async () => {
+        const context: FirebaseSqlContext = {
+          resources: null,
+          abortSignal: new AbortController().signal
+        };
+        const transport = new FirebaseSqlTransport({ context });
         await expect(
           transport.invokePostgrestOperation(TEST_URL)
         ).rejects.toMatchObject({
@@ -1031,9 +1040,12 @@ describe('FirebaseSqlTransport', () => {
 
     describe('toFetch', () => {
       it('populates tracker.clientError and throws AbortError when invokePostgrestOperation fails with FirebaseSqlError', async () => {
-        const state: SqlClientState = { active: null };
+        const context: FirebaseSqlContext = {
+          resources: null,
+          abortSignal: new AbortController().signal
+        };
         const tracker: BuilderExecutionTracker = { clientError: null };
-        const transport = new FirebaseSqlTransport({ state });
+        const transport = new FirebaseSqlTransport({ context });
         const boundFetch = transport.toFetch(tracker);
 
         await expect(boundFetch(TEST_URL)).rejects.toMatchObject({
@@ -1046,8 +1058,11 @@ describe('FirebaseSqlTransport', () => {
       });
 
       it('throws original error without AbortError wrapping when no tracker is provided', async () => {
-        const state: SqlClientState = { active: null };
-        const transport = new FirebaseSqlTransport({ state });
+        const context: FirebaseSqlContext = {
+          resources: null,
+          abortSignal: new AbortController().signal
+        };
+        const transport = new FirebaseSqlTransport({ context });
         const boundFetch = transport.toFetch();
 
         await expect(boundFetch(TEST_URL)).rejects.toBeInstanceOf(
@@ -1217,23 +1232,24 @@ describe('FirebaseSqlTransport', () => {
   });
 
   describe('createBuilderFetch', () => {
-    it('returns a functional fetch function that executes requests with state resources', async () => {
+    it('returns a functional fetch function that executes requests with context resources', async () => {
       const authProvider = new MockAuthProvider('builder-auth-token');
       const appCheckProvider = new MockAppCheckProvider(
         'builder-appcheck-token'
       );
 
-      const state: SqlClientState = {
-        active: {
+      const context: FirebaseSqlContext = {
+        resources: {
           appId: '1:123456:web:builder-app',
           authTokenProvider:
             authProvider as unknown as FirebaseAuthTokenProvider,
           appCheckTokenProvider: appCheckProvider
-        }
+        },
+        abortSignal: new AbortController().signal
       };
       const tracker: BuilderExecutionTracker = { clientError: null };
 
-      const builderFetch = createBuilderFetch(state, tracker);
+      const builderFetch = createBuilderFetch(context, tracker);
       const response = await builderFetch(TEST_URL, {
         headers: { 'x-caller-header': 'val' }
       });
@@ -1251,10 +1267,13 @@ describe('FirebaseSqlTransport', () => {
     });
 
     it('populates tracker.clientError and throws AbortError if client is terminated', async () => {
-      const state: SqlClientState = { active: null };
+      const context: FirebaseSqlContext = {
+        resources: null,
+        abortSignal: new AbortController().signal
+      };
       const tracker: BuilderExecutionTracker = { clientError: null };
 
-      const builderFetch = createBuilderFetch(state, tracker);
+      const builderFetch = createBuilderFetch(context, tracker);
       await expect(builderFetch(TEST_URL)).rejects.toMatchObject({
         name: 'AbortError',
         message: expect.stringContaining('terminated')

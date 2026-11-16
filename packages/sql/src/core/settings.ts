@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { validateHeaders } from '../network/headers';
-
 import { FirebaseSqlErrorCategory, Code, FirebaseSqlError } from './error';
 
 /**
@@ -25,8 +23,6 @@ import { FirebaseSqlErrorCategory, Code, FirebaseSqlError } from './error';
 export interface SqlServiceSettings {
   /** Optional PostgreSQL schema name. */
   schemaName?: string | undefined;
-  /** Custom HTTP headers to include with outgoing requests. */
-  headers?: Record<string, string> | undefined;
   /** Firebase SQL service identifier. */
   serviceId: string;
   /** Firebase SQL service location identifier. */
@@ -46,9 +42,6 @@ export function copySqlServiceSettings(
   settings: SqlServiceSettings
 ): SqlServiceSettings {
   const settingsCopy: SqlServiceSettings = Object.assign({}, settings);
-  if (settings.headers !== undefined) {
-    settingsCopy.headers = Object.assign({}, settings.headers);
-  }
   return settingsCopy;
 }
 
@@ -60,9 +53,6 @@ export function freezeSqlServiceSettings(
   settings: SqlServiceSettings
 ): SqlServiceSettings {
   const settingsCopy = copySqlServiceSettings(settings);
-  if (settingsCopy.headers !== undefined) {
-    Object.freeze(settingsCopy.headers);
-  }
   return Object.freeze(settingsCopy);
 }
 
@@ -121,6 +111,5 @@ export function validateSqlServiceSettings(
     );
   }
   validatePort(settings.port);
-  validateHeaders(settings.headers);
   return freezeSqlServiceSettings(settings);
 }

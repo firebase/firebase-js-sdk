@@ -26,6 +26,7 @@ import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import { PostgrestClient } from '@supabase/postgrest-js';
 
+import type { FirebaseSqlContext } from '../core/context';
 import {
   Code,
   FirebaseSqlError,
@@ -36,7 +37,6 @@ import {
   SqlServiceSettings,
   validateSqlServiceSettings
 } from '../core/settings';
-import type { SqlClientState } from '../core/state';
 import { AppCheckProvider } from '../core/tokenProviders/AppCheckTokenProvider';
 import { FirebaseAuthProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
 import type {
@@ -45,6 +45,7 @@ import type {
   UntypedSchema
 } from '../core/untypedSchema';
 import { logDebug } from '../logger';
+import { validateHeaders } from '../network/headers';
 import { createBuilderFetch } from '../network/transport';
 import { FIREBASE_SQL_COMPONENT_NAME } from '../util/constants';
 import { resolvePostgrestUrl } from '../util/url';
@@ -60,62 +61,167 @@ declare module '@firebase/component' {
   }
 }
 
-export interface FirebaseSqlRpcOptions {
-  head?: boolean | undefined;
-  get?: boolean | undefined;
-  count?: QueryCountStrategy | undefined;
-}
-
 /**
  * The Firebase SQL service client instance.
  */
 export class FirebaseSql {
-  /** @internal */
-  readonly _postgrestUrl: string;
+  /** The bound FirebaseApp instance. */
+  readonly app: FirebaseApp;
+
+  /** The URL with which to communicate with the backend Firebase SQL server. */
+  readonly restUrl: string;
+
+  /** The name of the schema that is sent over the wire. */
+  readonly schemaName: string | undefined;
+
+  /**
+   * Returns whether this object is in a "mutable" state, such that mutator
+   * methods like `setHeaders()` are allowed to be invoked.
+   *
+   * An instance of `FirebaseSql` is "mutable" immediately after its creation
+   * until a call to a function that uses the object's settings, such as
+   * `from()` and `rpc()`, or its termination by a call to `terminate()`.
+   */
+  get mutable(): boolean {
+    return this._state.name === 'mutable';
+  }
 
   /** @internal */
-  private readonly _state: SqlClientState;
-
-  private readonly _terminationController = new AbortController();
-
-  private readonly _postgrestClient: PostgrestClient<
-    UntypedDatabase,
-    UntypedClientOptions,
-    string,
-    UntypedSchema
-  >;
+  private _state: FirebaseSqlState;
 
   /**
    * Should only be called by {@linkcode getSql()}, after validating inputs.
    * @internal
    */
-  constructor(
-    /** The bound FirebaseApp instance. */
-    readonly app: FirebaseApp,
-    /** Resolved configuration settings. */
-    readonly settings: SqlServiceSettings,
-    /** @internal */
-    readonly _instanceIdentifier: string,
-    /** @internal */
-    authInternalProvider: Provider<FirebaseAuthInternalName>,
-    /** @internal */
-    appCheckInternalProvider: Provider<AppCheckInternalComponentName>
-  ) {
-    this._postgrestUrl = resolvePostgrestUrl(
-      this.settings,
-      app.options.projectId!
-    );
+  constructor(parameters: {
+    app: FirebaseApp;
+    settings: SqlServiceSettings;
+    instanceIdentifier: string;
+    authProvider: Provider<FirebaseAuthInternalName>;
+    appCheckProvider: Provider<AppCheckInternalComponentName>;
+  }) {
+    const {
+      app,
+      settings,
+      instanceIdentifier,
+      authProvider,
+      appCheckProvider
+    } = parameters;
+
+    this.app = app;
+    this.schemaName = settings.schemaName;
+    this.restUrl = resolvePostgrestUrl(settings, app.options.projectId!);
 
     this._state = {
-      active: {
-        appId: app.options.appId,
-        authTokenProvider: new FirebaseAuthProvider(app, authInternalProvider),
-        appCheckTokenProvider: new AppCheckProvider(
-          app,
-          appCheckInternalProvider
+      name: 'mutable',
+      instanceIdentifier,
+      headers: Object.freeze({}),
+      authProvider,
+      appCheckProvider
+    };
+  }
+
+  /**
+   * Called by `@firebase/app` when the bound `FirebaseApp` is deleted.
+   * @internal
+   */
+  _delete(): Promise<void> {
+    if (this._state.name === 'terminated') {
+      return Promise.resolve();
+    }
+    if (this._state.name === 'mutable') {
+      const { instanceIdentifier } = this._state;
+      this._state = { name: 'terminated' };
+      _removeServiceInstance(
+        this.app,
+        FIREBASE_SQL_COMPONENT_NAME,
+        instanceIdentifier
+      );
+      return Promise.resolve();
+    }
+
+    const { context, instanceIdentifier, abortController } = this._state;
+    this._state = { name: 'terminated' };
+    const { resources } = context;
+    context.resources = null;
+
+    if (resources !== null) {
+      abortController.abort(
+        new FirebaseSqlError(
+          Code.NOT_INITIALIZED,
+          'The Firebase SQL client has been terminated.',
+          FirebaseSqlErrorCategory.SQL_CLIENT
         )
+      );
+      resources.appCheckTokenProvider.terminate();
+      resources.authTokenProvider.terminate();
+      _removeServiceInstance(
+        this.app,
+        FIREBASE_SQL_COMPONENT_NAME,
+        instanceIdentifier
+      );
+    }
+
+    return Promise.resolve();
+  }
+
+  /**
+   * Sets the headers that will be included on every HTTP request,
+   * overwriting any previously-set headers.
+   *
+   * Throws `FirebaseSqlError` if this method is called when `mutable`
+   * is `false` or if the given headers contains one or more
+   * reserved headers.
+   *
+   * @param headers The headers to set.
+   */
+  setHeaders(headers: Record<string, string>): void {
+    validateHeaders(headers);
+
+    if (this._state.name === 'immutable') {
+      throw new FirebaseSqlError(
+        Code.ALREADY_INITIALIZED,
+        'The Firebase SQL client is no longer mutable; ' +
+          'therefore, the headers may not be changed.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+    }
+    if (this._state.name === 'terminated') {
+      throw new FirebaseSqlError(
+        Code.NOT_INITIALIZED,
+        'The Firebase SQL client has been terminated; ' +
+          'therefore, the headers may not be changed.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+    }
+
+    this._state.headers = Object.freeze({ ...headers });
+  }
+
+  private _getFirebaseSqlStateImmutableOrThrow(): FirebaseSqlStateImmutable {
+    if (this._state.name === 'terminated') {
+      throw new FirebaseSqlError(
+        Code.NOT_INITIALIZED,
+        'The Firebase SQL client has been terminated.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+    }
+
+    if (this._state.name === 'immutable') {
+      return this._state;
+    }
+
+    const { instanceIdentifier, headers, authProvider, appCheckProvider } =
+      this._state;
+    const abortController = new AbortController();
+
+    const context: FirebaseSqlContext = {
+      resources: {
+        appId: this.app.options.appId,
+        authTokenProvider: new FirebaseAuthProvider(this.app, authProvider),
+        appCheckTokenProvider: new AppCheckProvider(this.app, appCheckProvider)
       },
-      terminationSignal: this._terminationController.signal
+      abortSignal: abortController.signal
     };
 
     // PostgrestClient is deliberately instantiated without a static `fetch` option.
@@ -123,33 +229,20 @@ export class FirebaseSql {
     // bind an execution-isolated `fetch` dynamically on each query execution to ensure
     // concurrent executions of the same builder instance do not share a single
     // `BuilderExecutionTracker` closure.
-    this._postgrestClient = new PostgrestClient(this._postgrestUrl, {
-      headers: this.settings.headers,
-      schema: this.settings.schemaName
+    const postgrestClient = new PostgrestClient(this.restUrl, {
+      headers,
+      schema: this.schemaName
     });
-  }
 
-  /** @internal */
-  _delete(): Promise<void> {
-    if (this._state.active !== null) {
-      const active = this._state.active;
-      this._state.active = null;
-      this._terminationController.abort(
-        new FirebaseSqlError(
-          Code.NOT_INITIALIZED,
-          'The Firebase SQL client has been terminated.',
-          FirebaseSqlErrorCategory.SQL_CLIENT
-        )
-      );
-      active.appCheckTokenProvider.terminate();
-      active.authTokenProvider.terminate();
-      _removeServiceInstance(
-        this.app,
-        FIREBASE_SQL_COMPONENT_NAME,
-        this._instanceIdentifier
-      );
-    }
-    return Promise.resolve();
+    this._state = {
+      name: 'immutable',
+      instanceIdentifier,
+      abortController,
+      postgrestClient,
+      context
+    };
+
+    return this._state;
   }
 
   // Encode table and RPC names so `/`, `?`, `#`, and dot-segments cannot traverse out of
@@ -178,19 +271,13 @@ export class FirebaseSql {
   }
 
   from(table: string): QueryBuilder {
-    if (this._state.active === null) {
-      throw new FirebaseSqlError(
-        Code.NOT_INITIALIZED,
-        'FirebaseSql instance has been terminated.',
-        FirebaseSqlErrorCategory.SQL_CLIENT
-      );
-    }
-    const delegate = this._postgrestClient.from(
-      this._encodeResourceSegment(table, true)
-    );
+    const encodedTable = this._encodeResourceSegment(table, true);
+    const { context, postgrestClient } =
+      this._getFirebaseSqlStateImmutableOrThrow();
+    const postgrestQueryBuilder = postgrestClient.from(encodedTable);
     return new QueryBuilderImpl(
-      delegate,
-      this._state,
+      postgrestQueryBuilder,
+      context,
       createBuilderFetch,
       mapPostgrestFailureToFirebaseSqlError
     );
@@ -217,21 +304,17 @@ export class FirebaseSql {
     params?: Args | undefined,
     options?: Readonly<FirebaseSqlRpcOptions> | undefined
   ): FilterBuilder<unknown, 'RPC'> {
-    if (this._state.active === null) {
-      throw new FirebaseSqlError(
-        Code.NOT_INITIALIZED,
-        'FirebaseSql instance has been terminated.',
-        FirebaseSqlErrorCategory.SQL_CLIENT
-      );
-    }
-    const delegate = this._postgrestClient.rpc(
-      this._encodeResourceSegment(fn, false),
-      params as Record<string, unknown> | undefined,
+    const encodedFn = this._encodeResourceSegment(fn, false);
+    const { context, postgrestClient } =
+      this._getFirebaseSqlStateImmutableOrThrow();
+    const postgrestFilterBuilder = postgrestClient.rpc(
+      encodedFn,
+      params,
       options
     );
     return new FilterBuilderImpl<unknown, 'RPC'>(
-      delegate,
-      this._state,
+      postgrestFilterBuilder,
+      context,
       createBuilderFetch,
       mapPostgrestFailureToFirebaseSqlError
     );
@@ -305,9 +388,7 @@ export function getSql(
   const provider = _getProvider(app, FIREBASE_SQL_COMPONENT_NAME);
 
   if (provider.isInitialized(instanceIdentifier)) {
-    logDebug(
-      'Re-using cached instance (NOTE: custom headers set on the original FSQL client are RE-USED when that client is re-used from the instance cache. Creating multiple FSQL clients with the same settings and app, but different headers, is NOT supported. Instead, use .setHeaders() while building an operation chain to set custom headers for that specific operation.)'
-    );
+    logDebug('Re-using cached Firebase SQL instance');
     return provider.getImmediate({ identifier: instanceIdentifier });
   }
 
@@ -341,4 +422,40 @@ export function getInstanceIdentifier(
     resolvedUrl,
     schemaName: settings.schemaName
   });
+}
+
+export interface FirebaseSqlRpcOptions {
+  head?: boolean | undefined;
+  get?: boolean | undefined;
+  count?: QueryCountStrategy | undefined;
+}
+
+type FirebaseSqlState =
+  | FirebaseSqlStateMutable
+  | FirebaseSqlStateImmutable
+  | FirebaseSqlStateTerminated;
+
+interface FirebaseSqlStateMutable {
+  name: 'mutable';
+  instanceIdentifier: string;
+  headers: Readonly<Record<string, string>>;
+  authProvider: Provider<FirebaseAuthInternalName>;
+  appCheckProvider: Provider<AppCheckInternalComponentName>;
+}
+
+interface FirebaseSqlStateImmutable {
+  name: 'immutable';
+  instanceIdentifier: string;
+  abortController: AbortController;
+  postgrestClient: PostgrestClient<
+    UntypedDatabase,
+    UntypedClientOptions,
+    string,
+    UntypedSchema
+  >;
+  context: FirebaseSqlContext;
+}
+
+interface FirebaseSqlStateTerminated {
+  name: 'terminated';
 }

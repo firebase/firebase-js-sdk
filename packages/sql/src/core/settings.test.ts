@@ -15,9 +15,13 @@
  * limitations under the License.
  */
 
-import { expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import { copySqlServiceSettings, SqlServiceSettings } from './settings';
+import {
+  copySqlServiceSettings,
+  SqlServiceSettings,
+  validateSqlServiceSettings
+} from './settings';
 
 describe('SqlServiceSettings', () => {
   const baseSettings: SqlServiceSettings = {
@@ -26,41 +30,52 @@ describe('SqlServiceSettings', () => {
   };
 
   describe('copySqlServiceSettings', () => {
-    it('returns an isolated deep clone of SqlServiceSettings including null-prototype headers', () => {
+    it('returns an isolated defensive clone of minimal and full SqlServiceSettings', () => {
+      const minimalCopy = copySqlServiceSettings(baseSettings);
+      expect(minimalCopy).toEqual(baseSettings);
+      expect(minimalCopy).not.toBe(baseSettings);
+
       const original: SqlServiceSettings = {
         serviceId: 'my-service',
         location: 'us-central1',
         schemaName: 'custom',
         host: '127.0.0.1',
         port: 5432,
-        sslEnabled: false,
-        headers: {
-          'X-Client-Version': '1.0.0'
-        }
+        sslEnabled: false
       };
 
       const settingsCopy = copySqlServiceSettings(original);
       expect(settingsCopy).toEqual(original);
       expect(settingsCopy).not.toBe(original);
-      expect(settingsCopy.headers).not.toBe(original.headers);
 
       original.serviceId = 'mutated-service';
-      original.headers!['X-Client-Version'] = '2.0.0';
+      original.schemaName = 'mutated-schema';
+      original.port = 9999;
 
       expect(settingsCopy.serviceId).toBe('my-service');
-      expect(settingsCopy.headers!['X-Client-Version']).toBe('1.0.0');
+      expect(settingsCopy.schemaName).toBe('custom');
+      expect(settingsCopy.port).toBe(5432);
+    });
+  });
 
-      const nullProtoHeaders = Object.assign(Object.create(null), {
-        'X-Custom': '1'
-      }) as Record<string, string>;
-      const withNullProto = copySqlServiceSettings(
-        Object.assign({}, baseSettings, {
-          headers: nullProtoHeaders
-        })
-      );
-      expect(withNullProto.headers).not.toBe(nullProtoHeaders);
-      nullProtoHeaders['X-Custom'] = '2';
-      expect(withNullProto.headers!['X-Custom']).toBe('1');
+  describe('validateSqlServiceSettings', () => {
+    it('returns a frozen defensive copy of valid settings', () => {
+      const input: SqlServiceSettings = {
+        serviceId: 'svc-1',
+        location: 'europe-west1',
+        schemaName: 'app_data',
+        host: 'localhost',
+        port: 8080,
+        sslEnabled: false
+      };
+
+      const validated = validateSqlServiceSettings(input);
+      expect(validated).toEqual(input);
+      expect(validated).not.toBe(input);
+      expect(Object.isFrozen(validated)).toBe(true);
+
+      input.schemaName = 'mutated';
+      expect(validated.schemaName).toBe('app_data');
     });
   });
 });

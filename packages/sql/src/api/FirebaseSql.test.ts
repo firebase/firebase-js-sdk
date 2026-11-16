@@ -32,13 +32,16 @@ import {
 } from '@firebase/component';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { FirebaseSqlContext } from '../core/context';
 import {
   Code,
   FirebaseSqlError,
   FirebaseSqlErrorCategory
 } from '../core/error';
-import { SqlServiceSettings } from '../core/settings';
-import type { SqlClientState } from '../core/state';
+import {
+  SqlServiceSettings,
+  validateSqlServiceSettings
+} from '../core/settings';
 import { SDK_VERSION, setSDKVersion } from '../core/version';
 import { LOWERCASE_DISALLOWED_HEADER_KEYS } from '../network/headers';
 import { registerSql } from '../register';
@@ -53,7 +56,10 @@ const defaultSettings: SqlServiceSettings = {
 };
 
 interface FirebaseSqlWithInternals {
-  _state: SqlClientState;
+  _state:
+    | { name: 'mutable'; headers: Readonly<Record<string, string>> }
+    | { name: 'immutable'; context: FirebaseSqlContext }
+    | { name: 'terminated' };
 }
 
 describe('FirebaseSql', () => {
@@ -62,45 +68,69 @@ describe('FirebaseSql', () => {
   });
 
   describe('terminate()', () => {
-    it('evicts the instance from the registry and is safe when called repeatedly', async () => {
+    it('evicts the instance from the registry in both mutable and immutable states and is safe when called repeatedly', async () => {
       const app = initializeApp({ projectId: 'test-project' });
       const client1 = FirebaseSql.getSql(app, defaultSettings);
       const client2 = FirebaseSql.getSql(app, defaultSettings);
       expect(client1).toBe(client2);
+      expect(client1.mutable).toBe(true);
 
       await FirebaseSql.terminate(client1);
+      expect(client1.mutable).toBe(false);
 
       const client3 = FirebaseSql.getSql(app, defaultSettings);
       expect(client3).not.toBe(client1);
+      expect(client3.mutable).toBe(true);
 
       // Re-terminating an already-terminated instance must not evict the new live instance.
       await FirebaseSql.terminate(client1);
       expect(FirebaseSql.getSql(app, defaultSettings)).toBe(client3);
+
+      // Transition client3 to immutable before terminating.
+      client3.from('users');
+      expect(client3.mutable).toBe(false);
+      await FirebaseSql.terminate(client3);
+
+      const client4 = FirebaseSql.getSql(app, defaultSettings);
+      expect(client4).not.toBe(client3);
+
+      await FirebaseSql.terminate(client3);
+      expect(FirebaseSql.getSql(app, defaultSettings)).toBe(client4);
     });
 
-    it('terminates auth and App Check token providers once and is idempotent on repeated calls', async () => {
+    it('terminates auth and App Check token providers once after entering immutable state and is idempotent on repeated calls', async () => {
       const app = initializeApp({ projectId: 'test-project' });
       const client = FirebaseSql.getSql(app, defaultSettings);
       const internals = client as unknown as FirebaseSqlWithInternals;
 
+      expect(internals._state.name).toBe('mutable');
+      client.from('users');
+      expect(internals._state.name).toBe('immutable');
+      if (internals._state.name !== 'immutable') {
+        throw new Error('Expected immutable state');
+      }
+      const { context } = internals._state;
+
       const authTerminateSpy = vi.spyOn(
-        internals._state.active!.authTokenProvider,
+        context.resources!.authTokenProvider,
         'terminate'
       );
       const appCheckTerminateSpy = vi.spyOn(
-        internals._state.active!.appCheckTokenProvider,
+        context.resources!.appCheckTokenProvider,
         'terminate'
       );
 
       await FirebaseSql.terminate(client);
 
-      expect(internals._state.active).toBeNull();
+      expect(internals._state.name).toBe('terminated');
+      expect(context.resources).toBeNull();
       expect(authTerminateSpy).toHaveBeenCalledTimes(1);
       expect(appCheckTerminateSpy).toHaveBeenCalledTimes(1);
 
       await FirebaseSql.terminate(client);
 
-      expect(internals._state.active).toBeNull();
+      expect(internals._state.name).toBe('terminated');
+      expect(context.resources).toBeNull();
       expect(authTerminateSpy).toHaveBeenCalledTimes(1);
       expect(appCheckTerminateSpy).toHaveBeenCalledTimes(1);
     });
@@ -110,20 +140,157 @@ describe('FirebaseSql', () => {
       const client = FirebaseSql.getSql(app, defaultSettings);
       const internals = client as unknown as FirebaseSqlWithInternals;
 
+      client.from('users');
+      if (internals._state.name !== 'immutable') {
+        throw new Error('Expected immutable state');
+      }
+      const { context } = internals._state;
+
       const authTerminateSpy = vi.spyOn(
-        internals._state.active!.authTokenProvider,
+        context.resources!.authTokenProvider,
         'terminate'
       );
       const appCheckTerminateSpy = vi.spyOn(
-        internals._state.active!.appCheckTokenProvider,
+        context.resources!.appCheckTokenProvider,
         'terminate'
       );
 
       await deleteApp(app);
 
-      expect(internals._state.active).toBeNull();
+      expect(internals._state.name).toBe('terminated');
+      expect(context.resources).toBeNull();
       expect(authTerminateSpy).toHaveBeenCalledTimes(1);
       expect(appCheckTerminateSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('terminates a mutable instance cleanly when deleteApp() is called', async () => {
+      const app = initializeApp({ projectId: 'test-project' });
+      const client = FirebaseSql.getSql(app, defaultSettings);
+      expect(client.mutable).toBe(true);
+
+      await deleteApp(app);
+
+      expect(client.mutable).toBe(false);
+      expect(() => client.from('users')).toThrow(FirebaseSqlError);
+    });
+  });
+
+  describe('mutable and setHeaders()', () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('allows setting and overwriting headers while mutable, defensively copies inputs, and locks on from()/rpc()', async () => {
+      const app = initializeApp({ projectId: 'proj-1' });
+      const sql = FirebaseSql.getSql(app, defaultSettings);
+      expect(sql.mutable).toBe(true);
+
+      sql.setHeaders({ 'X-First': 'one', 'X-Shared': 'initial' });
+
+      const mutableHeaders: Record<string, string> = {
+        'X-Second': 'two',
+        'X-Shared': 'overwritten'
+      };
+      sql.setHeaders(mutableHeaders);
+      // Mutating caller object after setHeaders() must not affect outgoing requests.
+      mutableHeaders['X-Second'] = 'mutated';
+      mutableHeaders['X-Injected'] = 'late';
+
+      expect(sql.mutable).toBe(true);
+
+      const mockFetch = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(new Response('[]', { status: 200 }))
+        .mockResolvedValueOnce(new Response('[]', { status: 200 }));
+      vi.stubGlobal('fetch', mockFetch);
+
+      const builder1 = sql.from('users').select().setHeader('X-Op', 'op1');
+      expect(sql.mutable).toBe(false);
+
+      // Subsequent setHeaders() calls throw ALREADY_INITIALIZED once immutable.
+      let immutableErr: unknown;
+      try {
+        sql.setHeaders({ 'X-After': 'blocked' });
+      } catch (err) {
+        immutableErr = err;
+      }
+      expect(immutableErr).toBeInstanceOf(FirebaseSqlError);
+      expect((immutableErr as FirebaseSqlError).code).toBe(
+        Code.ALREADY_INITIALIZED
+      );
+      expect((immutableErr as FirebaseSqlError).category).toBe(
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+
+      await builder1;
+      await sql.from('users').select();
+
+      const headers1 = mockFetch.mock.calls[0][1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(headers1['x-first']).toBeUndefined();
+      expect(headers1['x-second']).toBe('two');
+      expect(headers1['x-shared']).toBe('overwritten');
+      expect(headers1['x-injected']).toBeUndefined();
+      expect(headers1['x-op']).toBe('op1');
+
+      const headers2 = mockFetch.mock.calls[1][1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(headers2['x-second']).toBe('two');
+      expect(headers2['x-op']).toBeUndefined();
+    });
+
+    it('transitions mutable to false on rpc() and throws NOT_INITIALIZED on setHeaders() after terminate() from either mutable or immutable state', async () => {
+      const app = initializeApp({ projectId: 'proj-1' });
+
+      const sqlFromMutable = FirebaseSql.getSql(app, {
+        serviceId: 'svc-mutable',
+        location: 'us-central1'
+      });
+      await FirebaseSql.terminate(sqlFromMutable);
+      expect(sqlFromMutable.mutable).toBe(false);
+
+      let errAfterMutableTerminate: unknown;
+      try {
+        sqlFromMutable.setHeaders({ 'X-Test': 'val' });
+      } catch (err) {
+        errAfterMutableTerminate = err;
+      }
+      expect(errAfterMutableTerminate).toBeInstanceOf(FirebaseSqlError);
+      expect((errAfterMutableTerminate as FirebaseSqlError).code).toBe(
+        Code.NOT_INITIALIZED
+      );
+      expect((errAfterMutableTerminate as FirebaseSqlError).category).toBe(
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+
+      const sqlFromRpc = FirebaseSql.getSql(app, {
+        serviceId: 'svc-rpc',
+        location: 'us-central1'
+      });
+      expect(sqlFromRpc.mutable).toBe(true);
+      void sqlFromRpc.rpc('ping');
+      expect(sqlFromRpc.mutable).toBe(false);
+
+      await FirebaseSql.terminate(sqlFromRpc);
+      expect(sqlFromRpc.mutable).toBe(false);
+
+      let errAfterImmutableTerminate: unknown;
+      try {
+        sqlFromRpc.setHeaders({ 'X-Test': 'val' });
+      } catch (err) {
+        errAfterImmutableTerminate = err;
+      }
+      expect(errAfterImmutableTerminate).toBeInstanceOf(FirebaseSqlError);
+      expect((errAfterImmutableTerminate as FirebaseSqlError).code).toBe(
+        Code.NOT_INITIALIZED
+      );
+      expect((errAfterImmutableTerminate as FirebaseSqlError).category).toBe(
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
     });
   });
 });
@@ -178,8 +345,10 @@ describe('getSql()', () => {
 
       expect(client).toBeInstanceOf(FirebaseSql.FirebaseSql);
       expect(client.app).toBe(defaultApp);
-      expect(client.settings.serviceId).toBe('my-service');
-      expect(client.settings.location).toBe('us-central1');
+      expect(client.restUrl).toBe(
+        'https://firebasedataconnect.googleapis.com/v1/projects/test-project/locations/us-central1/services/my-service/postgrest'
+      );
+      expect(client.schemaName).toBeUndefined();
     });
 
     it('resolves the default FirebaseApp when first argument is explicitly undefined', () => {
@@ -191,7 +360,9 @@ describe('getSql()', () => {
 
       expect(client).toBeInstanceOf(FirebaseSql.FirebaseSql);
       expect(client.app).toBe(defaultApp);
-      expect(client.settings.serviceId).toBe('my-service');
+      expect(client.restUrl).toBe(
+        'https://firebasedataconnect.googleapis.com/v1/projects/test-project/locations/us-central1/services/my-service/postgrest'
+      );
     });
 
     it('throws FirebaseSqlError(INVALID_ARGUMENT) when projectId is missing or empty in app options', () => {
@@ -221,15 +392,21 @@ describe('getSql()', () => {
   });
 
   describe('settings validation and defensive copy', () => {
-    it('defensively copies and freezes valid minimal and full settings on getSql()', () => {
+    it('defensively copies and freezes valid minimal and full settings and derives restUrl and schemaName on getSql()', () => {
       const minimalInput: SqlServiceSettings = Object.assign(
         {},
         defaultSettings
       );
+      const validatedMinimal = validateSqlServiceSettings(minimalInput);
+      expect(validatedMinimal).toEqual(defaultSettings);
+      expect(validatedMinimal).not.toBe(minimalInput);
+      expect(Object.isFrozen(validatedMinimal)).toBe(true);
+
       const minimalClient = FirebaseSql.getSql(app, minimalInput);
-      expect(minimalClient.settings).toEqual(defaultSettings);
-      expect(minimalClient.settings).not.toBe(minimalInput);
-      expect(Object.isFrozen(minimalClient.settings)).toBe(true);
+      expect(minimalClient.restUrl).toBe(
+        'https://firebasedataconnect.googleapis.com/v1/projects/test-project/locations/us-central1/services/my-service/postgrest'
+      );
+      expect(minimalClient.schemaName).toBeUndefined();
 
       const full: SqlServiceSettings = {
         serviceId: 'svc-1',
@@ -237,15 +414,21 @@ describe('getSql()', () => {
         schemaName: 'app_data',
         host: 'localhost',
         port: 8080,
-        sslEnabled: false,
-        headers: { 'X-Custom': 'abc' }
+        sslEnabled: false
       };
+      const validatedFull = validateSqlServiceSettings(full);
+      expect(validatedFull).toEqual(full);
+      expect(validatedFull).not.toBe(full);
+      expect(Object.isFrozen(validatedFull)).toBe(true);
+
       const fullClient = FirebaseSql.getSql(app, full);
-      expect(fullClient.settings).toEqual(full);
-      expect(fullClient.settings).not.toBe(full);
-      expect(fullClient.settings.headers).not.toBe(full.headers);
-      expect(Object.isFrozen(fullClient.settings)).toBe(true);
-      expect(Object.isFrozen(fullClient.settings.headers)).toBe(true);
+      full.schemaName = 'mutated';
+      full.serviceId = 'mutated-svc';
+
+      expect(fullClient.restUrl).toBe(
+        'http://localhost:8080/v1/projects/test-project/locations/europe-west1/services/svc-1/postgrest'
+      );
+      expect(fullClient.schemaName).toBe('app_data');
     });
 
     it('rejects nullish settings or missing required serviceId/location with FirebaseSqlError (invalid-argument, sql-client)', () => {
@@ -393,7 +576,7 @@ describe('getSql()', () => {
       expect(client1).toBe(client2);
     });
 
-    it('returns distinct instances for different apps or settings fields (other than headers)', () => {
+    it('returns distinct instances for different apps or settings fields', () => {
       const otherApp = initializeApp(
         { projectId: 'test-project' },
         'secondary'
@@ -457,26 +640,30 @@ describe('getSql()', () => {
       ).not.toBe(baseClient);
     });
 
-    it('returns the same instance regardless of custom headers passed in settings', () => {
-      const headersOne = {
-        'X-One': '1'
-      };
-      const headersTwo = {
-        'X-Two': '2'
-      };
+    it('shares client headers and mutable state across cached getSql() lookups', () => {
       const client1 = FirebaseSql.getSql(app, {
         serviceId: 'my-service',
-        location: 'us-central1',
-        headers: headersOne
+        location: 'us-central1'
       });
+      client1.setHeaders({ 'X-One': '1' });
+
       const client2 = FirebaseSql.getSql(app, {
         serviceId: 'my-service',
-        location: 'us-central1',
-        headers: headersTwo
+        location: 'us-central1'
       });
 
       expect(client1).toBe(client2);
-      expect(client1.settings.headers).toEqual(client2.settings.headers);
+      expect(client2.mutable).toBe(true);
+
+      client2.setHeaders({ 'X-Two': '2' });
+      const internals = client1 as unknown as FirebaseSqlWithInternals;
+      expect(internals._state.name).toBe('mutable');
+      if (internals._state.name === 'mutable') {
+        expect(internals._state.headers).toEqual({ 'X-Two': '2' });
+      }
+
+      client1.from('users');
+      expect(client2.mutable).toBe(false);
     });
   });
 });
@@ -545,10 +732,8 @@ describe('FirebaseSql end-to-end operations', () => {
   describe('from() CRUD, custom headers, and schemaName', () => {
     it('executes select, insert, upsert, update, and delete with filters and transforms', async () => {
       const app = initializeApp({ projectId: 'proj-1' });
-      const sql = FirebaseSql.getSql(app, {
-        ...defaultSettings,
-        headers: { 'X-Custom-Client': 'yes' }
-      });
+      const sql = FirebaseSql.getSql(app, defaultSettings);
+      sql.setHeaders({ 'X-Custom-Client': 'yes' });
 
       const mockFetch = vi
         .fn<typeof fetch>()
@@ -864,26 +1049,28 @@ describe('FirebaseSql end-to-end operations', () => {
       expect('x-firebase-appcheck' in headers2).toBe(false);
     });
 
-    it('rejects all disallowed headers synchronously in both getSql() and builder.setHeader()', () => {
+    it('rejects all disallowed headers synchronously in both sql.setHeaders() and builder.setHeader()', () => {
       const app = initializeApp({ projectId: 'proj-1' });
+      const mutableSql = FirebaseSql.getSql(app, {
+        ...defaultSettings,
+        serviceId: 'mutable-service'
+      });
       const sql = FirebaseSql.getSql(app, defaultSettings);
 
       for (const key of LOWERCASE_DISALLOWED_HEADER_KEYS) {
         const upperKey = key.toUpperCase();
-        let getSqlErr: unknown;
+        let setHeadersErr: unknown;
         try {
-          FirebaseSql.getSql(app, {
-            ...defaultSettings,
-            headers: { [upperKey]: 'blocked' }
-          });
+          mutableSql.setHeaders({ [upperKey]: 'blocked' });
         } catch (err) {
-          getSqlErr = err;
+          setHeadersErr = err;
         }
-        expect(getSqlErr).toBeInstanceOf(FirebaseSqlError);
-        expect((getSqlErr as FirebaseSqlError).code).toBe(
+        expect(mutableSql.mutable).toBe(true);
+        expect(setHeadersErr).toBeInstanceOf(FirebaseSqlError);
+        expect((setHeadersErr as FirebaseSqlError).code).toBe(
           Code.INVALID_ARGUMENT
         );
-        expect((getSqlErr as FirebaseSqlError).category).toBe(
+        expect((setHeadersErr as FirebaseSqlError).category).toBe(
           FirebaseSqlErrorCategory.SQL_CLIENT
         );
 
