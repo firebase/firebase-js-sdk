@@ -39,7 +39,7 @@ export interface SamplingDecision {
   sampled: boolean;
   /**
    * The sampling rate the decision was made with, stamped on every exported log record and span
-   * as `session.sampling.rate`. Always in `(0.0, 1.0]` for sampled sessions.
+   * as `session.sampling.rate`. Always in `0.0, 1.0]` for sampled sessions.
    */
   samplingRate: number;
   /**
@@ -66,13 +66,11 @@ export function isSessionSampled(sessionId: string, rate: number): boolean {
 /**
  * Makes and remembers the session sampling decision for a Crashlytics instance.
  *
- * - The decision is made lazily, at the first telemetry export attempt of the session (not at
- *   session creation), right after refreshing the configuration, so the most recent sampling rate
+ * - The decision is made lazily, at the first telemetry export of the session, right after refreshing the configuration, so the most recent sampling rate
  *   is used.
- * - A session is either kept completely or discarded completely. Once made, the decision (and the
- *   rate it was made with) is fixed for the rest of the session and persisted in `sessionStorage`
- *   so page reloads within the session do not flip it. Rate changes apply to new sessions only;
- *   downward changes are additionally enforced immediately by the backend.
+ * - A session is either kept completely or discarded completely. Once made, the decision is fixed for the rest of the session and persisted in `sessionStorage`
+ *   so page reloads within the session do not flip it. Rate increases apply to new sessions only;
+ *   rate decreases are enforced immediately by the backend.
  * - The telemetry debug override (see {@link isTelemetryDebugEnabled}) is the one exception: from
  *   the next export after it is turned on, even mid-session, the session is sampled with a stamped
  *   rate of `1.0` and `session.sampling.forced = true`, so the server does not re-sample it.
@@ -88,8 +86,7 @@ export class SessionSampler {
 
   /**
    * @param _storageKey - `sessionStorage` key under which the decision is persisted. It must be
-   *   specific to the app and region: the session ID is shared by every app on the page, but each
-   *   app makes its own decision from its own configuration.
+   *   specific to the app and region.
    * @param _initialWaitMs - Maximum time the first decision waits for the config refresh. Exposed
    *   for tests.
    */
@@ -146,12 +143,7 @@ export class SessionSampler {
 
   /**
    * Applies the session's sampling decision to a batch of log records or spans about to be
-   * exported. Waits for the decision (see {@link SessionSampler.getDecision}); if the session is
-   * sampled, stamps `session.sampling.rate` (and `session.sampling.forced` for a forced decision)
-   * on every record and resolves to `true`. Otherwise resolves to `false`, and the caller must drop
-   * the batch without sending it.
-   *
-   * Shared by the log and trace exporters, so both apply the decision at export time the same way.
+   * exported.
    */
   async applySampling(
     records: ReadonlyArray<{ readonly attributes: object }>
@@ -220,10 +212,9 @@ export class SessionSampler {
   }
 
   /**
-   * Returns the current session's decision from memory or `sessionStorage`, if one was made. While
-   * the debug override is on, a non-debug decision is skipped and made again, so the session
-   * switches to a debug decision (unless telemetry collection is disabled) and keeps it, even
-   * after the override is turned off.
+   * Returns the session's saved decision, if any. While the debug override is on, a non-forced
+   * decision is ignored, so the session gets a forced one (unless telemetry is disabled) and
+   * keeps it.
    */
   private _cachedDecision(): SamplingDecision | undefined {
     const sessionId = this._attributesStore.sessionId;
@@ -248,10 +239,9 @@ export class SessionSampler {
   private _loadPersistedDecision(): SamplingDecision | undefined {
     try {
       const raw = sessionStorage.getItem(this._storageKey);
-      // Only the SDK writes this entry, so the stored decision is used as-is.
       return raw ? (JSON.parse(raw) as SamplingDecision) : undefined;
     } catch (e) {
-      // sessionStorage is unavailable (e.g. outside a browser or blocked) or the entry is corrupt.
+      // sessionStorage is unavailable.
       return undefined;
     }
   }

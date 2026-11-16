@@ -35,8 +35,7 @@ import { isPageHidden } from '../helpers';
 export interface ClientConfig {
   /**
    * Session sampling rate in `[0.0, 1.0]`. `0.0` pauses collection: only sessions forced by the
-   * telemetry debug override are exported. A disabled app is served as `0.0` too. The device
-   * applies the rate as served.
+   * telemetry debug override are exported. The device applies it as served.
    */
   samplingRate: number;
   /**
@@ -75,8 +74,7 @@ function normalizeSamplingRate(rate: unknown): number {
 /**
  * Parses a `GetClientConfig` JSON response body into a {@link ClientConfig}.
  *
- * The response only contains `enablementState` and `samplingRate`. A disabled app is returned as
- * `enabled: false` with a sampling rate of `0.0`, so it exports nothing, not even debug sessions.
+ * The response only contains `enablementState` and `samplingRate`.
  */
 function parseClientConfigResponse(body: unknown): ClientConfig {
   const response = (body ?? {}) as Record<string, unknown>;
@@ -180,8 +178,7 @@ export class ClientConfigStore {
   }
 
   /**
-   * Kicks off the background fetch and periodic refreshes. Safe to call more than once; subsequent
-   * calls are no-ops. Does nothing when the configuration can't be fetched here: no URL is
+   * Fetches the configuration without waiting for the response, and schedules periodic refreshes until {@link ClientConfigStore.stop} is called. Safe to call more than once. Does nothing when the configuration can't be fetched here: no URL is
    * configured, it isn't running in a browser, or `fetch` isn't available.
    */
   start(): void {
@@ -247,7 +244,7 @@ export class ClientConfigStore {
 
   /**
    * Schedules the next periodic refresh. If it falls due while the page is hidden, it is deferred
-   * until the page becomes visible again (see `_onVisibilityChange`).
+   * until the page becomes visible again.
    */
   private _scheduleRefresh(delayMs: number): void {
     clearTimeout(this._refreshTimer);
@@ -279,7 +276,7 @@ export class ClientConfigStore {
   /**
    * Fetches `GetClientConfig` and, on success, updates the in-memory configuration and the local
    * cache. Resolves with the delay until the next periodic refresh, or `undefined` when the
-   * configuration can't be fetched at all (see `_canFetch`). Never rejects.
+   * configuration can't be fetched at all. Never rejects.
    */
   private async _fetchAndStore(): Promise<number | undefined> {
     if (!this._canFetch()) {
