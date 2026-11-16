@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Test Package Paths
+name: Package Checks
 
 on: pull_request
 
@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   test:
-    name: Test Package Paths
+    name: Test Package Paths And Run Type Check
     runs-on: ubuntu-latest
 
     steps:
@@ -35,6 +35,7 @@ jobs:
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
         node-version: 24.22.1
+        cache: 'yarn'
     - name: Yarn install
       run: yarn
     - name: Yarn build
