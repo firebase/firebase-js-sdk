@@ -583,7 +583,7 @@ const LOST_CONNECTION_ERRORS = [
  * of failing the AsyncQueue.
  */
 function isLostConnectionError(e: Error): boolean {
-  return LOST_CONNECTION_ERRORS.indexOf(e.name) !== -1;
+  return !!e && LOST_CONNECTION_ERRORS.indexOf(e.name) !== -1;
 }
 
 /** Verifies whether `e` is an IndexedDbTransactionError. */
