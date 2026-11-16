@@ -67,7 +67,7 @@ export const CLIENT_CONFIG_FETCH_TIMEOUT_MS = 5000;
 /**
  * Maximum time a session's sampling decision (made at its first telemetry export) waits for a
  * `GetClientConfig` refresh before using the configuration already in memory. No wait happens when
- * the page is hidden or the telemetry debug override is active.
+ * the page is hidden.
  */
 export const CLIENT_CONFIG_INITIAL_WAIT_MS = 2000;
 
@@ -85,7 +85,10 @@ export const SESSION_STORAGE_SAMPLING_DECISION_KEY_PREFIX =
 /** sessionStorage key marking that the telemetry debug override is active for this session. */
 export const SESSION_STORAGE_DEBUG_KEY = 'firebasecrashlytics.debug';
 
-/** Global flag developers can set to force 100% on-device telemetry collection. */
+/**
+ * Global flag developers can set to force 100% telemetry collection, at any sampling rate, unless
+ * telemetry collection is disabled.
+ */
 export const TELEMETRY_DEBUG_GLOBAL_FLAG = 'FIREBASE_TELEMETRY_DEBUG';
 
 /** URL query parameter that enables the telemetry debug override for the browser session. */
@@ -97,6 +100,13 @@ export const TELEMETRY_DEBUG_QUERY_PARAM = 'firebase_telemetry_debug';
  * extrapolation weight (`1 / rate`) and to reconcile stale client rates with the live config.
  */
 export const ATTR_KEY_SESSION_SAMPLING_RATE = 'session.sampling.rate';
+
+/**
+ * Attribute stamped as `true` on every exported log record and span of a session whose sampling
+ * was forced by the telemetry debug override; absent otherwise. The server keeps these sessions at
+ * any configured rate, including `0.0`, but still drops them when telemetry collection is disabled.
+ */
+export const ATTR_KEY_SESSION_SAMPLING_FORCED = 'session.sampling.forced';
 
 /**
  * Number of hash buckets used by the deterministic session sampling decision. The server

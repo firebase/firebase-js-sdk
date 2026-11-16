@@ -34,14 +34,21 @@ import { isPageHidden } from '../helpers';
  */
 export interface ClientConfig {
   /**
-   * Session sampling rate in `[0.0, 1.0]`. `0.0` pauses collection (nothing is exported). The device applies it as served.
+   * Session sampling rate in `[0.0, 1.0]`. `0.0` pauses collection: only sessions forced by the
+   * telemetry debug override are exported. The device applies it as served.
    */
   samplingRate: number;
+  /**
+   * Whether telemetry collection is enabled for the app. A disabled app exports nothing, not even
+   * sessions forced by the telemetry debug override.
+   */
+  enabled: boolean;
 }
 
 /** Configuration used when nothing has been fetched or cached yet: collect everything. */
 const DEFAULT_CLIENT_CONFIG: ClientConfig = Object.freeze({
-  samplingRate: 1.0
+  samplingRate: 1.0,
+  enabled: true
 });
 
 /** Enablement state enum values as serialized by the `ClientConfig` proto. */
@@ -72,9 +79,12 @@ function normalizeSamplingRate(rate: unknown): number {
 function parseClientConfigResponse(body: unknown): ClientConfig {
   const response = (body ?? {}) as Record<string, unknown>;
   if (response['enablementState'] === ENABLEMENT_STATE_DISABLED) {
-    return { samplingRate: 0 };
+    return { samplingRate: 0, enabled: false };
   }
-  return { samplingRate: normalizeSamplingRate(response['samplingRate']) };
+  return {
+    samplingRate: normalizeSamplingRate(response['samplingRate']),
+    enabled: true
+  };
 }
 
 /**

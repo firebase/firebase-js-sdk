@@ -316,6 +316,32 @@ describe('Top level API', () => {
         OnErrorLogRecordProcessor
       );
     });
+
+    it('should persist the session sampling decision under an app- and region-specific key', async () => {
+      const otherApp = initializeApp(
+        { projectId: PROJECT_ID, appId: 'other-appid', apiKey: API_KEY },
+        'other-app'
+      );
+      try {
+        const crashlytics = getCrashlytics(getFakeApp()) as CrashlyticsService;
+        const otherCrashlytics = getCrashlytics(otherApp, {
+          region: 'us-central1'
+        }) as CrashlyticsService;
+        crashlytics.sessionSampler!.decide();
+        otherCrashlytics.sessionSampler!.decide();
+
+        // Both apps share the session ID but persist their own decisions.
+        expect(
+          storage[`firebasecrashlytics.sampling:${APP_ID}:global`]
+        ).toBeDefined();
+        expect(
+          storage['firebasecrashlytics.sampling:other-appid:us-central1']
+        ).toBeDefined();
+        expect(storage['firebasecrashlytics.sampling']).toBeUndefined();
+      } finally {
+        await deleteApp(otherApp);
+      }
+    });
   });
 
   describe('Global error listener auto-registration', () => {
