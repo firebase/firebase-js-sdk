@@ -141,7 +141,7 @@ To reproduce or investigate an issue during development or QA testing, you can c
 
 - **For a user's session**: ask them to open your app with the `firebase_telemetry_debug=true` query parameter, for example `https://example.com/?firebase_telemetry_debug=true`. The SDK remembers it in `sessionStorage` for the rest of the browser session, including after in-app navigation.
 
-The override applies from the session's next export, even mid-session, and the session stays fully collected until it ends, even if you turn the override off. Telemetry dropped before then isn't recovered. Debug sessions are sent with `session.sampling.rate = 1.0` and `session.sampling.forced = true`, so the server keeps them in full instead of re-sampling them. This applies even at a sampling rate of `0.0`, but not when telemetry collection is disabled.
+The override applies from the session's next export, even mid-session, and the session stays fully collected until it ends, even if you turn the override off. Telemetry dropped before then isn't recovered. Debug sessions are sent with `session.sampling.rate = 1.0` and `session.sampling.forced = true`, so the server keeps them in full instead of re-sampling them. This applies even at a sampling rate of `0.0`, but not when telemetry collection is disabled. If you re-enable telemetry collection during a debug session, reload the page once the change reaches your app (within about 16 minutes) to start collecting that session.
 
 ---
 

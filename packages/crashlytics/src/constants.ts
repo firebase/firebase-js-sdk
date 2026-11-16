@@ -55,8 +55,8 @@ export const CLIENT_CONFIG_MIN_REFRESH_INTERVAL_MS = 60 * 1000;
 export const CLIENT_CONFIG_MAX_REFRESH_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 /**
- * A config refresh started less than this long ago is reused instead of fetching again (e.g. the
- * startup fetch, when a debug session refreshes the configuration right after page load).
+ * A config refresh started less than this long ago is reused instead of fetching again (e.g. when
+ * the page becomes visible again while a periodic refresh is still in flight).
  */
 export const CLIENT_CONFIG_REUSE_WINDOW_MS = 60 * 1000;
 

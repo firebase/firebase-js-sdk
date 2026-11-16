@@ -64,8 +64,7 @@ export function isSessionSampled(sessionId: string, rate: number): boolean {
 /**
  * Makes and remembers the session sampling decision for a Crashlytics instance.
  *
- * - The decision is made lazily, at the first telemetry export of the session, without waiting for
- *   a fetch: it uses the configuration in memory, which is the latest one fetched, else the cached
+ * - The decision is made lazily, at the first telemetry export of the session: it uses the configuration in memory, which is the latest one fetched, else the cached
  *   one, else the default.
  * - A session is either kept completely or discarded completely. Once made, the decision is fixed for the rest of the session and persisted in `sessionStorage`
  *   so page reloads within the session do not flip it. Rate increases apply to new sessions only;
@@ -95,19 +94,15 @@ export class SessionSampler {
 
   /**
    * Returns the decision for the current session, making it from the configuration in memory if
-   * none has been made yet. It never waits for a fetch.
+   * none has been made yet.
    *
-   * While the debug override is on and the session isn't forced yet (e.g. because telemetry is
-   * disabled), this also refreshes the configuration without waiting for it, so a later export
-   * sees a change such as telemetry being re-enabled.
+   * A debug session that isn't forced because telemetry is disabled stays unforced until the page
+   * reloads, even if telemetry is re-enabled: the configuration isn't re-fetched for the decision.
    */
   getDecision(): SamplingDecision {
     const cached = this._cachedDecision();
     if (cached) {
       return cached;
-    }
-    if (isTelemetryDebugEnabled()) {
-      void this._configStore.refreshIfStale();
     }
     const decision = this._computeDecision(
       this._attributesStore.sessionId,
