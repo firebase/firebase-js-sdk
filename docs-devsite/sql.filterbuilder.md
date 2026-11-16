@@ -836,7 +836,7 @@ const res = await sql
 
 Filters rows where `column IS NOT NULL` (`?column=not.is.null`<!-- -->) and narrows `column` on `T` to `NonNullable` via [NarrowResultColumn](./sql.md#narrowresultcolumn)<!-- -->.
 
-When to use: excluding `NULL` values on nullable columns (such as `events.venue_id` or `registrations.checked_in_at`<!-- -->; see [FilterBuilder.is()](./sql.filterbuilder.md#filterbuilderis) for `IS NULL` checks). On default untyped chains (`T = Array<Record<string, unknown>>`<!-- -->), declare the narrowed column as non-null directly in your terminal `.overrideTypes<Row[], { merge: false }>()` interface (`NarrowResultColumn` only narrows pre-typed `FilterBuilder<Row[]>` references).
+When to use: excluding `NULL` values on nullable columns (such as `events.venue_id` or `registrations.checked_in_at`<!-- -->; see [FilterBuilder.is()](./sql.filterbuilder.md#filterbuilderis) for `IS NULL` checks). On default untyped chains (`T = Array<Record<string, unknown>>`<!-- -->), declare the narrowed column as non-null directly in your `.returns<Row[]>()` interface (`NarrowResultColumn` only narrows pre-typed `FilterBuilder<Row[]>` references).
 
 Behavior and side effects: mutates this builder's URL query parameters in place without network I/O and returns `this`<!-- -->.
 
@@ -869,7 +869,7 @@ const inPersonRes = await sql
   .from('events')
   .select('id, title, venue_id')
   .not('venue_id', 'is', null)
-  .overrideTypes<Array<{ id: string; title: string; venue_id: string }>, { merge: false }>();
+  .returns<Array<{ id: string; title: string; venue_id: string }>>();
 
 ```
 
@@ -1384,7 +1384,7 @@ const { data } = await sql
   .select('id, code, title')
   .throwOnError()
   .eq('status', 'published')
-  .overrideTypes<Array<{ id: string; code: string; title: string }>, { merge: false }>();
+  .returns<Array<{ id: string; code: string; title: string }>>();
 
 ```
 
@@ -1407,7 +1407,7 @@ const res = await sql
   .lte('ticket_price', 150)
   .contains('tags', ['firebase'])
   .order('ticket_price', { ascending: true })
-  .overrideTypes<PublishedEvent[], { merge: false }>();
+  .returns<PublishedEvent[]>();
 
 ```
 

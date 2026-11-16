@@ -64,7 +64,7 @@ Creates a reusable [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) 
 
 When to use: starting any `SELECT`<!-- -->, `INSERT`<!-- -->, `UPSERT`<!-- -->, `UPDATE`<!-- -->, or `DELETE` chain against a relation in the client's configured PostgreSQL schema (`settings.schemaName`<!-- -->, or the server default schema). See [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) for available SQL verbs.
 
-Do not use for calling stored functions or procedures (use [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc) instead), passing `<Row>` type generics (`sql.from<EventRow>('events')` is not supported; apply [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) later in the chain), or schema-qualifying `table` as `'analytics.events'` (`table` is URI-encoded as a single path segment; configure `schemaName: 'analytics'` in [getSql()](./sql.md#getsql_e89ea77) instead).
+Do not use for calling stored functions or procedures (use [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc) instead), passing `<Row>` type generics (`sql.from<EventRow>('events')` is not supported; apply [Builder.returns()](./sql.builder.md#builderreturns) or [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) later in the chain), or schema-qualifying `table` as `'analytics.events'` (`table` is URI-encoded as a single path segment; configure `schemaName: 'analytics'` in [getSql()](./sql.md#getsql_e89ea77) instead).
 
 Preconditions: this `FirebaseSql` instance must not have been terminated via [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->.
 
@@ -129,7 +129,7 @@ const created = await registrationsTable
   })
   .select('id')
   .single()
-  .overrideTypes<{ id: string }, { merge: false }>();
+  .returns<{ id: string }>();
 
 if (created.success) {
   const checkInRes = await registrationsTable
@@ -156,7 +156,7 @@ Behavior and side effects: builder progression is `FirebaseSql -> FilterBuilder<
 
 Defaults to `POST /rpc/{fn}` with JSON body `params ?? {}` (omit `params` for zero-argument functions: `sql.rpc('fn')`<!-- -->). Set `options.get: true` in [FirebaseSqlRpcOptions](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptions_interface) for read-only functions to use `GET` with query parameters (enabling automatic transient-error retries). Functions declared `RETURNS void` resolve with HTTP `204` and `data: null`<!-- -->.
 
-Untyped `data` defaults to `unknown`<!-- -->. `<Args>` types input `params` only—chain [.overrideTypes()](./sql.builder.md#builderoverridetypes) at the end of direct `rpc()` chains to type `result.data` (no `{ merge: false }` is needed when `T` is `unknown`<!-- -->, except when `.single()` or `.maybeSingle()` precedes `overrideTypes()`<!-- -->, because those methods narrow `unknown` to `Record<string, unknown>`<!-- -->, requiring `.overrideTypes<RowType, { merge: false }>()`<!-- -->).
+Untyped `data` defaults to `unknown`<!-- -->. `<Args>` types input `params` only—chain [.returns()](./sql.transformbuilder.md#transformbuilderreturns) (or [Builder.returns()](./sql.builder.md#builderreturns) after `.single()` / `.maybeSingle()`<!-- -->) to assign a full static return type to `result.data`<!-- -->, or chain [.overrideTypes()](./sql.builder.md#builderoverridetypes) when partially refining fields on a typed row.
 
 For set-returning functions (`RETURNS SETOF` / `RETURNS TABLE`<!-- -->), you can chain [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) filters (`.eq()`<!-- -->, `.overlaps()`<!-- -->), [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) modifiers (`.select()`<!-- -->, `.order()`<!-- -->, `.limit()`<!-- -->, `.single()`<!-- -->, `.maxAffected()`<!-- -->), and [Builder](./sql.builder.md#builder_interface) modifiers before awaiting.
 
@@ -217,7 +217,7 @@ const cityEvents = await sql
   .overlaps('tags', ['firebase', 'postgres'])
   .order('ticket_price', { ascending: true })
   .limit(10)
-  .overrideTypes<EventRow[]>();
+  .returns<EventRow[]>();
 
 if (!cityEvents.success) {
   console.error(cityEvents.error.code, cityEvents.error.hint);
@@ -238,7 +238,7 @@ const seatsRes = await sql
     { target_event_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8' },
     { get: true }
   )
-  .overrideTypes<number>();
+  .returns<number>();
 
 if (seatsRes.success) {
   console.log('Remaining seats:', seatsRes.data);
@@ -254,7 +254,7 @@ Set-returning RPC sent via default `POST` JSON body with `.throwOnError()`<!-- -
 const { data } = await sql
   .rpc('list_events_by_city', { target_city: 'San Francisco' })
   .select('id, code, title')
-  .overrideTypes<Array<{ id: string; code: string; title: string }>>()
+  .returns<Array<{ id: string; code: string; title: string }>>()
   .throwOnError();
 
 ```
@@ -291,7 +291,7 @@ const sql: FirebaseSql = getSql({
 const venuesRes = await sql.from('venues').select('id, slug, name, city');
 const seatsRes = await sql
   .rpc('remaining_seats', { target_event_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8' }, { get: true })
-  .overrideTypes<number>();
+  .returns<number>();
 
 if (venuesRes.success && seatsRes.success) {
   console.log(venuesRes.data.length, seatsRes.data);

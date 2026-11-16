@@ -69,7 +69,7 @@ export interface OperationBase {
  * const res = await sql
  *   .from('venues')
  *   .select('id, name', { count: 'exact' })
- *   .overrideTypes<VenueRow[], { merge: false }>();
+ *   .returns<VenueRow[]>();
  *
  * if (res.success) {
  *   const ok: OperationSuccess<VenueRow[]> = res;
@@ -158,7 +158,7 @@ export interface OperationFailure extends OperationBase {
  *   .from('events')
  *   .select('id, code, title')
  *   .eq('status', 'published')
- *   .overrideTypes<EventItem[], { merge: false }>();
+ *   .returns<EventItem[]>();
  *
  * if (!result.success) {
  *   console.error(result.error.code, result.error.message);
@@ -201,8 +201,8 @@ export type ContainsNull<T> = unknown extends T
  *
  * @remarks
  * `firebase/sql` operates on an untyped schema (`Record<string, unknown>`) and does not parse
- * `select()` projection strings at compile time; use {@link Builder.overrideTypes} to assign static
- * row types.
+ * `select()` projection strings at compile time; use {@link Builder.returns} (for full types) or
+ * {@link Builder.overrideTypes} (for partial field overrides) to assign static row types.
  *
  * @typeParam Message - Diagnostic message string literal.
  *
@@ -280,7 +280,7 @@ export type CheckMatchingArrayTypes<T, NewResult> =
           T,
           NewResult,
           {
-            Error: 'Type mismatch: Cannot cast array result to a single object. Use .overrideTypes<Array<YourType>> or .returns<Array<YourType>> (deprecated) for array results or .single() to convert the result to a single object';
+            Error: 'Type mismatch: Cannot cast array result to a single object. Use .returns<Array<YourType>> or .overrideTypes<Array<YourType>> for array results or .single() to convert the result to a single object';
           },
           {
             Error: 'Type mismatch: Cannot cast single object to array type. Remove Array wrapper from return type or make sure you are not using .single() up in the calling chain';
@@ -484,7 +484,7 @@ export type MergePartialResult<NewResult, Result$1, Options> = Options extends {
 
 /**
  * Terminal `PromiseLike` builder interface providing execution modifiers (`throwOnError`,
- * `stripNulls`, `setHeader`, `retry`) and static result-type overrides (`overrideTypes`, `returns`).
+ * `stripNulls`, `setHeader`, `retry`) and static result-type overrides (`returns`, `overrideTypes`).
  *
  * @remarks
  * Lazy execution and non-cached re-execution: no HTTP request is issued until the builder is
@@ -496,8 +496,8 @@ export type MergePartialResult<NewResult, Result$1, Options> = Options extends {
  *
  * Builder progression: `Builder` is the base interface of {@link TransformBuilder} and
  * {@link FilterBuilder}. Once a chain narrows to `Builder` (via `.single()`, `.maybeSingle()`,
- * `.csv()`, `.geojson()`, `.explain()`, or `.overrideTypes()`), filter and transform methods are no
- * longer available—only `Builder` methods and `await` remain.
+ * `.csv()`, `.geojson()`, `.explain()`, `.overrideTypes()`, or `Builder.returns()`), filter and
+ * transform methods are no longer available—only `Builder` methods and `await` remain.
  *
  * @typeParam T - Expected resolved `data` payload type.
  * @typeParam ThrowOnError - When `false` (default), resolves to {@link OperationResult}; when `true`, resolves to {@link OperationSuccess} or rejects with {@link FirebaseSqlError}.
@@ -518,7 +518,7 @@ export type MergePartialResult<NewResult, Result$1, Options> = Options extends {
  *   .eq('slug', 'moscone-west')
  *   .single()
  *   .setHeader('x-request-trace', 'venue-detail-lookup')
- *   .overrideTypes<VenueDetail, { merge: false }>();
+ *   .returns<VenueDetail>();
  *
  * if (res.success) {
  *   console.log(res.data.name);
@@ -567,7 +567,7 @@ export interface Builder<
    *     .select('id, name, city')
    *     .eq('slug', 'moscone-west')
    *     .single()
-   *     .overrideTypes<{ id: string; name: string; city: string }, { merge: false }>()
+   *     .returns<{ id: string; name: string; city: string }>()
    *     .throwOnError();
    *
    *   console.log(data.name);
@@ -588,7 +588,8 @@ export interface Builder<
    * @remarks
    * When to use: reducing JSON payload size when rows contain sparse nullable columns (such as
    * `events.venue_id` or `registrations.checked_in_at`). Stripped keys become `undefined` at
-   * runtime, so declare optional properties (`prop?: Type`) in your `.overrideTypes()` interface.
+   * runtime, so declare optional properties (`prop?: Type`) in your {@link Builder.returns | .returns()}
+   * or {@link Builder.overrideTypes | .overrideTypes()} interface.
    *
    * Do not use after {@link TransformBuilder.csv | .csv()}—calling `.csv().stripNulls()` throws a
    * synchronous `Error('stripNulls() cannot be used with csv()')`. Calling `.stripNulls()` before
@@ -614,7 +615,7 @@ export interface Builder<
    *   .from('registrations')
    *   .select('id, attendee_email, checked_in_at')
    *   .stripNulls()
-   *   .overrideTypes<SparseRegistration[], { merge: false }>();
+   *   .returns<SparseRegistration[]>();
    * ```
    *
    * @public
@@ -705,77 +706,37 @@ export interface Builder<
   retry(enabled: boolean): this;
 
   /**
-   * Legacy result-type override method replacing the static TypeScript type of `result.data` on this {@link Builder}.
-   *
-   * @deprecated Use {@link Builder.overrideTypes} instead.
+   * Replaces the static TypeScript type of `result.data` with `NewResult` at compile time without performing runtime validation.
    *
    * @remarks
-   * Prefer {@link Builder.overrideTypes | .overrideTypes()} with `{ merge: false }` at the end of
-   * your call chain for new code. Enforces array-vs-object cardinality compatibility via
-   * {@link CheckMatchingArrayTypes} while preserving `| null` after {@link TransformBuilder.maybeSingle}.
-   *
-   * @typeParam NewResult - Replacement TypeScript type matching the array/object cardinality of `T`.
-   * @returns This {@link Builder} with `data` typed as `CheckMatchingArrayTypes<T, NewResult>`.
-   *
-   * @example
-   * Legacy type override on a `Builder` (prefer `.overrideTypes()` for new code):
-   * ```ts
-   * const res = await sql
-   *   .from('venues')
-   *   .select('id, slug, name')
-   *   .eq('slug', 'moscone-west')
-   *   .single()
-   *   .returns<{ id: string; slug: string; name: string }>();
-   * ```
-   *
-   * @public
-   */
-  returns<NewResult>(): Builder<
-    CheckMatchingArrayTypes<T, NewResult>,
-    ThrowOnError
-  >;
-
-  /**
-   * Overrides the static TypeScript type of `result.data` at compile time without performing runtime validation.
-   *
-   * @remarks
-   * When to use: assigning a strongly typed row or payload interface at the end of any `select()`,
-   * mutation + `.select()`, or `rpc()` chain (since {@link (getSql:1) | getSql()} and
-   * {@link FirebaseSql.from} are untyped by default).
-   *
-   * Do not use mid-chain before `.eq()`, `.order()`, `.limit()`, or `.single()`—`overrideTypes()`
-   * returns a base {@link Builder} that does not expose filter or transform methods. Always place
-   * `overrideTypes()` after filters, transforms, and {@link TransformBuilder.single | .single()} /
-   * {@link TransformBuilder.maybeSingle | .maybeSingle()}.
+   * When to use: assigning a full static row, array, or scalar payload type on a terminal
+   * {@link Builder} (such as after {@link TransformBuilder.single | .single()},
+   * {@link TransformBuilder.maybeSingle | .maybeSingle()}, or
+   * {@link TransformBuilder.geojson | .geojson()}; on {@link FilterBuilder} or
+   * {@link TransformBuilder} chains, {@link TransformBuilder.returns} provides the same full-type
+   * replacement while keeping transform methods available). Unlike
+   * {@link Builder.overrideTypes | .overrideTypes()}, `returns<NewResult>()` replaces the untyped
+   * `Record<string, unknown>` base type directly with a single type parameter—no `{ merge: false }`
+   * option is needed to shed `[K: string]: unknown`. When you instead want to partially override or
+   * refine specific fields on an already-typed builder while keeping all other properties intact,
+   * use {@link Builder.overrideTypes}.
    *
    * Do not chain after {@link TransformBuilder.explain | .explain()}—`explain()` returns a union of
    * array and `string` builders that rejects both array and non-array overrides; narrow `res.data`
    * with `typeof res.data === 'string'` instead.
    *
-   * Match array cardinality: pass `MyRow[]` for list queries and `MyRow` (non-array) after
-   * `.single()` or `.maybeSingle()` (passing an array after `.single()`, or a non-array on a list
-   * query, produces a compile-time `{ Error: 'Type mismatch: ...' }` type). When called after
-   * `.maybeSingle()`, `| null` is preserved automatically (`MyRow | null`).
+   * Match array cardinality: pass `MyRow[]` for array results and `MyRow` (non-array) after
+   * `.single()` or `.maybeSingle()` (enforced at compile time via {@link CheckMatchingArrayTypes}).
+   * When called after `.maybeSingle()`, `| null` is preserved automatically (`MyRow | null`).
    *
-   * Choosing `Options` (`{ merge: false }` vs. default `{ merge: true }`): on table queries
-   * (`select()`, `.single()`, `.maybeSingle()`), the untyped base row is `Record<string, unknown>`,
-   * so the default `{ merge: true }` intersects `[K: string]: unknown` onto `NewResult` (and if
-   * `NewResult` itself carries a `[key: string]` index signature, {@link ExplicitKeys} collapses
-   * merged explicit keys). Pass `{ merge: false }` (for example,
-   * `.overrideTypes<EventRow[], { merge: false }>()`) for an exact, closed `EventRow[]` type. On
-   * direct {@link FirebaseSql.rpc | sql.rpc()} chains, the untyped base result is `unknown`, which
-   * short-circuits directly to `NewResult` without `{ merge: false }`, except when `.single()` or
-   * `.maybeSingle()` precedes `overrideTypes()` on `rpc()` (which narrows `unknown` to
-   * `Record<string, unknown>`, requiring `{ merge: false }`).
+   * Behavior and side effects: compile-time type cast only; performs no network I/O or runtime
+   * schema parsing, and preserves `ThrowOnError`.
    *
-   * Behavior and side effects: compile-time type cast only; performs no network I/O or runtime schema parsing.
-   *
-   * @typeParam NewResult - Target TypeScript type (`MyRow[]` for list queries, `MyRow` after `.single()` / `.maybeSingle()`, or scalar/row type for `rpc()`).
-   * @typeParam Options - `{ merge?: boolean }` controlling whether `NewResult` is deep-merged with `T` (`{ merge: true }`, default when `Options` is omitted) or replaces `T` (any other type, such as `{ merge: false }`).
-   * @returns This {@link Builder} with `data` statically typed according to `NewResult` and `Options`.
+   * @typeParam NewResult - Full replacement TypeScript type matching the array/object cardinality of `T` (pass `MyRow` without `| null` after `.maybeSingle()`).
+   * @returns This {@link Builder} with `data` statically typed as `CheckMatchingArrayTypes<T, NewResult>`.
    *
    * @example
-   * Replace untyped table `select()` rows with an exact `Venue[]` type (`{ merge: false }`):
+   * Assign a full `Venue` type after `.single()`:
    * ```ts
    * interface Venue {
    *   id: string;
@@ -788,10 +749,12 @@ export interface Builder<
    * const res = await sql
    *   .from('venues')
    *   .select('id, slug, name, city, capacity')
-   *   .overrideTypes<Venue[], { merge: false }>();
+   *   .eq('slug', 'moscone-west')
+   *   .single()
+   *   .returns<Venue>();
    *
    * if (res.success) {
-   *   const venues: Venue[] = res.data;
+   *   const venue: Venue = res.data;
    * }
    * ```
    *
@@ -803,8 +766,101 @@ export interface Builder<
    *   .select('id, code, title')
    *   .eq('code', 'FIREBASE-SUMMIT-2026')
    *   .maybeSingle()
-   *   .overrideTypes<{ id: string; code: string; title: string }, { merge: false }>();
+   *   .returns<{ id: string; code: string; title: string }>();
    * // res.data is typed as { id: string; code: string; title: string } | null on success
+   * ```
+   *
+   * @public
+   */
+  returns<NewResult>(): Builder<
+    CheckMatchingArrayTypes<T, NewResult>,
+    ThrowOnError
+  >;
+
+  /**
+   * Overrides or deep-merges the static TypeScript type of `result.data` at compile time without performing runtime validation.
+   *
+   * @remarks
+   * When to use: partially overriding or refining specific fields (such as narrowing a `jsonb`
+   * column or a status literal union) on an already-typed builder via default `{ merge: true }`
+   * deep-merging—for example, chaining
+   * `.returns<EventRow[]>().overrideTypes<Array<{ metadata: EventMetadata }>>()` preserves every
+   * other `EventRow` property while refining `metadata`. When specifying the complete row, array,
+   * or scalar type from scratch, prefer {@link Builder.returns | .returns()} (or
+   * {@link TransformBuilder.returns}) so you do not need to pass `{ merge: false }`.
+   *
+   * Do not use mid-chain before `.eq()`, `.order()`, `.limit()`, or `.single()`—`overrideTypes()`
+   * returns a base {@link Builder} that does not expose filter or transform methods. Always place
+   * `overrideTypes()` after filters, transforms, and {@link TransformBuilder.single | .single()} /
+   * {@link TransformBuilder.maybeSingle | .maybeSingle()}.
+   *
+   * Do not chain after {@link TransformBuilder.explain | .explain()}—`explain()` returns a union of
+   * array and `string` builders that rejects both array and non-array overrides; narrow `res.data`
+   * with `typeof res.data === 'string'` instead.
+   *
+   * Match array cardinality: pass `Array<PartialRow>` for list queries and `PartialRow` (non-array)
+   * after `.single()` or `.maybeSingle()` (passing an array after `.single()`, or a non-array on a
+   * list query, produces a compile-time `{ Error: 'Type mismatch: ...' }` type). When called after
+   * `.maybeSingle()`, `| null` is preserved automatically.
+   *
+   * Choosing `Options` (default `{ merge: true }` vs. `{ merge: false }`): by default
+   * (`{ merge: true }`), {@link MergeDeep} deep-merges `NewResult` onto `T` while preserving
+   * existing properties and any `[K: string]` index signature on `T`. On an untyped table query
+   * (`T = Array<Record<string, unknown>>`), `{ merge: true }` therefore retains
+   * `[K: string]: unknown` alongside your overridden fields (and if `NewResult` itself carries a
+   * `[key: string]` index signature, {@link ExplicitKeys} collapses merged explicit keys). Pass
+   * `{ merge: false }` to discard `T` completely instead of merging, or use
+   * {@link Builder.returns | .returns()} for full-type replacement with a single type parameter. On
+   * direct {@link FirebaseSql.rpc | sql.rpc()} chains where `T` is `unknown`, `{ merge: true }`
+   * short-circuits directly to `NewResult`.
+   *
+   * Behavior and side effects: compile-time type cast only; performs no network I/O or runtime schema parsing.
+   *
+   * @typeParam NewResult - Partial field override type (with default `{ merge: true }`) or full target type (with `{ merge: false }`).
+   * @typeParam Options - `{ merge?: boolean }` controlling whether `NewResult` is deep-merged with `T` (`{ merge: true }`, default when `Options` is omitted) or replaces `T` (any other type, such as `{ merge: false }`).
+   * @returns This {@link Builder} with `data` statically typed according to `NewResult` and `Options`.
+   *
+   * @example
+   * Partially refine a `jsonb` `metadata` column on a typed `EventRow[]` query (`{ merge: true }` default):
+   * ```ts
+   * interface EventRow {
+   *   id: string;
+   *   code: string;
+   *   title: string;
+   *   metadata: unknown;
+   * }
+   *
+   * interface EventMetadata {
+   *   track: 'backend' | 'web' | 'mobile';
+   *   level: 100 | 200 | 300;
+   * }
+   *
+   * const res = await sql
+   *   .from('events')
+   *   .select('id, code, title, metadata')
+   *   .eq('status', 'published')
+   *   .returns<EventRow[]>()
+   *   .overrideTypes<Array<{ metadata: EventMetadata }>>();
+   *
+   * if (res.success) {
+   *   // id, code, and title are preserved from EventRow; metadata is narrowed to EventMetadata
+   *   console.log(res.data[0]?.title, res.data[0]?.metadata.track);
+   * }
+   * ```
+   *
+   * @example
+   * Replace an untyped table result completely using `{ merge: false }` (equivalent to `.returns<Venue[]>()`):
+   * ```ts
+   * interface Venue {
+   *   id: string;
+   *   slug: string;
+   *   name: string;
+   * }
+   *
+   * const res = await sql
+   *   .from('venues')
+   *   .select('id, slug, name')
+   *   .overrideTypes<Venue[], { merge: false }>();
    * ```
    *
    * @public

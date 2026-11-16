@@ -82,7 +82,7 @@ const result = await sql
   .maxAffected(100)
   .abortSignal(AbortSignal.timeout(5000))
   .select('id, attendee_email')
-  .overrideTypes<DeletedRegistration[], { merge: false }>();
+  .returns<DeletedRegistration[]>();
 
 if (!result.success) {
   console.error('Delete failed or timed out:', result.error.code, result.error.message);
@@ -192,7 +192,7 @@ try {
     })
     .select('id, code, title, status, created_at')
     .single()
-    .overrideTypes<CreatedEvent, { merge: false }>()
+    .returns<CreatedEvent>()
     .throwOnError();
 
   console.log('Created event:', created.id, created.status);
@@ -229,9 +229,8 @@ const batchRes = await sql
     { defaultToNull: false, count: 'exact' }
   )
   .select('id, attendee_email, role')
-  .overrideTypes<
-    Array<{ id: string; attendee_email: string; role: 'attendee' | 'speaker' | 'organizer' }>,
-    { merge: false }
+  .returns<
+    Array<{ id: string; attendee_email: string; role: 'attendee' | 'speaker' | 'organizer' }>
   >();
 
 if (!batchRes.success) {
@@ -266,11 +265,11 @@ When to use: reading rows, embedding parent/child relations via foreign keys, or
 
 Do not use to return mutated rows from `insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, or `delete`<!-- -->—call [TransformBuilder.select()](./sql.transformbuilder.md#transformbuilderselect) after those mutation verbs instead.
 
-Behavior and side effects: builder progression is `QueryBuilder -> FilterBuilder<Array<Record<string, unknown>>, 'GET', false>`<!-- -->. Lazy—performs no network I/O until `await`<!-- -->ed or `.then()` is invoked (each `await` sends a new HTTP request). Unquoted whitespace in `columns` is stripped automatically while preserving whitespace inside double-quoted identifiers (such as `'id, "display name"'`<!-- -->). Untyped `data` defaults to `Array<Record<string, unknown>>`<!-- -->; chain `.overrideTypes<MyRow[], { merge: false }>()` at the end of the chain—or `.single()` + `.overrideTypes<MyRow, { merge: false }>()` for single-row lookups—to strongly type `result.data`<!-- -->. Automatic retries (`retry(true)`<!-- -->) are enabled by default for transient network errors and HTTP `503`<!-- -->/`520` responses.
+Behavior and side effects: builder progression is `QueryBuilder -> FilterBuilder<Array<Record<string, unknown>>, 'GET', false>`<!-- -->. Lazy—performs no network I/O until `await`<!-- -->ed or `.then()` is invoked (each `await` sends a new HTTP request). Unquoted whitespace in `columns` is stripped automatically while preserving whitespace inside double-quoted identifiers (such as `'id, "display name"'`<!-- -->). Untyped `data` defaults to `Array<Record<string, unknown>>`<!-- -->; chain `.returns<MyRow[]>()`<!-- -->—or `.single().returns<MyRow>()` for single-row lookups—to assign a full static type to `result.data` (or chain `.overrideTypes<PartialRow[]>()` when partially refining fields on an already-typed builder). Automatic retries (`retry(true)`<!-- -->) are enabled by default for transient network errors and HTTP `503`<!-- -->/`520` responses.
 
 `head: true` caveats: when `options.head` is `true`<!-- -->, `result.data` resolves to `null` at runtime even though TypeScript still statically types `result.data` as `Array<Record<string, unknown>>`<!-- -->—never access `.length` on `result.data`<!-- -->. Because `HEAD` responses carry no body, an HTTP `404` (for example, an unknown table) resolves as `status: 204` with `success: true` and `count: null`<!-- -->, and other `HEAD` failures carry no PostgREST/SQLSTATE code (mapping to `'sql-platform'`<!-- -->); treat `count === null` as a failure when `count` was requested.
 
-Embedded relation syntax and `.overrideTypes()` shapes: many-to-one (FK on parent, such as `events.venue_id -> venues.id`<!-- -->) or one-to-one (`UNIQUE` FK) embeds resolve to `RelatedRow | null` by default, or non-null `RelatedRow` when `!inner` is appended (`'venue:venues!inner(name, city)'`<!-- -->). One-to-many (FK on child, such as `registrations.event_id -> events.id`<!-- -->) or many-to-many embeds resolve to `RelatedRow[]` (`[]` when empty, never `null`<!-- -->). Use an empty `!inner()` projection (`select('id, title, venues!inner()').eq('venues.city', 'Seattle')`<!-- -->) to filter parent rows without returning child columns, or `select('id, title, registrations(count)')` to receive `registrations: Array<{ count: number }>`<!-- -->. Place `!fkey_name` before `!inner` (`'venue:venues!events_venue_id_fkey!inner(name)'`<!-- -->), and once aliased (`venue:venues(...)`<!-- -->), reference the alias in filters and transforms (`'venue.city'`<!-- -->, `{ referencedTable: 'venue' }`<!-- -->).
+Embedded relation syntax and `.returns()` shapes: many-to-one (FK on parent, such as `events.venue_id -> venues.id`<!-- -->) or one-to-one (`UNIQUE` FK) embeds resolve to `RelatedRow | null` by default, or non-null `RelatedRow` when `!inner` is appended (`'venue:venues!inner(name, city)'`<!-- -->). One-to-many (FK on child, such as `registrations.event_id -> events.id`<!-- -->) or many-to-many embeds resolve to `RelatedRow[]` (`[]` when empty, never `null`<!-- -->). Use an empty `!inner()` projection (`select('id, title, venues!inner()').eq('venues.city', 'Seattle')`<!-- -->) to filter parent rows without returning child columns, or `select('id, title, registrations(count)')` to receive `registrations: Array<{ count: number }>`<!-- -->. Place `!fkey_name` before `!inner` (`'venue:venues!events_venue_id_fkey!inner(name)'`<!-- -->), and once aliased (`venue:venues(...)`<!-- -->), reference the alias in filters and transforms (`'venue.city'`<!-- -->, `{ referencedTable: 'venue' }`<!-- -->).
 
 `jsonb` operators (`->` vs. `->>`<!-- -->): single-arrow `'level:metadata->level'` extracts a typed JSON value (`number | boolean | object | null`<!-- -->) for numeric/boolean comparisons and numeric sorting; double-arrow `'track:metadata->>track'` extracts plain `text` (`string | null`<!-- -->) for string equality (`.eq()`<!-- -->) and pattern matching (`.ilike()`<!-- -->).
 
@@ -326,7 +325,7 @@ const result = await sql
   })
   .limit(5, { referencedTable: 'registrations' })
   .range(0, 19)
-  .overrideTypes<EventFeedItem[], { merge: false }>();
+  .returns<EventFeedItem[]>();
 
 if (!result.success) {
   console.error(`[${result.error.category}] ${result.error.code}: ${result.error.message}`);
@@ -349,9 +348,8 @@ const seattleEvents = await sql
   .from('events')
   .select('id, code, title, venue:venues!inner(name, city)')
   .eq('venue.city', 'Seattle')
-  .overrideTypes<
-    Array<{ id: string; code: string; title: string; venue: { name: string; city: string } }>,
-    { merge: false }
+  .returns<
+    Array<{ id: string; code: string; title: string; venue: { name: string; city: string } }>
   >();
 
 ```
@@ -365,9 +363,8 @@ const tracksRes = await sql
   .from('events')
   .select('id, eventCode:code, track:metadata->>track, level:metadata->level')
   .eq('status', 'published')
-  .overrideTypes<
-    Array<{ id: string; eventCode: string; track: string | null; level: number | null }>,
-    { merge: false }
+  .returns<
+    Array<{ id: string; eventCode: string; track: string | null; level: number | null }>
   >();
 
 ```
@@ -443,7 +440,7 @@ const result = await sql
   .eq('status', 'draft')
   .maxAffected(1)
   .select('id, code, status, is_featured')
-  .overrideTypes<UpdatedEventSummary[], { merge: false }>();
+  .returns<UpdatedEventSummary[]>();
 
 if (!result.success) {
   console.error('Update failed:', result.error.code, result.error.message);
@@ -487,7 +484,7 @@ const previewRes = await sql
   .eq('code', 'FIREBASE-SUMMIT-2026')
   .select('id, code, ticket_price')
   .rollback()
-  .overrideTypes<Array<{ id: string; code: string; ticket_price: number }>, { merge: false }>();
+  .returns<Array<{ id: string; code: string; ticket_price: number }>>();
 
 if (!previewRes.success) {
   console.error('Preview failed:', previewRes.error.message);
@@ -570,7 +567,7 @@ const result = await sql
   )
   .select('id, attendee_email, role')
   .order('attendee_email', { ascending: true })
-  .overrideTypes<SyncedRegistration[], { merge: false }>();
+  .returns<SyncedRegistration[]>();
 
 if (!result.success) {
   console.error('Upsert failed:', result.error.code, result.error.message);
@@ -593,7 +590,7 @@ const venueRes = await sql
   )
   .select('id, slug, capacity')
   .single()
-  .overrideTypes<{ id: string; slug: string; capacity: number }, { merge: false }>();
+  .returns<{ id: string; slug: string; capacity: number }>();
 
 if (!venueRes.success) {
   console.error('Venue upsert failed:', venueRes.error.message);
@@ -619,7 +616,7 @@ const seedRes = await sql
   )
   .select('id, role')
   .maybeSingle()
-  .overrideTypes<{ id: string; role: string }, { merge: false }>();
+  .returns<{ id: string; role: string }>();
 
 if (!seedRes.success) {
   console.error('Seed upsert failed:', seedRes.error.message);

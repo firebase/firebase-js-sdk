@@ -10,11 +10,11 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # Builder interface
-Terminal `PromiseLike` builder interface providing execution modifiers (`throwOnError`<!-- -->, `stripNulls`<!-- -->, `setHeader`<!-- -->, `retry`<!-- -->) and static result-type overrides (`overrideTypes`<!-- -->, `returns`<!-- -->).
+Terminal `PromiseLike` builder interface providing execution modifiers (`throwOnError`<!-- -->, `stripNulls`<!-- -->, `setHeader`<!-- -->, `retry`<!-- -->) and static result-type overrides (`returns`<!-- -->, `overrideTypes`<!-- -->).
 
 Lazy execution and non-cached re-execution: no HTTP request is issued until the builder is `await`<!-- -->ed or `.then()` is called. Each `await` or `.then()` call sends a new HTTP request built from the builder's current state; results are never cached. Awaiting the same builder twice (sequentially or via `Promise.all([q, q])`<!-- -->) executes it twice—harmless for reads, but it duplicates writes for `insert()`<!-- -->, `upsert()`<!-- -->, `update()`<!-- -->, `delete()`<!-- -->, and write `rpc()` builders. Await each mutation builder at most once.
 
-Builder progression: `Builder` is the base interface of [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) and [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->. Once a chain narrows to `Builder` (via `.single()`<!-- -->, `.maybeSingle()`<!-- -->, `.csv()`<!-- -->, `.geojson()`<!-- -->, `.explain()`<!-- -->, or `.overrideTypes()`<!-- -->), filter and transform methods are no longer available—only `Builder` methods and `await` remain.
+Builder progression: `Builder` is the base interface of [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) and [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->. Once a chain narrows to `Builder` (via `.single()`<!-- -->, `.maybeSingle()`<!-- -->, `.csv()`<!-- -->, `.geojson()`<!-- -->, `.explain()`<!-- -->, `.overrideTypes()`<!-- -->, or `Builder.returns()`<!-- -->), filter and transform methods are no longer available—only `Builder` methods and `await` remain.
 
 <b>Signature:</b>
 
@@ -27,26 +27,26 @@ export interface Builder<T, ThrowOnError extends boolean = false> extends Promis
 
 |  Method | Description |
 |  --- | --- |
-|  [overrideTypes()](./sql.builder.md#builderoverridetypes) | Overrides the static TypeScript type of <code>result.data</code> at compile time without performing runtime validation. |
+|  [overrideTypes()](./sql.builder.md#builderoverridetypes) | Overrides or deep-merges the static TypeScript type of <code>result.data</code> at compile time without performing runtime validation. |
 |  [retry(enabled)](./sql.builder.md#builderretry) | Enables or disables automatic transient-failure retries for <code>GET</code> and <code>HEAD</code> HTTP requests on this builder. |
-|  [returns()](./sql.builder.md#builderreturns) | Legacy result-type override method replacing the static TypeScript type of <code>result.data</code> on this [Builder](./sql.builder.md#builder_interface)<!-- -->. |
+|  [returns()](./sql.builder.md#builderreturns) | Replaces the static TypeScript type of <code>result.data</code> with <code>NewResult</code> at compile time without performing runtime validation. |
 |  [setHeader(name, value)](./sql.builder.md#buildersetheader) | Sets a custom HTTP header on this single request, overriding any client-level header of the same name from [SqlServiceSettings.headers](./sql.sqlservicesettings.md#sqlservicesettingsheaders)<!-- -->. |
 |  [stripNulls()](./sql.builder.md#builderstripnulls) | Instructs PostgREST to omit keys whose value is <code>null</code> from returned JSON row objects (<code>Accept: application/vnd.pgrst.array+json;nulls=stripped</code> or <code>application/vnd.pgrst.object+json;nulls=stripped</code>). |
 |  [throwOnError()](./sql.builder.md#builderthrowonerror) | Configures this builder to reject its promise with a [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) on HTTP, PostgREST, platform, or network failures instead of resolving an [OperationFailure](./sql.operationfailure.md#operationfailure_interface)<!-- -->, narrowing the resolved envelope to [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface)<!-- -->. |
 
 ## Builder.overrideTypes()
 
-Overrides the static TypeScript type of `result.data` at compile time without performing runtime validation.
+Overrides or deep-merges the static TypeScript type of `result.data` at compile time without performing runtime validation.
 
-When to use: assigning a strongly typed row or payload interface at the end of any `select()`<!-- -->, mutation + `.select()`<!-- -->, or `rpc()` chain (since [getSql()](./sql.md#getsql_e89ea77) and [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) are untyped by default).
+When to use: partially overriding or refining specific fields (such as narrowing a `jsonb` column or a status literal union) on an already-typed builder via default `{ merge: true }` deep-merging—for example, chaining `.returns<EventRow[]>().overrideTypes<Array<{ metadata: EventMetadata }>>()` preserves every other `EventRow` property while refining `metadata`<!-- -->. When specifying the complete row, array, or scalar type from scratch, prefer [.returns()](./sql.builder.md#builderreturns) (or [TransformBuilder.returns()](./sql.transformbuilder.md#transformbuilderreturns)<!-- -->) so you do not need to pass `{ merge: false }`<!-- -->.
 
 Do not use mid-chain before `.eq()`<!-- -->, `.order()`<!-- -->, `.limit()`<!-- -->, or `.single()`<!-- -->—`overrideTypes()` returns a base [Builder](./sql.builder.md#builder_interface) that does not expose filter or transform methods. Always place `overrideTypes()` after filters, transforms, and [.single()](./sql.transformbuilder.md#transformbuildersingle) / [.maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle)<!-- -->.
 
 Do not chain after [.explain()](./sql.transformbuilder.md#transformbuilderexplain)<!-- -->—`explain()` returns a union of array and `string` builders that rejects both array and non-array overrides; narrow `res.data` with `typeof res.data === 'string'` instead.
 
-Match array cardinality: pass `MyRow[]` for list queries and `MyRow` (non-array) after `.single()` or `.maybeSingle()` (passing an array after `.single()`<!-- -->, or a non-array on a list query, produces a compile-time `{ Error: 'Type mismatch: ...' }` type). When called after `.maybeSingle()`<!-- -->, `| null` is preserved automatically (`MyRow | null`<!-- -->).
+Match array cardinality: pass `Array<PartialRow>` for list queries and `PartialRow` (non-array) after `.single()` or `.maybeSingle()` (passing an array after `.single()`<!-- -->, or a non-array on a list query, produces a compile-time `{ Error: 'Type mismatch: ...' }` type). When called after `.maybeSingle()`<!-- -->, `| null` is preserved automatically.
 
-Choosing `Options` (`{ merge: false }` vs. default `{ merge: true }`<!-- -->): on table queries (`select()`<!-- -->, `.single()`<!-- -->, `.maybeSingle()`<!-- -->), the untyped base row is `Record<string, unknown>`<!-- -->, so the default `{ merge: true }` intersects `[K: string]: unknown` onto `NewResult` (and if `NewResult` itself carries a `[key: string]` index signature, [ExplicitKeys](./sql.md#explicitkeys) collapses merged explicit keys). Pass `{ merge: false }` (for example, `.overrideTypes<EventRow[], { merge: false }>()`<!-- -->) for an exact, closed `EventRow[]` type. On direct [sql.rpc()](./sql.firebasesql.md#firebasesqlrpc) chains, the untyped base result is `unknown`<!-- -->, which short-circuits directly to `NewResult` without `{ merge: false }`<!-- -->, except when `.single()` or `.maybeSingle()` precedes `overrideTypes()` on `rpc()` (which narrows `unknown` to `Record<string, unknown>`<!-- -->, requiring `{ merge: false }`<!-- -->).
+Choosing `Options` (default `{ merge: true }` vs. `{ merge: false }`<!-- -->): by default (`{ merge: true }`<!-- -->), [MergeDeep](./sql.md#mergedeep) deep-merges `NewResult` onto `T` while preserving existing properties and any `[K: string]` index signature on `T`<!-- -->. On an untyped table query (`T = Array<Record<string, unknown>>`<!-- -->), `{ merge: true }` therefore retains `[K: string]: unknown` alongside your overridden fields (and if `NewResult` itself carries a `[key: string]` index signature, [ExplicitKeys](./sql.md#explicitkeys) collapses merged explicit keys). Pass `{ merge: false }` to discard `T` completely instead of merging, or use [.returns()](./sql.builder.md#builderreturns) for full-type replacement with a single type parameter. On direct [sql.rpc()](./sql.firebasesql.md#firebasesqlrpc) chains where `T` is `unknown`<!-- -->, `{ merge: true }` short-circuits directly to `NewResult`<!-- -->.
 
 Behavior and side effects: compile-time type cast only; performs no network I/O or runtime schema parsing.
 
@@ -67,40 +67,50 @@ This [Builder](./sql.builder.md#builder_interface) with `data` statically typed 
 
 ### Example 1
 
-Replace untyped table `select()` rows with an exact `Venue[]` type (`{ merge: false }`<!-- -->):
+Partially refine a `jsonb` `metadata` column on a typed `EventRow[]` query (`{ merge: true }` default):
 
 ```ts
-interface Venue {
+interface EventRow {
   id: string;
-  slug: string;
-  name: string;
-  city: string;
-  capacity: number;
+  code: string;
+  title: string;
+  metadata: unknown;
+}
+
+interface EventMetadata {
+  track: 'backend' | 'web' | 'mobile';
+  level: 100 | 200 | 300;
 }
 
 const res = await sql
-  .from('venues')
-  .select('id, slug, name, city, capacity')
-  .overrideTypes<Venue[], { merge: false }>();
+  .from('events')
+  .select('id, code, title, metadata')
+  .eq('status', 'published')
+  .returns<EventRow[]>()
+  .overrideTypes<Array<{ metadata: EventMetadata }>>();
 
 if (res.success) {
-  const venues: Venue[] = res.data;
+  // id, code, and title are preserved from EventRow; metadata is narrowed to EventMetadata
+  console.log(res.data[0]?.title, res.data[0]?.metadata.track);
 }
 
 ```
 
 ### Example 2
 
-Type a `.maybeSingle()` lookup (`| null` preserved automatically):
+Replace an untyped table result completely using `{ merge: false }` (equivalent to `.returns<Venue[]>()`<!-- -->):
 
 ```ts
+interface Venue {
+  id: string;
+  slug: string;
+  name: string;
+}
+
 const res = await sql
-  .from('events')
-  .select('id, code, title')
-  .eq('code', 'FIREBASE-SUMMIT-2026')
-  .maybeSingle()
-  .overrideTypes<{ id: string; code: string; title: string }, { merge: false }>();
-// res.data is typed as { id: string; code: string; title: string } | null on success
+  .from('venues')
+  .select('id, slug, name')
+  .overrideTypes<Venue[], { merge: false }>();
 
 ```
 
@@ -152,14 +162,15 @@ const res = await sql
 
 ## Builder.returns()
 
-> Warning: This API is now obsolete.
-> 
-> Use [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) instead.
-> 
+Replaces the static TypeScript type of `result.data` with `NewResult` at compile time without performing runtime validation.
 
-Legacy result-type override method replacing the static TypeScript type of `result.data` on this [Builder](./sql.builder.md#builder_interface)<!-- -->.
+When to use: assigning a full static row, array, or scalar payload type on a terminal [Builder](./sql.builder.md#builder_interface) (such as after [.single()](./sql.transformbuilder.md#transformbuildersingle)<!-- -->, [.maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle)<!-- -->, or [.geojson()](./sql.transformbuilder.md#transformbuildergeojson)<!-- -->; on [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) or [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) chains, [TransformBuilder.returns()](./sql.transformbuilder.md#transformbuilderreturns) provides the same full-type replacement while keeping transform methods available). Unlike [.overrideTypes()](./sql.builder.md#builderoverridetypes)<!-- -->, `returns<NewResult>()` replaces the untyped `Record<string, unknown>` base type directly with a single type parameter—no `{ merge: false }` option is needed to shed `[K: string]: unknown`<!-- -->. When you instead want to partially override or refine specific fields on an already-typed builder while keeping all other properties intact, use [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes)<!-- -->.
 
-Prefer [.overrideTypes()](./sql.builder.md#builderoverridetypes) with `{ merge: false }` at the end of your call chain for new code. Enforces array-vs-object cardinality compatibility via [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes) while preserving `| null` after [TransformBuilder.maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle)<!-- -->.
+Do not chain after [.explain()](./sql.transformbuilder.md#transformbuilderexplain)<!-- -->—`explain()` returns a union of array and `string` builders that rejects both array and non-array overrides; narrow `res.data` with `typeof res.data === 'string'` instead.
+
+Match array cardinality: pass `MyRow[]` for array results and `MyRow` (non-array) after `.single()` or `.maybeSingle()` (enforced at compile time via [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->). When called after `.maybeSingle()`<!-- -->, `| null` is preserved automatically (`MyRow | null`<!-- -->).
+
+Behavior and side effects: compile-time type cast only; performs no network I/O or runtime schema parsing, and preserves `ThrowOnError`<!-- -->.
 
 <b>Signature:</b>
 
@@ -170,19 +181,46 @@ returns<NewResult>(): Builder<CheckMatchingArrayTypes<T, NewResult>, ThrowOnErro
 
 [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;[CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->&lt;T, NewResult&gt;, ThrowOnError&gt;
 
-This [Builder](./sql.builder.md#builder_interface) with `data` typed as `CheckMatchingArrayTypes<T, NewResult>`<!-- -->.
+This [Builder](./sql.builder.md#builder_interface) with `data` statically typed as `CheckMatchingArrayTypes<T, NewResult>`<!-- -->.
 
-### Example
+### Example 1
 
-Legacy type override on a `Builder` (prefer `.overrideTypes()` for new code):
+Assign a full `Venue` type after `.single()`<!-- -->:
+
+```ts
+interface Venue {
+  id: string;
+  slug: string;
+  name: string;
+  city: string;
+  capacity: number;
+}
+
+const res = await sql
+  .from('venues')
+  .select('id, slug, name, city, capacity')
+  .eq('slug', 'moscone-west')
+  .single()
+  .returns<Venue>();
+
+if (res.success) {
+  const venue: Venue = res.data;
+}
+
+```
+
+### Example 2
+
+Type a `.maybeSingle()` lookup (`| null` preserved automatically):
 
 ```ts
 const res = await sql
-  .from('venues')
-  .select('id, slug, name')
-  .eq('slug', 'moscone-west')
-  .single()
-  .returns<{ id: string; slug: string; name: string }>();
+  .from('events')
+  .select('id, code, title')
+  .eq('code', 'FIREBASE-SUMMIT-2026')
+  .maybeSingle()
+  .returns<{ id: string; code: string; title: string }>();
+// res.data is typed as { id: string; code: string; title: string } | null on success
 
 ```
 
@@ -237,7 +275,7 @@ const res = await sql
 
 Instructs PostgREST to omit keys whose value is `null` from returned JSON row objects (`Accept: application/vnd.pgrst.array+json;nulls=stripped` or `application/vnd.pgrst.object+json;nulls=stripped`<!-- -->).
 
-When to use: reducing JSON payload size when rows contain sparse nullable columns (such as `events.venue_id` or `registrations.checked_in_at`<!-- -->). Stripped keys become `undefined` at runtime, so declare optional properties (`prop?: Type`<!-- -->) in your `.overrideTypes()` interface.
+When to use: reducing JSON payload size when rows contain sparse nullable columns (such as `events.venue_id` or `registrations.checked_in_at`<!-- -->). Stripped keys become `undefined` at runtime, so declare optional properties (`prop?: Type`<!-- -->) in your [.returns()](./sql.builder.md#builderreturns) or [.overrideTypes()](./sql.builder.md#builderoverridetypes) interface.
 
 Do not use after [.csv()](./sql.transformbuilder.md#transformbuildercsv)<!-- -->—calling `.csv().stripNulls()` throws a synchronous `Error('stripNulls() cannot be used with csv()')`<!-- -->. Calling `.stripNulls()` before `.csv()`<!-- -->, `.geojson()`<!-- -->, or `.explain()` has no effect because `nulls=stripped` is only applied when `Accept` is JSON or `application/vnd.pgrst.object+json`<!-- -->.
 
@@ -273,7 +311,7 @@ const res = await sql
   .from('registrations')
   .select('id, attendee_email, checked_in_at')
   .stripNulls()
-  .overrideTypes<SparseRegistration[], { merge: false }>();
+  .returns<SparseRegistration[]>();
 
 ```
 
@@ -311,7 +349,7 @@ try {
     .select('id, name, city')
     .eq('slug', 'moscone-west')
     .single()
-    .overrideTypes<{ id: string; name: string; city: string }, { merge: false }>()
+    .returns<{ id: string; name: string; city: string }>()
     .throwOnError();
 
   console.log(data.name);
@@ -341,7 +379,7 @@ const res = await sql
   .eq('slug', 'moscone-west')
   .single()
   .setHeader('x-request-trace', 'venue-detail-lookup')
-  .overrideTypes<VenueDetail, { merge: false }>();
+  .returns<VenueDetail>();
 
 if (res.success) {
   console.log(res.data.name);

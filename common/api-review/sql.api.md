@@ -18,7 +18,6 @@ export interface Builder<T, ThrowOnError extends boolean = false> extends Promis
         merge: true;
     }>(): Builder<IsValidResultOverride<T, NewResult, false, false> extends true ? ContainsNull<T> extends true ? MergePartialResult<NewResult, NonNullable<T>, Options> | null : MergePartialResult<NewResult, T, Options> : CheckMatchingArrayTypes<T, NewResult>, ThrowOnError>;
     retry(enabled: boolean): this;
-    // @deprecated
     returns<NewResult>(): Builder<CheckMatchingArrayTypes<T, NewResult>, ThrowOnError>;
     setHeader(name: string, value: string): this;
     stripNulls(): this;
@@ -27,7 +26,7 @@ export interface Builder<T, ThrowOnError extends boolean = false> extends Promis
 
 // @public
 export type CheckMatchingArrayTypes<T, NewResult> = T extends SelectQueryError<string> ? NewResult : IsValidResultOverride<T, NewResult, {
-    Error: 'Type mismatch: Cannot cast array result to a single object. Use .overrideTypes<Array<YourType>> or .returns<Array<YourType>> (deprecated) for array results or .single() to convert the result to a single object';
+    Error: 'Type mismatch: Cannot cast array result to a single object. Use .returns<Array<YourType>> or .overrideTypes<Array<YourType>> for array results or .single() to convert the result to a single object';
 }, {
     Error: 'Type mismatch: Cannot cast single object to array type. Remove Array wrapper from return type or make sure you are not using .single() up in the calling chain';
 }> extends infer ValidationResult ? ValidationResult extends true ? ContainsNull<T> extends true ? NewResult | null : NewResult : ValidationResult : never;
@@ -348,7 +347,6 @@ export interface TransformBuilder<Result$1, Method = unknown, ThrowOnError exten
     maybeSingle<ResultOne = unknown extends Result$1 ? Record<string, unknown> : Result$1 extends ReadonlyArray<infer R> ? R : never>(): Builder<ResultOne | null, ThrowOnError>;
     order(column: string, options?: Readonly<TransformOrderOptions> | undefined): this;
     range(from: number, to: number, options?: Readonly<TransformRangeOptions> | undefined): this;
-    // @deprecated
     returns<NewResult>(): TransformBuilder<CheckMatchingArrayTypes<Result$1, NewResult>, Method, ThrowOnError>;
     rollback(): this;
     select(columns?: string | undefined): FilterBuilder<Method extends 'RPC' ? unknown extends Result$1 ? Result$1 : Result$1 extends readonly unknown[] ? Array<Record<string, unknown>> : Record<string, unknown> : Array<Record<string, unknown>>, Method, ThrowOnError>;

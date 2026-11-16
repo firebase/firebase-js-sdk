@@ -183,7 +183,7 @@ export type FilterOperator =
  * @remarks
  * Leaves `T` unchanged when `Col` is not a known literal property key of `T` (which is the case on
  * default untyped chains where `T` starts as `Array<Record<string, unknown>>`; reflect non-nullability
- * directly in your terminal `.overrideTypes<Row[], { merge: false }>()` interface instead).
+ * directly in your `.returns<Row[]>()` interface instead).
  *
  * @typeParam T - Row object or array of row objects carried by {@link FilterBuilder}.
  * @typeParam Col - Literal property name confirmed non-null by `IS NOT NULL`.
@@ -279,7 +279,7 @@ export type NarrowResultColumn<T, Col extends string> =
  *   .lte('ticket_price', 150)
  *   .contains('tags', ['firebase'])
  *   .order('ticket_price', { ascending: true })
- *   .overrideTypes<PublishedEvent[], { merge: false }>();
+ *   .returns<PublishedEvent[]>();
  * ```
  *
  * @public
@@ -304,7 +304,7 @@ export interface FilterBuilder<
    *   .select('id, code, title')
    *   .throwOnError()
    *   .eq('status', 'published')
-   *   .overrideTypes<Array<{ id: string; code: string; title: string }>, { merge: false }>();
+   *   .returns<Array<{ id: string; code: string; title: string }>>();
    * ```
    *
    * @public
@@ -1205,8 +1205,8 @@ export interface FilterBuilder<
    * When to use: excluding `NULL` values on nullable columns (such as `events.venue_id` or
    * `registrations.checked_in_at`; see {@link FilterBuilder.is} for `IS NULL` checks). On default
    * untyped chains (`T = Array<Record<string, unknown>>`), declare the narrowed column as non-null
-   * directly in your terminal `.overrideTypes<Row[], { merge: false }>()` interface
-   * (`NarrowResultColumn` only narrows pre-typed `FilterBuilder<Row[]>` references).
+   * directly in your `.returns<Row[]>()` interface (`NarrowResultColumn` only narrows pre-typed
+   * `FilterBuilder<Row[]>` references).
    *
    * Behavior and side effects: mutates this builder's URL query parameters in place without network
    * I/O and returns `this`.
@@ -1224,7 +1224,7 @@ export interface FilterBuilder<
    *   .from('events')
    *   .select('id, title, venue_id')
    *   .not('venue_id', 'is', null)
-   *   .overrideTypes<Array<{ id: string; title: string; venue_id: string }>, { merge: false }>();
+   *   .returns<Array<{ id: string; title: string; venue_id: string }>>();
    * ```
    *
    * @public

@@ -14,11 +14,11 @@ PostgREST-compatible SQL client SDK (`firebase/sql`<!-- -->) for querying Postgr
 
 Application import path: install `firebase` and import from `firebase/sql` (do not import `@firebase/sql` directly in application code).
 
-Builder state machine and chain order: queries and mutations progress through five stages (the entry client and four lazy TypeScript builder interfaces): (1) [FirebaseSql](./sql.firebasesql.md#firebasesql_class)<!-- -->, the entry client exposing `sql.from(table)` and `sql.rpc(fn, params, options)`<!-- -->; (2) [QueryBuilder](./sql.querybuilder.md#querybuilder_interface)<!-- -->, the SQL table verb selector (`select`<!-- -->, `insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, `delete`<!-- -->); (3) [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->, row filters (`eq`<!-- -->, `in`<!-- -->, `gte`<!-- -->, `contains`<!-- -->, `or`<!-- -->, `not`<!-- -->, and related operators); (4) [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface)<!-- -->, ordering, pagination, post-mutation `select()`<!-- -->, server preferences (`maxAffected`<!-- -->, `rollback`<!-- -->), cancellation (`abortSignal`<!-- -->), and cardinality/format modifiers (`single`<!-- -->, `maybeSingle`<!-- -->, `csv`<!-- -->, `geojson`<!-- -->, `explain`<!-- -->); and (5) [Builder](./sql.builder.md#builder_interface)<!-- -->, terminal type overrides (`overrideTypes`<!-- -->), `stripNulls`<!-- -->, `setHeader`<!-- -->, `retry`<!-- -->, `throwOnError`<!-- -->, and `PromiseLike` execution (`await`<!-- -->).
+Builder state machine and chain order: queries and mutations progress through five stages (the entry client and four lazy TypeScript builder interfaces): (1) [FirebaseSql](./sql.firebasesql.md#firebasesql_class)<!-- -->, the entry client exposing `sql.from(table)` and `sql.rpc(fn, params, options)`<!-- -->; (2) [QueryBuilder](./sql.querybuilder.md#querybuilder_interface)<!-- -->, the SQL table verb selector (`select`<!-- -->, `insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, `delete`<!-- -->); (3) [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->, row filters (`eq`<!-- -->, `in`<!-- -->, `gte`<!-- -->, `contains`<!-- -->, `or`<!-- -->, `not`<!-- -->, and related operators); (4) [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface)<!-- -->, ordering, pagination, post-mutation `select()`<!-- -->, server preferences (`maxAffected`<!-- -->, `rollback`<!-- -->), cancellation (`abortSignal`<!-- -->), full-type narrowing (`returns`<!-- -->), and cardinality/format modifiers (`single`<!-- -->, `maybeSingle`<!-- -->, `csv`<!-- -->, `geojson`<!-- -->, `explain`<!-- -->); and (5) [Builder](./sql.builder.md#builder_interface)<!-- -->, static result-type overrides (`returns`<!-- -->, `overrideTypes`<!-- -->), `stripNulls`<!-- -->, `setHeader`<!-- -->, `retry`<!-- -->, `throwOnError`<!-- -->, and `PromiseLike` execution (`await`<!-- -->).
 
-Always apply [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) and [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) methods before calling `.single()`<!-- -->, `.maybeSingle()`<!-- -->, `.csv()`<!-- -->, `.geojson()`<!-- -->, `.explain()`<!-- -->, or `.overrideTypes()`<!-- -->, because those methods narrow the static return type to [Builder](./sql.builder.md#builder_interface)<!-- -->. Each `await` or `.then()` sends a new HTTP request (results are never cached), so await each mutation builder at most once.
+Always apply [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) predicates before calling `.returns()`<!-- -->, and apply all [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) and [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) methods before calling `.single()`<!-- -->, `.maybeSingle()`<!-- -->, `.csv()`<!-- -->, `.geojson()`<!-- -->, `.explain()`<!-- -->, or `.overrideTypes()`<!-- -->, because those methods narrow the static return type to [Builder](./sql.builder.md#builder_interface)<!-- -->. Each `await` or `.then()` sends a new HTTP request (results are never cached), so await each mutation builder at most once.
 
-Untyped defaults and type narrowing: [getSql()](./sql.md#getsql_e89ea77) and [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) do not accept `<Database>` or `<Row>` generics, and there is no `sql.schema()` method (pass `schemaName` in [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) to [getSql()](./sql.md#getsql_e89ea77) instead). Table `select()` defaults `data` to `Array<Record<string, unknown>>`<!-- -->; `insert()`<!-- -->, `upsert()`<!-- -->, `update()`<!-- -->, and `delete()` default `data` to `null` unless `.select()` is chained; and `rpc()` defaults `data` to `unknown` (its `<Args>` generic types input parameters only). Call `.overrideTypes<Row[], { merge: false }>()` at the end of table chains (or `.overrideTypes<T>()` on direct `rpc()` chains; pass `{ merge: false }` if `.single()` or `.maybeSingle()` precedes `overrideTypes()` on `rpc()`<!-- -->) to assign a static TypeScript type to `data`<!-- -->.
+Untyped defaults and type narrowing: [getSql()](./sql.md#getsql_e89ea77) and [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) do not accept `<Database>` or `<Row>` generics, and there is no `sql.schema()` method (pass `schemaName` in [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) to [getSql()](./sql.md#getsql_e89ea77) instead). Table `select()` defaults `data` to `Array<Record<string, unknown>>`<!-- -->; `insert()`<!-- -->, `upsert()`<!-- -->, `update()`<!-- -->, and `delete()` default `data` to `null` unless `.select()` is chained; and `rpc()` defaults `data` to `unknown` (its `<Args>` generic types input parameters only). Chain `.returns<Row[]>()` (or `.single().returns<Row>()` / `.returns<T>()` on `rpc()`<!-- -->) to assign a full static TypeScript type to `data`<!-- -->, and use `.overrideTypes<PartialRow>()` when partially overriding or refining specific fields on an already-typed builder.
 
 Result envelope vs. throwing mode: by default, `await builder` resolves to [OperationResult](./sql.md#operationresult) (`{ success: true, data, count, error: null, status, statusText }` or `{ success: false, data: null, count: null, error: FirebaseSqlError, status, statusText }`<!-- -->) for HTTP, PostgREST, platform, and network failures (note that a `settings.schemaName` containing invalid HTTP header characters rejects with a `TypeError` when setting the profile header). Narrow via `if (!res.success)` or `const { data, error } = await ...; if (error)`<!-- -->—never narrow with `if (!data)` when `data` can legitimately be `null` (such as `.maybeSingle()`<!-- -->, `head: true`<!-- -->, or mutations without `.select()`<!-- -->). Chain [.throwOnError()](./sql.builder.md#builderthrowonerror) to reject with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) on failure and narrow the resolved envelope to [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface) (still destructure `const { data } = await query.throwOnError()`<!-- -->, as it resolves `{ data, count, status, statusText, success: true, error: null }`<!-- -->, not raw `T`<!-- -->).
 
@@ -47,7 +47,7 @@ Example conventions and reference schema: code examples across this package assu
 
 |  Interface | Description |
 |  --- | --- |
-|  [Builder](./sql.builder.md#builder_interface) | Terminal <code>PromiseLike</code> builder interface providing execution modifiers (<code>throwOnError</code>, <code>stripNulls</code>, <code>setHeader</code>, <code>retry</code>) and static result-type overrides (<code>overrideTypes</code>, <code>returns</code>). |
+|  [Builder](./sql.builder.md#builder_interface) | Terminal <code>PromiseLike</code> builder interface providing execution modifiers (<code>throwOnError</code>, <code>stripNulls</code>, <code>setHeader</code>, <code>retry</code>) and static result-type overrides (<code>returns</code>, <code>overrideTypes</code>). |
 |  [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) | Lazy PostgREST filter builder returned by [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) verbs, [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->, and [TransformBuilder.select()](./sql.transformbuilder.md#transformbuilderselect)<!-- -->. |
 |  [FilterOrOptions](./sql.filteroroptions.md#filteroroptions_interface) | Embedded-relation targeting options for [FilterBuilder.or()](./sql.filterbuilder.md#filterbuilderor)<!-- -->. |
 |  [FilterTextSearchOptions](./sql.filtertextsearchoptions.md#filtertextsearchoptions_interface) | Full-text search configuration and parser options for [FilterBuilder.textSearch()](./sql.filterbuilder.md#filterbuildertextsearch)<!-- -->. |
@@ -443,7 +443,7 @@ Produces a descriptive `{ Error: 'Type mismatch: ...' }` diagnostic object type 
 
 ```typescript
 export type CheckMatchingArrayTypes<T, NewResult> = T extends SelectQueryError<string> ? NewResult : IsValidResultOverride<T, NewResult, {
-    Error: 'Type mismatch: Cannot cast array result to a single object. Use .overrideTypes<Array<YourType>> or .returns<Array<YourType>> (deprecated) for array results or .single() to convert the result to a single object';
+    Error: 'Type mismatch: Cannot cast array result to a single object. Use .returns<Array<YourType>> or .overrideTypes<Array<YourType>> for array results or .single() to convert the result to a single object';
 }, {
     Error: 'Type mismatch: Cannot cast single object to array type. Remove Array wrapper from return type or make sure you are not using .single() up in the calling chain';
 }> extends infer ValidationResult ? ValidationResult extends true ? ContainsNull<T> extends true ? NewResult | null : NewResult : ValidationResult : never;
@@ -797,7 +797,7 @@ type ExactVenues = MergePartialResult<
 
 Type-level helper that narrows property `Col` on an object `T` (or each element of an array `T`<!-- -->) to `NonNullable<T[Col]>` when [.not(column, 'is', null)](./sql.filterbuilder.md#filterbuildernot) is chained.
 
-Leaves `T` unchanged when `Col` is not a known literal property key of `T` (which is the case on default untyped chains where `T` starts as `Array<Record<string, unknown>>`<!-- -->; reflect non-nullability directly in your terminal `.overrideTypes<Row[], { merge: false }>()` interface instead).
+Leaves `T` unchanged when `Col` is not a known literal property key of `T` (which is the case on default untyped chains where `T` starts as `Array<Record<string, unknown>>`<!-- -->; reflect non-nullability directly in your `.returns<Row[]>()` interface instead).
 
 <b>Signature:</b>
 
@@ -882,7 +882,7 @@ const result: OperationResult<EventItem[]> = await sql
   .from('events')
   .select('id, code, title')
   .eq('status', 'published')
-  .overrideTypes<EventItem[], { merge: false }>();
+  .returns<EventItem[]>();
 
 if (!result.success) {
   console.error(result.error.code, result.error.message);
@@ -925,7 +925,7 @@ if (res.success) {
 
 Compile-time error marker retained as a type-compatibility guard inside [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes) and [MergeExplicit](./sql.md#mergeexplicit)<!-- -->.
 
-`firebase/sql` operates on an untyped schema (`Record<string, unknown>`<!-- -->) and does not parse `select()` projection strings at compile time; use [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) to assign static row types.
+`firebase/sql` operates on an untyped schema (`Record<string, unknown>`<!-- -->) and does not parse `select()` projection strings at compile time; use [Builder.returns()](./sql.builder.md#builderreturns) (for full types) or [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) (for partial field overrides) to assign static row types.
 
 <b>Signature:</b>
 

@@ -36,7 +36,7 @@ export interface TransformBuilder<Result$1, Method = unknown, ThrowOnError exten
 |  [maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle) | Unwraps a <code>0</code>-or-<code>1</code> row array result client-side into <code>ResultOne &#124; null</code>, failing client-side if <code>2</code> or more rows are returned. |
 |  [order(column, options)](./sql.transformbuilder.md#transformbuilderorder) | Appends an <code>ORDER BY</code> clause (<code>?order=&lt;column&gt;.&lt;asc&#124;desc&gt;[.&lt;nullsfirst&#124;nullslast&gt;]</code>) to sort parent rows or an embedded child relation's array. |
 |  [range(from, to, options)](./sql.transformbuilder.md#transformbuilderrange) | Slices the result set to the 0-based inclusive index window <code>[from, to]</code> (<code>?offset=&lt;from&gt;&amp;limit=&lt;to - from + 1&gt;</code>). |
-|  [returns()](./sql.transformbuilder.md#transformbuilderreturns) | Legacy result-type override method replacing the static TypeScript type of <code>result.data</code> while keeping [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) methods available. |
+|  [returns()](./sql.transformbuilder.md#transformbuilderreturns) | Replaces the static TypeScript type of <code>result.data</code> with <code>NewResult</code> while keeping [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) methods available. |
 |  [rollback()](./sql.transformbuilder.md#transformbuilderrollback) | Requests (<code>Prefer: tx=rollback</code>) that PostgREST roll back this request's transaction instead of committing it. |
 |  [select(columns)](./sql.transformbuilder.md#transformbuilderselect) | Requests that PostgREST return the affected row representation (<code>Prefer: return=representation</code>) projected to <code>columns</code> after <code>insert</code>, <code>upsert</code>, <code>update</code>, <code>delete</code>, or set-returning <code>rpc</code>. |
 |  [single()](./sql.transformbuilder.md#transformbuildersingle) | Unwraps a 1-row array result into a single JSON object (<code>Accept: application/vnd.pgrst.object+json</code>) and fails on the server if the query matches <code>0</code> rows or more than <code>1</code> row. |
@@ -170,7 +170,7 @@ Requests the response payload formatted as a GeoJSON `FeatureCollection` object 
 
 Preconditions: requires PostGIS on the PostgreSQL database and at least one `geometry` or `geography` column (such as `venues.coords`<!-- -->) in the selected output columns; otherwise PostgREST returns an error.
 
-Behavior and side effects: builder progression is `TransformBuilder -> Builder<Record<string, unknown>, ThrowOnError>`<!-- -->. Terminal format modifier—apply all filters, `order()`<!-- -->, `limit()`<!-- -->, and (for writes) `.select(...)` before `.geojson()` (writes without `.select(...)` return an empty body where `res.data` is `null` at runtime). Follow with `.overrideTypes<MyFeatureCollection, { merge: false }>()` if you have a typed GeoJSON interface.
+Behavior and side effects: builder progression is `TransformBuilder -> Builder<Record<string, unknown>, ThrowOnError>`<!-- -->. Terminal format modifier—apply all filters, `order()`<!-- -->, `limit()`<!-- -->, and (for writes) `.select(...)` before `.geojson()` (writes without `.select(...)` return an empty body where `res.data` is `null` at runtime). Follow with `.returns<MyFeatureCollection>()` if you have a typed GeoJSON interface.
 
 <b>Signature:</b>
 
@@ -295,7 +295,7 @@ When to use: read-only `select()` lookups by unique key where `0` matching rows 
 
 Do not use to guard writes (`insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, `delete`<!-- -->): `maybeSingle()` sets no `Accept` header and no row `limit`<!-- -->, and runs its cardinality check client-side after the server has already returned `2xx` and committed changes to every matched row. Use [.maxAffected(1)](./sql.transformbuilder.md#transformbuildermaxaffected) (for `update()` and `delete()` on PostgREST v13+) or [TransformBuilder.single()](./sql.transformbuilder.md#transformbuildersingle) to enforce single-row writes on the server.
 
-Behavior and side effects: builder progression is `TransformBuilder<R[]> -> Builder<R | null, ThrowOnError>`<!-- -->. Terminal cardinality modifier—apply all filters and `.select()` before `.maybeSingle()`<!-- -->. Follow with `.overrideTypes<MyRow, { merge: false }>()` (pass `MyRow` without `| null` or `[]`<!-- -->; `overrideTypes` automatically preserves `| null` on `result.data`<!-- -->). Sends no `limit`<!-- -->, so all matching rows are transferred and parsed before checking `data.length > 1`<!-- -->; chain `.limit(2)` before `.maybeSingle()` on read queries to bound network transfer while still detecting duplicates.
+Behavior and side effects: builder progression is `TransformBuilder<R[]> -> Builder<R | null, ThrowOnError>`<!-- -->. Terminal cardinality modifier—apply all filters and `.select()` before `.maybeSingle()`<!-- -->. Follow with `.returns<MyRow>()` (pass `MyRow` without `| null` or `[]`<!-- -->; `returns` automatically preserves `| null` on `result.data`<!-- -->). Sends no `limit`<!-- -->, so all matching rows are transferred and parsed before checking `data.length > 1`<!-- -->; chain `.limit(2)` before `.maybeSingle()` on read queries to bound network transfer while still detecting duplicates.
 
 Error handling: matching `2` or more rows triggers a client-side check after the server responded `2xx`<!-- -->, resolving to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) with `res.status === 406`<!-- -->, `res.error.category === 'sql-postgrest'`<!-- -->, and `res.error.code === 'PGRST116'`<!-- -->. Filter on a `UNIQUE` column or add `.limit(2)` to bound transfer while keeping duplicate detection (adding `.limit(1)` disables duplicate detection and returns an arbitrary row).
 
@@ -328,7 +328,7 @@ const res = await sql
   .eq('attendee_email', 'alice@example.com')
   .limit(2)
   .maybeSingle()
-  .overrideTypes<RegistrationCheck, { merge: false }>();
+  .returns<RegistrationCheck>();
 
 if (res.success && res.data !== null) {
   console.log('Found registration:', res.data.id);
@@ -423,14 +423,15 @@ const page2 = await sql
 
 ## TransformBuilder.returns()
 
-> Warning: This API is now obsolete.
-> 
-> Use [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) instead.
-> 
+Replaces the static TypeScript type of `result.data` with `NewResult` while keeping [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) methods available.
 
-Legacy result-type override method replacing the static TypeScript type of `result.data` while keeping [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) methods available.
+When to use: assigning a full static array (or RPC scalar/row) type to `result.data` on a [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) or [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) chain without needing `{ merge: false }`<!-- -->. Unlike [.overrideTypes()](./sql.builder.md#builderoverridetypes)<!-- -->, `returns<NewResult>()` sheds the untyped `Record<string, unknown>` base type directly with a single type parameter and preserves `TransformBuilder` methods (`order`<!-- -->, `limit`<!-- -->, `range`<!-- -->, `single`<!-- -->, `maybeSingle`<!-- -->, `throwOnError`<!-- -->, etc.). When you want to partially override or refine specific fields on an already-typed builder while preserving all other properties, chain [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) instead.
 
-Prefer [.overrideTypes()](./sql.builder.md#builderoverridetypes) with `{ merge: false }` at the end of the builder chain for new code. Enforces array-vs-object cardinality compatibility via [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->. Calling `returns()` on a [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) narrows the static type to [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) (filter methods are no longer exposed after `returns()`<!-- -->).
+Builder progression: calling `returns()` on a [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) narrows the static return type to [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) (filter predicates such as `.eq()` and `.in()` are no longer exposed after `returns()`<!-- -->, so apply row filters first). Calling `.single()` or `.maybeSingle()` either before `returns<MyRow>()` (via [Builder.returns()](./sql.builder.md#builderreturns)<!-- -->) or after `returns<MyRow[]>()` unwraps `MyRow` as expected.
+
+Match array cardinality: pass `MyRow[]` on list queries (or scalar/array type on untyped `rpc()`<!-- -->); array-vs-object compatibility is enforced at compile time via [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->.
+
+Behavior and side effects: compile-time type cast only; performs no network I/O or runtime schema parsing, and preserves `Method` and `ThrowOnError`<!-- -->.
 
 <b>Signature:</b>
 
@@ -441,17 +442,31 @@ returns<NewResult>(): TransformBuilder<CheckMatchingArrayTypes<Result$1, NewResu
 
 [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface)<!-- -->&lt;[CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->&lt;Result$1, NewResult&gt;, Method, ThrowOnError&gt;
 
-This [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) with `Result$1` replaced by `CheckMatchingArrayTypes<Result$1, NewResult>`<!-- -->.
+This [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) with `Result$1` statically replaced by `CheckMatchingArrayTypes<Result$1, NewResult>`<!-- -->.
 
 ### Example
 
-Legacy type override on a `TransformBuilder` (prefer `.overrideTypes()` for new code):
+Assign a full `Venue[]` array type on a filtered list query:
 
 ```ts
+interface Venue {
+  id: string;
+  slug: string;
+  name: string;
+  city: string;
+  capacity: number;
+}
+
 const res = await sql
   .from('venues')
-  .select('id, slug, name')
-  .returns<Array<{ id: string; slug: string; name: string }>>();
+  .select('id, slug, name, city, capacity')
+  .eq('city', 'Seattle')
+  .order('capacity', { ascending: false })
+  .returns<Venue[]>();
+
+if (res.success) {
+  const venues: Venue[] = res.data;
+}
 
 ```
 
@@ -506,7 +521,7 @@ When to use: chaining onto [QueryBuilder.insert()](./sql.querybuilder.md#querybu
 
 Preconditions: under PostgreSQL Row-Level Security (RLS), returning mutated rows requires a `SELECT` policy permitting visibility of the affected rows in addition to the mutation policy.
 
-Behavior and side effects: transitions `Result$1` from `null` to `Array<Record<string, unknown>>` (for table mutations) and returns a [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->, enabling subsequent `.order()`<!-- -->, `.single()`<!-- -->, `.maybeSingle()`<!-- -->, and `.overrideTypes()`<!-- -->. Appends `Prefer: return=representation` and sets `?select=<columns>` (stripping unquoted whitespace).
+Behavior and side effects: transitions `Result$1` from `null` to `Array<Record<string, unknown>>` (for table mutations) and returns a [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->, enabling subsequent `.order()`<!-- -->, `.single()`<!-- -->, `.maybeSingle()`<!-- -->, `.returns()`<!-- -->, and `.overrideTypes()`<!-- -->. Appends `Prefer: return=representation` and sets `?select=<columns>` (stripping unquoted whitespace).
 
 <b>Signature:</b>
 
@@ -536,7 +551,7 @@ const res = await sql
   .insert({ slug: 'paramount-sea', name: 'Paramount Theatre', city: 'Seattle', capacity: 2800 })
   .select('id, slug, name')
   .single()
-  .overrideTypes<{ id: string; slug: string; name: string }, { merge: false }>();
+  .returns<{ id: string; slug: string; name: string }>();
 
 if (!res.success) {
   console.error('Insert failed:', res.error.message);
@@ -552,7 +567,7 @@ When to use: primary-key or unique-key lookups (`eq('id', id)`<!-- -->) or singl
 
 Do not use on optional read lookups that may legitimately match `0` rows—use [TransformBuilder.maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle) instead so `0` rows resolves to `data: null` rather than HTTP `406` `'PGRST116'`<!-- -->.
 
-Behavior and side effects: builder progression is `TransformBuilder<R[]> -> Builder<R, ThrowOnError>`<!-- -->. Terminal cardinality modifier—apply all filters, `.select()`<!-- -->, and `.order()` before `.single()`<!-- -->. Follow with `.overrideTypes<MyRow, { merge: false }>()` (passing a single object type `MyRow`<!-- -->, not `MyRow[]`<!-- -->) to strongly type `result.data`<!-- -->.
+Behavior and side effects: builder progression is `TransformBuilder<R[]> -> Builder<R, ThrowOnError>`<!-- -->. Terminal cardinality modifier—apply all filters, `.select()`<!-- -->, and `.order()` before `.single()`<!-- -->. Follow with `.returns<MyRow>()` (passing a single object type `MyRow`<!-- -->, not `MyRow[]`<!-- -->) to assign a full row type, or `.overrideTypes<PartialRow>()` to partially refine fields on an already-typed row.
 
 Error handling: `0` rows or more than `1` row resolves to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) with `res.status === 406`<!-- -->, `res.error.category === 'sql-postgrest'`<!-- -->, and `res.error.code === 'PGRST116'`<!-- -->. Switch to [TransformBuilder.maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle) on reads if `0` rows is expected, or add a unique-key filter if multiple rows matched (do not add `.limit(1)` if duplicates should be detected as errors, because `.limit(1)` suppresses duplicate detection and returns an arbitrary row).
 
@@ -584,7 +599,7 @@ const res = await sql
   .select('id, slug, name, capacity')
   .eq('slug', 'moscone-west')
   .single()
-  .overrideTypes<VenueSummary, { merge: false }>();
+  .returns<VenueSummary>();
 
 ```
 
@@ -614,7 +629,7 @@ const { data } = await sql
   .eq('slug', 'moscone-west')
   .throwOnError()
   .single()
-  .overrideTypes<{ id: string; name: string }, { merge: false }>();
+  .returns<{ id: string; name: string }>();
 
 ```
 
@@ -629,7 +644,7 @@ const res = await sql
   .order('capacity', { ascending: false })
   .range(0, 9)
   .abortSignal(AbortSignal.timeout(5000))
-  .overrideTypes<Array<{ id: string; slug: string; name: string; capacity: number }>, { merge: false }>();
+  .returns<Array<{ id: string; slug: string; name: string; capacity: number }>>();
 
 ```
 

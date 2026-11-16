@@ -71,10 +71,7 @@ const cached = getSql(app, {
       const res = await sql
         .from('venues')
         .select('id, slug, name, city')
-        .overrideTypes<
-          Array<Pick<Venue, 'id' | 'slug' | 'name' | 'city'>>,
-          { merge: false }
-        >();
+        .returns<Array<Pick<Venue, 'id' | 'slug' | 'name' | 'city'>>>();
       if (!res.success) {
         return {
           passed: false,
@@ -227,16 +224,15 @@ const res = await sql
     id: 'qb-select-json-paths',
     category: 'QueryBuilder Verbs',
     title: '5. select() Column Aliasing & JSONB Path Extraction',
-    apiSymbols: ['QueryBuilder.select', 'Builder.overrideTypes'],
+    apiSymbols: ['QueryBuilder.select', 'TransformBuilder.returns'],
     description:
       'Extracts JSONB properties metadata->>track (text) and metadata->level (JSON number) with column aliases.',
     code: `const res = await sql
   .from('events')
   .select('id, eventCode:code, track:metadata->>track, level:metadata->level')
   .eq('status', 'published')
-  .overrideTypes<
-    Array<{ id: string; eventCode: string; track: string | null; level: number | null }>,
-    { merge: false }
+  .returns<
+    Array<{ id: string; eventCode: string; track: string | null; level: number | null }>
   >();`,
     run: async () => {
       const sql = getActiveSql();
@@ -246,14 +242,13 @@ const res = await sql
           'id, eventCode:code, track:metadata->>track, level:metadata->level'
         )
         .eq('status', 'published')
-        .overrideTypes<
+        .returns<
           Array<{
             id: string;
             eventCode: string;
             track: string | null;
             level: number | null;
-          }>,
-          { merge: false }
+          }>
         >();
       if (!res.success) {
         return {
@@ -330,7 +325,7 @@ const res = await sql
   })
   .select('id, code, status, ticket_price')
   .single()
-  .overrideTypes<{ id: string; code: string; status: string; ticket_price: number }, { merge: false }>()
+  .returns<{ id: string; code: string; status: string; ticket_price: number }>()
   .throwOnError();
 
 const updated = await sql
@@ -364,10 +359,12 @@ const deleted = await sql
         })
         .select('id, code, status, ticket_price')
         .single()
-        .overrideTypes<
-          { id: string; code: string; status: string; ticket_price: number },
-          { merge: false }
-        >()
+        .returns<{
+          id: string;
+          code: string;
+          status: string;
+          ticket_price: number;
+        }>()
         .throwOnError();
 
       const { data: updated } = await sql
@@ -377,7 +374,7 @@ const deleted = await sql
         .maxAffected(1)
         .select('id, ticket_price')
         .single()
-        .overrideTypes<{ id: string; ticket_price: number }, { merge: false }>()
+        .returns<{ id: string; ticket_price: number }>()
         .throwOnError();
 
       const deleted = await sql
@@ -418,7 +415,7 @@ const deleted = await sql
   )
   .select('id, role')
   .maybeSingle()
-  .overrideTypes<{ id: string; role: string }, { merge: false }>();`,
+  .returns<{ id: string; role: string }>();`,
     run: async () => {
       const sql = getActiveSql();
       const ignored = await sql
@@ -433,7 +430,7 @@ const deleted = await sql
         )
         .select('id, role')
         .maybeSingle()
-        .overrideTypes<{ id: string; role: string }, { merge: false }>();
+        .returns<{ id: string; role: string }>();
 
       if (!ignored.success) {
         return {
@@ -1034,10 +1031,10 @@ const capped = await sql
         .limit(2, limitOpts)
         .range(0, 1, rangeOpts)
         .single()
-        .overrideTypes<
-          { code: string; registrations: Array<{ attendee_email: string }> },
-          { merge: false }
-        >()
+        .returns<{
+          code: string;
+          registrations: Array<{ attendee_email: string }>;
+        }>()
         .throwOnError();
       return {
         passed:
@@ -1142,7 +1139,7 @@ const maybeMissing = await sql
     id: 'tb-geojson-postgis',
     category: 'TransformBuilder Modifiers',
     title: '22. geojson() PostGIS FeatureCollection',
-    apiSymbols: ['TransformBuilder.geojson'],
+    apiSymbols: ['TransformBuilder.geojson', 'Builder.returns'],
     description:
       'Serializes San Francisco venues with PostGIS geography(Point, 4326) coordinates as a GeoJSON FeatureCollection.',
     code: `const res = await sql
@@ -1150,7 +1147,7 @@ const maybeMissing = await sql
   .select('id, slug, name, capacity, coords')
   .eq('city', 'San Francisco')
   .geojson()
-  .overrideTypes<GeoJsonFeatureCollection, { merge: false }>();`,
+  .returns<GeoJsonFeatureCollection>();`,
     run: async () => {
       const sql = getActiveSql();
       const res = await sql
@@ -1158,7 +1155,7 @@ const maybeMissing = await sql
         .select('id, slug, name, capacity, coords')
         .eq('city', 'San Francisco')
         .geojson()
-        .overrideTypes<GeoJsonFeatureCollection, { merge: false }>();
+        .returns<GeoJsonFeatureCollection>();
       if (!res.success) {
         return {
           passed: false,
@@ -1292,16 +1289,20 @@ const res = await sql
     id: 'rpc-scalar-get',
     category: 'Stored Functions (RPC)',
     title: '26. rpc() Read-Only Scalar Function (remaining_seats via GET)',
-    apiSymbols: ['FirebaseSql.rpc', 'FirebaseSqlRpcOptions.get'],
+    apiSymbols: [
+      'FirebaseSql.rpc',
+      'FirebaseSqlRpcOptions.get',
+      'TransformBuilder.returns'
+    ],
     description:
-      'Invokes remaining_seats(target_event_id) over HTTP GET and types the scalar integer return value via overrideTypes<number>().',
+      'Invokes remaining_seats(target_event_id) over HTTP GET and types the scalar integer return value via returns<number>().',
     code: `const seatsRes = await sql
   .rpc(
     'remaining_seats',
     { target_event_id: '${KEYNOTE_EVENT_ID}' },
     { get: true }
   )
-  .overrideTypes<number>();`,
+  .returns<number>();`,
     run: async () => {
       const sql = getActiveSql();
       const seatsRes = await sql
@@ -1310,7 +1311,7 @@ const res = await sql
           { target_event_id: KEYNOTE_EVENT_ID },
           { get: true }
         )
-        .overrideTypes<number>();
+        .returns<number>();
       if (!seatsRes.success) {
         return {
           passed: false,
@@ -1337,14 +1338,14 @@ const res = await sql
     code: `const { data, status } = await sql
   .rpc('list_events_by_city', { target_city: 'San Francisco' })
   .select('id, code, title')
-  .overrideTypes<Array<{ id: string; code: string; title: string }>>()
+  .returns<Array<{ id: string; code: string; title: string }>>()
   .throwOnError();`,
     run: async () => {
       const sql = getActiveSql();
       const { data, status } = await sql
         .rpc('list_events_by_city', { target_city: 'San Francisco' })
         .select('id, code, title')
-        .overrideTypes<Array<{ id: string; code: string; title: string }>>()
+        .returns<Array<{ id: string; code: string; title: string }>>()
         .throwOnError();
       return {
         passed: data.length >= 2,
@@ -1368,7 +1369,7 @@ const cityEvents = await sql
   .overlaps('tags', ['firebase', 'postgres'])
   .order('ticket_price', { ascending: true })
   .limit(10)
-  .overrideTypes<EventRow[]>();`,
+  .returns<EventRow[]>();`,
     run: async () => {
       const sql = getActiveSql();
       const rpcOpts: FirebaseSqlRpcOptions = { get: true, count: 'exact' };
@@ -1378,7 +1379,7 @@ const cityEvents = await sql
         .overlaps('tags', ['firebase', 'postgres'])
         .order('ticket_price', { ascending: true })
         .limit(10)
-        .overrideTypes<EventRow[]>()
+        .returns<EventRow[]>()
         .throwOnError();
       return {
         passed: cityEvents.data.length >= 1 && cityEvents.count !== null,
@@ -1425,7 +1426,7 @@ const cityEvents = await sql
     id: 'builder-strip-nulls',
     category: 'Builder & Errors',
     title: '30. stripNulls() Sparse JSON Objects',
-    apiSymbols: ['Builder.stripNulls'],
+    apiSymbols: ['Builder.stripNulls', 'Builder.returns'],
     description:
       'Requests Accept: application/vnd.pgrst.object+json;nulls=stripped so null columns (checked_in_at) are omitted from the JSON object.',
     code: `const res = await sql
@@ -1434,7 +1435,7 @@ const cityEvents = await sql
   .eq('attendee_email', 'carol@example.com')
   .single()
   .stripNulls()
-  .overrideTypes<{ id: string; attendee_email: string; checked_in_at?: string }, { merge: false }>();`,
+  .returns<{ id: string; attendee_email: string; checked_in_at?: string }>();`,
     run: async () => {
       const sql = getActiveSql();
       const res = await sql
@@ -1443,10 +1444,11 @@ const cityEvents = await sql
         .eq('attendee_email', 'carol@example.com')
         .single()
         .stripNulls()
-        .overrideTypes<
-          { id: string; attendee_email: string; checked_in_at?: string },
-          { merge: false }
-        >()
+        .returns<{
+          id: string;
+          attendee_email: string;
+          checked_in_at?: string;
+        }>()
         .throwOnError();
       const omitted = !('checked_in_at' in res.data);
       return {
@@ -1574,51 +1576,59 @@ const cityEvents = await sql
     }
   },
   {
-    id: 'builder-deprecated-returns',
+    id: 'builder-returns-vs-overridetypes',
     category: 'Builder & Errors',
-    title: '34. Legacy returns<T>() vs. overrideTypes<T, { merge: false }>()',
-    apiSymbols: ['Builder.returns', 'Builder.overrideTypes'],
+    title: '34. returns<T>() Full Types vs. overrideTypes<Partial>() Merges',
+    apiSymbols: [
+      'TransformBuilder.returns',
+      'Builder.returns',
+      'Builder.overrideTypes'
+    ],
     description:
-      'Verifies both overrideTypes() and deprecated returns() compile and resolve typed Venue payloads.',
-    code: `const viaOverride = await sql
+      'Uses returns<T>() for full row types and chains overrideTypes<PartialOverlay>() to refine a JSONB metadata column while keeping all other fields.',
+    code: `const venue = await sql
   .from('venues')
   .select('id, slug, name')
   .eq('slug', 'moscone-west')
   .single()
-  .overrideTypes<{ id: string; slug: string; name: string }, { merge: false }>();
+  .returns<{ id: string; slug: string; name: string }>();
 
-const viaLegacyReturns = await sql
-  .from('venues')
-  .select('id, slug, name')
-  .eq('slug', 'moscone-west')
-  .single()
-  .returns<{ id: string; slug: string; name: string }>();`,
+const refinedEvents = await sql
+  .from('events')
+  .select('id, code, title, metadata')
+  .eq('status', 'published')
+  .returns<Array<{ id: string; code: string; title: string; metadata: unknown }>>()
+  .overrideTypes<Array<{ metadata: { track: string; level: number } }>>();`,
     run: async () => {
       const sql = getActiveSql();
-      const viaOverride = await sql
-        .from('venues')
-        .select('id, slug, name')
-        .eq('slug', 'moscone-west')
-        .single()
-        .overrideTypes<
-          { id: string; slug: string; name: string },
-          { merge: false }
-        >()
-        .throwOnError();
-      const viaLegacyReturns = await sql
+      const venue = await sql
         .from('venues')
         .select('id, slug, name')
         .eq('slug', 'moscone-west')
         .single()
         .returns<{ id: string; slug: string; name: string }>()
         .throwOnError();
+      const refinedEvents = await sql
+        .from('events')
+        .select('id, code, title, metadata')
+        .eq('status', 'published')
+        .returns<
+          Array<{ id: string; code: string; title: string; metadata: unknown }>
+        >()
+        .overrideTypes<Array<{ metadata: { track: string; level: number } }>>()
+        .throwOnError();
+      const first = refinedEvents.data[0];
       return {
-        passed: viaOverride.data.slug === viaLegacyReturns.data.slug,
-        status: viaOverride.status,
-        summary: `Both typed accessors resolved venue "${viaOverride.data.name}"`,
+        passed:
+          venue.data.slug === 'moscone-west' &&
+          Boolean(first) &&
+          typeof first.title === 'string' &&
+          typeof first.metadata.track === 'string',
+        status: refinedEvents.status,
+        summary: `Full returns<T>() resolved "${venue.data.name}"; partial overrideTypes() narrowed ${refinedEvents.data.length} event metadata rows`,
         payload: {
-          viaOverride: viaOverride.data,
-          viaLegacyReturns: viaLegacyReturns.data
+          venue: venue.data,
+          sampleRefinedEvent: first
         }
       };
     }

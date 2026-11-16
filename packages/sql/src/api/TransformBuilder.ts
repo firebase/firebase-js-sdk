@@ -268,7 +268,7 @@ export interface TransformExplainOptions {
  *   .order('capacity', { ascending: false })
  *   .range(0, 9)
  *   .abortSignal(AbortSignal.timeout(5000))
- *   .overrideTypes<Array<{ id: string; slug: string; name: string; capacity: number }>, { merge: false }>();
+ *   .returns<Array<{ id: string; slug: string; name: string; capacity: number }>>();
  * ```
  *
  * @public
@@ -293,7 +293,7 @@ export interface TransformBuilder<
    *   .eq('slug', 'moscone-west')
    *   .throwOnError()
    *   .single()
-   *   .overrideTypes<{ id: string; name: string }, { merge: false }>();
+   *   .returns<{ id: string; name: string }>();
    * ```
    *
    * @public
@@ -316,8 +316,9 @@ export interface TransformBuilder<
    *
    * Behavior and side effects: transitions `Result$1` from `null` to
    * `Array<Record<string, unknown>>` (for table mutations) and returns a {@link FilterBuilder},
-   * enabling subsequent `.order()`, `.single()`, `.maybeSingle()`, and `.overrideTypes()`. Appends
-   * `Prefer: return=representation` and sets `?select=<columns>` (stripping unquoted whitespace).
+   * enabling subsequent `.order()`, `.single()`, `.maybeSingle()`, `.returns()`, and
+   * `.overrideTypes()`. Appends `Prefer: return=representation` and sets `?select=<columns>`
+   * (stripping unquoted whitespace).
    *
    * @param columns - Comma-separated column projection (defaults to `'*'`). Supports aliases and embedded foreign-key relations.
    * @returns This builder typed as {@link FilterBuilder} with array row representation.
@@ -330,7 +331,7 @@ export interface TransformBuilder<
    *   .insert({ slug: 'paramount-sea', name: 'Paramount Theatre', city: 'Seattle', capacity: 2800 })
    *   .select('id, slug, name')
    *   .single()
-   *   .overrideTypes<{ id: string; slug: string; name: string }, { merge: false }>();
+   *   .returns<{ id: string; slug: string; name: string }>();
    *
    * if (!res.success) {
    *   console.error('Insert failed:', res.error.message);
@@ -519,9 +520,9 @@ export interface TransformBuilder<
    *
    * Behavior and side effects: builder progression is
    * `TransformBuilder<R[]> -> Builder<R, ThrowOnError>`. Terminal cardinality modifier—apply all
-   * filters, `.select()`, and `.order()` before `.single()`. Follow with
-   * `.overrideTypes<MyRow, { merge: false }>()` (passing a single object type `MyRow`, not
-   * `MyRow[]`) to strongly type `result.data`.
+   * filters, `.select()`, and `.order()` before `.single()`. Follow with `.returns<MyRow>()`
+   * (passing a single object type `MyRow`, not `MyRow[]`) to assign a full row type, or
+   * `.overrideTypes<PartialRow>()` to partially refine fields on an already-typed row.
    *
    * Error handling: `0` rows or more than `1` row resolves to {@link OperationFailure} with
    * `res.status === 406`, `res.error.category === 'sql-postgrest'`, and
@@ -548,7 +549,7 @@ export interface TransformBuilder<
    *   .select('id, slug, name, capacity')
    *   .eq('slug', 'moscone-west')
    *   .single()
-   *   .overrideTypes<VenueSummary, { merge: false }>();
+   *   .returns<VenueSummary>();
    * ```
    *
    * @public
@@ -577,9 +578,9 @@ export interface TransformBuilder<
    *
    * Behavior and side effects: builder progression is
    * `TransformBuilder<R[]> -> Builder<R | null, ThrowOnError>`. Terminal cardinality modifier—apply
-   * all filters and `.select()` before `.maybeSingle()`. Follow with
-   * `.overrideTypes<MyRow, { merge: false }>()` (pass `MyRow` without `| null` or `[]`;
-   * `overrideTypes` automatically preserves `| null` on `result.data`). Sends no `limit`, so all
+   * all filters and `.select()` before `.maybeSingle()`. Follow with `.returns<MyRow>()` (pass
+   * `MyRow` without `| null` or `[]`; `returns` automatically preserves `| null` on `result.data`).
+   * Sends no `limit`, so all
    * matching rows are transferred and parsed before checking `data.length > 1`; chain `.limit(2)`
    * before `.maybeSingle()` on read queries to bound network transfer while still detecting
    * duplicates.
@@ -609,7 +610,7 @@ export interface TransformBuilder<
    *   .eq('attendee_email', 'alice@example.com')
    *   .limit(2)
    *   .maybeSingle()
-   *   .overrideTypes<RegistrationCheck, { merge: false }>();
+   *   .returns<RegistrationCheck>();
    *
    * if (res.success && res.data !== null) {
    *   console.log('Found registration:', res.data.id);
@@ -675,7 +676,7 @@ export interface TransformBuilder<
    * `TransformBuilder -> Builder<Record<string, unknown>, ThrowOnError>`. Terminal format
    * modifier—apply all filters, `order()`, `limit()`, and (for writes) `.select(...)` before
    * `.geojson()` (writes without `.select(...)` return an empty body where `res.data` is `null` at
-   * runtime). Follow with `.overrideTypes<MyFeatureCollection, { merge: false }>()` if you have a
+   * runtime). Follow with `.returns<MyFeatureCollection>()` if you have a
    * typed GeoJSON interface.
    *
    * @returns A {@link Builder} resolving `data` to a GeoJSON `Record<string, unknown>` object (or `null` at runtime if the response body is empty).
@@ -785,26 +786,54 @@ export interface TransformBuilder<
   rollback(): this;
 
   /**
-   * Legacy result-type override method replacing the static TypeScript type of `result.data` while keeping {@link TransformBuilder} methods available.
-   *
-   * @deprecated Use {@link Builder.overrideTypes} instead.
+   * Replaces the static TypeScript type of `result.data` with `NewResult` while keeping {@link TransformBuilder} methods available.
    *
    * @remarks
-   * Prefer {@link Builder.overrideTypes | .overrideTypes()} with `{ merge: false }` at the end of
-   * the builder chain for new code. Enforces array-vs-object cardinality compatibility via
-   * {@link CheckMatchingArrayTypes}. Calling `returns()` on a {@link FilterBuilder} narrows the
-   * static type to {@link TransformBuilder} (filter methods are no longer exposed after `returns()`).
+   * When to use: assigning a full static array (or RPC scalar/row) type to `result.data` on a
+   * {@link FilterBuilder} or {@link TransformBuilder} chain without needing `{ merge: false }`.
+   * Unlike {@link Builder.overrideTypes | .overrideTypes()}, `returns<NewResult>()` sheds the
+   * untyped `Record<string, unknown>` base type directly with a single type parameter and preserves
+   * `TransformBuilder` methods (`order`, `limit`, `range`, `single`, `maybeSingle`, `throwOnError`,
+   * etc.). When you want to partially override or refine specific fields on an already-typed
+   * builder while preserving all other properties, chain {@link Builder.overrideTypes} instead.
    *
-   * @typeParam NewResult - Replacement TypeScript type matching the current array/object cardinality of `Result$1`.
-   * @returns This {@link TransformBuilder} with `Result$1` replaced by `CheckMatchingArrayTypes<Result$1, NewResult>`.
+   * Builder progression: calling `returns()` on a {@link FilterBuilder} narrows the static return
+   * type to {@link TransformBuilder} (filter predicates such as `.eq()` and `.in()` are no longer
+   * exposed after `returns()`, so apply row filters first). Calling `.single()` or `.maybeSingle()`
+   * either before `returns<MyRow>()` (via {@link Builder.returns}) or after
+   * `returns<MyRow[]>()` unwraps `MyRow` as expected.
+   *
+   * Match array cardinality: pass `MyRow[]` on list queries (or scalar/array type on untyped
+   * `rpc()`); array-vs-object compatibility is enforced at compile time via
+   * {@link CheckMatchingArrayTypes}.
+   *
+   * Behavior and side effects: compile-time type cast only; performs no network I/O or runtime
+   * schema parsing, and preserves `Method` and `ThrowOnError`.
+   *
+   * @typeParam NewResult - Full replacement TypeScript type matching the current array/object cardinality of `Result$1`.
+   * @returns This {@link TransformBuilder} with `Result$1` statically replaced by `CheckMatchingArrayTypes<Result$1, NewResult>`.
    *
    * @example
-   * Legacy type override on a `TransformBuilder` (prefer `.overrideTypes()` for new code):
+   * Assign a full `Venue[]` array type on a filtered list query:
    * ```ts
+   * interface Venue {
+   *   id: string;
+   *   slug: string;
+   *   name: string;
+   *   city: string;
+   *   capacity: number;
+   * }
+   *
    * const res = await sql
    *   .from('venues')
-   *   .select('id, slug, name')
-   *   .returns<Array<{ id: string; slug: string; name: string }>>();
+   *   .select('id, slug, name, city, capacity')
+   *   .eq('city', 'Seattle')
+   *   .order('capacity', { ascending: false })
+   *   .returns<Venue[]>();
+   *
+   * if (res.success) {
+   *   const venues: Venue[] = res.data;
+   * }
    * ```
    *
    * @public

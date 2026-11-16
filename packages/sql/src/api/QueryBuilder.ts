@@ -341,10 +341,11 @@ export interface QueryBuilder {
    * network I/O until `await`ed or `.then()` is invoked (each `await` sends a new HTTP request).
    * Unquoted whitespace in `columns` is stripped automatically while preserving whitespace inside
    * double-quoted identifiers (such as `'id, "display name"'`). Untyped `data` defaults to
-   * `Array<Record<string, unknown>>`; chain `.overrideTypes<MyRow[], { merge: false }>()` at the
-   * end of the chain—or `.single()` + `.overrideTypes<MyRow, { merge: false }>()` for single-row
-   * lookups—to strongly type `result.data`. Automatic retries (`retry(true)`) are enabled by
-   * default for transient network errors and HTTP `503`/`520` responses.
+   * `Array<Record<string, unknown>>`; chain `.returns<MyRow[]>()`—or `.single().returns<MyRow>()`
+   * for single-row lookups—to assign a full static type to `result.data` (or chain
+   * `.overrideTypes<PartialRow[]>()` when partially refining fields on an already-typed builder).
+   * Automatic retries (`retry(true)`) are enabled by default for transient network errors and HTTP
+   * `503`/`520` responses.
    *
    * `head: true` caveats: when `options.head` is `true`, `result.data` resolves to `null` at
    * runtime even though TypeScript still statically types `result.data` as
@@ -354,7 +355,7 @@ export interface QueryBuilder {
    * PostgREST/SQLSTATE code (mapping to `'sql-platform'`); treat `count === null` as a failure when
    * `count` was requested.
    *
-   * Embedded relation syntax and `.overrideTypes()` shapes: many-to-one (FK on parent, such as
+   * Embedded relation syntax and `.returns()` shapes: many-to-one (FK on parent, such as
    * `events.venue_id -> venues.id`) or one-to-one (`UNIQUE` FK) embeds resolve to
    * `RelatedRow | null` by default, or non-null `RelatedRow` when `!inner` is appended
    * (`'venue:venues!inner(name, city)'`). One-to-many (FK on child, such as
@@ -412,7 +413,7 @@ export interface QueryBuilder {
    *   })
    *   .limit(5, { referencedTable: 'registrations' })
    *   .range(0, 19)
-   *   .overrideTypes<EventFeedItem[], { merge: false }>();
+   *   .returns<EventFeedItem[]>();
    *
    * if (!result.success) {
    *   console.error(`[${result.error.category}] ${result.error.code}: ${result.error.message}`);
@@ -432,9 +433,8 @@ export interface QueryBuilder {
    *   .from('events')
    *   .select('id, code, title, venue:venues!inner(name, city)')
    *   .eq('venue.city', 'Seattle')
-   *   .overrideTypes<
-   *     Array<{ id: string; code: string; title: string; venue: { name: string; city: string } }>,
-   *     { merge: false }
+   *   .returns<
+   *     Array<{ id: string; code: string; title: string; venue: { name: string; city: string } }>
    *   >();
    * ```
    *
@@ -445,9 +445,8 @@ export interface QueryBuilder {
    *   .from('events')
    *   .select('id, eventCode:code, track:metadata->>track, level:metadata->level')
    *   .eq('status', 'published')
-   *   .overrideTypes<
-   *     Array<{ id: string; eventCode: string; track: string | null; level: number | null }>,
-   *     { merge: false }
+   *   .returns<
+   *     Array<{ id: string; eventCode: string; track: string | null; level: number | null }>
    *   >();
    * ```
    *
@@ -533,7 +532,7 @@ export interface QueryBuilder {
    *     })
    *     .select('id, code, title, status, created_at')
    *     .single()
-   *     .overrideTypes<CreatedEvent, { merge: false }>()
+   *     .returns<CreatedEvent>()
    *     .throwOnError();
    *
    *   console.log('Created event:', created.id, created.status);
@@ -567,9 +566,8 @@ export interface QueryBuilder {
    *     { defaultToNull: false, count: 'exact' }
    *   )
    *   .select('id, attendee_email, role')
-   *   .overrideTypes<
-   *     Array<{ id: string; attendee_email: string; role: 'attendee' | 'speaker' | 'organizer' }>,
-   *     { merge: false }
+   *   .returns<
+   *     Array<{ id: string; attendee_email: string; role: 'attendee' | 'speaker' | 'organizer' }>
    *   >();
    *
    * if (!batchRes.success) {
@@ -681,7 +679,7 @@ export interface QueryBuilder {
    *   )
    *   .select('id, attendee_email, role')
    *   .order('attendee_email', { ascending: true })
-   *   .overrideTypes<SyncedRegistration[], { merge: false }>();
+   *   .returns<SyncedRegistration[]>();
    *
    * if (!result.success) {
    *   console.error('Upsert failed:', result.error.code, result.error.message);
@@ -701,7 +699,7 @@ export interface QueryBuilder {
    *   )
    *   .select('id, slug, capacity')
    *   .single()
-   *   .overrideTypes<{ id: string; slug: string; capacity: number }, { merge: false }>();
+   *   .returns<{ id: string; slug: string; capacity: number }>();
    *
    * if (!venueRes.success) {
    *   console.error('Venue upsert failed:', venueRes.error.message);
@@ -724,7 +722,7 @@ export interface QueryBuilder {
    *   )
    *   .select('id, role')
    *   .maybeSingle()
-   *   .overrideTypes<{ id: string; role: string }, { merge: false }>();
+   *   .returns<{ id: string; role: string }>();
    *
    * if (!seedRes.success) {
    *   console.error('Seed upsert failed:', seedRes.error.message);
@@ -799,7 +797,7 @@ export interface QueryBuilder {
    *   .eq('status', 'draft')
    *   .maxAffected(1)
    *   .select('id, code, status, is_featured')
-   *   .overrideTypes<UpdatedEventSummary[], { merge: false }>();
+   *   .returns<UpdatedEventSummary[]>();
    *
    * if (!result.success) {
    *   console.error('Update failed:', result.error.code, result.error.message);
@@ -837,7 +835,7 @@ export interface QueryBuilder {
    *   .eq('code', 'FIREBASE-SUMMIT-2026')
    *   .select('id, code, ticket_price')
    *   .rollback()
-   *   .overrideTypes<Array<{ id: string; code: string; ticket_price: number }>, { merge: false }>();
+   *   .returns<Array<{ id: string; code: string; ticket_price: number }>>();
    *
    * if (!previewRes.success) {
    *   console.error('Preview failed:', previewRes.error.message);
@@ -906,7 +904,7 @@ export interface QueryBuilder {
    *   .maxAffected(100)
    *   .abortSignal(AbortSignal.timeout(5000))
    *   .select('id, attendee_email')
-   *   .overrideTypes<DeletedRegistration[], { merge: false }>();
+   *   .returns<DeletedRegistration[]>();
    *
    * if (!result.success) {
    *   console.error('Delete failed or timed out:', result.error.code, result.error.message);

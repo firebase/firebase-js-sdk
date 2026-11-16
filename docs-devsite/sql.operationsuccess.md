@@ -83,7 +83,7 @@ interface VenueRow {
 const res = await sql
   .from('venues')
   .select('id, name', { count: 'exact' })
-  .overrideTypes<VenueRow[], { merge: false }>();
+  .returns<VenueRow[]>();
 
 if (res.success) {
   const ok: OperationSuccess<VenueRow[]> = res;

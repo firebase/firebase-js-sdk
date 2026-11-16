@@ -160,7 +160,7 @@ export interface FirebaseSqlRpcOptions {
  * const venuesRes = await sql.from('venues').select('id, slug, name, city');
  * const seatsRes = await sql
  *   .rpc('remaining_seats', { target_event_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8' }, { get: true })
- *   .overrideTypes<number>();
+ *   .returns<number>();
  *
  * if (venuesRes.success && seatsRes.success) {
  *   console.log(venuesRes.data.length, seatsRes.data);
@@ -287,9 +287,9 @@ export class FirebaseSql {
    *
    * Do not use for calling stored functions or procedures (use {@link FirebaseSql.rpc} instead),
    * passing `<Row>` type generics (`sql.from<EventRow>('events')` is not supported; apply
-   * {@link Builder.overrideTypes} later in the chain), or schema-qualifying `table` as
-   * `'analytics.events'` (`table` is URI-encoded as a single path segment; configure
-   * `schemaName: 'analytics'` in {@link (getSql:1) | getSql()} instead).
+   * {@link Builder.returns} or {@link Builder.overrideTypes} later in the chain), or
+   * schema-qualifying `table` as `'analytics.events'` (`table` is URI-encoded as a single path
+   * segment; configure `schemaName: 'analytics'` in {@link (getSql:1) | getSql()} instead).
    *
    * Preconditions: this `FirebaseSql` instance must not have been terminated via {@link terminate}
    * or `deleteApp()`.
@@ -340,7 +340,7 @@ export class FirebaseSql {
    *   })
    *   .select('id')
    *   .single()
-   *   .overrideTypes<{ id: string }, { merge: false }>();
+   *   .returns<{ id: string }>();
    *
    * if (created.success) {
    *   const checkInRes = await registrationsTable
@@ -401,10 +401,9 @@ export class FirebaseSql {
    * retries). Functions declared `RETURNS void` resolve with HTTP `204` and `data: null`.
    *
    * Untyped `data` defaults to `unknown`. `<Args>` types input `params` only—chain
-   * {@link Builder.overrideTypes | .overrideTypes()} at the end of direct `rpc()` chains to type
-   * `result.data` (no `{ merge: false }` is needed when `T` is `unknown`, except when `.single()` or
-   * `.maybeSingle()` precedes `overrideTypes()`, because those methods narrow `unknown` to
-   * `Record<string, unknown>`, requiring `.overrideTypes<RowType, { merge: false }>()`).
+   * {@link TransformBuilder.returns | .returns()} (or {@link Builder.returns} after `.single()` /
+   * `.maybeSingle()`) to assign a full static return type to `result.data`, or chain
+   * {@link Builder.overrideTypes | .overrideTypes()} when partially refining fields on a typed row.
    *
    * For set-returning functions (`RETURNS SETOF` / `RETURNS TABLE`), you can chain
    * {@link FilterBuilder} filters (`.eq()`, `.overlaps()`), {@link TransformBuilder} modifiers
@@ -451,7 +450,7 @@ export class FirebaseSql {
    *   .overlaps('tags', ['firebase', 'postgres'])
    *   .order('ticket_price', { ascending: true })
    *   .limit(10)
-   *   .overrideTypes<EventRow[]>();
+   *   .returns<EventRow[]>();
    *
    * if (!cityEvents.success) {
    *   console.error(cityEvents.error.code, cityEvents.error.hint);
@@ -469,7 +468,7 @@ export class FirebaseSql {
    *     { target_event_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8' },
    *     { get: true }
    *   )
-   *   .overrideTypes<number>();
+   *   .returns<number>();
    *
    * if (seatsRes.success) {
    *   console.log('Remaining seats:', seatsRes.data);
@@ -482,7 +481,7 @@ export class FirebaseSql {
    * const { data } = await sql
    *   .rpc('list_events_by_city', { target_city: 'San Francisco' })
    *   .select('id, code, title')
-   *   .overrideTypes<Array<{ id: string; code: string; title: string }>>()
+   *   .returns<Array<{ id: string; code: string; title: string }>>()
    *   .throwOnError();
    * ```
    *

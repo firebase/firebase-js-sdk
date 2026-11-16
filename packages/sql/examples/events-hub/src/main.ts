@@ -112,7 +112,7 @@ async function loadVenuesAndEvents(): Promise<void> {
     .from('venues')
     .select('id, slug, name, city, capacity')
     .order('name', { ascending: true })
-    .overrideTypes<Venue[], { merge: false }>();
+    .returns<Venue[]>();
 
   const venueSelectFragment =
     state.cityFilter !== 'all'
@@ -157,19 +157,17 @@ async function loadVenuesAndEvents(): Promise<void> {
 
   if (state.sortOrder === 'price_asc') {
     query = query.order('ticket_price', { ascending: true });
-    snippetLines.push(`  .order('ticket_price', { ascending: true });`);
+    snippetLines.push(`  .order('ticket_price', { ascending: true })`);
   } else if (state.sortOrder === 'price_desc') {
     query = query.order('ticket_price', { ascending: false });
-    snippetLines.push(`  .order('ticket_price', { ascending: false });`);
+    snippetLines.push(`  .order('ticket_price', { ascending: false })`);
   } else {
     query = query.order('created_at', { ascending: false });
-    snippetLines.push(`  .order('created_at', { ascending: false });`);
+    snippetLines.push(`  .order('created_at', { ascending: false })`);
   }
+  snippetLines.push(`  .returns<EventWithRelations[]>();`);
 
-  const eventsRes = await query.overrideTypes<
-    EventWithRelations[],
-    { merge: false }
-  >();
+  const eventsRes = await query.returns<EventWithRelations[]>();
   const elapsed = Math.round(performance.now() - started);
 
   if (venuesRes.success) {
@@ -214,7 +212,7 @@ async function refreshRemainingSeats(): Promise<void> {
       { target_event_id: state.selectedEventId },
       { get: true }
     )
-    .overrideTypes<number>();
+    .returns<number>();
   state.remainingSeats = res.success ? res.data : null;
 }
 
@@ -267,10 +265,12 @@ async function handleCreateEvent(form: HTMLFormElement): Promise<void> {
     })
     .select('id, code, title, status')
     .single()
-    .overrideTypes<
-      { id: string; code: string; title: string; status: EventStatus },
-      { merge: false }
-    >();
+    .returns<{
+      id: string;
+      code: string;
+      title: string;
+      status: EventStatus;
+    }>();
   const elapsed = Math.round(performance.now() - started);
 
   recordInspector(
@@ -425,10 +425,10 @@ async function handleInspectGeoJson(): Promise<void> {
     .from('venues')
     .select('id, slug, name, city, capacity, coords')
     .geojson()
-    .overrideTypes<GeoJsonFeatureCollection, { merge: false }>();
+    .returns<GeoJsonFeatureCollection>();
   const elapsed = Math.round(performance.now() - started);
   recordInspector(
-    `const res = await sql\n  .from('venues')\n  .select('id, slug, name, city, capacity, coords')\n  .geojson()\n  .overrideTypes<GeoJsonFeatureCollection, { merge: false }>();`,
+    `const res = await sql\n  .from('venues')\n  .select('id, slug, name, city, capacity, coords')\n  .geojson()\n  .returns<GeoJsonFeatureCollection>();`,
     res.success
       ? `HTTP ${res.status} (${elapsed}ms) • FeatureCollection (${res.data.features.length} features)`
       : `ERROR ${res.error.code}`,

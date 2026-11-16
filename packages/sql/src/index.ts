@@ -12,25 +12,26 @@
  * verb selector (`select`, `insert`, `upsert`, `update`, `delete`); (3) {@link FilterBuilder}, row
  * filters (`eq`, `in`, `gte`, `contains`, `or`, `not`, and related operators);
  * (4) {@link TransformBuilder}, ordering, pagination, post-mutation `select()`, server preferences
- * (`maxAffected`, `rollback`), cancellation (`abortSignal`), and cardinality/format modifiers
- * (`single`, `maybeSingle`, `csv`, `geojson`, `explain`); and (5) {@link Builder}, terminal type
- * overrides (`overrideTypes`), `stripNulls`, `setHeader`, `retry`, `throwOnError`, and
- * `PromiseLike` execution (`await`).
+ * (`maxAffected`, `rollback`), cancellation (`abortSignal`), full-type narrowing (`returns`), and
+ * cardinality/format modifiers (`single`, `maybeSingle`, `csv`, `geojson`, `explain`); and
+ * (5) {@link Builder}, static result-type overrides (`returns`, `overrideTypes`), `stripNulls`,
+ * `setHeader`, `retry`, `throwOnError`, and `PromiseLike` execution (`await`).
  *
- * Always apply {@link FilterBuilder} and {@link TransformBuilder} methods before calling
- * `.single()`, `.maybeSingle()`, `.csv()`, `.geojson()`, `.explain()`, or `.overrideTypes()`,
- * because those methods narrow the static return type to {@link Builder}. Each `await` or `.then()`
- * sends a new HTTP request (results are never cached), so await each mutation builder at most once.
+ * Always apply {@link FilterBuilder} predicates before calling `.returns()`, and apply all
+ * {@link FilterBuilder} and {@link TransformBuilder} methods before calling `.single()`,
+ * `.maybeSingle()`, `.csv()`, `.geojson()`, `.explain()`, or `.overrideTypes()`, because those
+ * methods narrow the static return type to {@link Builder}. Each `await` or `.then()` sends a new
+ * HTTP request (results are never cached), so await each mutation builder at most once.
  *
  * Untyped defaults and type narrowing: {@link (getSql:1) | getSql()} and {@link FirebaseSql.from}
  * do not accept `<Database>` or `<Row>` generics, and there is no `sql.schema()` method (pass
  * `schemaName` in {@link SqlServiceSettings} to {@link (getSql:1) | getSql()} instead). Table
  * `select()` defaults `data` to `Array<Record<string, unknown>>`; `insert()`, `upsert()`,
  * `update()`, and `delete()` default `data` to `null` unless `.select()` is chained; and `rpc()`
- * defaults `data` to `unknown` (its `<Args>` generic types input parameters only). Call
- * `.overrideTypes<Row[], { merge: false }>()` at the end of table chains (or `.overrideTypes<T>()`
- * on direct `rpc()` chains; pass `{ merge: false }` if `.single()` or `.maybeSingle()` precedes
- * `overrideTypes()` on `rpc()`) to assign a static TypeScript type to `data`.
+ * defaults `data` to `unknown` (its `<Args>` generic types input parameters only). Chain
+ * `.returns<Row[]>()` (or `.single().returns<Row>()` / `.returns<T>()` on `rpc()`) to assign a full
+ * static TypeScript type to `data`, and use `.overrideTypes<PartialRow>()` when partially
+ * overriding or refining specific fields on an already-typed builder.
  *
  * Result envelope vs. throwing mode: by default, `await builder` resolves to
  * {@link OperationResult} (`{ success: true, data, count, error: null, status, statusText }` or

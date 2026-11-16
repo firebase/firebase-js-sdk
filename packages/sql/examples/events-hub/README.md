@@ -15,7 +15,7 @@ Interactive browser application demonstrating the `firebase/sql` (`@firebase/sql
      - All `FilterBuilder` operator families (`eq`/`neq`/`gt`/`gte`/`lt`/`lte`, `like`/`ilike`/`likeAllOf`/`likeAnyOf`/`regexMatch`/`regexIMatch`, `is`/`isDistinct`, `in`/`notIn`, `contains`/`containedBy`, `rangeGt`/`rangeGte`/`rangeLt`/`rangeLte`/`rangeAdjacent`, `overlaps`, `textSearch`, `match`, `not`, `or`, `filter`)
      - All `TransformBuilder` modifiers (`order`, `limit`, `range`, `abortSignal`, `single`, `maybeSingle`, `csv`, `geojson`, `explain`, `maxAffected`)
      - `FirebaseSql.rpc` (`GET` scalar, `POST` `SETOF`, `GET` `SETOF` + filters, `HEAD` count)
-     - `Builder` terminal modifiers (`stripNulls`, `setHeader`, `retry`, `throwOnError`, `overrideTypes`, `returns`) and `FirebaseSqlError` inspection.
+     - `Builder` terminal modifiers (`stripNulls`, `setHeader`, `retry`, `throwOnError`, `returns`, `overrideTypes`) and `FirebaseSqlError` inspection.
 
 ## Quick Start
 
