@@ -113,7 +113,7 @@ spawnPromise.catch(error => {
   // and don't print a stack trace.
   // Note: error.code is the exit code of the spawned process.
   if (typeof error.code === 'number' && error.code > 0) {
-    // If it's a standard test failure (mocha exit code), we don't need a runner stack trace.
+    // If it's a standard test failure (vitest exit code), we don't need a runner stack trace.
     process.exit(error.code);
   } else {
     // For other errors (spawn failed, runner crash, etc.), print the stack trace.

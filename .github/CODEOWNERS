@@ -26,4 +26,4 @@ scripts/docgen/content-sources/ @firebase/firebase-techwriters @firebase/jssdk-g
 docs-devsite/ @firebase/firebase-techwriters
 
 # Changeset
-.changeset @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers @andrewbrook @tonybaroneee @MaesterChestnut
+.changeset @firebase/jssdk-changeset-approvers @firebase/firestore-js-team @firebase/jssdk-global-approvers

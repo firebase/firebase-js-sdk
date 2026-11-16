@@ -16,7 +16,9 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { OperationType, UserCredential } from '@firebase/auth';
+import { OperationType } from '@firebase/auth';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import type { UserCredential } from '@firebase/auth';
 import { AnonFunction } from './util/functions';
 import { browserDescribe } from './util/test_runner';
 
@@ -56,7 +58,7 @@ browserDescribe('WebDriver anonymous auth test', driver => {
     const { user: before }: UserCredential = await driver.call(
       AnonFunction.SIGN_IN_ANONYMOUSLY
     );
-    await driver.webDriver.navigate().refresh();
+    await driver.page.reload();
     await driver.injectConfigAndInitAuth();
 
     // At this point we aren't waiting for auth to "settle"

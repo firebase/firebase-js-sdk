@@ -17,10 +17,6 @@
 
 import { FirebaseOptions } from '@firebase/app';
 
-// __karma__ is an untyped global
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const __karma__: any;
-
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const PROJECT_CONFIG = require('../../../../../config/project.json');
 
@@ -40,28 +36,17 @@ export const API_KEY = USE_EMULATOR
   : PROJECT_CONFIG.apiKey;
 
 export function getAppConfig(): FirebaseOptions {
-  // Prefer the karma config, then fallback on node process.env stuff
-  return (
-    getKarma()?.config?.authAppConfig || {
-      apiKey: API_KEY,
-      projectId: PROJECT_ID,
-      authDomain: AUTH_DOMAIN
-    }
-  );
+  return {
+    apiKey: API_KEY,
+    projectId: PROJECT_ID,
+    authDomain: AUTH_DOMAIN
+  };
 }
 
 export function getEmulatorUrl(): string | null {
-  // Check karma first, then fallback on node process
-  const host =
-    getKarma()?.config?.authEmulatorHost ||
-    (USE_EMULATOR ? EMULATOR_HOST : null);
+  const host = USE_EMULATOR ? EMULATOR_HOST : null;
   if (!host) {
     return null;
   }
   return `http://${host.replace('localhost', '127.0.0.1')}`;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getKarma(): any {
-  return typeof __karma__ !== 'undefined' ? __karma__ : undefined;
 }

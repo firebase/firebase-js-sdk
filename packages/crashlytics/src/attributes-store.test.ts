@@ -24,9 +24,14 @@ import {
 } from './attributes-store';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { AUTO_CONSTANTS } from './auto-constants';
+import { diag } from '@opentelemetry/api';
 
 describe('AttributesStore', () => {
   describe('getInstallationIdAttribute', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     it('should cache the installation id after the first call', async () => {
       let callCount = 0;
       const mockInstallations = {
@@ -142,6 +147,75 @@ describe('AttributesStore', () => {
       const store = new AttributesStore({} as any, {} as any);
       const attr = await store.getInstallationIdAttribute();
       expect(attr).toBeNull();
+    });
+
+    it('should return null and log debug if getId rejects', async () => {
+      const debugSpy = vi.spyOn(diag, 'debug').mockImplementation(() => {});
+      const mockInstallations = {
+        getId: vi
+          .fn()
+          .mockRejectedValue(new Error('IndexedDB is not available'))
+      } as unknown as _FirebaseInstallationsInternal;
+
+      const mockProvider = {
+        getImmediate: () => mockInstallations,
+        get: async () => mockInstallations
+      } as any;
+
+      const store = new AttributesStore({} as any, {} as any, mockProvider);
+      const attr = await store.getInstallationIdAttribute();
+      expect(attr).toBeNull();
+      expect(debugSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return null if getId throws synchronously', async () => {
+      const debugSpy = vi.spyOn(diag, 'debug').mockImplementation(() => {});
+      const mockInstallations = {
+        getId: vi.fn(() => {
+          throw new Error('IndexedDB access denied');
+        })
+      } as unknown as _FirebaseInstallationsInternal;
+
+      const mockProvider = {
+        getImmediate: () => mockInstallations,
+        get: async () => mockInstallations
+      } as any;
+
+      const store = new AttributesStore({} as any, {} as any, mockProvider);
+      const attr = await store.getInstallationIdAttribute();
+      expect(attr).toBeNull();
+      expect(debugSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not cache failure if getId subsequently succeeds', async () => {
+      const getId = vi
+        .fn()
+        .mockRejectedValueOnce(new Error('Temporary IndexedDB failure'))
+        .mockResolvedValue('iid-recovered');
+      const mockInstallations = {
+        getId
+      } as unknown as _FirebaseInstallationsInternal;
+
+      const mockProvider = {
+        getImmediate: () => mockInstallations,
+        get: async () => mockInstallations
+      } as any;
+
+      const store = new AttributesStore({} as any, {} as any, mockProvider);
+
+      expect(await store.getInstallationIdAttribute()).toBeNull();
+      expect(getId).toHaveBeenCalledTimes(1);
+
+      expect(await store.getInstallationIdAttribute()).toEqual({
+        [ATTR_KEY_INSTALLATION_ID]: 'iid-recovered'
+      });
+      expect(getId).toHaveBeenCalledTimes(2);
+
+      // Should cache now
+      expect(await store.getInstallationIdAttribute()).toEqual({
+        [ATTR_KEY_INSTALLATION_ID]: 'iid-recovered'
+      });
+      expect(getId).toHaveBeenCalledTimes(2);
     });
   });
 

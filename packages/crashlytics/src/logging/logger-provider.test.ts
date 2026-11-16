@@ -27,7 +27,7 @@ import { AppCheckProvider } from './appcheck-provider';
 import { FirebaseAttributesLogProcessor } from './attributes-log-processor';
 import { createLoggerProvider } from './logger-provider';
 import { OnErrorLogRecordProcessor } from './on-error-log-record-processor';
-import { SeverityNumber } from '@opentelemetry/api-logs';
+import { SeverityNumber } from '@opentelemetry/api';
 import { Provider } from '@firebase/component';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 
@@ -239,6 +239,46 @@ describe('createLoggerProvider', () => {
       expect(fetchStub.mock.calls[0][0]).toBe(
         'https://clienttelemetry.us-east5.rep.googleapis.com/v1/logs'
       );
+    } finally {
+      fetchStub.mockRestore();
+    }
+  });
+
+  it('should export logs even when installations.getId() rejects', async () => {
+    const fetchStub = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('', { status: 200 }));
+    try {
+      const mockInstallations = {
+        getId: vi
+          .fn()
+          .mockRejectedValue(new Error('IndexedDB is not available'))
+      };
+      const mockInstallationsProvider = {
+        getImmediate: () => mockInstallations,
+        get: async () => mockInstallations
+      } as unknown as Provider<'installations-internal'>;
+      const storeWithFailingInstallations = new AttributesStore(
+        app.options,
+        {},
+        mockInstallationsProvider
+      );
+
+      const { loggerProvider: provider } = createLoggerProvider(
+        app,
+        {},
+        storeWithFailingInstallations,
+        telemetryStore,
+        []
+      );
+      provider.getLogger('test').emit({
+        severityNumber: SeverityNumber.ERROR,
+        body: 'test error'
+      });
+      await provider.forceFlush();
+
+      expect(mockInstallations.getId).toHaveBeenCalledTimes(1);
+      expect(fetchStub).toHaveBeenCalledTimes(1);
     } finally {
       fetchStub.mockRestore();
     }

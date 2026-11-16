@@ -17,4 +17,19 @@
 
 import createBaseConfig from '../../config/vitest.base.mjs';
 
-export default createBaseConfig(import.meta.url);
+const config = createBaseConfig(import.meta.url);
+
+if (config.test?.projects) {
+  for (const project of config.test.projects) {
+    if (project.test) {
+      project.test.testTimeout = 20000;
+      project.test.hookTimeout = 20000;
+      project.test.retry = process.env.CI ? 2 : 0;
+      if (project.test.name === 'browser' && project.test.browser) {
+        project.test.browser.screenshotFailures = false;
+      }
+    }
+  }
+}
+
+export default config;

@@ -16,9 +16,9 @@
  */
 
 import { TelemetryStore, RootTelemetryQueue } from './telemetry-store';
-import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
-import { SdkLogRecord } from '@opentelemetry/sdk-logs';
-import { SeverityNumber } from '@opentelemetry/api-logs';
+import { ReadableSpan } from '@opentelemetry/sdk-trace';
+import { ReadWriteLogRecord } from '@opentelemetry/sdk-logs';
+import { SeverityNumber } from '@opentelemetry/api';
 
 /**
  * Factory class to generate mock OpenTelemetry spans and log records for testing.
@@ -59,10 +59,10 @@ class MockEventFactory {
   /**
    * Creates a mock OpenTelemetry root/standalone log record.
    */
-  createRootLog(): SdkLogRecord {
+  createRootLog(): ReadWriteLogRecord {
     return {
       spanContext: undefined
-    } as unknown as SdkLogRecord;
+    } as unknown as ReadWriteLogRecord;
   }
 
   /**
@@ -70,10 +70,10 @@ class MockEventFactory {
    *
    * @param traceId - The trace ID the log record is associated with.
    */
-  createChildLog(traceId: string): SdkLogRecord {
+  createChildLog(traceId: string): ReadWriteLogRecord {
     return {
       spanContext: { traceId }
-    } as unknown as SdkLogRecord;
+    } as unknown as ReadWriteLogRecord;
   }
 }
 
