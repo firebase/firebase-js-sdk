@@ -52,6 +52,7 @@ export const AIErrorCode: {
     readonly NO_PROJECT_ID: "no-project-id";
     readonly PARSE_FAILED: "parse-failed";
     readonly UNSUPPORTED: "unsupported";
+    readonly DEVICE_MODEL_NOT_INITIALIZED: "device-model-not-initialized";
 };
 
 // @public
@@ -172,6 +173,10 @@ export interface ChromeAdapter {
     countTokens(request: CountTokensRequest): Promise<Response>;
     generateContent(request: GenerateContentRequest): Promise<Response>;
     generateContentStream(request: GenerateContentRequest): Promise<Response>;
+    // @internal
+    getOnDeviceStatus(request: GenerateContentRequest, options?: {
+        waitForDownload?: boolean;
+    }): Promise<OnDeviceStatus>;
     isAvailable(request: GenerateContentRequest): Promise<boolean>;
     // @internal (undocumented)
     mode: InferenceMode;
@@ -1069,6 +1074,11 @@ export interface OnDeviceParams {
     // (undocumented)
     promptOptions?: LanguageModelPromptOptions;
 }
+
+// Warning: (ae-internal-missing-underscore) The name "OnDeviceStatus" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export type OnDeviceStatus = 'available' | 'request-not-supported' | 'download-in-progress' | 'not-initialized' | 'unavailable';
 
 // @public
 export const Outcome: {

@@ -873,7 +873,6 @@ describe('GenerativeModel', () => {
       expect.anything(),
       expect.anything(),
       expect.anything(),
-      undefined,
       expect.objectContaining({
         timeout: singleRequestOptions.timeout
       })
@@ -902,7 +901,6 @@ describe('GenerativeModel', () => {
       expect.anything(),
       expect.anything(),
       expect.anything(),
-      undefined,
       expect.objectContaining({
         timeout: requestOptions.timeout,
         signal: singleRequestOptions.signal
@@ -946,6 +944,18 @@ describe('initializeDeviceModel', () => {
     );
     await model.initializeDeviceModel();
     expect(mockChromeAdapter.download).not.toHaveBeenCalled();
+  });
+  it('throws API_NOT_ENABLED if no adapter and ONLY_ON_DEVICE', async () => {
+    const model = new GenerativeModel(fakeAI, { model: 'model' }, {});
+    model._apiSettings.inferenceMode = InferenceMode.ONLY_ON_DEVICE;
+    await expect(model.initializeDeviceModel()).rejects.toSatisfy(
+      e => e instanceof AIError && e.code === AIErrorCode.API_NOT_ENABLED
+    );
+  });
+  it('noops if no adapter and PREFER_ON_DEVICE', async () => {
+    const model = new GenerativeModel(fakeAI, { model: 'model' }, {});
+    model._apiSettings.inferenceMode = InferenceMode.PREFER_ON_DEVICE;
+    await expect(model.initializeDeviceModel()).resolves.toBeUndefined();
   });
   it('noops if no adapter', async () => {
     // @ts-ignore
@@ -1009,6 +1019,7 @@ describe('GenerativeModel hybrid dispatch logic', () => {
     // @ts-ignore
     mockChromeAdapter = {
       isAvailable: vi.fn(),
+      getOnDeviceStatus: vi.fn(),
       generateContent: vi
         .fn()
         .mockResolvedValue(new Response(JSON.stringify({}))),
@@ -1104,7 +1115,9 @@ describe('GenerativeModel hybrid dispatch logic', () => {
     });
     it('should use on-device for generateContent when available', async () => {
       stubMakeRequest();
-      (mockChromeAdapter.isAvailable as any).mockResolvedValue(true);
+      (mockChromeAdapter.getOnDeviceStatus as any).mockResolvedValue(
+        'available'
+      );
       const model = new GenerativeModel(
         fakeAI,
         { model: 'model' },
@@ -1117,7 +1130,9 @@ describe('GenerativeModel hybrid dispatch logic', () => {
     });
     it('generateContent should throw when on-device is not available', async () => {
       stubMakeRequest();
-      (mockChromeAdapter.isAvailable as any).mockResolvedValue(false);
+      (mockChromeAdapter.getOnDeviceStatus as any).mockResolvedValue(
+        'unavailable'
+      );
       const model = new GenerativeModel(
         fakeAI,
         { model: 'model' },
@@ -1125,14 +1140,16 @@ describe('GenerativeModel hybrid dispatch logic', () => {
         mockChromeAdapter
       );
       await expect(model.generateContent('hello')).rejects.toThrow(
-        /on-device model is not available/
+        /Local LanguageModel API not available/
       );
       expect(mockChromeAdapter.generateContent).not.toHaveBeenCalled();
       expect(makeRequestStub).not.toHaveBeenCalled();
     });
     it('should use on-device for generateContentStream when available', async () => {
       stubMakeRequest(true);
-      (mockChromeAdapter.isAvailable as any).mockResolvedValue(true);
+      (mockChromeAdapter.getOnDeviceStatus as any).mockResolvedValue(
+        'available'
+      );
       const model = new GenerativeModel(
         fakeAI,
         { model: 'model' },
@@ -1145,7 +1162,9 @@ describe('GenerativeModel hybrid dispatch logic', () => {
     });
     it('generateContentStream should throw when on-device is not available', async () => {
       stubMakeRequest(true);
-      (mockChromeAdapter.isAvailable as any).mockResolvedValue(false);
+      (mockChromeAdapter.getOnDeviceStatus as any).mockResolvedValue(
+        'unavailable'
+      );
       const model = new GenerativeModel(
         fakeAI,
         { model: 'model' },
@@ -1153,7 +1172,7 @@ describe('GenerativeModel hybrid dispatch logic', () => {
         mockChromeAdapter
       );
       await expect(model.generateContentStream('hello')).rejects.toThrow(
-        /on-device model is not available/
+        /Local LanguageModel API not available/
       );
       expect(mockChromeAdapter.generateContent).not.toHaveBeenCalled();
       expect(makeRequestStub).not.toHaveBeenCalled();

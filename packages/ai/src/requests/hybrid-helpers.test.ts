@@ -31,11 +31,10 @@ describe('callCloudOrDevice', () => {
   let request: GenerateContentRequest;
 
   beforeEach(() => {
-    // @ts-ignore
     chromeAdapter = {
       mode: InferenceMode.PREFER_ON_DEVICE,
-      // @ts-ignore
       isAvailable: vi.fn().mockResolvedValue(true),
+      getOnDeviceStatus: vi.fn().mockResolvedValue('available'),
       generateContent: vi.fn(),
       generateContentStream: vi.fn(),
       countTokens: vi.fn()
@@ -49,118 +48,200 @@ describe('callCloudOrDevice', () => {
     vi.restoreAllMocks();
   });
 
-  it('should call inCloudCall if chromeAdapter is undefined', async () => {
-    const result = await callCloudOrDevice(
-      request,
-      undefined,
-      onDeviceCall,
-      inCloudCall
+  async function expectAIError(
+    promise: Promise<unknown>,
+    code: AIErrorCode
+  ): Promise<void> {
+    await expect(promise).rejects.toSatisfy(
+      e => e instanceof AIError && e.code === code
     );
+  }
+
+  function expectCloud(result: any): void {
     expect(result.response).to.equal('in-cloud-response');
     expect(result.inferenceSource).to.equal(InferenceSource.IN_CLOUD);
     expect(inCloudCall).toHaveBeenCalledOnce();
     expect(onDeviceCall).not.toHaveBeenCalled();
-  });
+  }
 
-  describe('PREFER_ON_DEVICE mode', () => {
-    beforeEach(() => {
-      chromeAdapter.mode = InferenceMode.PREFER_ON_DEVICE;
-    });
+  function expectOnDevice(result: any): void {
+    expect(result.response).to.equal('on-device-response');
+    expect(result.inferenceSource).to.equal(InferenceSource.ON_DEVICE);
+    expect(onDeviceCall).toHaveBeenCalledOnce();
+    expect(inCloudCall).not.toHaveBeenCalled();
+  }
 
-    it('should call onDeviceCall if available', async () => {
-      chromeAdapter.isAvailable.mockResolvedValue(true);
-      const result = await callCloudOrDevice(
+  it('should call inCloudCall if mode is undefined', async () => {
+    expectCloud(
+      await callCloudOrDevice(
         request,
+        undefined,
         chromeAdapter,
         onDeviceCall,
         inCloudCall
+      )
+    );
+  });
+
+  it('should call inCloudCall if mode and chromeAdapter are undefined', async () => {
+    expectCloud(
+      await callCloudOrDevice(
+        request,
+        undefined,
+        undefined,
+        onDeviceCall,
+        inCloudCall
+      )
+    );
+  });
+
+  describe('PREFER_ON_DEVICE mode', () => {
+    const mode = InferenceMode.PREFER_ON_DEVICE;
+
+    it('should call onDeviceCall if available', async () => {
+      chromeAdapter.isAvailable.mockResolvedValue(true);
+      expectOnDevice(
+        await callCloudOrDevice(
+          request,
+          mode,
+          chromeAdapter,
+          onDeviceCall,
+          inCloudCall
+        )
       );
-      expect(result.response).to.equal('on-device-response');
-      expect(result.inferenceSource).to.equal(InferenceSource.ON_DEVICE);
-      expect(onDeviceCall).toHaveBeenCalledOnce();
-      expect(inCloudCall).not.toHaveBeenCalled();
     });
 
     it('should call inCloudCall if not available', async () => {
       chromeAdapter.isAvailable.mockResolvedValue(false);
-      const result = await callCloudOrDevice(
-        request,
-        chromeAdapter,
-        onDeviceCall,
-        inCloudCall
+      expectCloud(
+        await callCloudOrDevice(
+          request,
+          mode,
+          chromeAdapter,
+          onDeviceCall,
+          inCloudCall
+        )
       );
-      expect(result.response).to.equal('in-cloud-response');
-      expect(result.inferenceSource).to.equal(InferenceSource.IN_CLOUD);
-      expect(inCloudCall).toHaveBeenCalledOnce();
-      expect(onDeviceCall).not.toHaveBeenCalled();
+    });
+
+    it('should call inCloudCall if chromeAdapter is undefined', async () => {
+      expectCloud(
+        await callCloudOrDevice(
+          request,
+          mode,
+          undefined,
+          onDeviceCall,
+          inCloudCall
+        )
+      );
     });
   });
 
   describe('ONLY_ON_DEVICE mode', () => {
-    beforeEach(() => {
-      chromeAdapter.mode = InferenceMode.ONLY_ON_DEVICE;
-    });
+    const mode = InferenceMode.ONLY_ON_DEVICE;
 
-    it('should call onDeviceCall if available', async () => {
-      chromeAdapter.isAvailable.mockResolvedValue(true);
-      const result = await callCloudOrDevice(
-        request,
-        chromeAdapter,
-        onDeviceCall,
-        inCloudCall
+    it('should call onDeviceCall if available, waiting for any download', async () => {
+      expectOnDevice(
+        await callCloudOrDevice(
+          request,
+          mode,
+          chromeAdapter,
+          onDeviceCall,
+          inCloudCall
+        )
       );
-      expect(result.response).to.equal('on-device-response');
-      expect(result.inferenceSource).to.equal(InferenceSource.ON_DEVICE);
-      expect(onDeviceCall).toHaveBeenCalledOnce();
-      expect(inCloudCall).not.toHaveBeenCalled();
+      expect(chromeAdapter.getOnDeviceStatus).toHaveBeenCalledWith(request, {
+        waitForDownload: true
+      });
     });
 
-    it('should throw if not available', async () => {
-      chromeAdapter.isAvailable.mockResolvedValue(false);
-      await expect(
-        callCloudOrDevice(request, chromeAdapter, onDeviceCall, inCloudCall)
-      ).rejects.toThrow(/on-device model is not available/);
+    it('should still call onDeviceCall if the request may not be supported', async () => {
+      chromeAdapter.getOnDeviceStatus.mockResolvedValue(
+        'request-not-supported'
+      );
+      expectOnDevice(
+        await callCloudOrDevice(
+          request,
+          mode,
+          chromeAdapter,
+          onDeviceCall,
+          inCloudCall
+        )
+      );
+    });
+
+    it('should throw DEVICE_MODEL_NOT_INITIALIZED if initializeDeviceModel() was not called', async () => {
+      chromeAdapter.getOnDeviceStatus.mockResolvedValue('not-initialized');
+      await expectAIError(
+        callCloudOrDevice(
+          request,
+          mode,
+          chromeAdapter,
+          onDeviceCall,
+          inCloudCall
+        ),
+        AIErrorCode.DEVICE_MODEL_NOT_INITIALIZED
+      );
+      expect(inCloudCall).not.toHaveBeenCalled();
+      expect(onDeviceCall).not.toHaveBeenCalled();
+    });
+
+    it('should throw API_NOT_ENABLED if unavailable', async () => {
+      chromeAdapter.getOnDeviceStatus.mockResolvedValue('unavailable');
+      await expectAIError(
+        callCloudOrDevice(
+          request,
+          mode,
+          chromeAdapter,
+          onDeviceCall,
+          inCloudCall
+        ),
+        AIErrorCode.API_NOT_ENABLED
+      );
+      expect(inCloudCall).not.toHaveBeenCalled();
+      expect(onDeviceCall).not.toHaveBeenCalled();
+    });
+
+    it('should throw API_NOT_ENABLED, not call the cloud, if chromeAdapter is undefined', async () => {
+      await expectAIError(
+        callCloudOrDevice(request, mode, undefined, onDeviceCall, inCloudCall),
+        AIErrorCode.API_NOT_ENABLED
+      );
       expect(inCloudCall).not.toHaveBeenCalled();
       expect(onDeviceCall).not.toHaveBeenCalled();
     });
   });
 
   describe('ONLY_IN_CLOUD mode', () => {
-    beforeEach(() => {
-      chromeAdapter.mode = InferenceMode.ONLY_IN_CLOUD;
-    });
+    const mode = InferenceMode.ONLY_IN_CLOUD;
 
     it('should call inCloudCall even if on-device is available', async () => {
-      chromeAdapter.isAvailable.mockResolvedValue(true);
-      const result = await callCloudOrDevice(
-        request,
-        chromeAdapter,
-        onDeviceCall,
-        inCloudCall
+      expectCloud(
+        await callCloudOrDevice(
+          request,
+          mode,
+          chromeAdapter,
+          onDeviceCall,
+          inCloudCall
+        )
       );
-      expect(result.response).to.equal('in-cloud-response');
-      expect(result.inferenceSource).to.equal(InferenceSource.IN_CLOUD);
-      expect(inCloudCall).toHaveBeenCalledOnce();
-      expect(onDeviceCall).not.toHaveBeenCalled();
+      expect(chromeAdapter.isAvailable).not.toHaveBeenCalled();
     });
   });
 
   describe('PREFER_IN_CLOUD mode', () => {
-    beforeEach(() => {
-      chromeAdapter.mode = InferenceMode.PREFER_IN_CLOUD;
-    });
+    const mode = InferenceMode.PREFER_IN_CLOUD;
 
     it('should call inCloudCall first', async () => {
-      const result = await callCloudOrDevice(
-        request,
-        chromeAdapter,
-        onDeviceCall,
-        inCloudCall
+      expectCloud(
+        await callCloudOrDevice(
+          request,
+          mode,
+          chromeAdapter,
+          onDeviceCall,
+          inCloudCall
+        )
       );
-      expect(result.response).to.equal('in-cloud-response');
-      expect(result.inferenceSource).to.equal(InferenceSource.IN_CLOUD);
-      expect(inCloudCall).toHaveBeenCalledOnce();
-      expect(onDeviceCall).not.toHaveBeenCalled();
     });
 
     it('should fall back to onDeviceCall if inCloudCall fails with AIErrorCode.FETCH_ERROR', async () => {
@@ -169,6 +250,7 @@ describe('callCloudOrDevice', () => {
       );
       const result = await callCloudOrDevice(
         request,
+        mode,
         chromeAdapter,
         onDeviceCall,
         inCloudCall
@@ -179,11 +261,42 @@ describe('callCloudOrDevice', () => {
       expect(onDeviceCall).toHaveBeenCalledOnce();
     });
 
+    it('should re-throw the cloud error if on-device is not available', async () => {
+      const error = new AIError(AIErrorCode.FETCH_ERROR, 'Network error');
+      inCloudCall.mockRejectedValue(error);
+      chromeAdapter.isAvailable.mockResolvedValue(false);
+      await expect(
+        callCloudOrDevice(
+          request,
+          mode,
+          chromeAdapter,
+          onDeviceCall,
+          inCloudCall
+        )
+      ).rejects.toThrow(error);
+      expect(onDeviceCall).not.toHaveBeenCalled();
+    });
+
+    it('should re-throw the cloud error if chromeAdapter is undefined', async () => {
+      const error = new AIError(AIErrorCode.FETCH_ERROR, 'Network error');
+      inCloudCall.mockRejectedValue(error);
+      await expect(
+        callCloudOrDevice(request, mode, undefined, onDeviceCall, inCloudCall)
+      ).rejects.toThrow(error);
+      expect(onDeviceCall).not.toHaveBeenCalled();
+    });
+
     it('should re-throw other errors from inCloudCall', async () => {
       const error = new AIError(AIErrorCode.RESPONSE_ERROR, 'safety problem');
       inCloudCall.mockRejectedValue(error);
       await expect(
-        callCloudOrDevice(request, chromeAdapter, onDeviceCall, inCloudCall)
+        callCloudOrDevice(
+          request,
+          mode,
+          chromeAdapter,
+          onDeviceCall,
+          inCloudCall
+        )
       ).rejects.toThrow(error);
       expect(inCloudCall).toHaveBeenCalledOnce();
       expect(onDeviceCall).not.toHaveBeenCalled();

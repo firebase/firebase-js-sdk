@@ -453,6 +453,7 @@ AIErrorCode: {
     readonly NO_PROJECT_ID: "no-project-id";
     readonly PARSE_FAILED: "parse-failed";
     readonly UNSUPPORTED: "unsupported";
+    readonly DEVICE_MODEL_NOT_INITIALIZED: "device-model-not-initialized";
 }
 ```
 

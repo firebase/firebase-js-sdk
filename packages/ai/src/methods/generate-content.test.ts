@@ -37,6 +37,7 @@ import {
   HarmBlockMethod,
   HarmBlockThreshold,
   HarmCategory,
+  InferenceMode,
   InferenceSource,
   Language,
   Outcome
@@ -653,7 +654,7 @@ describe('generateContent()', () => {
       .spyOn(chromeAdapter, 'generateContent')
       .mockResolvedValue(mockResponse as Response);
     const result = await generateContent(
-      fakeApiSettings,
+      { ...fakeApiSettings, inferenceMode: InferenceMode.PREFER_ON_DEVICE },
       'model',
       fakeRequestParams,
       chromeAdapter
@@ -676,7 +677,7 @@ describe('generateContent()', () => {
       .spyOn(chromeAdapter, 'generateContentStream')
       .mockResolvedValue(mockResponse as Response);
     const result = await generateContentStream(
-      fakeApiSettings,
+      { ...fakeApiSettings, inferenceMode: InferenceMode.PREFER_ON_DEVICE },
       'model',
       fakeRequestParams,
       chromeAdapter
