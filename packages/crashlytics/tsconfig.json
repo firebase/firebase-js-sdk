@@ -17,14 +17,6 @@
       "@opentelemetry/instrumentation": [
         "node_modules/@opentelemetry/instrumentation",
         "../../node_modules/@opentelemetry/instrumentation"
-      ],
-      "@angular/core/testing": [
-        "node_modules/@angular/core/types/testing.d.ts",
-        "../../node_modules/@angular/core/types/testing.d.ts"
-      ],
-      "@angular/platform-browser/testing": [
-        "node_modules/@angular/platform-browser/types/testing.d.ts",
-        "../../node_modules/@angular/platform-browser/types/testing.d.ts"
       ]
     }
   },
