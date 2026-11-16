@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@angular/common@19.2.15":
-  version "19.2.15"
-  resolved "https://registry.npmjs.org/@angular/common/-/common-19.2.15.tgz#934d7ead5c8a3c4660ab131ba129fce6096def1d"
-  integrity sha512-aVa/ctBYH/4qgA7r4sS7TV+/DzRYmcS+3d6l89pNKUXkI8gpmsd+r3FjccaemX4Wqru1QOrMvC+i+e7IBIVv0g==
+"@angular/common@19.2.23":
+  version "19.2.23"
+  resolved "https://registry.npmjs.org/@angular/common/-/common-19.2.23.tgz#8bc3646ac9a472db02690b6317a9bd20eb886dfd"
+  integrity sha512-aB5yqu48POFj9tzF258Iye29iopIpxZZ58tzapXD1JDZBAr/hq4V0MtUu9HeUJ386GbRAZQQC2Am8Mjce0B1Lg==
   dependencies:
     tslib "^2.3.0"
 
