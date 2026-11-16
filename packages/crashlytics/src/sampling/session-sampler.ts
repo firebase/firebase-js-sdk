@@ -96,8 +96,6 @@ export class SessionSampler {
    * Returns the decision for the current session, making it from the configuration in memory if
    * none has been made yet.
    *
-   * While the debug override is on and the session isn't forced yet (e.g. because telemetry is
-   * disabled), this also refreshes the configuration without waiting for it, so a later export
    * picks up a change such as telemetry being re-enabled.
    */
   getDecision(): SamplingDecision {
@@ -106,6 +104,7 @@ export class SessionSampler {
       return cached;
     }
     if (isTelemetryDebugEnabled()) {
+      // Not forced yet (e.g. telemetry is disabled): refresh for a later export.
       void this._configStore.refreshIfStale();
     }
     const decision = this._computeDecision(
