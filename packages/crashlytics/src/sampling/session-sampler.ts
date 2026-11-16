@@ -19,10 +19,8 @@ import { AttributesStore } from '../attributes-store';
 import {
   ATTR_KEY_SESSION_SAMPLING_FORCED,
   ATTR_KEY_SESSION_SAMPLING_RATE,
-  CLIENT_CONFIG_INITIAL_WAIT_MS,
   SESSION_SAMPLING_HASH_BUCKETS
 } from '../constants';
-import { isPageHidden } from '../helpers';
 import type { ClientConfig, ClientConfigStore } from './client-config';
 import { isTelemetryDebugEnabled } from './debug-override';
 import { murmurHash3 } from './murmurhash3';
@@ -66,8 +64,9 @@ export function isSessionSampled(sessionId: string, rate: number): boolean {
 /**
  * Makes and remembers the session sampling decision for a Crashlytics instance.
  *
- * - The decision is made lazily, at the first telemetry export of the session, right after refreshing the configuration, so the most recent sampling rate
- *   is used.
+ * - The decision is made lazily, at the first telemetry export of the session, without waiting for
+ *   a fetch: it uses the configuration in memory, which is the latest one fetched, else the cached
+ *   one, else the default.
  * - A session is either kept completely or discarded completely. Once made, the decision is fixed for the rest of the session and persisted in `sessionStorage`
  *   so page reloads within the session do not flip it. Rate increases apply to new sessions only;
  *   rate decreases are enforced immediately by the backend.
@@ -87,49 +86,28 @@ export class SessionSampler {
   /**
    * @param _storageKey - `sessionStorage` key under which the decision is persisted. It must be
    *   specific to the app and region.
-   * @param _initialWaitMs - Maximum time the first decision waits for the config refresh. Exposed
-   *   for tests.
    */
   constructor(
     private readonly _configStore: ClientConfigStore,
     private readonly _attributesStore: AttributesStore,
-    private readonly _storageKey: string,
-    private readonly _initialWaitMs = CLIENT_CONFIG_INITIAL_WAIT_MS
+    private readonly _storageKey: string
   ) {}
 
   /**
-   * Returns the decision for the current session, computing it on first use.
+   * Returns the decision for the current session, making it from the configuration in memory if
+   * none has been made yet. It never waits for a fetch.
    *
-   * Before the first decision this refreshes the configuration (reusing a refresh started within
-   * the last minute, see {@link ClientConfigStore.refreshIfStale}) and waits for it, bounded by
-   * `initialWaitMs`, so the decision uses the most recent configuration the server's caches allow.
-   * This includes debug decisions, since the debug override doesn't apply when telemetry
-   * collection is disabled. If the refresh is slow or fails, the configuration already in memory
-   * (cached or default) is used. It does not refresh or wait when the page is hidden. Exports
-   * issued while the page is hidden are typically the unload flush (`visibilitychange`/`pagehide`),
-   * whose `keepalive` request must be started before the document is frozen or discarded, so it
-   * cannot be held back behind a timer. An export that is already waiting when the page becomes
-   * hidden is released immediately for the same reason.
+   * While the debug override is on and the session isn't forced yet (e.g. because telemetry is
+   * disabled), this also refreshes the configuration without waiting for it, so a later export
+   * sees a change such as telemetry being re-enabled.
    */
-  async getDecision(): Promise<SamplingDecision> {
+  getDecision(): SamplingDecision {
     const cached = this._cachedDecision();
     if (cached) {
       return cached;
     }
-    if (!isPageHidden()) {
-      await this._waitForConfigRefresh();
-    }
-    return this.decide();
-  }
-
-  /**
-   * Synchronously returns the decision for the current session, computing it from the
-   * configuration currently in effect if none has been made yet.
-   */
-  decide(): SamplingDecision {
-    const cached = this._cachedDecision();
-    if (cached) {
-      return cached;
+    if (isTelemetryDebugEnabled()) {
+      void this._configStore.refreshIfStale();
     }
     const decision = this._computeDecision(
       this._attributesStore.sessionId,
@@ -145,10 +123,10 @@ export class SessionSampler {
    * Applies the session's sampling decision to a batch of log records or spans about to be
    * exported.
    */
-  async applySampling(
+  applySampling(
     records: ReadonlyArray<{ readonly attributes: object }>
-  ): Promise<boolean> {
-    const decision = await this.getDecision();
+  ): boolean {
+    const decision = this.getDecision();
     if (!decision.sampled) {
       return false;
     }
@@ -162,38 +140,6 @@ export class SessionSampler {
       Object.assign(record.attributes, samplingAttributes);
     }
     return true;
-  }
-
-  /**
-   * Refreshes the configuration if needed and resolves when the refresh settles, `initialWaitMs`
-   * elapses, or the page becomes hidden / is being unloaded, whichever happens first.
-   */
-  private async _waitForConfigRefresh(): Promise<void> {
-    let release!: () => void;
-    const released = new Promise<void>(resolve => {
-      release = resolve;
-    });
-    const onVisibilityChange = (): void => {
-      if (isPageHidden()) {
-        release();
-      }
-    };
-    const hasDom =
-      typeof window !== 'undefined' && typeof document !== 'undefined';
-    const timer = setTimeout(release, this._initialWaitMs);
-    if (hasDom) {
-      document.addEventListener('visibilitychange', onVisibilityChange);
-      window.addEventListener('pagehide', release);
-    }
-    try {
-      await Promise.race([this._configStore.refreshIfStale(), released]);
-    } finally {
-      clearTimeout(timer);
-      if (hasDom) {
-        document.removeEventListener('visibilitychange', onVisibilityChange);
-        window.removeEventListener('pagehide', release);
-      }
-    }
   }
 
   private _computeDecision(

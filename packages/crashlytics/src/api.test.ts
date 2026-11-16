@@ -327,8 +327,8 @@ describe('Top level API', () => {
         const otherCrashlytics = getCrashlytics(otherApp, {
           region: 'us-central1'
         }) as CrashlyticsService;
-        crashlytics.sessionSampler!.decide();
-        otherCrashlytics.sessionSampler!.decide();
+        crashlytics.sessionSampler!.getDecision();
+        otherCrashlytics.sessionSampler!.getDecision();
 
         // Both apps share the session ID but persist their own decisions.
         expect(
