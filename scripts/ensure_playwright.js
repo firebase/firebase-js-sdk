@@ -18,7 +18,37 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 
-function isChromiumInstalled() {
+const BROWSER_EXECUTABLES = {
+  ChromeHeadless: ['chromium', 'chromium-headless-shell'],
+  chromium: ['chromium', 'chromium-headless-shell'],
+  chrome: ['chromium', 'chromium-headless-shell'],
+  WebkitHeadless: ['webkit'],
+  webkit: ['webkit'],
+  safari: ['webkit'],
+  Firefox: ['firefox'],
+  FirefoxHeadless: ['firefox'],
+  firefox: ['firefox']
+};
+
+function getRequiredExecutables() {
+  if (!process.env.BROWSERS) {
+    return ['chromium', 'chromium-headless-shell'];
+  }
+  const executables = new Set();
+  for (const browser of process.env.BROWSERS.split(',')) {
+    const mapped = BROWSER_EXECUTABLES[browser.trim()];
+    if (mapped) {
+      for (const exec of mapped) {
+        executables.add(exec);
+      }
+    }
+  }
+  return executables.size > 0
+    ? [...executables]
+    : ['chromium', 'chromium-headless-shell'];
+}
+
+function areExecutablesInstalled(executables) {
   try {
     const coreBundle = require(
       require.resolve('playwright-core/lib/coreBundle', {
@@ -26,7 +56,7 @@ function isChromiumInstalled() {
       })
     );
     const { registry } = coreBundle.registry;
-    return ['chromium', 'chromium-headless-shell'].every(name =>
+    return executables.every(name =>
       fs.existsSync(registry.findExecutable(name).executablePath())
     );
   } catch {
@@ -34,18 +64,24 @@ function isChromiumInstalled() {
   }
 }
 
+function isChromiumInstalled() {
+  return areExecutablesInstalled(['chromium', 'chromium-headless-shell']);
+}
+
 function ensurePlaywright() {
-  if (!isChromiumInstalled()) {
+  const executables = getRequiredExecutables();
+  if (!areExecutablesInstalled(executables)) {
+    const browserList = executables.join(' ');
     console.log(
-      '[ensure_playwright] Playwright Chromium / Headless Shell not found. Installing...'
+      `[ensure_playwright] Playwright browser binaries (${browserList}) not found. Installing...`
     );
     try {
-      execSync('npx playwright install chromium chromium-headless-shell', {
+      execSync(`npx playwright install ${browserList}`, {
         stdio: 'inherit'
       });
     } catch (err) {
       console.error(
-        '[ensure_playwright] Failed to install Playwright Chromium:',
+        `[ensure_playwright] Failed to install Playwright browsers (${browserList}):`,
         err
       );
       process.exit(1);

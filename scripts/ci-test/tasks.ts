@@ -54,6 +54,7 @@ const fullTestTriggerFiles = [
   'config/mocha.browser.opts',
   'config/mocharc.node.js',
   'config/tsconfig.base.json',
+  'config/vitest.base.mjs',
   'config/webpack.test.js',
   'config/firestore.rules',
   'config/database.rules.json'
