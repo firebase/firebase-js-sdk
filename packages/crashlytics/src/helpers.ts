@@ -24,10 +24,13 @@ import {
 } from './types';
 import { type TimeInput } from '@opentelemetry/api';
 import { hrTimeToMilliseconds, timeInputToHrTime } from '@opentelemetry/core';
+import type { FirebaseOptions } from '@firebase/app-types';
 import {
   ALREADY_LOGGED_FLAG,
-  DEFAULT_TELEMETRY_ENDPOINT,
-  DEFAULT_TELEMETRY_REGION
+  CLIENT_CONFIG_API_VERSION,
+  DEFAULT_CLIENT_CONFIG_ENDPOINT,
+  DEFAULT_OTLP_EXPORT_ENDPOINT,
+  DEFAULT_REGION
 } from './constants';
 import { recordError } from './api';
 
@@ -275,13 +278,25 @@ export function logVisibilityEvent(
 }
 
 /**
+ * Whether the page is currently hidden. Browsers set `visibilityState` to `hidden` before
+ * dispatching `pagehide` when a document is unloaded, so this is also true during the unload flush.
+ *
+ * @internal
+ */
+export function isPageHidden(): boolean {
+  return (
+    typeof document !== 'undefined' && document.visibilityState === 'hidden'
+  );
+}
+
+/**
  * Resolves the base telemetry endpoint URL based on the provided options.
  * Uses the regional endpoint (REP) format (`https://clienttelemetry.{region}.rep.googleapis.com`)
  * when a non-global region is specified and no custom `endpointUrl` override is provided.
  *
  * @internal
  */
-export function getTelemetryEndpointUrl(
+export function getOtlpExportEndpointUrl(
   crashlyticsOptions: CrashlyticsOptions = {}
 ): string {
   const options = crashlyticsOptions || {};
@@ -292,20 +307,56 @@ export function getTelemetryEndpointUrl(
     }
     return options.endpointUrl.slice(0, end);
   }
-  const region = options.region || DEFAULT_TELEMETRY_REGION;
-  if (region !== DEFAULT_TELEMETRY_REGION) {
+  const region = options.region || DEFAULT_REGION;
+  if (region !== DEFAULT_REGION) {
     return `https://clienttelemetry.${region}.rep.googleapis.com`;
   }
-  return DEFAULT_TELEMETRY_ENDPOINT;
+  return DEFAULT_OTLP_EXPORT_ENDPOINT;
+}
+
+function getClientConfigEndpointUrl(
+  crashlyticsOptions: CrashlyticsOptions = {}
+): string {
+  const region = crashlyticsOptions?.region || DEFAULT_REGION;
+  if (region !== DEFAULT_REGION) {
+    return `https://firebasetelemetry.${region}.rep.googleapis.com`;
+  }
+  return DEFAULT_CLIENT_CONFIG_ENDPOINT;
 }
 
 /**
- * Determines whether a given URL string targets the Firebase Crashlytics telemetry ingestion endpoint.
+ * Builds the fully-qualified `GetClientConfig` URL for an app, or returns `undefined` when the
+ * app options are missing the project ID or the app ID.
+ *
+ * @internal
+ */
+export function getClientConfigUrl(
+  firebaseOptions: FirebaseOptions,
+  crashlyticsOptions: CrashlyticsOptions = {}
+): string | undefined {
+  const { projectId, appId } = firebaseOptions;
+  if (!projectId || !appId) {
+    return undefined;
+  }
+  const region = crashlyticsOptions?.region || DEFAULT_REGION;
+  const base = getClientConfigEndpointUrl(crashlyticsOptions);
+  return (
+    `${base}/${CLIENT_CONFIG_API_VERSION}/projects/${projectId}` +
+    `/locations/${region}/apps/${appId}/clientConfig`
+  );
+}
+
+/**
+ * Determines whether a given URL string targets an OTLP export endpoint: the Firebase Crashlytics
+ * telemetry ingestion endpoint, or the custom endpoint when one is configured.
  * Used to automatically drop self-referential telemetry records (e.g. from ResourceTiming or Fetch instrumentations).
  *
  * @internal
  */
-export function isTelemetryUrl(url: unknown, customEndpoint?: string): boolean {
+export function isOtlpExportUrl(
+  url: unknown,
+  customEndpoint?: string
+): boolean {
   if (typeof url !== 'string' || !url) {
     return false;
   }
@@ -320,4 +371,20 @@ export function isTelemetryUrl(url: unknown, customEndpoint?: string): boolean {
     return true;
   }
   return false;
+}
+
+/**
+ * Determines whether a given URL string is a `GetClientConfig` request, which the SDK sends to the
+ * Firebase Telemetry API to fetch its sampling configuration.
+ * Used to drop records about those requests (e.g. from ResourceTiming or Fetch instrumentations).
+ *
+ * @internal
+ */
+export function isClientConfigUrl(url: unknown): boolean {
+  return (
+    typeof url === 'string' &&
+    /^https?:\/\/firebasetelemetry\.(googleapis\.com|[a-z0-9-]+\.rep\.googleapis\.com)\/[^?#]*\/clientConfig([?#]|$)/.test(
+      url
+    )
+  );
 }
