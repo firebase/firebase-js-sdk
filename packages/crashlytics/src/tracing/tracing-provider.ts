@@ -221,7 +221,10 @@ export class OTLPTraceExporter
     // Session sampling: drop spans of unsampled sessions before transmission and stamp the
     // session sampling rate on spans of sampled sessions.
     try {
-      if (this.sessionSampler && !this.sessionSampler.applySampling(spans)) {
+      if (
+        this.sessionSampler &&
+        !(await this.sessionSampler.applySampling(spans))
+      ) {
         resultCallback({ code: ExportResultCode.SUCCESS });
         return;
       }

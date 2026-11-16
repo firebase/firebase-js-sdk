@@ -257,7 +257,8 @@ describe('createLoggerProvider', () => {
         ...decision
       };
       return {
-        getDecision: vi.fn().mockReturnValue(fullDecision),
+        getDecision: vi.fn().mockResolvedValue(fullDecision),
+        decide: vi.fn().mockReturnValue(fullDecision),
         applySampling: SessionSampler.prototype.applySampling
       } as unknown as SessionSampler;
     }
@@ -396,9 +397,9 @@ describe('createLoggerProvider', () => {
         .mockResolvedValue(new Response('', { status: 200 }));
       try {
         const sampler = createSampler({});
-        vi.mocked(sampler.getDecision).mockImplementation(() => {
-          throw new Error('sampling failed');
-        });
+        vi.mocked(sampler.getDecision).mockRejectedValue(
+          new Error('sampling failed')
+        );
         const { loggerProvider: provider } = createLoggerProvider(
           app,
           {},

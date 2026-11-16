@@ -127,6 +127,12 @@ function getRefreshIntervalMs(cacheControl: string | null): number {
  * - **Background refresh**: {@link ClientConfigStore.start} issues a non-blocking fetch of
  *   `GetClientConfig`; when it returns, the in-memory configuration and the local cache are
  *   updated.
+ * - **Refresh before the sampling decision**: when a session first exports telemetry, that export
+ *   waits for {@link ClientConfigStore.refreshIfStale}, for at most `CLIENT_CONFIG_INITIAL_WAIT_MS`
+ *   (2 seconds), so the decision uses the latest configuration. Only that first export waits, and
+ *   never while the page is hidden; the app itself is never blocked. The wait is usually near zero:
+ *   a refresh started in the last minute is reused, and the browser's HTTP cache answers while the
+ *   last response is still fresh.
  * - **Periodic refresh**: the configuration is re-fetched each time the last response's cache
  *   lifetime (`max-age` + `stale-while-revalidate`) passes, deferred while the page is hidden,
  *   until the session's sampling decision is made; it isn't read after that. Short-lived pages

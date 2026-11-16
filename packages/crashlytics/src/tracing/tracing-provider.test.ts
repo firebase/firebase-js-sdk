@@ -526,7 +526,8 @@ describe('createTracingProvider', () => {
         ...decision
       };
       return {
-        getDecision: vi.fn().mockReturnValue(fullDecision),
+        getDecision: vi.fn().mockResolvedValue(fullDecision),
+        decide: vi.fn().mockReturnValue(fullDecision),
         // The real implementation, run against the fake decision above.
         applySampling: SessionSampler.prototype.applySampling
       } as unknown as SessionSampler;
@@ -585,9 +586,7 @@ describe('createTracingProvider', () => {
     it('should fail the export without a network request when sampling throws', async () => {
       const error = new Error('sampling failed');
       const sampler = createSampler({});
-      vi.mocked(sampler.getDecision).mockImplementation(() => {
-        throw error;
-      });
+      vi.mocked(sampler.getDecision).mockRejectedValue(error);
       const exporter = new OTLPTraceExporter(
         { url: 'http://localhost' },
         [],

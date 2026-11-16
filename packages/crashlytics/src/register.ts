@@ -71,7 +71,7 @@ export function registerCrashlytics(): void {
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
 
         // Client-side session sampling: the configuration is loaded from the local cache now and refreshed in the background; the per-session decision is
-        // made lazily at the first export attempt, from the configuration available then.
+        // made lazily at the first export attempt, right after refreshing the configuration again.
         // Both are stored under app- and region-specific keys.
         const region = crashlyticsOptions.region || DEFAULT_REGION;
         const storageKeySuffix = `${app.options.appId ?? ''}:${region}`;
