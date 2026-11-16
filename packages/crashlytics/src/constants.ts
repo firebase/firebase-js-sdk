@@ -55,21 +55,13 @@ export const CLIENT_CONFIG_MIN_REFRESH_INTERVAL_MS = 60 * 1000;
 export const CLIENT_CONFIG_MAX_REFRESH_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 /**
- * A config refresh started less than this long ago is reused, instead of fetching again, when a
- * session is about to make its sampling decision (e.g. the startup fetch, for a decision made right
- * after page load).
+ * A config refresh started less than this long ago is reused instead of fetching again (e.g. when
+ * the page becomes visible again while a periodic refresh is still in flight).
  */
 export const CLIENT_CONFIG_REUSE_WINDOW_MS = 60 * 1000;
 
 /** Timeout for a single `GetClientConfig` fetch. */
 export const CLIENT_CONFIG_FETCH_TIMEOUT_MS = 5000;
-
-/**
- * Maximum time a session's sampling decision (made at its first telemetry export) waits for a
- * `GetClientConfig` refresh before using the configuration already in memory. No wait happens when
- * the page is hidden.
- */
-export const CLIENT_CONFIG_INITIAL_WAIT_MS = 2000;
 
 /** localStorage key prefix for the cached client telemetry configuration (per app and region). */
 export const LOCAL_STORAGE_CLIENT_CONFIG_KEY_PREFIX =

@@ -204,7 +204,7 @@ class OTLPLogExporter
     try {
       if (
         this.sessionSampler &&
-        !(await this.sessionSampler.applySampling(filteredLogs))
+        !this.sessionSampler.applySampling(filteredLogs)
       ) {
         resultCallback({ code: ExportResultCode.SUCCESS });
         return;
