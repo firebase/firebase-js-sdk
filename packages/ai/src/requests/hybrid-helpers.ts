@@ -104,12 +104,24 @@ export async function callCloudOrDevice<Response>(
           throw new AIError(
             AIErrorCode.DEVICE_MODEL_NOT_INITIALIZED,
             'The on-device model has not been downloaded. Call ' +
-              'initializeDeviceModel() after a user interaction, and wait ' +
-              'for it to complete, before making on-device requests.'
+              'initializeDeviceModel() after a user interaction to start ' +
+              'the download before making on-device requests.'
           );
         case 'unavailable':
-        default:
           throw createDeviceUnavailableError();
+        case 'download-in-progress':
+          // Unreachable with waitForDownload: true.
+          throw new AIError(
+            AIErrorCode.ERROR,
+            'On-device model download is still in progress.'
+          );
+        default: {
+          const unexpected: never = status;
+          throw new AIError(
+            AIErrorCode.ERROR,
+            `Unexpected on-device status: ${unexpected}`
+          );
+        }
       }
     }
     case InferenceMode.PREFER_ON_DEVICE:

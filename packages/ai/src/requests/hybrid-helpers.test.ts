@@ -81,6 +81,8 @@ describe('callCloudOrDevice', () => {
         inCloudCall
       )
     );
+    expect(chromeAdapter.isAvailable).not.toHaveBeenCalled();
+    expect(chromeAdapter.getOnDeviceStatus).not.toHaveBeenCalled();
   });
 
   it('should call inCloudCall if mode and chromeAdapter are undefined', async () => {
@@ -226,6 +228,7 @@ describe('callCloudOrDevice', () => {
         )
       );
       expect(chromeAdapter.isAvailable).not.toHaveBeenCalled();
+      expect(chromeAdapter.getOnDeviceStatus).not.toHaveBeenCalled();
     });
   });
 
