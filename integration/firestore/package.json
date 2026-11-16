@@ -7,7 +7,7 @@
     "typings:public": "lerna run typings:public --scope=\"@firebase/app\" --scope=\"@firebase/firestore\"",
     "build:persistence": "yarn typings:public && INCLUDE_FIRESTORE_PERSISTENCE=true gulp compile-tests",
     "build:memory": "yarn typings:public && INCLUDE_FIRESTORE_PERSISTENCE=false gulp compile-tests",
-    "karma:singlerun": "vitest run --project=browser",
+    "test:browser": "vitest run --project=browser",
     "prettier": "prettier --cache --write '*.js' '*.ts'",
     "test": "yarn test:persistence && yarn test:memory",
     "test:persistence": "yarn build:persistence && vitest run --project=browser",
