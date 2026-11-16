@@ -16,7 +16,7 @@
     "test:memory:debug": "yarn build:memory && vitest --project=browser --browser.headless=false"
   },
   "dependencies": {
-    "@firebase/app": "0.16.6",
+    "@firebase/app": "0.16.7",
     "@firebase/firestore": "4.20.0"
   },
   "devDependencies": {
