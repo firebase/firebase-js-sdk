@@ -37,11 +37,49 @@ export function isGlobalTelemetryDebugEnabled(): boolean {
 }
 
 /**
- * Syncs any persisted `sessionStorage` marker or `?firebase_telemetry_debug=true` URL query
- * parameter into `FIREBASE_TELEMETRY_DEBUG`, persisting the query parameter in `sessionStorage`
- * so it survives full-page reloads/navigations before an export occurs.
+ * Syncs the persisted `sessionStorage` marker and `?firebase_telemetry_debug=true|false` URL query
+ * parameter with `FIREBASE_TELEMETRY_DEBUG`:
+ * - `?firebase_telemetry_debug=true` sets `FIREBASE_TELEMETRY_DEBUG = true` and persists it in
+ *   `sessionStorage` so it survives full-page reloads/navigations before an export occurs.
+ * - `?firebase_telemetry_debug=false` clears `FIREBASE_TELEMETRY_DEBUG` and removes the
+ *   `sessionStorage` marker (an already-forced session stays forced per session-stickiness rules).
+ * - Absent or unrecognized values leave any existing debug state unchanged.
  */
 function checkQueryParam(): void {
+  try {
+    const search =""
+      typeof location !== 'undefined' ? location.search : undefined;
+    if (search) {
+      const debugParam = new URLSearchParams(search).get(
+        TELEMETRY_DEBUG_QUERY_PARAM
+      );
+      if (debugParam === 'true') {
+        try {
+          sessionStorage.setItem(SESSION_STORAGE_DEBUG_KEY, 'true');
+        } catch (e) {
+          // Ignore errors accessing sessionStorage (e.g. security restrictions)
+        }
+        (globalThis as unknown as Record<string, unknown>)[
+          TELEMETRY_DEBUG_GLOBAL_FLAG
+        ] = true;
+        return;
+      }
+      if (debugParam === 'false') {
+        try {
+          sessionStorage.removeItem(SESSION_STORAGE_DEBUG_KEY);
+        } catch (e) {
+          // Ignore errors accessing sessionStorage (e.g. security restrictions)
+        }
+        delete (globalThis as unknown as Record<string, unknown>)[
+          TELEMETRY_DEBUG_GLOBAL_FLAG
+        ];
+        return;
+      }
+    }
+  } catch (e) {
+    // Ignore malformed URLs or restricted `location` access.
+  }
+
   if (isGlobalTelemetryDebugEnabled()) {
     return;
   }
@@ -55,30 +93,9 @@ function checkQueryParam(): void {
       (globalThis as unknown as Record<string, unknown>)[
         TELEMETRY_DEBUG_GLOBAL_FLAG
       ] = true;
-      return;
     }
   } catch (e) {
     // Ignore errors accessing sessionStorage (e.g. security restrictions)
-  }
-
-  try {
-    const search =
-      typeof location !== 'undefined' ? location.search : undefined;
-    if (search) {
-      const params = new URLSearchParams(search);
-      if (params.get(TELEMETRY_DEBUG_QUERY_PARAM) === 'true') {
-        try {
-          sessionStorage.setItem(SESSION_STORAGE_DEBUG_KEY, 'true');
-        } catch (e) {
-          // Ignore errors accessing sessionStorage (e.g. security restrictions)
-        }
-        (globalThis as unknown as Record<string, unknown>)[
-          TELEMETRY_DEBUG_GLOBAL_FLAG
-        ] = true;
-      }
-    }
-  } catch (e) {
-    // Ignore malformed URLs or restricted `location` access.
   }
 }
 

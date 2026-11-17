@@ -113,4 +113,16 @@ describe('debug override', () => {
     window.dispatchEvent(new PopStateEvent('popstate'));
     expect(isGlobalTelemetryDebugEnabled()).toBe(false);
   });
+
+  it('clears the global flag and sessionStorage marker when query parameter is false', () => {
+    window.history.replaceState(null, '', '?firebase_telemetry_debug=true');
+    unsubscribe = syncTelemetryDebugQueryParam();
+    expect(isGlobalTelemetryDebugEnabled()).toBe(true);
+    expect(sessionStorage.getItem(SESSION_STORAGE_DEBUG_KEY)).toBe('true');
+
+    window.history.replaceState(null, '', '?firebase_telemetry_debug=false');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    expect(isGlobalTelemetryDebugEnabled()).toBe(false);
+    expect(sessionStorage.getItem(SESSION_STORAGE_DEBUG_KEY)).toBeNull();
+  });
 });
