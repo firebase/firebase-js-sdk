@@ -476,6 +476,33 @@ describe('SessionSampler', () => {
       expect(store.refreshCount).toBe(2);
     });
 
+    it('avoids redundant sessionStorage I/O on repeated unforced debug checks while disabled', () => {
+      (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
+        true;
+      const { sampler, store } = createSampler(
+        { samplingRate: 0, enabled: false },
+        SESSION_HIGH
+      );
+      const getItemSpy = vi.spyOn(Storage.prototype, 'getItem');
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+      try {
+        expect(sampler.getDecision().sampled).toBe(false);
+        expect(getItemSpy).toHaveBeenCalledTimes(1);
+        expect(setItemSpy).toHaveBeenCalledTimes(1);
+        expect(store.stopCount).toBe(1);
+
+        // Subsequent calls hit the in-memory decision instead of sessionStorage.
+        expect(sampler.getDecision().sampled).toBe(false);
+        expect(sampler.getDecision().sampled).toBe(false);
+        expect(getItemSpy).toHaveBeenCalledTimes(1);
+        expect(setItemSpy).toHaveBeenCalledTimes(1);
+        expect(store.stopCount).toBe(1);
+      } finally {
+        getItemSpy.mockRestore();
+        setItemSpy.mockRestore();
+      }
+    });
+
     it('does not refresh the config for decisions made without the debug override', () => {
       const { sampler, store } = createSampler(
         { samplingRate: 0, enabled: false },
