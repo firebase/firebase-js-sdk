@@ -165,7 +165,7 @@ export interface FirebaseSqlTransportOptions {
   authTokenProvider?: FirebaseAuthTokenProvider | undefined;
   appCheckTokenProvider?: AppCheckTokenProvider | undefined;
   terminationSignal?: AbortSignal | undefined;
-  context?: FirebaseSqlContext | undefined;
+  context?: Readonly<FirebaseSqlContext> | undefined;
 }
 
 /**
@@ -180,7 +180,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
   protected authProvider?: FirebaseAuthTokenProvider;
   protected appCheckProvider?: AppCheckTokenProvider;
   protected _terminationSignal?: AbortSignal;
-  protected _context?: FirebaseSqlContext;
+  protected readonly _context?: Readonly<FirebaseSqlContext>;
 
   constructor(options: FirebaseSqlTransportOptions = {}) {
     this.settings = options.settings;

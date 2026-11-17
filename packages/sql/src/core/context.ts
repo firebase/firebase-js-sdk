@@ -39,7 +39,7 @@ export interface FirebaseSqlContext {
 
 /** @internal */
 export type CreateBuilderFetch = (
-  state: Readonly<FirebaseSqlContext>,
+  context: Readonly<FirebaseSqlContext>,
   tracker: BuilderExecutionTracker
 ) => typeof fetch;
 
