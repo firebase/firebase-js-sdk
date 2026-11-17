@@ -47,8 +47,8 @@ export function isGlobalTelemetryDebugEnabled(): boolean {
  */
 function checkQueryParam(): void {
   try {
-    const search =""
-      typeof location !== 'undefined' ? location.search : undefined;
+    const search = '';
+    typeof location !== 'undefined' ? location.search : undefined;
     if (search) {
       const debugParam = new URLSearchParams(search).get(
         TELEMETRY_DEBUG_QUERY_PARAM
