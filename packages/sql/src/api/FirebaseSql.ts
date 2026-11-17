@@ -61,6 +61,12 @@ declare module '@firebase/component' {
   }
 }
 
+export interface FirebaseSqlRpcOptions {
+  head?: boolean | undefined;
+  get?: boolean | undefined;
+  count?: QueryCountStrategy | undefined;
+}
+
 /**
  * The Firebase SQL service client instance.
  */
@@ -425,12 +431,6 @@ export function getInstanceIdentifier(
     resolvedUrl,
     schemaName: settings.schemaName
   });
-}
-
-export interface FirebaseSqlRpcOptions {
-  head?: boolean | undefined;
-  get?: boolean | undefined;
-  count?: QueryCountStrategy | undefined;
 }
 
 type FirebaseSqlState =
