@@ -17,7 +17,7 @@
 
 import { expect } from 'vitest';
 
-import { SqlServiceSettings } from '../core/settings';
+import { ServiceConfig } from '../core/serviceConfig';
 
 import { resolvePostgrestUrl } from './url';
 
@@ -25,52 +25,52 @@ describe('resolvePostgrestUrl', () => {
   const projectId = 'my-project';
 
   it('produces canonical cloud URL ending in /postgrest when location and serviceId are specified', () => {
-    const settings: SqlServiceSettings = {
+    const serviceConfig: ServiceConfig = {
       location: 'us-central1',
       serviceId: 'my-service'
     };
-    const url = resolvePostgrestUrl(settings, projectId);
+    const url = resolvePostgrestUrl(serviceConfig, projectId);
     expect(url).toBe(
       'https://firebasedataconnect.googleapis.com/v1/projects/my-project/locations/us-central1/services/my-service/postgrest'
     );
   });
 
   it('supports custom host and port for local emulator testing', () => {
-    const settings: SqlServiceSettings = {
+    const serviceConfig: ServiceConfig = {
       location: 'us-central1',
       serviceId: 'my-service',
       host: '127.0.0.1',
       port: 9399
     };
-    const url = resolvePostgrestUrl(settings, projectId);
+    const url = resolvePostgrestUrl(serviceConfig, projectId);
     expect(url).toBe(
       'https://127.0.0.1:9399/v1/projects/my-project/locations/us-central1/services/my-service/postgrest'
     );
   });
 
   it('uses http protocol when sslEnabled is false', () => {
-    const settings: SqlServiceSettings = {
+    const serviceConfig: ServiceConfig = {
       location: 'us-central1',
       serviceId: 'my-service',
       host: '127.0.0.1',
       port: 9399,
       sslEnabled: false
     };
-    const url = resolvePostgrestUrl(settings, projectId);
+    const url = resolvePostgrestUrl(serviceConfig, projectId);
     expect(url).toBe(
       'http://127.0.0.1:9399/v1/projects/my-project/locations/us-central1/services/my-service/postgrest'
     );
   });
 
   it('uses https protocol by default and when sslEnabled is true', () => {
-    const settingsWithSsl: SqlServiceSettings = {
+    const serviceConfigWithSsl: ServiceConfig = {
       location: 'us-central1',
       serviceId: 'my-service',
       host: '127.0.0.1',
       port: 9399,
       sslEnabled: true
     };
-    const url = resolvePostgrestUrl(settingsWithSsl, projectId);
+    const url = resolvePostgrestUrl(serviceConfigWithSsl, projectId);
     expect(url).toBe(
       'https://127.0.0.1:9399/v1/projects/my-project/locations/us-central1/services/my-service/postgrest'
     );
@@ -90,12 +90,12 @@ describe('resolvePostgrestUrl', () => {
   });
 
   it('does not append schemaName to the resolved PostgREST URL path', () => {
-    const settings: SqlServiceSettings = {
+    const serviceConfig: ServiceConfig = {
       location: 'us-central1',
       serviceId: 'my-service',
       schemaName: 'analytics'
     };
-    const url = resolvePostgrestUrl(settings, projectId);
+    const url = resolvePostgrestUrl(serviceConfig, projectId);
     expect(url).toBe(
       'https://firebasedataconnect.googleapis.com/v1/projects/my-project/locations/us-central1/services/my-service/postgrest'
     );

@@ -26,7 +26,7 @@ import { name, version } from '../package.json';
 
 import { FirebaseSql, getInstanceIdentifier } from './api/FirebaseSql';
 import { FirebaseSqlErrorCategory, Code, FirebaseSqlError } from './core/error';
-import { SqlServiceSettings } from './core/settings';
+import { ServiceConfig } from './core/serviceConfig';
 import { setSDKVersion } from './core/version';
 import { FIREBASE_SQL_COMPONENT_NAME } from './util/constants';
 
@@ -42,7 +42,7 @@ export function registerSql(variant?: string): void {
     new Component(
       FIREBASE_SQL_COMPONENT_NAME,
       (container, { instanceIdentifier, options }) => {
-        const settings = options as SqlServiceSettings;
+        const serviceConfig = options as ServiceConfig;
         const app = container.getProvider('app').getImmediate()!;
         const authProvider = container.getProvider('auth-internal');
         const appCheckProvider = container.getProvider('app-check-internal');
@@ -58,10 +58,10 @@ export function registerSql(variant?: string): void {
         }
         const id =
           instanceIdentifier ??
-          getInstanceIdentifier(settings, app.options.projectId);
+          getInstanceIdentifier(serviceConfig, app.options.projectId);
         return new FirebaseSql({
           app,
-          settings,
+          serviceConfig,
           instanceIdentifier: id,
           authProvider,
           appCheckProvider

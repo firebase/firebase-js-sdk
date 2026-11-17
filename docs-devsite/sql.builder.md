@@ -321,7 +321,7 @@ Configures this builder to reject its promise with a [FirebaseSqlError](./sql.fi
 
 When to use: `try / catch` workflows, helper functions, or data-fetching hooks (such as React Query or SWR) that expect failed promises to reject.
 
-Do not use in code paths that prefer exhaustive discriminated-union checking (`if (!res.success)`<!-- -->) without `try / catch`<!-- -->; omit `throwOnError()` to receive [OperationResult](./sql.md#operationresult)<!-- -->. Note that a `settings.schemaName` containing invalid HTTP header characters always rejects with a `TypeError` when setting the profile header, regardless of `throwOnError()`<!-- -->.
+Do not use in code paths that prefer exhaustive discriminated-union checking (`if (!res.success)`<!-- -->) without `try / catch`<!-- -->; omit `throwOnError()` to receive [OperationResult](./sql.md#operationresult)<!-- -->. Note that a `serviceConfig.schemaName` containing invalid HTTP header characters always rejects with a `TypeError` when setting the profile header, regardless of `throwOnError()`<!-- -->.
 
 Behavior and side effects: even with `throwOnError()`<!-- -->, awaiting the builder resolves to `{ success: true, data: T, count, error: null, status, statusText }` ([OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface)<!-- -->), not raw `T`<!-- -->—always destructure `const { data } = await query.throwOnError()`<!-- -->. Mutates this builder's error-handling flag in place without network I/O. Can be chained at any stage (`FilterBuilder`<!-- -->, `TransformBuilder`<!-- -->, or `Builder`<!-- -->), and `ThrowOnError = true` is preserved across `.select()`<!-- -->, `.single()`<!-- -->, `.maybeSingle()`<!-- -->, `.returns()`<!-- -->, and `.overrideTypes()`<!-- -->.
 

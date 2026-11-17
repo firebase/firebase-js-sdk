@@ -33,10 +33,7 @@ import {
   FirebaseSqlErrorCategory
 } from '../core/error';
 import { mapPostgrestFailureToFirebaseSqlError } from '../core/errorMapper';
-import {
-  SqlServiceSettings,
-  validateSqlServiceSettings
-} from '../core/settings';
+import { ServiceConfig, validateServiceConfig } from '../core/serviceConfig';
 import { AppCheckProvider } from '../core/tokenProviders/AppCheckTokenProvider';
 import { FirebaseAuthProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
 import type {
@@ -131,10 +128,10 @@ export interface FirebaseSqlRpcOptions {
  *
  * @remarks
  * Do not instantiate directly: obtain instances via {@link (getSql:1) | getSql()}, which validates
- * settings and deduplicates clients per `(app, resolvedEndpointUrl, schemaName)`. Configure the
- * target PostgreSQL schema via `schemaName` in {@link SqlServiceSettings} when calling
- * {@link (getSql:1) | getSql()} (you can also derive modified settings from an existing
- * {@link SqlServiceSettings} object via {@link copySqlServiceSettings}; `FirebaseSql` does not
+ * the `ServiceConfig` and deduplicates clients per `(app, resolvedEndpointUrl, schemaName)`.
+ * Configure the target PostgreSQL schema via `schemaName` in {@link ServiceConfig} when calling
+ * {@link (getSql:1) | getSql()} (you can also derive a modified `ServiceConfig` from an existing
+ * {@link ServiceConfig} object via {@link copyServiceConfig}; `FirebaseSql` does not
  * expose a `.schema(name)` method).
  *
  * Read {@link FirebaseSql.restUrl} and {@link FirebaseSql.schemaName} to inspect the resolved
@@ -206,7 +203,7 @@ export class FirebaseSql {
    * the server's default exposed schema.
    *
    * @remarks
-   * Equals `settings.schemaName` passed to {@link (getSql:1) | getSql()}. When defined, sends
+   * Equals `serviceConfig.schemaName` passed to {@link (getSql:1) | getSql()}. When defined, sends
    * `Accept-Profile: <schemaName>` on `GET` and `HEAD` requests and `Content-Profile: <schemaName>`
    * on `POST`, `PATCH`, and `DELETE` mutations; when `undefined`, profile headers are omitted so
    * PostgREST uses the server's default schema. Included in the {@link (getSql:1) | getSql()}
@@ -244,22 +241,22 @@ export class FirebaseSql {
    */
   constructor(parameters: {
     app: FirebaseApp;
-    settings: SqlServiceSettings;
+    serviceConfig: ServiceConfig;
     instanceIdentifier: string;
     authProvider: Provider<FirebaseAuthInternalName>;
     appCheckProvider: Provider<AppCheckInternalComponentName>;
   }) {
     const {
       app,
-      settings,
+      serviceConfig,
       instanceIdentifier,
       authProvider,
       appCheckProvider
     } = parameters;
 
     this.app = app;
-    this.schemaName = settings.schemaName;
-    this.restUrl = resolvePostgrestUrl(settings, app.options.projectId!);
+    this.schemaName = serviceConfig.schemaName;
+    this.restUrl = resolvePostgrestUrl(serviceConfig, app.options.projectId!);
 
     this._state = {
       name: 'mutable',
@@ -739,41 +736,41 @@ export class FirebaseSql {
 
 /**
  * Returns the cached or newly initialized {@link FirebaseSql} client bound to the default
- * {@link @firebase/app#FirebaseApp} and the specified {@link SqlServiceSettings}.
+ * {@link @firebase/app#FirebaseApp} and the specified {@link ServiceConfig}.
  *
  * @remarks
  * When to use: standard single-app setups where `initializeApp({ projectId, ... })` has already
  * been called for the default Firebase app.
  *
  * Do not use in multi-app environments targeting a named secondary `FirebaseApp` (pass `app`
- * explicitly via {@link (getSql:2) | getSql(app, settings)}).
+ * explicitly via {@link (getSql:2) | getSql(app, serviceConfig)}).
  *
  * Preconditions: the default `FirebaseApp` must be initialized via `initializeApp(...)` with a
  * non-empty `options.projectId`.
  *
  * Behavior and side effects: synchronous, performs no network I/O, copies and freezes
- * `settings`, and caches the resulting {@link FirebaseSql} instance on the default app keyed by
+ * `serviceConfig`, and caches the resulting {@link FirebaseSql} instance on the default app keyed by
  * `(resolvedEndpointUrl, schemaName)`. Repeated calls with the same resolved endpoint and
  * `schemaName` return the shared cached instance, including its {@link FirebaseSql.mutable} and
  * {@link FirebaseSql.setHeaders} state—if the cached instance has already been used, `mutable` is
  * `false`; use {@link Builder.setHeader} for per-request headers or call {@link terminate} first
- * to obtain a fresh mutable client. Note that if `settings.host` contains a scheme or path (such
+ * to obtain a fresh mutable client. Note that if `serviceConfig.host` contains a scheme or path (such
  * as `'http://example.com'`), it does not throw—it resolves to the unintended hostname `'http'` and
  * overwrites the path, so always pass a bare hostname.
  *
- * @param settings - Required service connection settings (`serviceId` and `location` are mandatory). See {@link SqlServiceSettings}.
+ * @param serviceConfig - Required service connection configuration (`serviceId` and `location` are mandatory). See {@link ServiceConfig}.
  * @returns The cached or newly created {@link FirebaseSql} client instance.
  *
  * @throws `FirebaseError` (`app/no-app`)
  * Thrown when no default `FirebaseApp` has been initialized. Call `initializeApp({ projectId: '...' })`
- * before calling `getSql(settings)`.
+ * before calling `getSql(serviceConfig)`.
  * @throws {@link FirebaseSqlError} (`invalid-argument`, category `'sql-client'`)
- * Thrown when `settings` is missing or not an object, `serviceId` or `location` is empty, `port`
+ * Thrown when `serviceConfig` is missing or not an object, `serviceId` or `location` is empty, `port`
  * is outside `1..65535` or non-integer, or `app.options.projectId` is missing/empty. Supply
  * non-empty `projectId`, `serviceId`, and `location`, and an integer `port` in `1..65535`.
  * @throws `TypeError`
- * Thrown synchronously (before cache lookup) when `settings.host` cannot be parsed as a valid URL
- * host by `new URL(...)` (such as `''`). Note that a scheme or path in `settings.host` is not
+ * Thrown synchronously (before cache lookup) when `serviceConfig.host` cannot be parsed as a valid URL
+ * host by `new URL(...)` (such as `''`). Note that a scheme or path in `serviceConfig.host` is not
  * rejected by `URL` and silently produces a wrong endpoint.
  *
  * @example
@@ -808,11 +805,11 @@ export class FirebaseSql {
  *
  * @public
  */
-export function getSql(settings: SqlServiceSettings): FirebaseSql;
+export function getSql(serviceConfig: ServiceConfig): FirebaseSql;
 
 /**
  * Returns the cached or newly initialized {@link FirebaseSql} client bound to the given
- * {@link @firebase/app#FirebaseApp} and {@link SqlServiceSettings}.
+ * {@link @firebase/app#FirebaseApp} and {@link ServiceConfig}.
  *
  * @remarks
  * When to use: binding to a specific `FirebaseApp` instance (including named secondary apps or
@@ -822,27 +819,27 @@ export function getSql(settings: SqlServiceSettings): FirebaseSql;
  * Preconditions: `app.options.projectId` must be a non-empty string.
  *
  * Behavior and side effects: synchronous, performs no network I/O, copies and freezes
- * `settings`, and caches the {@link FirebaseSql} instance on `app` keyed by
+ * `serviceConfig`, and caches the {@link FirebaseSql} instance on `app` keyed by
  * `(resolvedEndpointUrl, schemaName)`. Repeated calls with the same resolved endpoint and
  * `schemaName` return the shared cached instance, sharing its {@link FirebaseSql.mutable} and
  * {@link FirebaseSql.setHeaders} state—if the cached instance has already been used, `mutable` is
  * `false`; use {@link Builder.setHeader} for per-operation headers, or call {@link terminate} to
  * evict the cached instance and obtain a fresh mutable client. Note that passing a scheme or path
- * in `settings.host` does not throw and silently produces a wrong endpoint (for example,
+ * in `serviceConfig.host` does not throw and silently produces a wrong endpoint (for example,
  * `'http://example.com'` resolves to hostname `'http'`).
  *
  * @param app - The {@link @firebase/app#FirebaseApp} instance whose `projectId`, Auth, and App Check providers will be used.
- * @param settings - Required service connection settings (`serviceId` and `location` are mandatory). See {@link SqlServiceSettings}.
+ * @param serviceConfig - Required service connection configuration (`serviceId` and `location` are mandatory). See {@link ServiceConfig}.
  * @returns The cached or newly created {@link FirebaseSql} client instance for `app`.
  *
  * @throws {@link FirebaseSqlError} (`invalid-argument`, category `'sql-client'`)
  * Thrown when `app` is not an object with an `options` property (note that passing `undefined` as
  * `app` falls back to the default app via `getApp()`, which throws `FirebaseError` `app/no-app` if
- * no default app exists), `app.options.projectId` is missing/empty, `settings` is null or not an
+ * no default app exists), `app.options.projectId` is missing/empty, `serviceConfig` is null or not an
  * object, `serviceId` or `location` is missing/empty, or `port` is not an integer in `1..65535`.
  * @throws `TypeError`
- * Thrown synchronously (before cache lookup) when `settings.host` cannot be parsed as a valid URL
- * host by `new URL(...)` (such as `''`). Note that a scheme or path in `settings.host` is not
+ * Thrown synchronously (before cache lookup) when `serviceConfig.host` cannot be parsed as a valid URL
+ * host by `new URL(...)` (such as `''`). Note that a scheme or path in `serviceConfig.host` is not
  * rejected by `URL` and silently produces a wrong endpoint.
  *
  * @example
@@ -882,39 +879,39 @@ export function getSql(settings: SqlServiceSettings): FirebaseSql;
  */
 export function getSql(
   app: FirebaseApp,
-  settings: SqlServiceSettings
+  serviceConfig: ServiceConfig
 ): FirebaseSql;
 
 export function getSql(
-  appOrSettings: FirebaseApp | SqlServiceSettings,
-  settingsArg?: SqlServiceSettings
+  appOrServiceConfig: FirebaseApp | ServiceConfig,
+  serviceConfigArg?: ServiceConfig
 ): FirebaseSql {
   let app: FirebaseApp;
-  let rawSettings: SqlServiceSettings;
+  let rawServiceConfig: ServiceConfig;
 
-  if (settingsArg === undefined) {
+  if (serviceConfigArg === undefined) {
     app = getApp();
-    rawSettings = appOrSettings as SqlServiceSettings;
+    rawServiceConfig = appOrServiceConfig as ServiceConfig;
   } else {
-    if (appOrSettings === undefined) {
+    if (appOrServiceConfig === undefined) {
       app = getApp();
     } else if (
-      !appOrSettings ||
-      typeof appOrSettings !== 'object' ||
-      !('options' in appOrSettings)
+      !appOrServiceConfig ||
+      typeof appOrServiceConfig !== 'object' ||
+      !('options' in appOrServiceConfig)
     ) {
       throw new FirebaseSqlError(
         Code.INVALID_ARGUMENT,
-        'First argument passed to getSql() must be a FirebaseApp or SqlServiceSettings instance.',
+        'First argument passed to getSql() must be a FirebaseApp or ServiceConfig instance.',
         FirebaseSqlErrorCategory.SQL_CLIENT
       );
     } else {
-      app = appOrSettings;
+      app = appOrServiceConfig;
     }
-    rawSettings = settingsArg;
+    rawServiceConfig = serviceConfigArg;
   }
 
-  const validatedSettings = validateSqlServiceSettings(rawSettings);
+  const validatedServiceConfig = validateServiceConfig(rawServiceConfig);
 
   if (
     typeof app.options?.projectId !== 'string' ||
@@ -928,7 +925,7 @@ export function getSql(
   }
 
   const instanceIdentifier = getInstanceIdentifier(
-    validatedSettings,
+    validatedServiceConfig,
     app.options.projectId
   );
   const provider = _getProvider(app, FIREBASE_SQL_COMPONENT_NAME);
@@ -941,7 +938,7 @@ export function getSql(
   logDebug('Creating new Firebase SQL instance');
   return provider.initialize({
     instanceIdentifier,
-    options: validatedSettings
+    options: validatedServiceConfig
   });
 }
 
@@ -1006,17 +1003,17 @@ export function terminate(sql: FirebaseSql): Promise<void> {
 
 /**
  * Computes a deterministic JSON instance identifier string.
- * Assumes settings have been validated!
+ * Assumes `serviceConfig` has been validated!
  * @internal
  */
 export function getInstanceIdentifier(
-  settings: SqlServiceSettings,
+  serviceConfig: ServiceConfig,
   projectId: string
 ): string {
-  const resolvedUrl = resolvePostgrestUrl(settings, projectId);
+  const resolvedUrl = resolvePostgrestUrl(serviceConfig, projectId);
   return JSON.stringify({
     resolvedUrl,
-    schemaName: settings.schemaName
+    schemaName: serviceConfig.schemaName
   });
 }
 

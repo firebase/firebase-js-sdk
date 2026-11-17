@@ -885,8 +885,8 @@ toc:
     path: /docs/reference/js/sql.queryupsertoptions.md
   - title: SerializedFirebaseSqlError
     path: /docs/reference/js/sql.serializedfirebasesqlerror.md
-  - title: SqlServiceSettings
-    path: /docs/reference/js/sql.sqlservicesettings.md
+  - title: ServiceConfig
+    path: /docs/reference/js/sql.serviceconfig.md
   - title: TransformBuilder
     path: /docs/reference/js/sql.transformbuilder.md
   - title: TransformExplainOptions

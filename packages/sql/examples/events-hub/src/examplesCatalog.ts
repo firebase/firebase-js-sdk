@@ -19,14 +19,14 @@ import {
   Code,
   FirebaseSqlError,
   FirebaseSqlErrorCategory,
-  copySqlServiceSettings,
+  copyServiceConfig,
   getSql,
   terminate,
   type FilterOrOptions,
   type FilterTextSearchOptions,
   type FirebaseSqlRpcOptions,
   type QuerySelectOptions,
-  type SqlServiceSettings,
+  type ServiceConfig,
   type TransformLimitOptions,
   type TransformOrderOptions,
   type TransformRangeOptions
@@ -45,11 +45,11 @@ const MOSCONE_VENUE_ID = '8f14e45f-ceea-467a-9538-1536b58f2b01';
 
 export const DOC_EXAMPLES_CATALOG: DocExampleScenario[] = [
   // =========================================================================
-  // 1. Client & Settings
+  // 1. Client & ServiceConfig
   // =========================================================================
   {
     id: 'client-getsql-cache',
-    category: 'Client & Settings',
+    category: 'Client & ServiceConfig',
     title: '1. getSql() Default Schema & Instance Deduplication',
     apiSymbols: [
       'getSql',
@@ -57,7 +57,7 @@ export const DOC_EXAMPLES_CATALOG: DocExampleScenario[] = [
       'FirebaseSql.restUrl',
       'FirebaseSql.schemaName',
       'FirebaseSql.mutable',
-      'SqlServiceSettings'
+      'ServiceConfig'
     ],
     description:
       'Obtains the FirebaseSql client for (serviceId, location) using the default schema, inspects restUrl/schemaName/mutable, and verifies instance caching.',
@@ -108,26 +108,26 @@ const res = await sql.from('venues').select('id, slug, name, city');
     }
   },
   {
-    id: 'client-copy-settings-schema',
-    category: 'Client & Settings',
-    title: '2. copySqlServiceSettings() & Explicit schemaName',
+    id: 'client-copy-serviceconfig-schema',
+    category: 'Client & ServiceConfig',
+    title: '2. copyServiceConfig() & Explicit schemaName',
     apiSymbols: [
-      'copySqlServiceSettings',
-      'SqlServiceSettings',
-      'SqlServiceSettings.schemaName',
+      'copyServiceConfig',
+      'ServiceConfig',
+      'ServiceConfig.schemaName',
       'FirebaseSql.schemaName',
       'FirebaseSql.restUrl'
     ],
     description:
-      'Clones a SqlServiceSettings object with copySqlServiceSettings(), sets schemaName: "public", inspects restUrl and schemaName on the distinct client, and terminates it.',
-    code: `const baseSettings: SqlServiceSettings = {
+      'Clones a ServiceConfig object with copyServiceConfig(), sets schemaName: "public", inspects restUrl and schemaName on the distinct client, and terminates it.',
+    code: `const baseServiceConfig: ServiceConfig = {
   serviceId: 'YOUR_SERVICE_ID',
   location: 'us-central1'
 };
-const nextSettings = copySqlServiceSettings(baseSettings);
-nextSettings.schemaName = 'public';
+const nextServiceConfig = copyServiceConfig(baseServiceConfig);
+nextServiceConfig.schemaName = 'public';
 
-const publicSql = getSql(sql.app, nextSettings);
+const publicSql = getSql(sql.app, nextServiceConfig);
 // publicSql !== sql (explicit 'public' vs. undefined default)
 // publicSql.schemaName === 'public', publicSql.restUrl
 try {
@@ -140,11 +140,11 @@ try {
     run: async () => {
       const sql = getActiveSql();
       const { serviceId, location } = getActiveConnection();
-      const baseSettings: SqlServiceSettings = { serviceId, location };
-      const nextSettings = copySqlServiceSettings(baseSettings);
-      nextSettings.schemaName = 'public';
+      const baseServiceConfig: ServiceConfig = { serviceId, location };
+      const nextServiceConfig = copyServiceConfig(baseServiceConfig);
+      nextServiceConfig.schemaName = 'public';
 
-      const publicSql = getSql(sql.app, nextSettings);
+      const publicSql = getSql(sql.app, nextServiceConfig);
       const distinctFromDefault = publicSql !== sql;
       try {
         const res = await publicSql
@@ -167,7 +167,7 @@ try {
             typeof publicSql.restUrl === 'string' &&
             res.data.length > 0,
           status: res.status,
-          summary: `Cloned settings for schema "${publicSql.schemaName}" (distinct=${distinctFromDefault}); fetched ${res.data.length} venues`,
+          summary: `Cloned ServiceConfig for schema "${publicSql.schemaName}" (distinct=${distinctFromDefault}); fetched ${res.data.length} venues`,
           payload: {
             distinctFromDefault,
             restUrl: publicSql.restUrl,
@@ -184,7 +184,7 @@ try {
   },
   {
     id: 'client-terminate-lifecycle',
-    category: 'Client & Settings',
+    category: 'Client & ServiceConfig',
     title: '3. terminate() & Code.NOT_INITIALIZED Lifecycle',
     apiSymbols: ['terminate', 'Code.NOT_INITIALIZED'],
     description:
@@ -239,7 +239,7 @@ const res = await pendingQuery;
   },
   {
     id: 'client-setheaders-mutability',
-    category: 'Client & Settings',
+    category: 'Client & ServiceConfig',
     title: '4. setHeaders(), mutable, restUrl, & Code.ALREADY_INITIALIZED',
     apiSymbols: [
       'FirebaseSql.setHeaders',
@@ -272,16 +272,16 @@ try {
     run: async () => {
       const app = getFirebaseApp();
       const { serviceId, location } = getActiveConnection();
-      const settings: SqlServiceSettings = {
+      const serviceConfig: ServiceConfig = {
         serviceId,
         location,
         schemaName: 'public'
       };
-      const prior = getSql(app, settings);
+      const prior = getSql(app, serviceConfig);
       if (!prior.mutable) {
         await terminate(prior);
       }
-      const scopedSql = getSql(app, settings);
+      const scopedSql = getSql(app, serviceConfig);
 
       try {
         const initialRestUrl = scopedSql.restUrl;

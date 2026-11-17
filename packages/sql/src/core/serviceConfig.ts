@@ -33,22 +33,22 @@ import { FirebaseSqlErrorCategory, Code, FirebaseSqlError } from './error';
  * client initialization and error rules.
  *
  * @example
- * Configure settings using the default schema:
+ * Configure a `ServiceConfig` using the default schema:
  * ```ts
- * import type { SqlServiceSettings } from 'firebase/sql';
+ * import type { ServiceConfig } from 'firebase/sql';
  *
- * const settings: SqlServiceSettings = {
+ * const serviceConfig: ServiceConfig = {
  *   serviceId: 'events-db',
  *   location: 'us-central1'
  * };
  * ```
  *
  * @example
- * Configure settings targeting a non-default PostgreSQL schema:
+ * Configure a `ServiceConfig` targeting a non-default PostgreSQL schema:
  * ```ts
- * import type { SqlServiceSettings } from 'firebase/sql';
+ * import type { ServiceConfig } from 'firebase/sql';
  *
- * const analyticsSettings: SqlServiceSettings = {
+ * const analyticsServiceConfig: ServiceConfig = {
  *   serviceId: 'events-db',
  *   location: 'us-central1',
  *   schemaName: 'analytics'
@@ -57,7 +57,7 @@ import { FirebaseSqlErrorCategory, Code, FirebaseSqlError } from './error';
  *
  * @public
  */
-export interface SqlServiceSettings {
+export interface ServiceConfig {
   /**
    * Target PostgreSQL schema exposed by PostgREST (for example, `'analytics'`).
    *
@@ -130,53 +130,51 @@ export interface SqlServiceSettings {
 }
 
 /**
- * Creates a mutable shallow copy of a {@link SqlServiceSettings} object (`Object.assign({}, settings)`).
+ * Creates a mutable shallow copy of a {@link ServiceConfig} object (`Object.assign({}, serviceConfig)`).
  *
  * @remarks
  * When to use: deriving a modified configuration (for example, targeting another `schemaName` or
- * `serviceId`) from an existing or frozen {@link SqlServiceSettings} object without mutating the
+ * `serviceId`) from an existing or frozen {@link ServiceConfig} object without mutating the
  * original.
  *
  * Behavior and side effects: pure synchronous shallow copy with no network I/O or validation. The
  * returned object is unfrozen and safe to mutate before passing to {@link (getSql:1) | getSql()}.
  *
- * @param settings - Source {@link SqlServiceSettings} object to copy.
- * @returns A new mutable shallow copy of `settings`.
+ * @param serviceConfig - Source {@link ServiceConfig} object to copy.
+ * @returns A new mutable shallow copy of `serviceConfig`.
  *
  * @example
- * Derive a secondary schema client from an existing settings object:
+ * Derive a secondary schema client from an existing ServiceConfig object:
  * ```ts
  * import {
- *   copySqlServiceSettings,
+ *   copyServiceConfig,
  *   getSql,
- *   type SqlServiceSettings
+ *   type ServiceConfig
  * } from 'firebase/sql';
  *
- * const baseSettings: SqlServiceSettings = {
+ * const baseServiceConfig: ServiceConfig = {
  *   serviceId: 'events-db',
  *   location: 'us-central1'
  * };
- * const sql = getSql(baseSettings);
+ * const sql = getSql(baseServiceConfig);
  *
- * const analyticsSettings = copySqlServiceSettings(baseSettings);
- * analyticsSettings.schemaName = 'analytics';
- * const analyticsSql = getSql(analyticsSettings);
+ * const analyticsServiceConfig = copyServiceConfig(baseServiceConfig);
+ * analyticsServiceConfig.schemaName = 'analytics';
+ * const analyticsSql = getSql(analyticsServiceConfig);
  * ```
  *
  * @public
  */
-export function copySqlServiceSettings(
-  settings: SqlServiceSettings
-): SqlServiceSettings {
-  return Object.assign({}, settings);
+export function copyServiceConfig(serviceConfig: ServiceConfig): ServiceConfig {
+  return Object.assign({}, serviceConfig);
 }
 
 /**
- * Freezes a `SqlServiceSettings` object in place using `Object.freeze` and returns `void`.
+ * Freezes a `ServiceConfig` object in place using `Object.freeze` and returns `void`.
  * @internal
  */
-export function freezeSqlServiceSettings(settings: SqlServiceSettings): void {
-  Object.freeze(settings);
+export function freezeServiceConfig(serviceConfig: ServiceConfig): void {
+  Object.freeze(serviceConfig);
 }
 
 /**
@@ -203,43 +201,43 @@ function validatePort(port: unknown): void {
 }
 
 /**
- * Copies the given `SqlServiceSettings` via {@link copySqlServiceSettings}, freezes the copy in
+ * Copies the given `ServiceConfig` via {@link copyServiceConfig}, freezes the copy in
  * place, validates required fields (`serviceId`, `location`) and optional `port`, and returns the
  * frozen copy.
  *
- * @returns a frozen shallow copy of the settings.
- * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if `settings` is missing or any validated field is invalid.
+ * @returns a frozen shallow copy of the ServiceConfig.
+ * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if `serviceConfig` is missing or any validated field is invalid.
  * @internal
  */
-export function validateSqlServiceSettings(
-  settings: SqlServiceSettings
-): SqlServiceSettings {
-  if (!settings) {
+export function validateServiceConfig(
+  serviceConfig: ServiceConfig
+): ServiceConfig {
+  if (!serviceConfig) {
     throw new FirebaseSqlError(
       Code.INVALID_ARGUMENT,
-      'SqlServiceSettings must be provided.',
+      'ServiceConfig must be provided.',
       FirebaseSqlErrorCategory.SQL_CLIENT
     );
   }
 
-  settings = copySqlServiceSettings(settings);
-  freezeSqlServiceSettings(settings);
+  serviceConfig = copyServiceConfig(serviceConfig);
+  freezeServiceConfig(serviceConfig);
 
-  if (!settings.serviceId) {
+  if (!serviceConfig.serviceId) {
     throw new FirebaseSqlError(
       Code.INVALID_ARGUMENT,
       'serviceId is required.',
       FirebaseSqlErrorCategory.SQL_CLIENT
     );
   }
-  if (!settings.location) {
+  if (!serviceConfig.location) {
     throw new FirebaseSqlError(
       Code.INVALID_ARGUMENT,
       'location is required.',
       FirebaseSqlErrorCategory.SQL_CLIENT
     );
   }
-  validatePort(settings.port);
+  validatePort(serviceConfig.port);
 
-  return settings;
+  return serviceConfig;
 }

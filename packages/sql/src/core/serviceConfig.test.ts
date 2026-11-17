@@ -18,24 +18,24 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  copySqlServiceSettings,
-  SqlServiceSettings,
-  validateSqlServiceSettings
-} from './settings';
+  copyServiceConfig,
+  ServiceConfig,
+  validateServiceConfig
+} from './serviceConfig';
 
-describe('SqlServiceSettings', () => {
-  const baseSettings: SqlServiceSettings = {
+describe('ServiceConfig', () => {
+  const baseServiceConfig: ServiceConfig = {
     serviceId: 'my-service',
     location: 'us-central1'
   };
 
-  describe('copySqlServiceSettings', () => {
-    it('returns an isolated defensive clone of minimal and full SqlServiceSettings', () => {
-      const minimalCopy = copySqlServiceSettings(baseSettings);
-      expect(minimalCopy).toEqual(baseSettings);
-      expect(minimalCopy).not.toBe(baseSettings);
+  describe('copyServiceConfig', () => {
+    it('returns an isolated defensive clone of minimal and full ServiceConfig', () => {
+      const minimalCopy = copyServiceConfig(baseServiceConfig);
+      expect(minimalCopy).toEqual(baseServiceConfig);
+      expect(minimalCopy).not.toBe(baseServiceConfig);
 
-      const original: SqlServiceSettings = {
+      const original: ServiceConfig = {
         serviceId: 'my-service',
         location: 'us-central1',
         schemaName: 'custom',
@@ -44,23 +44,23 @@ describe('SqlServiceSettings', () => {
         sslEnabled: false
       };
 
-      const settingsCopy = copySqlServiceSettings(original);
-      expect(settingsCopy).toEqual(original);
-      expect(settingsCopy).not.toBe(original);
+      const serviceConfigCopy = copyServiceConfig(original);
+      expect(serviceConfigCopy).toEqual(original);
+      expect(serviceConfigCopy).not.toBe(original);
 
       original.serviceId = 'mutated-service';
       original.schemaName = 'mutated-schema';
       original.port = 9999;
 
-      expect(settingsCopy.serviceId).toBe('my-service');
-      expect(settingsCopy.schemaName).toBe('custom');
-      expect(settingsCopy.port).toBe(5432);
+      expect(serviceConfigCopy.serviceId).toBe('my-service');
+      expect(serviceConfigCopy.schemaName).toBe('custom');
+      expect(serviceConfigCopy.port).toBe(5432);
     });
   });
 
-  describe('validateSqlServiceSettings', () => {
-    it('returns a frozen defensive copy of valid settings', () => {
-      const input: SqlServiceSettings = {
+  describe('validateServiceConfig', () => {
+    it('returns a frozen defensive copy of valid ServiceConfig', () => {
+      const input: ServiceConfig = {
         serviceId: 'svc-1',
         location: 'europe-west1',
         schemaName: 'app_data',
@@ -69,7 +69,7 @@ describe('SqlServiceSettings', () => {
         sslEnabled: false
       };
 
-      const validated = validateSqlServiceSettings(input);
+      const validated = validateServiceConfig(input);
       expect(validated).toEqual(input);
       expect(validated).not.toBe(input);
       expect(Object.isFrozen(validated)).toBe(true);

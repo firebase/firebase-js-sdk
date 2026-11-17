@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # FirebaseSql class
 Service client bound to a `FirebaseApp` and a specific Firebase SQL PostgREST endpoint.
 
-Do not instantiate directly: obtain instances via [getSql()](./sql.md#getsql_e89ea77)<!-- -->, which validates settings and deduplicates clients per `(app, resolvedEndpointUrl, schemaName)`<!-- -->. Configure the target PostgreSQL schema via `schemaName` in [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) when calling [getSql()](./sql.md#getsql_e89ea77) (you can also derive modified settings from an existing [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) object via [copySqlServiceSettings()](./sql.md#copysqlservicesettings_e89ea77)<!-- -->; `FirebaseSql` does not expose a `.schema(name)` method).
+Do not instantiate directly: obtain instances via [getSql()](./sql.md#getsql_b956f3d)<!-- -->, which validates the `ServiceConfig` and deduplicates clients per `(app, resolvedEndpointUrl, schemaName)`<!-- -->. Configure the target PostgreSQL schema via `schemaName` in [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) when calling [getSql()](./sql.md#getsql_b956f3d) (you can also derive a modified `ServiceConfig` from an existing [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) object via [copyServiceConfig()](./sql.md#copyserviceconfig_b956f3d)<!-- -->; `FirebaseSql` does not expose a `.schema(name)` method).
 
 Read [FirebaseSql.restUrl](./sql.firebasesql.md#firebasesqlresturl) and [FirebaseSql.schemaName](./sql.firebasesql.md#firebasesqlschemaname) to inspect the resolved endpoint URL and active schema. Client-wide static HTTP headers can be configured via [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) while [FirebaseSql.mutable](./sql.firebasesql.md#firebasesqlmutable) is `true` (before the first call to [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->). See [terminate()](./sql.md#terminate_bc2cb94) for shutting down a client and evicting it from the app registry.
 
@@ -61,7 +61,7 @@ Whether this client is still in the mutable configuration state where mutator me
 
 Starts as `true` on newly created `FirebaseSql` instances and permanently transitions to `false` on the first call to [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->, or when terminated via [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->.
 
-Because [getSql()](./sql.md#getsql_e89ea77) returns cached instances shared per `(app, resolvedEndpointUrl, schemaName)`<!-- -->, `mutable` will already be `false` on a returned instance if it was previously used.
+Because [getSql()](./sql.md#getsql_b956f3d) returns cached instances shared per `(app, resolvedEndpointUrl, schemaName)`<!-- -->, `mutable` will already be `false` on a returned instance if it was previously used.
 
 <b>Signature:</b>
 
@@ -85,7 +85,7 @@ readonly restUrl: string;
 
 The PostgreSQL schema name sent over the wire for queries and RPC calls, or `undefined` to use the server's default exposed schema.
 
-Equals `settings.schemaName` passed to [getSql()](./sql.md#getsql_e89ea77)<!-- -->. When defined, sends `Accept-Profile: <schemaName>` on `GET` and `HEAD` requests and `Content-Profile: <schemaName>` on `POST`<!-- -->, `PATCH`<!-- -->, and `DELETE` mutations; when `undefined`<!-- -->, profile headers are omitted so PostgREST uses the server's default schema. Included in the [getSql()](./sql.md#getsql_e89ea77) instance cache key.
+Equals `serviceConfig.schemaName` passed to [getSql()](./sql.md#getsql_b956f3d)<!-- -->. When defined, sends `Accept-Profile: <schemaName>` on `GET` and `HEAD` requests and `Content-Profile: <schemaName>` on `POST`<!-- -->, `PATCH`<!-- -->, and `DELETE` mutations; when `undefined`<!-- -->, profile headers are omitted so PostgREST uses the server's default schema. Included in the [getSql()](./sql.md#getsql_b956f3d) instance cache key.
 
 <b>Signature:</b>
 
@@ -99,7 +99,7 @@ Creates a reusable [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) 
 
 When to use: starting any `SELECT`<!-- -->, `INSERT`<!-- -->, `UPSERT`<!-- -->, `UPDATE`<!-- -->, or `DELETE` chain against a relation in the client's configured PostgreSQL schema ([FirebaseSql.schemaName](./sql.firebasesql.md#firebasesqlschemaname)<!-- -->, or the server default schema when `undefined`<!-- -->). See [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) for available SQL verbs.
 
-Do not use for calling stored functions or procedures (use [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc) instead), passing `<Row>` type generics (`sql.from<EventRow>('events')` is not supported; apply [Builder.returns()](./sql.builder.md#builderreturns) or [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) later in the chain), or schema-qualifying `table` as `'analytics.events'` (`table` is URI-encoded as a single path segment; configure `schemaName: 'analytics'` in [getSql()](./sql.md#getsql_e89ea77) instead).
+Do not use for calling stored functions or procedures (use [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc) instead), passing `<Row>` type generics (`sql.from<EventRow>('events')` is not supported; apply [Builder.returns()](./sql.builder.md#builderreturns) or [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) later in the chain), or schema-qualifying `table` as `'analytics.events'` (`table` is URI-encoded as a single path segment; configure `schemaName: 'analytics'` in [getSql()](./sql.md#getsql_b956f3d) instead).
 
 Preconditions: this `FirebaseSql` instance must not have been terminated via [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->.
 
@@ -125,7 +125,7 @@ A stateless [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) for sta
 
 #### Exceptions
 
-[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when called after [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->. Obtain a fresh client via [getSql()](./sql.md#getsql_e89ea77)<!-- -->.
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when called after [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->. Obtain a fresh client via [getSql()](./sql.md#getsql_b956f3d)<!-- -->.
 
 [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when `table` is `'.'` or `'..'`<!-- -->. Pass a valid PostgreSQL relation identifier.
 
@@ -223,7 +223,7 @@ A lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) with unty
 
 #### Exceptions
 
-[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when called after [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->. Re-initialize a client with [getSql()](./sql.md#getsql_e89ea77)<!-- -->.
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when called after [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->. Re-initialize a client with [getSql()](./sql.md#getsql_b956f3d)<!-- -->.
 
 [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when `fn` is `'.'` or `'..'`<!-- -->. Pass a valid PostgreSQL function name.
 

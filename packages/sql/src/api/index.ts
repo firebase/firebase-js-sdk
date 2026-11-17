@@ -23,10 +23,7 @@ export {
   FirebaseSqlError
 } from '../core/error';
 
-export {
-  type SqlServiceSettings,
-  copySqlServiceSettings
-} from '../core/settings';
+export { type ServiceConfig, copyServiceConfig } from '../core/serviceConfig';
 
 export type {
   Builder,

@@ -26,7 +26,7 @@
  *
  * Untyped defaults and type narrowing: {@link (getSql:1) | getSql()} and {@link FirebaseSql.from}
  * do not accept `<Database>` or `<Row>` generics, and there is no `sql.schema()` method (pass
- * `schemaName` in {@link SqlServiceSettings} to {@link (getSql:1) | getSql()} instead). Table
+ * `schemaName` in {@link ServiceConfig} to {@link (getSql:1) | getSql()} instead). Table
  * `select()` defaults `data` to `Array<Record<string, unknown>>`; `insert()`, `upsert()`,
  * `update()`, and `delete()` default `data` to `null` unless `.select()` is chained; and `rpc()`
  * defaults `data` to `unknown` (its `<Args>` generic types input parameters only). Chain
@@ -37,7 +37,7 @@
  * Result envelope vs. throwing mode: by default, `await builder` resolves to
  * {@link OperationResult} (`{ success: true, data, count, error: null, status, statusText }` or
  * `{ success: false, data: null, count: null, error: FirebaseSqlError, status, statusText }`) for
- * HTTP, PostgREST, platform, and network failures (note that a `settings.schemaName` containing
+ * HTTP, PostgREST, platform, and network failures (note that a `serviceConfig.schemaName` containing
  * invalid HTTP header characters rejects with a `TypeError` when setting the profile header).
  * Narrow via `if (!res.success)` or `const { data, error } = await ...; if (error)`—never narrow
  * with `if (!data)` when `data` can legitimately be `null` (such as `.maybeSingle()`, `head: true`,

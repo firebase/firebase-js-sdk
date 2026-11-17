@@ -28,7 +28,7 @@ import {
   FirebaseSqlError,
   FirebaseSqlErrorCategory
 } from '../core/error';
-import { SqlServiceSettings } from '../core/settings';
+import { ServiceConfig } from '../core/serviceConfig';
 import { AppCheckTokenProvider } from '../core/tokenProviders/AppCheckTokenProvider';
 import { FirebaseAuthTokenProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
 
@@ -137,7 +137,7 @@ export function composeSignals(
  * @internal
  */
 export interface FirebaseSqlTransportInterface {
-  readonly settings?: SqlServiceSettings;
+  readonly serviceConfig?: ServiceConfig;
 
   /**
    * Constructs and executes an FSQL HTTP request, and returns the response.
@@ -160,7 +160,7 @@ export interface FirebaseSqlTransportInterface {
  * @internal
  */
 export interface FirebaseSqlTransportOptions {
-  settings?: SqlServiceSettings;
+  serviceConfig?: ServiceConfig;
   appId?: string | undefined;
   authTokenProvider?: FirebaseAuthTokenProvider | undefined;
   appCheckTokenProvider?: AppCheckTokenProvider | undefined;
@@ -173,7 +173,7 @@ export interface FirebaseSqlTransportOptions {
  * @internal
  */
 export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
-  readonly settings?: SqlServiceSettings;
+  readonly serviceConfig?: ServiceConfig;
   protected _appId?: string;
   // TODO: Update _isUsingEmulator if we add emulator support in the future.
   protected _isUsingEmulator = false;
@@ -183,7 +183,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
   protected readonly _context?: Readonly<FirebaseSqlContext>;
 
   constructor(options: FirebaseSqlTransportOptions = {}) {
-    this.settings = options.settings;
+    this.serviceConfig = options.serviceConfig;
     this._appId = options.appId;
     this.authProvider = options.authTokenProvider;
     this.appCheckProvider = options.appCheckTokenProvider;

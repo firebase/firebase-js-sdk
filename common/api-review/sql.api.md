@@ -49,7 +49,7 @@ export const Code: Readonly<{
 export type ContainsNull<T> = unknown extends T ? false : null extends T ? true : false;
 
 // @public
-export function copySqlServiceSettings(settings: SqlServiceSettings): SqlServiceSettings;
+export function copyServiceConfig(serviceConfig: ServiceConfig): ServiceConfig;
 
 // @public
 export type ExplicitKeys<T> = {
@@ -128,7 +128,7 @@ export class FirebaseSql {
     // @internal
     constructor(parameters: {
         app: FirebaseApp;
-        settings: SqlServiceSettings;
+        serviceConfig: ServiceConfig;
         instanceIdentifier: string;
         authProvider: Provider<FirebaseAuthInternalName>;
         appCheckProvider: Provider<AppCheckInternalComponentName>;
@@ -184,10 +184,10 @@ export interface FirebaseSqlRpcOptions {
 }
 
 // @public
-export function getSql(settings: SqlServiceSettings): FirebaseSql;
+export function getSql(serviceConfig: ServiceConfig): FirebaseSql;
 
 // @public
-export function getSql(app: FirebaseApp, settings: SqlServiceSettings): FirebaseSql;
+export function getSql(app: FirebaseApp, serviceConfig: ServiceConfig): FirebaseSql;
 
 // @public
 export interface InvalidMethodError<S extends string> {
@@ -318,12 +318,7 @@ export interface SerializedFirebaseSqlError {
 }
 
 // @public
-export type Simplify<T> = T extends object ? {
-    [K in keyof T]: T[K];
-} : T;
-
-// @public
-export interface SqlServiceSettings {
+export interface ServiceConfig {
     host?: string | undefined;
     location: string;
     port?: number | undefined;
@@ -331,6 +326,11 @@ export interface SqlServiceSettings {
     serviceId: string;
     sslEnabled?: boolean | undefined;
 }
+
+// @public
+export type Simplify<T> = T extends object ? {
+    [K in keyof T]: T[K];
+} : T;
 
 // @public
 export function terminate(sql: FirebaseSql): Promise<void>;

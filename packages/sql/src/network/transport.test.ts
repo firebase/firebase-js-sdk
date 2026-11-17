@@ -45,7 +45,7 @@ import {
   FirebaseSqlError,
   FirebaseSqlErrorCategory
 } from '../core/error';
-import { SqlServiceSettings } from '../core/settings';
+import { ServiceConfig } from '../core/serviceConfig';
 import { TokenOptions } from '../core/tokenProviders/AbstractTokenProvider';
 import {
   FirebaseAuthProvider,
@@ -64,7 +64,7 @@ import {
 
 const TEST_URL =
   'https://firebasedataconnect.googleapis.com/v1/projects/p/locations/l/services/s/postgrest/todos';
-const BASE_SETTINGS: SqlServiceSettings = { serviceId: 's', location: 'l' };
+const BASE_SERVICE_CONFIG: ServiceConfig = { serviceId: 's', location: 'l' };
 
 type FirebaseSqlTransportWithInternalProperties = FirebaseSqlTransport & {
   _isUsingEmulator: boolean;
@@ -125,7 +125,9 @@ describe('FirebaseSqlTransport', () => {
         'AbortError'
       );
       mockFetch.mockRejectedValueOnce(abortError);
-      const transport = new FirebaseSqlTransport({ settings: BASE_SETTINGS });
+      const transport = new FirebaseSqlTransport({
+        serviceConfig: BASE_SERVICE_CONFIG
+      });
 
       await expect(
         transport.invokePostgrestOperation(TEST_URL, {
@@ -148,8 +150,8 @@ describe('FirebaseSqlTransport', () => {
         const workstationUrl =
           'https://8080-my-workstation.cluster.cloudworkstations.dev/v1/projects/p/locations/l/services/s/postgrest/todos';
         const workstationTransport = new FirebaseSqlTransport({
-          settings: {
-            ...BASE_SETTINGS,
+          serviceConfig: {
+            ...BASE_SERVICE_CONFIG,
             host: '8080-my-workstation.cluster.cloudworkstations.dev'
           }
         });
@@ -170,7 +172,7 @@ describe('FirebaseSqlTransport', () => {
         ).toBe('omit');
 
         const nonEmulatorTransport = new FirebaseSqlTransport({
-          settings: BASE_SETTINGS
+          serviceConfig: BASE_SERVICE_CONFIG
         });
         await nonEmulatorTransport.invokePostgrestOperation(workstationUrl);
         expect(
@@ -182,7 +184,7 @@ describe('FirebaseSqlTransport', () => {
         const authProvider = new MockAuthProvider('auth-token');
         const appCheckProvider = new MockAppCheckProvider('appcheck-token');
         const transport = new FirebaseSqlTransport({
-          settings: BASE_SETTINGS,
+          serviceConfig: BASE_SERVICE_CONFIG,
           appId: 'test-app',
           authTokenProvider: authProvider,
           appCheckTokenProvider: appCheckProvider
@@ -255,7 +257,7 @@ describe('FirebaseSqlTransport', () => {
             'my-appcheck-token'
           );
           const transport = new FirebaseSqlTransport({
-            settings: BASE_SETTINGS,
+            serviceConfig: BASE_SERVICE_CONFIG,
             authTokenProvider: authProvider,
             appCheckTokenProvider: appCheckProvider
           });
@@ -284,7 +286,7 @@ describe('FirebaseSqlTransport', () => {
 
         it('omits token headers when auth and App Check providers are omitted', async () => {
           const omittedTransport = new FirebaseSqlTransport({
-            settings: BASE_SETTINGS
+            serviceConfig: BASE_SERVICE_CONFIG
           });
           await omittedTransport.invokePostgrestOperation(TEST_URL);
           const headers = getHeadersFromCall(mockFetch);
@@ -294,7 +296,7 @@ describe('FirebaseSqlTransport', () => {
 
         it('omits token headers when providers return null or empty tokens', async () => {
           const nullTransport = new FirebaseSqlTransport({
-            settings: BASE_SETTINGS,
+            serviceConfig: BASE_SERVICE_CONFIG,
             authTokenProvider: new MockAuthProvider(null),
             appCheckTokenProvider: new MockAppCheckProvider('')
           });
@@ -309,7 +311,7 @@ describe('FirebaseSqlTransport', () => {
           const rejectingAuth = new MockAuthProvider();
           rejectingAuth.getToken.mockRejectedValue(authError);
           const transport = new FirebaseSqlTransport({
-            settings: BASE_SETTINGS,
+            serviceConfig: BASE_SERVICE_CONFIG,
             authTokenProvider: rejectingAuth
           });
 
@@ -329,7 +331,7 @@ describe('FirebaseSqlTransport', () => {
           const expectedResponse = new Response('OK', { status: 200 });
           mockFetch.mockResolvedValueOnce(expectedResponse);
           const transport = new FirebaseSqlTransport({
-            settings: BASE_SETTINGS,
+            serviceConfig: BASE_SERVICE_CONFIG,
             authTokenProvider: authProvider,
             appCheckTokenProvider: rejectingAppCheck
           });
@@ -349,7 +351,7 @@ describe('FirebaseSqlTransport', () => {
             'sdk-appcheck-token'
           );
           const transport = new FirebaseSqlTransport({
-            settings: BASE_SETTINGS,
+            serviceConfig: BASE_SERVICE_CONFIG,
             authTokenProvider: authProvider,
             appCheckTokenProvider: appCheckProvider
           });
@@ -372,7 +374,7 @@ describe('FirebaseSqlTransport', () => {
 
         it('attaches x-goog-api-client and x-firebase-gmpid when appId is configured', async () => {
           await new FirebaseSqlTransport({
-            settings: BASE_SETTINGS,
+            serviceConfig: BASE_SERVICE_CONFIG,
             appId: '1:123456:web:abcdef'
           }).invokePostgrestOperation(TEST_URL);
           const headers = getHeadersFromCall(mockFetch);
@@ -387,7 +389,7 @@ describe('FirebaseSqlTransport', () => {
 
         it('attaches x-goog-api-client and omits x-firebase-gmpid when appId is omitted', async () => {
           await new FirebaseSqlTransport({
-            settings: BASE_SETTINGS
+            serviceConfig: BASE_SERVICE_CONFIG
           }).invokePostgrestOperation(TEST_URL);
           const headers = getHeadersFromCall(mockFetch);
           expect(headers.get(FirebaseHeaders.GOOG_API_CLIENT)).toBe(
@@ -398,7 +400,7 @@ describe('FirebaseSqlTransport', () => {
 
         it('overwrites caller-supplied x-goog-api-client and x-firebase-gmpid headers', async () => {
           await new FirebaseSqlTransport({
-            settings: BASE_SETTINGS,
+            serviceConfig: BASE_SERVICE_CONFIG,
             appId: 'default-gmpid'
           }).invokePostgrestOperation(TEST_URL, {
             headers: {
@@ -477,7 +479,7 @@ describe('FirebaseSqlTransport', () => {
         .mockResolvedValueOnce(retryTwoResponse);
 
       const transport = new FirebaseSqlTransport({
-        settings: BASE_SETTINGS,
+        serviceConfig: BASE_SERVICE_CONFIG,
         authTokenProvider: authProvider
       });
 
@@ -540,7 +542,7 @@ describe('FirebaseSqlTransport', () => {
         .mockResolvedValueOnce(retryResponse);
 
       const transport = new FirebaseSqlTransport({
-        settings: BASE_SETTINGS,
+        serviceConfig: BASE_SERVICE_CONFIG,
         authTokenProvider: authProvider
       });
 
@@ -592,7 +594,7 @@ describe('FirebaseSqlTransport', () => {
         .mockResolvedValueOnce(retryRes3);
 
       const transport = new FirebaseSqlTransport({
-        settings: BASE_SETTINGS,
+        serviceConfig: BASE_SERVICE_CONFIG,
         authTokenProvider: realAuthProvider
       });
       const batch = Promise.all([
@@ -649,7 +651,7 @@ describe('FirebaseSqlTransport', () => {
         .mockResolvedValueOnce(subsequentRetryRes);
 
       const transport = new FirebaseSqlTransport({
-        settings: BASE_SETTINGS,
+        serviceConfig: BASE_SERVICE_CONFIG,
         authTokenProvider: realAuthProvider
       });
 
@@ -678,7 +680,7 @@ describe('FirebaseSqlTransport', () => {
       mockFetch.mockResolvedValueOnce(unauthorizedRes);
 
       const res = await new FirebaseSqlTransport({
-        settings: BASE_SETTINGS
+        serviceConfig: BASE_SERVICE_CONFIG
       }).invokePostgrestOperation(TEST_URL, {
         headers: {
           Authorization: 'Bearer custom-jwt'
@@ -695,7 +697,7 @@ describe('FirebaseSqlTransport', () => {
 
       const nullTokenProvider = new MockAuthProvider(null, 'should-not-use');
       const res = await new FirebaseSqlTransport({
-        settings: BASE_SETTINGS,
+        serviceConfig: BASE_SERVICE_CONFIG,
         authTokenProvider: nullTokenProvider
       }).invokePostgrestOperation(TEST_URL);
 
@@ -713,7 +715,7 @@ describe('FirebaseSqlTransport', () => {
       const sameToken = createMockJwt('user-1', '-same');
       const sameTokenProvider = new MockAuthProvider(sameToken, sameToken);
       const res = await new FirebaseSqlTransport({
-        settings: BASE_SETTINGS,
+        serviceConfig: BASE_SERVICE_CONFIG,
         authTokenProvider: sameTokenProvider
       }).invokePostgrestOperation(TEST_URL);
 
@@ -745,7 +747,7 @@ describe('FirebaseSqlTransport', () => {
       mockFetch.mockResolvedValueOnce(unauthorizedRes);
 
       const transport = new FirebaseSqlTransport({
-        settings: BASE_SETTINGS,
+        serviceConfig: BASE_SERVICE_CONFIG,
         authTokenProvider: authProvider
       });
 
@@ -762,7 +764,7 @@ describe('FirebaseSqlTransport', () => {
       mockFetch.mockResolvedValueOnce(unauthorizedRes);
 
       const transport = new FirebaseSqlTransport({
-        settings: BASE_SETTINGS,
+        serviceConfig: BASE_SERVICE_CONFIG,
         authTokenProvider: authProvider
       });
 
@@ -784,7 +786,7 @@ describe('FirebaseSqlTransport', () => {
       mockFetch.mockResolvedValueOnce(unauthorizedRes);
 
       const transport = new FirebaseSqlTransport({
-        settings: BASE_SETTINGS,
+        serviceConfig: BASE_SERVICE_CONFIG,
         authTokenProvider: authProvider
       });
 
@@ -808,7 +810,7 @@ describe('FirebaseSqlTransport', () => {
       mockFetch.mockResolvedValueOnce(unauthorizedRes);
 
       const transport = new FirebaseSqlTransport({
-        settings: BASE_SETTINGS,
+        serviceConfig: BASE_SERVICE_CONFIG,
         authTokenProvider: authProvider
       });
 
@@ -859,7 +861,7 @@ describe('FirebaseSqlTransport', () => {
       });
 
       const transport = new FirebaseSqlTransport({
-        settings: BASE_SETTINGS,
+        serviceConfig: BASE_SERVICE_CONFIG,
         authTokenProvider: authProvider
       });
 
@@ -908,7 +910,7 @@ describe('FirebaseSqlTransport', () => {
       mockFetch.mockResolvedValueOnce(unauthorizedRes);
 
       const transport = new FirebaseSqlTransport({
-        settings: BASE_SETTINGS,
+        serviceConfig: BASE_SERVICE_CONFIG,
         authTokenProvider: authProvider
       });
 
@@ -944,7 +946,7 @@ describe('FirebaseSqlTransport', () => {
       terminationController.abort(terminationError);
 
       const transport = new FirebaseSqlTransport({
-        settings: BASE_SETTINGS,
+        serviceConfig: BASE_SERVICE_CONFIG,
         terminationSignal: terminationController.signal
       });
 
@@ -968,7 +970,7 @@ describe('FirebaseSqlTransport', () => {
       });
 
       const transport = new FirebaseSqlTransport({
-        settings: BASE_SETTINGS,
+        serviceConfig: BASE_SERVICE_CONFIG,
         terminationSignal: terminationController.signal
       });
 
@@ -994,7 +996,9 @@ describe('FirebaseSqlTransport', () => {
 
     describe('URL and Request input handling', () => {
       it('accepts a URL object as input', async () => {
-        const transport = new FirebaseSqlTransport({ settings: BASE_SETTINGS });
+        const transport = new FirebaseSqlTransport({
+          serviceConfig: BASE_SERVICE_CONFIG
+        });
         const urlObj = new URL(TEST_URL);
         await transport.invokePostgrestOperation(urlObj);
         expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -1002,7 +1006,9 @@ describe('FirebaseSqlTransport', () => {
       });
 
       it('accepts a Request object as input, preserving its headers and method', async () => {
-        const transport = new FirebaseSqlTransport({ settings: BASE_SETTINGS });
+        const transport = new FirebaseSqlTransport({
+          serviceConfig: BASE_SERVICE_CONFIG
+        });
         const requestObj = new Request(TEST_URL, {
           method: 'POST',
           headers: {

@@ -544,7 +544,7 @@ export interface Builder<
    *
    * Do not use in code paths that prefer exhaustive discriminated-union checking (`if (!res.success)`)
    * without `try / catch`; omit `throwOnError()` to receive {@link OperationResult}. Note that a
-   * `settings.schemaName` containing invalid HTTP header characters always rejects with a `TypeError`
+   * `serviceConfig.schemaName` containing invalid HTTP header characters always rejects with a `TypeError`
    * when setting the profile header, regardless of `throwOnError()`.
    *
    * Behavior and side effects: even with `throwOnError()`, awaiting the builder resolves to
