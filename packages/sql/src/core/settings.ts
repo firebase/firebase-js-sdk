@@ -41,19 +41,15 @@ export interface SqlServiceSettings {
 export function copySqlServiceSettings(
   settings: SqlServiceSettings
 ): SqlServiceSettings {
-  const settingsCopy: SqlServiceSettings = Object.assign({}, settings);
-  return settingsCopy;
+  return Object.assign({}, settings);
 }
 
 /**
  * Freezes a deep copy of the `SqlServiceSettings`.
  * @internal
  */
-export function freezeSqlServiceSettings(
-  settings: SqlServiceSettings
-): SqlServiceSettings {
-  const settingsCopy = copySqlServiceSettings(settings);
-  return Object.freeze(settingsCopy);
+export function freezeSqlServiceSettings(settings: SqlServiceSettings) {
+  Object.freeze(settings);
 }
 
 /**
@@ -96,6 +92,10 @@ export function validateSqlServiceSettings(
       FirebaseSqlErrorCategory.SQL_CLIENT
     );
   }
+
+  settings = copySqlServiceSettings(settings);
+  freezeSqlServiceSettings(settings);
+
   if (!settings.serviceId) {
     throw new FirebaseSqlError(
       Code.INVALID_ARGUMENT,
@@ -111,5 +111,6 @@ export function validateSqlServiceSettings(
     );
   }
   validatePort(settings.port);
-  return freezeSqlServiceSettings(settings);
+
+  return settings;
 }
