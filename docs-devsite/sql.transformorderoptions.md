@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TransformOrderOptions interface
+Ordering options for [TransformBuilder.order()](./sql.transformbuilder.md#transformbuilderorder)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,12 +22,14 @@ export interface TransformOrderOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [ascending](./sql.transformorderoptions.md#transformorderoptionsascending) | boolean \| undefined |  |
-|  [foreignTable](./sql.transformorderoptions.md#transformorderoptionsforeigntable) | string \| undefined |  |
-|  [nullsFirst](./sql.transformorderoptions.md#transformorderoptionsnullsfirst) | boolean \| undefined |  |
-|  [referencedTable](./sql.transformorderoptions.md#transformorderoptionsreferencedtable) | string \| undefined |  |
+|  [ascending](./sql.transformorderoptions.md#transformorderoptionsascending) | boolean \| undefined | Sorts values in ascending (<code>true</code>) or descending (<code>false</code>) order. Defaults to <code>true</code>. |
+|  [foreignTable](./sql.transformorderoptions.md#transformorderoptionsforeigntable) | string \| undefined | Legacy alias for [TransformOrderOptions.referencedTable](./sql.transformorderoptions.md#transformorderoptionsreferencedtable)<!-- -->. Prefer <code>referencedTable</code> for new code. Defaults to <code>undefined</code>. |
+|  [nullsFirst](./sql.transformorderoptions.md#transformorderoptionsnullsfirst) | boolean \| undefined | Places <code>NULL</code> values before non-null values (<code>true</code> emits <code>.nullsfirst</code>) or after (<code>false</code> emits <code>.nullslast</code>). |
+|  [referencedTable](./sql.transformorderoptions.md#transformorderoptionsreferencedtable) | string \| undefined | Embedded relation name (or alias) whose nested array elements should be sorted instead of the parent table (<code>?&lt;referencedTable&gt;.order=...</code>). |
 
 ## TransformOrderOptions.ascending
+
+Sorts values in ascending (`true`<!-- -->) or descending (`false`<!-- -->) order. Defaults to `true`<!-- -->.
 
 <b>Signature:</b>
 
@@ -35,6 +39,8 @@ ascending?: boolean | undefined;
 
 ## TransformOrderOptions.foreignTable
 
+Legacy alias for [TransformOrderOptions.referencedTable](./sql.transformorderoptions.md#transformorderoptionsreferencedtable)<!-- -->. Prefer `referencedTable` for new code. Defaults to `undefined`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -42,6 +48,10 @@ foreignTable?: string | undefined;
 ```
 
 ## TransformOrderOptions.nullsFirst
+
+Places `NULL` values before non-null values (`true` emits `.nullsfirst`<!-- -->) or after (`false` emits `.nullslast`<!-- -->).
+
+Defaults to `undefined` (PostgreSQL applies its default null ordering: `NULLS LAST` for `ASC`<!-- -->, `NULLS FIRST` for `DESC`<!-- -->).
 
 <b>Signature:</b>
 
@@ -51,8 +61,32 @@ nullsFirst?: boolean | undefined;
 
 ## TransformOrderOptions.referencedTable
 
+Embedded relation name (or alias) whose nested array elements should be sorted instead of the parent table (`?<referencedTable>.order=...`<!-- -->).
+
+Defaults to `undefined`<!-- -->. Takes precedence over `foreignTable` when both are provided. Does not change parent-row order (to sort parent rows by a many-to-one relation column, pass `'venues(name)'` as `column` with `referencedTable` omitted, or `'venue(name)'` if aliased via `'venue:venues(name)'`<!-- -->).
+
 <b>Signature:</b>
 
 ```typescript
 referencedTable?: string | undefined;
 ```
+
+### Example
+
+Sort an embedded `registrations` array newest-first with `NULL` check-ins placed last:
+
+```ts
+import type { TransformOrderOptions } from 'firebase/sql';
+
+const orderOpts: TransformOrderOptions = {
+  referencedTable: 'registrations',
+  ascending: false,
+  nullsFirst: false
+};
+const res = await sql
+  .from('events')
+  .select('id, title, registrations(id, attendee_email, checked_in_at)')
+  .order('checked_in_at', orderOpts);
+
+```
+

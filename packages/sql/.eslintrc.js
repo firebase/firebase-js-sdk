@@ -17,6 +17,7 @@
 
 module.exports = {
   extends: '../../config/.eslintrc.js',
+  ignorePatterns: ['examples/**'],
   parserOptions: {
     project: 'tsconfig.eslint.json',
     tsconfigRootDir: __dirname

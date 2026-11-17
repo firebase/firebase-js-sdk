@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # QuerySelectOptions interface
+Execution options for [QueryBuilder.select()](./sql.querybuilder.md#querybuilderselect)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,10 +22,14 @@ export interface QuerySelectOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [count](./sql.queryselectoptions.md#queryselectoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined |  |
-|  [head](./sql.queryselectoptions.md#queryselectoptionshead) | boolean \| undefined |  |
+|  [count](./sql.queryselectoptions.md#queryselectoptionscount) | [QueryCountStrategy](./sql.md#querycountstrategy) \| undefined | Row-counting algorithm used to populate <code>result.count</code> on [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface)<!-- -->. |
+|  [head](./sql.queryselectoptions.md#queryselectoptionshead) | boolean \| undefined | Sends an HTTP <code>HEAD</code> request so PostgREST returns headers (including <code>count</code>) with an empty body (<code>result.data</code> resolves to <code>null</code>). |
 
 ## QuerySelectOptions.count
+
+Row-counting algorithm used to populate `result.count` on [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface)<!-- -->.
+
+Defaults to `undefined` (PostgREST does not compute a total count and `result.count` is `null`<!-- -->). Only exact lowercase `'exact'`<!-- -->, `'planned'`<!-- -->, or `'estimated'` populate `result.count`<!-- -->.
 
 <b>Signature:</b>
 
@@ -33,8 +39,32 @@ count?: QueryCountStrategy | undefined;
 
 ## QuerySelectOptions.head
 
+Sends an HTTP `HEAD` request so PostgREST returns headers (including `count`<!-- -->) with an empty body (`result.data` resolves to `null`<!-- -->).
+
+Defaults to `false`<!-- -->. Combine with `count: 'exact'` (or `'estimated'`<!-- -->) to count matching rows without transferring row payloads.
+
+Compile-time type caveat: setting `head: true` does not narrow the static TypeScript type of `result.data` away from `Array<Record<string, unknown>>`<!-- -->, even though `result.data` is `null` at runtime—read `result.count` only and never access array properties (such as `.length`<!-- -->) on `result.data`<!-- -->.
+
+Empty-body `HEAD` error caveat: because `HEAD` responses have no body, an HTTP `404` (such as a misspelled or unexposed table) is normalized to `status: 204` with `success: true` and `count: null`<!-- -->, and other `HEAD` failures carry no PostgREST or SQLSTATE error code (mapping to category `'sql-platform'`<!-- -->). Always treat `count === null` as a failed count when `count` was requested with `head: true`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
 head?: boolean | undefined;
 ```
+
+### Example
+
+Request an exact row count via a metadata-only `HEAD` request:
+
+```ts
+import type { QuerySelectOptions } from 'firebase/sql';
+
+const selectOpts: QuerySelectOptions = { head: true, count: 'exact' };
+const res = await sql.from('events').select('*', selectOpts);
+if (res.success && res.count !== null) {
+  console.log('Exact row count:', res.count);
+}
+
+```
+

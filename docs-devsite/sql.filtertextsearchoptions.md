@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FilterTextSearchOptions interface
+Full-text search configuration and parser options for [FilterBuilder.textSearch()](./sql.filterbuilder.md#filterbuildertextsearch)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,10 +22,14 @@ export interface FilterTextSearchOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [config](./sql.filtertextsearchoptions.md#filtertextsearchoptionsconfig) | string \| undefined |  |
-|  [type](./sql.filtertextsearchoptions.md#filtertextsearchoptionstype) | [FilterTextSearchType](./sql.md#filtertextsearchtype) \| undefined |  |
+|  [config](./sql.filtertextsearchoptions.md#filtertextsearchoptionsconfig) | string \| undefined | PostgreSQL text search configuration name (such as <code>'english'</code>, <code>'simple'</code>, or <code>'spanish'</code>) sent as <code>fts(&lt;config&gt;).&lt;query&gt;</code>. |
+|  [type](./sql.filtertextsearchoptions.md#filtertextsearchoptionstype) | [FilterTextSearchType](./sql.md#filtertextsearchtype) \| undefined | Query parser mode (<code>'plain'</code>, <code>'phrase'</code>, or <code>'websearch'</code>). |
 
 ## FilterTextSearchOptions.config
+
+PostgreSQL text search configuration name (such as `'english'`<!-- -->, `'simple'`<!-- -->, or `'spanish'`<!-- -->) sent as `fts(<config>).<query>`<!-- -->.
+
+Defaults to `undefined` (PostgreSQL uses the server's `default_text_search_config` setting).
 
 <b>Signature:</b>
 
@@ -33,8 +39,31 @@ config?: string | undefined;
 
 ## FilterTextSearchOptions.type
 
+Query parser mode (`'plain'`<!-- -->, `'phrase'`<!-- -->, or `'websearch'`<!-- -->).
+
+Defaults to `undefined` (PostgREST applies `to_tsquery` / `fts`<!-- -->, which requires explicit boolean operators such as `'firebase' & 'sql'` and rejects malformed user strings).
+
 <b>Signature:</b>
 
 ```typescript
 type?: FilterTextSearchType | undefined;
 ```
+
+### Example
+
+Configure English stemming with `'websearch'` query parsing:
+
+```ts
+import type { FilterTextSearchOptions } from 'firebase/sql';
+
+const searchOpts: FilterTextSearchOptions = {
+  config: 'english',
+  type: 'websearch'
+};
+const res = await sql
+  .from('events')
+  .select('id, code, title')
+  .textSearch('search_doc', 'serverless Keynote', searchOpts);
+
+```
+

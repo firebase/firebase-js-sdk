@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TransformRangeOptions interface
+Embedded-table targeting options for [TransformBuilder.range()](./sql.transformbuilder.md#transformbuilderrange)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,10 +22,12 @@ export interface TransformRangeOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [foreignTable](./sql.transformrangeoptions.md#transformrangeoptionsforeigntable) | string \| undefined |  |
-|  [referencedTable](./sql.transformrangeoptions.md#transformrangeoptionsreferencedtable) | string \| undefined |  |
+|  [foreignTable](./sql.transformrangeoptions.md#transformrangeoptionsforeigntable) | string \| undefined | Legacy alias for [TransformRangeOptions.referencedTable](./sql.transformrangeoptions.md#transformrangeoptionsreferencedtable)<!-- -->. Prefer <code>referencedTable</code> for new code. Defaults to <code>undefined</code>. |
+|  [referencedTable](./sql.transformrangeoptions.md#transformrangeoptionsreferencedtable) | string \| undefined | Embedded child relation name (or alias) to paginate per parent row (<code>?&lt;referencedTable&gt;.offset=...&amp;&lt;referencedTable&gt;.limit=...</code>). Defaults to <code>undefined</code>. |
 
 ## TransformRangeOptions.foreignTable
+
+Legacy alias for [TransformRangeOptions.referencedTable](./sql.transformrangeoptions.md#transformrangeoptionsreferencedtable)<!-- -->. Prefer `referencedTable` for new code. Defaults to `undefined`<!-- -->.
 
 <b>Signature:</b>
 
@@ -33,8 +37,26 @@ foreignTable?: string | undefined;
 
 ## TransformRangeOptions.referencedTable
 
+Embedded child relation name (or alias) to paginate per parent row (`?<referencedTable>.offset=...&<referencedTable>.limit=...`<!-- -->). Defaults to `undefined`<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
 referencedTable?: string | undefined;
 ```
+
+### Example
+
+Paginate nested `registrations` to indices `0..9` per parent event:
+
+```ts
+import type { TransformRangeOptions } from 'firebase/sql';
+
+const rangeOpts: TransformRangeOptions = { referencedTable: 'registrations' };
+const res = await sql
+  .from('events')
+  .select('id, title, registrations(id, attendee_email)')
+  .range(0, 9, rangeOpts);
+
+```
+

@@ -10,6 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FilterOrOptions interface
+Embedded-relation targeting options for [FilterBuilder.or()](./sql.filterbuilder.md#filterbuilderor)<!-- -->.
+
 <b>Signature:</b>
 
 ```typescript
@@ -20,10 +22,12 @@ export interface FilterOrOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [foreignTable](./sql.filteroroptions.md#filteroroptionsforeigntable) | string \| undefined |  |
-|  [referencedTable](./sql.filteroroptions.md#filteroroptionsreferencedtable) | string \| undefined |  |
+|  [foreignTable](./sql.filteroroptions.md#filteroroptionsforeigntable) | string \| undefined | Legacy alias for [FilterOrOptions.referencedTable](./sql.filteroroptions.md#filteroroptionsreferencedtable)<!-- -->. Prefer <code>referencedTable</code> for new code. Defaults to <code>undefined</code>. |
+|  [referencedTable](./sql.filteroroptions.md#filteroroptionsreferencedtable) | string \| undefined | Embedded relation name (or alias) to apply the <code>OR</code> disjunction against (<code>?&lt;referencedTable&gt;.or=(...)</code>) instead of the parent table. |
 
 ## FilterOrOptions.foreignTable
+
+Legacy alias for [FilterOrOptions.referencedTable](./sql.filteroroptions.md#filteroroptionsreferencedtable)<!-- -->. Prefer `referencedTable` for new code. Defaults to `undefined`<!-- -->.
 
 <b>Signature:</b>
 
@@ -33,8 +37,28 @@ foreignTable?: string | undefined;
 
 ## FilterOrOptions.referencedTable
 
+Embedded relation name (or alias) to apply the `OR` disjunction against (`?<referencedTable>.or=(...)`<!-- -->) instead of the parent table.
+
+Defaults to `undefined`<!-- -->. Takes precedence over `foreignTable` when both are provided. Filters rows inside the embedded relation's array; combine with `!inner` in `select()` if unmatched parent rows should also be excluded.
+
 <b>Signature:</b>
 
 ```typescript
 referencedTable?: string | undefined;
 ```
+
+### Example
+
+Scope an `OR` filter to an embedded `registrations` relation:
+
+```ts
+import type { FilterOrOptions } from 'firebase/sql';
+
+const orOpts: FilterOrOptions = { referencedTable: 'registrations' };
+const res = await sql
+  .from('events')
+  .select('id, title, registrations!inner(attendee_email, role)')
+  .or('role.eq.speaker,role.eq.organizer', orOpts);
+
+```
+

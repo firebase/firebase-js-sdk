@@ -10,7 +10,13 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FirebaseSql class
-The Firebase SQL service client instance.
+Service client bound to a `FirebaseApp` and a specific Firebase SQL PostgREST endpoint.
+
+Do not instantiate directly: obtain instances via [getSql()](./sql.md#getsql_e89ea77)<!-- -->, which validates settings and deduplicates clients per `(app, resolvedEndpointUrl, schemaName)`<!-- -->. Configure the target PostgreSQL schema via `schemaName` in [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) when calling [getSql()](./sql.md#getsql_e89ea77) (you can also derive modified settings from an existing [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) object via [copySqlServiceSettings()](./sql.md#copysqlservicesettings_e89ea77)<!-- -->; `FirebaseSql` does not expose a `.schema(name)` method).
+
+Read [FirebaseSql.restUrl](./sql.firebasesql.md#firebasesqlresturl) and [FirebaseSql.schemaName](./sql.firebasesql.md#firebasesqlschemaname) to inspect the resolved endpoint URL and active schema. Client-wide static HTTP headers can be configured via [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) while [FirebaseSql.mutable](./sql.firebasesql.md#firebasesqlmutable) is `true` (before the first call to [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->). See [terminate()](./sql.md#terminate_bc2cb94) for shutting down a client and evicting it from the app registry.
+
+Automatically attaches Firebase Authentication ID tokens (`x-firebase-auth-token`<!-- -->, with a single automatic token refresh and retry on HTTP 401 when the authenticated UID is unchanged) and Firebase App Check tokens (`x-firebase-appcheck`<!-- -->) when those services are registered on `app` (including static `authIdToken` and `appCheckToken` credentials configured on a `FirebaseServerApp` via `initializeServerApp`<!-- -->). If App Check cannot obtain a real token, it resolves with a placeholder dummy token sent in `x-firebase-appcheck` (which the backend rejects when App Check is enforced; `x-firebase-appcheck` is omitted only if the App Check provider itself rejects). Auth `getToken()` rejections fail the request. When Auth or App Check has not finished initializing yet, the SDK waits one macrotask (`setTimeout(..., 0)`<!-- -->) for initialization and attaches the token if available; otherwise the request is sent without that token.
 
 The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `FirebaseSql` class.
 
@@ -24,22 +30,24 @@ export declare class FirebaseSql
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [app](./sql.firebasesql.md#firebasesqlapp) |  | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The bound FirebaseApp instance. |
-|  [mutable](./sql.firebasesql.md#firebasesqlmutable) |  | boolean | Returns whether this object is in a "mutable" state, such that mutator methods like <code>setHeaders()</code> are allowed to be invoked.<!-- -->A newly created <code>FirebaseSql</code> instance starts in the "mutable" state and permanently transitions to <code>mutable === false</code> upon the first call to <code>from()</code> or <code>rpc()</code>, or when terminated via <code>terminate()</code> or <code>deleteApp()</code>. Note that <code>getSql()</code> returns cached instances, so <code>mutable</code> will already be <code>false</code> if the cached instance was previously used. |
-|  [restUrl](./sql.firebasesql.md#firebasesqlresturl) |  | string | The URL with which to communicate with the backend Firebase SQL server. |
-|  [schemaName](./sql.firebasesql.md#firebasesqlschemaname) |  | string \| undefined | The name of the schema that is sent over the wire. |
+|  [app](./sql.firebasesql.md#firebasesqlapp) |  | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The bound [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance. |
+|  [mutable](./sql.firebasesql.md#firebasesqlmutable) |  | boolean | Whether this client is still in the mutable configuration state where mutator methods such as [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) are allowed. |
+|  [restUrl](./sql.firebasesql.md#firebasesqlresturl) |  | string | The resolved PostgREST base URL used to communicate with the backend Firebase SQL server. |
+|  [schemaName](./sql.firebasesql.md#firebasesqlschemaname) |  | string \| undefined | The PostgreSQL schema name sent over the wire for queries and RPC calls, or <code>undefined</code> to use the server's default exposed schema. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [from(table)](./sql.firebasesql.md#firebasesqlfrom) |  |  |
-|  [rpc(fn, params, options)](./sql.firebasesql.md#firebasesqlrpc) |  | Calls a Postgres stored procedure or function (RPC).<!-- -->Untyped RPC results default to <code>unknown</code> for type safety. Call <code>.returns&lt;T&gt;()</code> or <code>.overrideTypes&lt;T&gt;()</code> on the returned builder to specify the expected return type. |
-|  [setHeaders(headers)](./sql.firebasesql.md#firebasesqlsetheaders) |  | Sets the headers that will be included on every HTTP request, overwriting any previously-set headers.<!-- -->Throws <code>TypeError</code> if <code>headers</code> contains invalid HTTP header names or values. Throws <code>FirebaseSqlError</code> if this method is called when <code>mutable</code> is <code>false</code> or if the given headers contains one or more reserved headers. |
+|  [from(table)](./sql.firebasesql.md#firebasesqlfrom) |  | Creates a reusable [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) scoped to a PostgreSQL table, view, or materialized view. |
+|  [rpc(fn, params, options)](./sql.firebasesql.md#firebasesqlrpc) |  | Creates a lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) that invokes a PostgreSQL stored function or procedure (<code>RPC</code>). |
+|  [setHeaders(headers)](./sql.firebasesql.md#firebasesqlsetheaders) |  | Sets the client-wide static HTTP headers included on every outgoing request from this client, overwriting any headers set by an earlier <code>setHeaders()</code> call. |
 
 ## FirebaseSql.app
 
-The bound FirebaseApp instance.
+The bound [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance.
+
+Supplies `options.projectId` for endpoint construction as well as optional `appId`<!-- -->, Firebase Authentication, and Firebase App Check providers.
 
 <b>Signature:</b>
 
@@ -49,9 +57,11 @@ readonly app: FirebaseApp;
 
 ## FirebaseSql.mutable
 
-Returns whether this object is in a "mutable" state, such that mutator methods like `setHeaders()` are allowed to be invoked.
+Whether this client is still in the mutable configuration state where mutator methods such as [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) are allowed.
 
-A newly created `FirebaseSql` instance starts in the "mutable" state and permanently transitions to `mutable === false` upon the first call to `from()` or `rpc()`<!-- -->, or when terminated via `terminate()` or `deleteApp()`<!-- -->. Note that `getSql()` returns cached instances, so `mutable` will already be `false` if the cached instance was previously used.
+Starts as `true` on newly created `FirebaseSql` instances and permanently transitions to `false` on the first call to [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->, or when terminated via [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->.
+
+Because [getSql()](./sql.md#getsql_e89ea77) returns cached instances shared per `(app, resolvedEndpointUrl, schemaName)`<!-- -->, `mutable` will already be `false` on a returned instance if it was previously used.
 
 <b>Signature:</b>
 
@@ -61,7 +71,9 @@ get mutable(): boolean;
 
 ## FirebaseSql.restUrl
 
-The URL with which to communicate with the backend Firebase SQL server.
+The resolved PostgREST base URL used to communicate with the backend Firebase SQL server.
+
+Formatted as `{http|https}://{host}[:{port}]/v1/projects/{projectId}/locations/{location}/services/{serviceId}/postgrest`<!-- -->, defaulting to `https` (unless `sslEnabled === false`<!-- -->) and `'firebasedataconnect.googleapis.com'` (when `host` is omitted). The `projectId`<!-- -->, `location`<!-- -->, and `serviceId` path segments are percent-encoded with `encodeURIComponent`<!-- -->.
 
 <b>Signature:</b>
 
@@ -71,7 +83,9 @@ readonly restUrl: string;
 
 ## FirebaseSql.schemaName
 
-The name of the schema that is sent over the wire.
+The PostgreSQL schema name sent over the wire for queries and RPC calls, or `undefined` to use the server's default exposed schema.
+
+Equals `settings.schemaName` passed to [getSql()](./sql.md#getsql_e89ea77)<!-- -->. When defined, sends `Accept-Profile: <schemaName>` on `GET` and `HEAD` requests and `Content-Profile: <schemaName>` on `POST`<!-- -->, `PATCH`<!-- -->, and `DELETE` mutations; when `undefined`<!-- -->, profile headers are omitted so PostgREST uses the server's default schema. Included in the [getSql()](./sql.md#getsql_e89ea77) instance cache key.
 
 <b>Signature:</b>
 
@@ -80,6 +94,16 @@ readonly schemaName: string | undefined;
 ```
 
 ## FirebaseSql.from()
+
+Creates a reusable [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) scoped to a PostgreSQL table, view, or materialized view.
+
+When to use: starting any `SELECT`<!-- -->, `INSERT`<!-- -->, `UPSERT`<!-- -->, `UPDATE`<!-- -->, or `DELETE` chain against a relation in the client's configured PostgreSQL schema ([FirebaseSql.schemaName](./sql.firebasesql.md#firebasesqlschemaname)<!-- -->, or the server default schema when `undefined`<!-- -->). See [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) for available SQL verbs.
+
+Do not use for calling stored functions or procedures (use [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc) instead), passing `<Row>` type generics (`sql.from<EventRow>('events')` is not supported; apply [Builder.returns()](./sql.builder.md#builderreturns) or [Builder.overrideTypes()](./sql.builder.md#builderoverridetypes) later in the chain), or schema-qualifying `table` as `'analytics.events'` (`table` is URI-encoded as a single path segment; configure `schemaName: 'analytics'` in [getSql()](./sql.md#getsql_e89ea77) instead).
+
+Preconditions: this `FirebaseSql` instance must not have been terminated via [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->.
+
+Behavior and side effects: synchronous and performs no network I/O. On the first call to `from()` or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->, this client permanently transitions [FirebaseSql.mutable](./sql.firebasesql.md#firebasesqlmutable) to `false` (locking [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders)<!-- -->) and lazily initializes the underlying PostgREST client along with Firebase Authentication and App Check token listeners. The returned [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) clones URL and header state on each verb call (`select`<!-- -->, `insert`<!-- -->, etc.), so a single `sql.from('events')` reference can be safely stored and reused across concurrent queries. Special URI characters (`/`<!-- -->, `?`<!-- -->, `#`<!-- -->) in `table` are percent-encoded to prevent path traversal.
 
 <b>Signature:</b>
 
@@ -91,17 +115,87 @@ from(table: string): QueryBuilder;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  table | string |  |
+|  table | string | Non-empty PostgreSQL table or view name (must not be <code>'.'</code>, <code>'..'</code>, or blank/whitespace). |
 
 <b>Returns:</b>
 
 [QueryBuilder](./sql.querybuilder.md#querybuilder_interface)
 
+A stateless [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) for starting SQL verb chains on `table`<!-- -->.
+
+#### Exceptions
+
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when called after [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->. Obtain a fresh client via [getSql()](./sql.md#getsql_e89ea77)<!-- -->.
+
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when `table` is `'.'` or `'..'`<!-- -->. Pass a valid PostgreSQL relation identifier.
+
+`Error` Thrown synchronously when `table` is empty (`''`<!-- -->) or whitespace-only. Provide a non-blank table or view name.
+
+### Example 1
+
+Reuse a table `QueryBuilder` across concurrent `Promise.all` reads:
+
+```ts
+const eventsTable = sql.from('events');
+
+const [featuredRes, countRes] = await Promise.all([
+  eventsTable.select('id, code, title').eq('is_featured', true),
+  eventsTable.select('*', { head: true, count: 'exact' }).eq('status', 'published')
+]);
+
+if (featuredRes.success && countRes.success) {
+  console.log(featuredRes.data.length, countRes.count);
+}
+
+```
+
+### Example 2
+
+Perform CRUD operations against a shared table reference:
+
+```ts
+const registrationsTable = sql.from('registrations');
+
+const created = await registrationsTable
+  .insert({
+    event_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+    user_uid: 'uid_carol',
+    attendee_email: 'carol@example.com'
+  })
+  .select('id')
+  .single()
+  .returns<{ id: string }>();
+
+if (created.success) {
+  const checkInRes = await registrationsTable
+    .update({ checked_in_at: '2026-10-15T15:55:00Z' })
+    .eq('id', created.data.id);
+  if (!checkInRes.success) {
+    console.error('Check-in update failed:', checkInRes.error.message);
+  }
+}
+
+```
+
 ## FirebaseSql.rpc()
 
-Calls a Postgres stored procedure or function (RPC).
+Creates a lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) that invokes a PostgreSQL stored function or procedure (`RPC`<!-- -->).
 
-Untyped RPC results default to `unknown` for type safety. Call `.returns<T>()` or `.overrideTypes<T>()` on the returned builder to specify the expected return type.
+When to use: calling custom server-side SQL or PL/pgSQL functions—including multi-statement transactional workflows, server-side aggregations (`remaining_seats`<!-- -->), or set-returning functions (`RETURNS SETOF` / `RETURNS TABLE` such as `list_events_by_city`<!-- -->) whose output rows need further PostgREST filtering, ordering, or pagination.
+
+Do not use for standard single-table CRUD operations; prefer [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom)<!-- -->.
+
+Preconditions: this `FirebaseSql` instance must not have been terminated via [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->. `Args` must be a plain non-iterable key-value object matching the PostgreSQL function's named parameter names (arrays cannot be passed as the top-level `params` argument; wrap array parameters inside an object key, such as `{ target_tags: ['firebase', 'ai'] }`<!-- -->).
+
+Behavior and side effects: builder progression is `FirebaseSql -> FilterBuilder<unknown, 'RPC', false>`<!-- -->. On the first call to `rpc()` or [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom)<!-- -->, this client permanently transitions [FirebaseSql.mutable](./sql.firebasesql.md#firebasesqlmutable) to `false` (locking [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders)<!-- -->) and lazily initializes the underlying PostgREST client along with Firebase Authentication and App Check token listeners. No HTTP request is sent until the returned builder is `await`<!-- -->ed or `.then()` is invoked. Each `await` or `.then()` call sends a new HTTP request (results are not cached); awaiting the same `rpc()` builder twice executes the function twice and duplicates side effects for write functions, so await each mutation RPC builder at most once.
+
+Defaults to `POST /rpc/{fn}` with JSON body `params ?? {}` (omit `params` for zero-argument functions: `sql.rpc('fn')`<!-- -->). Set `options.get: true` in [FirebaseSqlRpcOptions](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptions_interface) for read-only functions to use `GET` with query parameters (enabling automatic transient-error retries). Functions declared `RETURNS void` resolve with HTTP `204` and `data: null`<!-- -->.
+
+Untyped `data` defaults to `unknown`<!-- -->. `<Args>` types input `params` only—chain [.returns()](./sql.transformbuilder.md#transformbuilderreturns) (or [Builder.returns()](./sql.builder.md#builderreturns) after `.single()` / `.maybeSingle()`<!-- -->) to assign a full static return type to `result.data`<!-- -->, or chain [.overrideTypes()](./sql.builder.md#builderoverridetypes) when partially refining fields on a typed row.
+
+For set-returning functions (`RETURNS SETOF` / `RETURNS TABLE`<!-- -->), you can chain [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) filters (`.eq()`<!-- -->, `.overlaps()`<!-- -->), [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) modifiers (`.select()`<!-- -->, `.order()`<!-- -->, `.limit()`<!-- -->, `.single()`<!-- -->, `.maxAffected()`<!-- -->), and [Builder](./sql.builder.md#builder_interface) modifiers before awaiting.
+
+Error handling: resolves to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) (`{ success: false, error: FirebaseSqlError }`<!-- -->) on HTTP, PostgREST (`'sql-postgrest'`<!-- -->, such as `'PGRST202'` when function signature or parameter names do not match), gateway (`'sql-platform'`<!-- -->), or network (`'sql-client'`<!-- -->) failures. Chain [Builder.throwOnError()](./sql.builder.md#builderthrowonerror) to reject with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) instead.
 
 <b>Signature:</b>
 
@@ -117,19 +211,117 @@ rpc<Args extends object & {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fn | string | The function name to call. |
-|  params | Args \| undefined | Named arguments to pass to the function. |
-|  options | Readonly&lt;[FirebaseSqlRpcOptions](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptions_interface)<!-- -->&gt; \| undefined | Execution options. |
+|  fn | string | PostgreSQL function name in the active schema ([FirebaseSql.schemaName](./sql.firebasesql.md#firebasesqlschemaname)<!-- -->, or the server default schema when <code>undefined</code>; must not be <code>'.'</code> or <code>'..'</code>; special URI characters are percent-encoded). |
+|  params | Args \| undefined | Named arguments object passed to the PostgreSQL function. In <code>POST</code> mode, serialized with <code>JSON.stringify</code> (<code>bigint</code> values serialize via <code>.toString()</code>, <code>undefined</code> properties and functions are omitted, <code>NaN</code>/<code>Infinity</code> serialize as <code>null</code>, <code>Date</code> serializes to ISO-8601, and circular references resolve at <code>await</code> time as <code>res.status === 0</code>, <code>res.error.category === 'sql-client'</code>, <code>res.error.code === 'other'</code>). |
+|  options | Readonly&lt;[FirebaseSqlRpcOptions](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptions_interface)<!-- -->&gt; \| undefined | HTTP verb (<code>get</code>, <code>head</code>) and <code>count</code> configuration. See [FirebaseSqlRpcOptions](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptions_interface)<!-- -->. |
 
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;unknown, 'RPC'&gt;
 
+A lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) with untyped result `unknown` and method tag `'RPC'`<!-- -->.
+
+#### Exceptions
+
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when called after [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->. Re-initialize a client with [getSql()](./sql.md#getsql_e89ea77)<!-- -->.
+
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when `fn` is `'.'` or `'..'`<!-- -->. Pass a valid PostgreSQL function name.
+
+### Example 1
+
+Full RPC verb chain on a set-returning function (`RETURNS SETOF events`<!-- -->):
+
+```ts
+interface EventRow {
+  id: string;
+  venue_id: string | null;
+  code: string;
+  title: string;
+  status: 'draft' | 'published' | 'cancelled' | 'archived';
+  is_featured: boolean;
+  ticket_price: number;
+  tags: string[];
+  metadata: Record<string, unknown>;
+  schedule: string;
+  created_at: string;
+}
+
+const cityEvents = await sql
+  .rpc('list_events_by_city', { target_city: 'Seattle' }, { get: true, count: 'exact' })
+  .eq('status', 'published')
+  .overlaps('tags', ['firebase', 'postgres'])
+  .order('ticket_price', { ascending: true })
+  .limit(10)
+  .returns<EventRow[]>();
+
+if (!cityEvents.success) {
+  console.error(cityEvents.error.code, cityEvents.error.hint);
+} else {
+  console.log(`Showing ${cityEvents.data.length} of ${cityEvents.count} events`);
+}
+
+```
+
+### Example 2
+
+Scalar read-only RPC returning a primitive value (`{ get: true }`<!-- -->):
+
+```ts
+const seatsRes = await sql
+  .rpc(
+    'remaining_seats',
+    { target_event_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8' },
+    { get: true }
+  )
+  .returns<number>();
+
+if (seatsRes.success) {
+  console.log('Remaining seats:', seatsRes.data);
+}
+
+```
+
+### Example 3
+
+Set-returning RPC sent via default `POST` JSON body with `.throwOnError()`<!-- -->:
+
+```ts
+const { data } = await sql
+  .rpc('list_events_by_city', { target_city: 'San Francisco' })
+  .select('id, code, title')
+  .returns<Array<{ id: string; code: string; title: string }>>()
+  .throwOnError();
+
+```
+
+### Example 4
+
+Count-only `HEAD` RPC check (`data` resolves to `null`<!-- -->):
+
+```ts
+const headRes = await sql.rpc(
+  'list_events_by_city',
+  { target_city: 'Seattle' },
+  { head: true, count: 'exact' }
+);
+
+if (headRes.success && headRes.count !== null) {
+  console.log('Matching Seattle events:', headRes.count);
+}
+
+```
+
 ## FirebaseSql.setHeaders()
 
-Sets the headers that will be included on every HTTP request, overwriting any previously-set headers.
+Sets the client-wide static HTTP headers included on every outgoing request from this client, overwriting any headers set by an earlier `setHeaders()` call.
 
-Throws `TypeError` if `headers` contains invalid HTTP header names or values. Throws `FirebaseSqlError` if this method is called when `mutable` is `false` or if the given headers contains one or more reserved headers.
+When to use: configuring shared custom HTTP headers (such as tenant, locale, or correlation headers) while [FirebaseSql.mutable](./sql.firebasesql.md#firebasesqlmutable) is `true`<!-- -->, before calling [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->. Use [Builder.setHeader()](./sql.builder.md#buildersetheader) to attach or override a header for a single request; a same-named header passed to `Builder.setHeader()` overrides the client-level header for that request.
+
+Behavior and side effects: accepts any `HeadersInit` (`Record<string, string>`<!-- -->, `[string, string][]`<!-- -->, or `Headers`<!-- -->), defensively copies it into a new `Headers` instance (so mutating the caller's object, array, or `Headers` afterward has no effect), and replaces—rather than merges with—any previously set client headers.
+
+Validation and error precedence: `headers` is parsed (`new Headers(headers)`<!-- -->) and checked for protected header names synchronously \*\*before\*\* checking client lifecycle state (`mutable` or terminated). A failing call leaves [FirebaseSql.mutable](./sql.firebasesql.md#firebasesqlmutable) and any previously set headers unchanged.
+
+Disallowed headers: do not pass authentication, App Check, or reserved Firebase telemetry and routing headers (`Authorization`<!-- -->, `x-firebase-auth-token`<!-- -->, `x-firebase-appcheck`<!-- -->, `x-goog-api-client`<!-- -->, `x-client-version`<!-- -->, `x-firebase-gmpid`<!-- -->, `x-firebase-client`<!-- -->, `x-firebase-client-log-type`<!-- -->, `x-goog-request-params`<!-- -->, `x-firebase-sqlconnect-affinity`<!-- -->), matched trimmed and case-insensitively. Firebase Auth and App Check tokens are attached automatically when configured on [FirebaseSql.app](./sql.firebasesql.md#firebasesqlapp)<!-- -->.
 
 <b>Signature:</b>
 
@@ -141,9 +333,72 @@ setHeaders(headers: HeadersInit): void;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  headers | HeadersInit | The headers to set. |
+|  headers | HeadersInit | Static HTTP headers (<code>Record&lt;string, string&gt;</code>, <code>[string, string][]</code>, or <code>Headers</code>) to include on every outgoing request. |
 
 <b>Returns:</b>
 
 void
+
+#### Exceptions
+
+`TypeError` Thrown synchronously if `headers` is a malformed `HeadersInit` or contains invalid HTTP header names or values rejected by the Fetch `Headers` constructor (for example, spaces in header names, CR/LF, or non-Latin-1 characters). Evaluated before lifecycle state checks.
+
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously if any header name (trimmed, case-insensitive) matches a protected auth, App Check, or Firebase telemetry/routing header (`Authorization`<!-- -->, `x-firebase-auth-token`<!-- -->, `x-firebase-appcheck`<!-- -->, `x-goog-api-client`<!-- -->, `x-client-version`<!-- -->, `x-firebase-gmpid`<!-- -->, `x-firebase-client`<!-- -->, `x-firebase-client-log-type`<!-- -->, `x-goog-request-params`<!-- -->, `x-firebase-sqlconnect-affinity`<!-- -->). Evaluated before lifecycle state checks.
+
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`already-initialized`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously if [FirebaseSql.mutable](./sql.firebasesql.md#firebasesqlmutable) is `false` because [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc) has already been called on this client.
+
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously if this client has been terminated via [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->.
+
+### Example
+
+Configure client-wide headers before executing queries, overriding per-request as needed:
+
+```ts
+import { getSql } from 'firebase/sql';
+
+const sql = getSql({
+  serviceId: 'events-db',
+  location: 'us-central1'
+});
+
+if (sql.mutable) {
+  sql.setHeaders({
+    'x-app-locale': 'en-US',
+    'x-client-session': 'sess-42'
+  });
+}
+
+// Overwrites previous client headers with only 'x-app-locale'
+sql.setHeaders([['x-app-locale', 'fr-FR']]);
+
+// First from() call locks setHeaders() (sql.mutable becomes false)
+const res = await sql
+  .from('events')
+  .select('id, title')
+  .setHeader('x-app-locale', 'de-DE'); // Overrides for this request only
+
+```
+
+### Example
+
+Query a table and invoke a stored function using a `FirebaseSql` client:
+
+```ts
+import { getSql, type FirebaseSql } from 'firebase/sql';
+
+const sql: FirebaseSql = getSql({
+  serviceId: 'events-db',
+  location: 'us-central1'
+});
+
+const venuesRes = await sql.from('venues').select('id, slug, name, city');
+const seatsRes = await sql
+  .rpc('remaining_seats', { target_event_id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8' }, { get: true })
+  .returns<number>();
+
+if (venuesRes.success && seatsRes.success) {
+  console.log(venuesRes.data.length, seatsRes.data);
+}
+
+```
 
