@@ -117,7 +117,7 @@ export class FirebaseSql {
     this._state = {
       name: 'mutable',
       instanceIdentifier,
-      headers: Object.freeze({}),
+      headers: new Headers(),
       authProvider,
       appCheckProvider
     };
@@ -171,14 +171,15 @@ export class FirebaseSql {
    * Sets the headers that will be included on every HTTP request,
    * overwriting any previously-set headers.
    *
-   * Throws `FirebaseSqlError` if this method is called when `mutable`
-   * is `false` or if the given headers contains one or more
-   * reserved headers.
+   * Throws `TypeError` if `headers` contains invalid HTTP header names or
+   * values. Throws `FirebaseSqlError` if this method is called when `mutable`
+   * is `false` or if the given headers contains one or more reserved headers.
    *
    * @param headers The headers to set.
    */
-  setHeaders(headers: Record<string, string>): void {
-    validateHeaders(headers);
+  setHeaders(headers: HeadersInit): void {
+    const headersCopy = new Headers(headers);
+    validateHeaders(headersCopy);
 
     if (this._state.name === 'immutable') {
       throw new FirebaseSqlError(
@@ -197,7 +198,7 @@ export class FirebaseSql {
       );
     }
 
-    this._state.headers = Object.freeze({ ...headers });
+    this._state.headers = headersCopy;
   }
 
   private _getFirebaseSqlStateImmutableOrThrow(): FirebaseSqlStateImmutable {
@@ -440,7 +441,7 @@ type FirebaseSqlState =
 interface FirebaseSqlStateMutable {
   name: 'mutable';
   instanceIdentifier: string;
-  headers: Readonly<Record<string, string>>;
+  headers: Headers;
   authProvider: Provider<FirebaseAuthInternalName>;
   appCheckProvider: Provider<AppCheckInternalComponentName>;
 }

@@ -58,7 +58,7 @@ const defaultSettings: SqlServiceSettings = {
 
 interface FirebaseSqlWithInternals {
   _state:
-    | { name: 'mutable'; headers: Readonly<Record<string, string>> }
+    | { name: 'mutable'; headers: Headers }
     | { name: 'immutable'; context: FirebaseSqlContext }
     | { name: 'terminated' };
 }
@@ -415,6 +415,209 @@ describe('FirebaseSql', () => {
         FirebaseSqlErrorCategory.SQL_CLIENT
       );
     });
+
+    it('accepts Headers instances and [string, string][] tuple arrays, defensively copies them, and rejects disallowed headers', async () => {
+      const app = initializeApp({ projectId: 'proj-1' });
+
+      // 1. Headers instance input
+      const sqlWithHeaders = FirebaseSql.getSql(app, {
+        serviceId: 'svc-headers-instance',
+        location: 'us-central1'
+      });
+      const callerHeaders = new Headers({ 'X-From-Headers': 'h1' });
+      sqlWithHeaders.setHeaders(callerHeaders);
+      // Mutating caller's Headers instance after setHeaders() must not affect outgoing requests.
+      callerHeaders.set('X-From-Headers', 'mutated');
+      callerHeaders.set('X-Late-Header', 'late');
+
+      // 2. Tuple array input
+      const sqlWithTuples = FirebaseSql.getSql(app, {
+        serviceId: 'svc-tuple-array',
+        location: 'us-central1'
+      });
+      const callerTupleFirst: [string, string] = ['X-From-Tuple', 't1'];
+      const callerTuples: Array<[string, string]> = [
+        callerTupleFirst,
+        ['X-Second-Tuple', 't2']
+      ];
+      sqlWithTuples.setHeaders(callerTuples);
+      // Mutating caller's tuple array after setHeaders() must not affect outgoing requests.
+      callerTupleFirst[1] = 'mutated';
+      callerTuples.push(['X-Late-Tuple', 'late']);
+
+      const mockFetch = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(new Response('[]', { status: 200 }))
+        .mockResolvedValueOnce(new Response('[]', { status: 200 }));
+      vi.stubGlobal('fetch', mockFetch);
+
+      await sqlWithHeaders.from('users').select();
+      await sqlWithTuples.from('users').select();
+
+      const wireFromHeaders = mockFetch.mock.calls[0][1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(wireFromHeaders['x-from-headers']).toBe('h1');
+      expect(wireFromHeaders['x-late-header']).toBeUndefined();
+
+      const wireFromTuples = mockFetch.mock.calls[1][1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(wireFromTuples['x-from-tuple']).toBe('t1');
+      expect(wireFromTuples['x-second-tuple']).toBe('t2');
+      expect(wireFromTuples['x-late-tuple']).toBeUndefined();
+
+      // 3. Rejects disallowed headers inside Headers instance or tuple array
+      const sqlMutable = FirebaseSql.getSql(app, {
+        serviceId: 'svc-disallowed-variants',
+        location: 'us-central1'
+      });
+      for (const key of LOWERCASE_DISALLOWED_HEADER_KEYS) {
+        const upperKey = key.toUpperCase();
+
+        let errHeaders: unknown;
+        try {
+          sqlMutable.setHeaders(new Headers({ [upperKey]: 'blocked' }));
+        } catch (err) {
+          errHeaders = err;
+        }
+        expect(errHeaders).toBeInstanceOf(FirebaseSqlError);
+        expect((errHeaders as FirebaseSqlError).code).toBe(
+          Code.INVALID_ARGUMENT
+        );
+        expect((errHeaders as FirebaseSqlError).category).toBe(
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        );
+
+        let errTuples: unknown;
+        try {
+          sqlMutable.setHeaders([[upperKey, 'blocked']]);
+        } catch (err) {
+          errTuples = err;
+        }
+        expect(errTuples).toBeInstanceOf(FirebaseSqlError);
+        expect((errTuples as FirebaseSqlError).code).toBe(
+          Code.INVALID_ARGUMENT
+        );
+        expect((errTuples as FirebaseSqlError).category).toBe(
+          FirebaseSqlErrorCategory.SQL_CLIENT
+        );
+      }
+      expect(sqlMutable.mutable).toBe(true);
+    });
+
+    it('propagates TypeError synchronously on invalid HTTP header names/values or malformed inputs while preserving mutable state and prior headers', async () => {
+      const app = initializeApp({ projectId: 'proj-1' });
+      const sql = FirebaseSql.getSql(app, defaultSettings);
+      sql.setHeaders({ 'X-Preserved': 'still-here' });
+
+      const invalidInputs: HeadersInit[] = [
+        { 'Invalid Header': 'val' },
+        { 'X-Val': 'a\nb' },
+        null as unknown as HeadersInit
+      ];
+
+      for (const badInput of invalidInputs) {
+        expect(() => sql.setHeaders(badInput)).toThrow(TypeError);
+        expect(sql.mutable).toBe(true);
+      }
+
+      const mockFetch = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(new Response('[]', { status: 200 }));
+      vi.stubGlobal('fetch', mockFetch);
+
+      await sql.from('users').select();
+      const wireHeaders = mockFetch.mock.calls[0][1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(wireHeaders['x-preserved']).toBe('still-here');
+    });
+
+    it('copies and validates headers before checking client lifecycle state, coercing stateful objects only once', async () => {
+      const app = initializeApp({ projectId: 'proj-1' });
+      const sql = FirebaseSql.getSql(app, defaultSettings);
+
+      let keyCoercions = 0;
+      let valCoercions = 0;
+      const statefulKey = {
+        toString(): string {
+          keyCoercions += 1;
+          return keyCoercions === 1 ? 'X-Allowed' : 'Authorization';
+        }
+      };
+      const statefulVal = {
+        toString(): string {
+          valCoercions += 1;
+          return valCoercions === 1 ? 'safe-value' : 'mutated-value';
+        }
+      };
+
+      const dynamicHeaders = [
+        [statefulKey as unknown as string, statefulVal as unknown as string]
+      ] as Array<[string, string]>;
+      sql.setHeaders(dynamicHeaders);
+      expect(keyCoercions).toBe(1);
+      expect(valCoercions).toBe(1);
+
+      const mockFetch = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(new Response('[]', { status: 200 }));
+      vi.stubGlobal('fetch', mockFetch);
+
+      // Transition to immutable state and verify wire headers
+      await sql.from('users').select();
+      expect(keyCoercions).toBe(1);
+      expect(valCoercions).toBe(1);
+      const wireHeaders = mockFetch.mock.calls[0][1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(wireHeaders['x-allowed']).toBe('safe-value');
+
+      // When client is immutable, invalid HTTP header syntax still throws TypeError
+      // and disallowed headers still throw INVALID_ARGUMENT before ALREADY_INITIALIZED.
+      expect(sql.mutable).toBe(false);
+      expect(() => sql.setHeaders({ 'Invalid Header': 'val' })).toThrow(
+        TypeError
+      );
+      let immutableDisallowedErr: unknown;
+      try {
+        sql.setHeaders({ Authorization: 'Bearer tok' });
+      } catch (err) {
+        immutableDisallowedErr = err;
+      }
+      expect(immutableDisallowedErr).toBeInstanceOf(FirebaseSqlError);
+      expect((immutableDisallowedErr as FirebaseSqlError).code).toBe(
+        Code.INVALID_ARGUMENT
+      );
+      expect((immutableDisallowedErr as FirebaseSqlError).category).toBe(
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+
+      // When client is terminated, invalid HTTP header syntax still throws TypeError
+      // and disallowed headers still throw INVALID_ARGUMENT before NOT_INITIALIZED.
+      await FirebaseSql.terminate(sql);
+      expect(() => sql.setHeaders({ 'Invalid Header': 'val' })).toThrow(
+        TypeError
+      );
+      let terminatedDisallowedErr: unknown;
+      try {
+        sql.setHeaders({ Authorization: 'Bearer tok' });
+      } catch (err) {
+        terminatedDisallowedErr = err;
+      }
+      expect(terminatedDisallowedErr).toBeInstanceOf(FirebaseSqlError);
+      expect((terminatedDisallowedErr as FirebaseSqlError).code).toBe(
+        Code.INVALID_ARGUMENT
+      );
+      expect((terminatedDisallowedErr as FirebaseSqlError).category).toBe(
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+    });
   });
 });
 
@@ -763,7 +966,7 @@ describe('getSql()', () => {
       ).not.toBe(baseClient);
     });
 
-    it('shares client headers and mutable state across cached getSql() lookups', () => {
+    it('shares client headers and mutable state across cached getSql() lookups', async () => {
       const client1 = FirebaseSql.getSql(app, {
         serviceId: 'my-service',
         location: 'us-central1'
@@ -779,14 +982,22 @@ describe('getSql()', () => {
       expect(client2.mutable).toBe(true);
 
       client2.setHeaders({ 'X-Two': '2' });
-      const internals = client1 as unknown as FirebaseSqlWithInternals;
-      expect(internals._state.name).toBe('mutable');
-      if (internals._state.name === 'mutable') {
-        expect(internals._state.headers).toEqual({ 'X-Two': '2' });
+      const mockFetch = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(new Response('[]', { status: 200 }));
+      vi.stubGlobal('fetch', mockFetch);
+      try {
+        await client1.from('users').select();
+      } finally {
+        vi.unstubAllGlobals();
       }
-
-      client1.from('users');
       expect(client2.mutable).toBe(false);
+      const wireHeaders = mockFetch.mock.calls[0][1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(wireHeaders['x-one']).toBeUndefined();
+      expect(wireHeaders['x-two']).toBe('2');
     });
   });
 });
