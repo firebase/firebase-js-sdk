@@ -503,6 +503,24 @@ describe('SessionSampler', () => {
       }
     });
 
+    it('skips checking debug override once a session is forced', () => {
+      sessionStorage.setItem(SESSION_STORAGE_DEBUG_KEY, 'true');
+      const { sampler } = createSampler({ samplingRate: 0.5 }, SESSION_HIGH);
+      const getItemSpy = vi.spyOn(Storage.prototype, 'getItem');
+      try {
+        expect(sampler.getDecision().forced).toBe(true);
+        const initialReads = getItemSpy.mock.calls.length;
+        expect(initialReads).toBeGreaterThan(0);
+
+        // Once forced, later calls return cached without reading sessionStorage again.
+        expect(sampler.getDecision().forced).toBe(true);
+        expect(sampler.getDecision().forced).toBe(true);
+        expect(getItemSpy).toHaveBeenCalledTimes(initialReads);
+      } finally {
+        getItemSpy.mockRestore();
+      }
+    });
+
     it('does not refresh the config for decisions made without the debug override', () => {
       const { sampler, store } = createSampler(
         { samplingRate: 0, enabled: false },

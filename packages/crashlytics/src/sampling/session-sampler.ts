@@ -113,10 +113,13 @@ export class SessionSampler {
    */
   getDecision(): SamplingDecision {
     const sessionId = this._attributesStore.sessionId;
-    const debug = isTelemetryDebugEnabled();
     const cached = this._cachedDecision(sessionId);
+    if (cached?.forced) {
+      return cached;
+    }
 
-    if (cached && (cached.forced || !debug)) {
+    const debug = isTelemetryDebugEnabled();
+    if (cached && !debug) {
       return cached;
     }
 
