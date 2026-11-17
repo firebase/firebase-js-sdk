@@ -25,7 +25,9 @@ export declare class FirebaseSql
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [app](./sql.firebasesql.md#firebasesqlapp) |  | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The bound FirebaseApp instance. |
-|  [settings](./sql.firebasesql.md#firebasesqlsettings) |  | [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Resolved configuration settings. |
+|  [mutable](./sql.firebasesql.md#firebasesqlmutable) |  | boolean | Returns whether this object is in a "mutable" state, such that mutator methods like <code>setHeaders()</code> are allowed to be invoked.<!-- -->A newly created <code>FirebaseSql</code> instance starts in the "mutable" state and permanently transitions to <code>mutable === false</code> upon the first call to <code>from()</code> or <code>rpc()</code>, or when terminated via <code>terminate()</code> or <code>deleteApp()</code>. Note that <code>getSql()</code> returns cached instances, so <code>mutable</code> will already be <code>false</code> if the cached instance was previously used. |
+|  [restUrl](./sql.firebasesql.md#firebasesqlresturl) |  | string | The URL with which to communicate with the backend Firebase SQL server. |
+|  [schemaName](./sql.firebasesql.md#firebasesqlschemaname) |  | string \| undefined | The name of the schema that is sent over the wire. |
 
 ## Methods
 
@@ -33,6 +35,7 @@ export declare class FirebaseSql
 |  --- | --- | --- |
 |  [from(table)](./sql.firebasesql.md#firebasesqlfrom) |  |  |
 |  [rpc(fn, params, options)](./sql.firebasesql.md#firebasesqlrpc) |  | Calls a Postgres stored procedure or function (RPC).<!-- -->Untyped RPC results default to <code>unknown</code> for type safety. Call <code>.returns&lt;T&gt;()</code> or <code>.overrideTypes&lt;T&gt;()</code> on the returned builder to specify the expected return type. |
+|  [setHeaders(headers)](./sql.firebasesql.md#firebasesqlsetheaders) |  | Sets the headers that will be included on every HTTP request, overwriting any previously-set headers.<!-- -->Throws <code>TypeError</code> if <code>headers</code> contains invalid HTTP header names or values. Throws <code>FirebaseSqlError</code> if this method is called when <code>mutable</code> is <code>false</code> or if the given headers contains one or more reserved headers. |
 
 ## FirebaseSql.app
 
@@ -44,14 +47,36 @@ The bound FirebaseApp instance.
 readonly app: FirebaseApp;
 ```
 
-## FirebaseSql.settings
+## FirebaseSql.mutable
 
-Resolved configuration settings.
+Returns whether this object is in a "mutable" state, such that mutator methods like `setHeaders()` are allowed to be invoked.
+
+A newly created `FirebaseSql` instance starts in the "mutable" state and permanently transitions to `mutable === false` upon the first call to `from()` or `rpc()`<!-- -->, or when terminated via `terminate()` or `deleteApp()`<!-- -->. Note that `getSql()` returns cached instances, so `mutable` will already be `false` if the cached instance was previously used.
 
 <b>Signature:</b>
 
 ```typescript
-readonly settings: SqlServiceSettings;
+get mutable(): boolean;
+```
+
+## FirebaseSql.restUrl
+
+The URL with which to communicate with the backend Firebase SQL server.
+
+<b>Signature:</b>
+
+```typescript
+readonly restUrl: string;
+```
+
+## FirebaseSql.schemaName
+
+The name of the schema that is sent over the wire.
+
+<b>Signature:</b>
+
+```typescript
+readonly schemaName: string | undefined;
 ```
 
 ## FirebaseSql.from()
@@ -99,4 +124,26 @@ rpc<Args extends object & {
 <b>Returns:</b>
 
 [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->&lt;unknown, 'RPC'&gt;
+
+## FirebaseSql.setHeaders()
+
+Sets the headers that will be included on every HTTP request, overwriting any previously-set headers.
+
+Throws `TypeError` if `headers` contains invalid HTTP header names or values. Throws `FirebaseSqlError` if this method is called when `mutable` is `false` or if the given headers contains one or more reserved headers.
+
+<b>Signature:</b>
+
+```typescript
+setHeaders(headers: HeadersInit): void;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  headers | HeadersInit | The headers to set. |
+
+<b>Returns:</b>
+
+void
 

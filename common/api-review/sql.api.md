@@ -169,27 +169,27 @@ export type FilterTextSearchType = 'plain' | 'phrase' | 'websearch';
 // @public
 export class FirebaseSql {
     // @internal
-    constructor(
-    app: FirebaseApp,
-    settings: SqlServiceSettings,
-    _instanceIdentifier: string,
-    authInternalProvider: Provider<FirebaseAuthInternalName>,
-    appCheckInternalProvider: Provider<AppCheckInternalComponentName>);
+    constructor(parameters: {
+        app: FirebaseApp;
+        settings: SqlServiceSettings;
+        instanceIdentifier: string;
+        authProvider: Provider<FirebaseAuthInternalName>;
+        appCheckProvider: Provider<AppCheckInternalComponentName>;
+    });
     readonly app: FirebaseApp;
-    // @internal (undocumented)
+    // @internal
     _delete(): Promise<void>;
     // (undocumented)
     from(table: string): QueryBuilder;
-    // @internal (undocumented)
-    readonly _instanceIdentifier: string;
-    // @internal (undocumented)
-    readonly _postgrestUrl: string;
+    get mutable(): boolean;
+    readonly restUrl: string;
     rpc<Args extends object & {
         readonly [K in keyof Args]: unknown;
     } & {
         readonly [Symbol.iterator]?: never;
     } = Record<string, unknown>>(fn: string, params?: Args | undefined, options?: Readonly<FirebaseSqlRpcOptions> | undefined): FilterBuilder<unknown, 'RPC'>;
-    readonly settings: SqlServiceSettings;
+    readonly schemaName: string | undefined;
+    setHeaders(headers: HeadersInit): void;
 }
 
 // @public
@@ -396,7 +396,6 @@ export type Simplify<T> = T extends object ? {
 
 // @public
 export interface SqlServiceSettings {
-    headers?: Record<string, string> | undefined;
     host?: string | undefined;
     location: string;
     port?: number | undefined;
