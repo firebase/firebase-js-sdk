@@ -18,12 +18,16 @@
 import {
   addHelpers,
   assignPartType,
-  formatBlockErrorMessage
+  formatBlockErrorMessage,
+  getFunctionCalls,
+  getInlineDataParts,
+  getText
 } from './response-helpers';
 import {
   BlockReason,
   Content,
   FinishReason,
+  GenerateContentCandidate,
   GenerateContentResponse,
   InlineDataPart,
   FunctionCallPart,
@@ -286,6 +290,25 @@ describe('response-helpers methods', () => {
       expect(enhancedResponse.functionCalls()).to.be.undefined;
       expect(enhancedResponse.inlineDataParts()).to.be.undefined;
     });
+  });
+  describe('responses without a usable first candidate', () => {
+    const responses: Record<string, GenerateContentResponse> = {
+      'candidates is undefined': {},
+      'candidates is empty': { candidates: [] },
+      'first candidate has no content': {
+        candidates: [{ index: 0 } as GenerateContentCandidate]
+      },
+      'content has no parts': {
+        candidates: [{ index: 0, content: { role: 'model' } as Content }]
+      }
+    };
+    for (const [name, response] of Object.entries(responses)) {
+      it(`returns empty results when ${name}`, () => {
+        expect(getText(response, () => true)).to.equal('');
+        expect(getFunctionCalls(response)).to.be.undefined;
+        expect(getInlineDataParts(response)).to.be.undefined;
+      });
+    }
   });
   describe('getBlockString', () => {
     it('has no promptFeedback or bad finishReason', async () => {
