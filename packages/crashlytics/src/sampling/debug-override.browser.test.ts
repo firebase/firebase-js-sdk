@@ -19,7 +19,11 @@ import {
   SESSION_STORAGE_DEBUG_KEY,
   TELEMETRY_DEBUG_GLOBAL_FLAG
 } from '../constants';
-import { isTelemetryDebugEnabled } from './debug-override';
+import {
+  isGlobalTelemetryDebugEnabled,
+  isTelemetryDebugEnabled,
+  observeTelemetryDebugQueryParam
+} from './debug-override';
 
 describe('isTelemetryDebugEnabled', () => {
   beforeEach(() => {
@@ -69,5 +73,44 @@ describe('isTelemetryDebugEnabled', () => {
   it('ignores other values of the query parameter', () => {
     expect(isTelemetryDebugEnabled('?firebase_telemetry_debug=1')).toBe(false);
     expect(sessionStorage.getItem(SESSION_STORAGE_DEBUG_KEY)).toBeNull();
+  });
+
+  it('mirrors sessionStorage and query param state into the global flag', () => {
+    sessionStorage.setItem(SESSION_STORAGE_DEBUG_KEY, 'true');
+    expect(isGlobalTelemetryDebugEnabled()).toBe(false);
+    expect(isTelemetryDebugEnabled('')).toBe(true);
+    expect(isGlobalTelemetryDebugEnabled()).toBe(true);
+  });
+});
+
+describe('observeTelemetryDebugQueryParam', () => {
+  const originalUrl = window.location.href;
+
+  beforeEach(() => {
+    sessionStorage.clear();
+    delete (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG];
+  });
+
+  afterEach(() => {
+    window.history.replaceState(null, '', originalUrl);
+    sessionStorage.clear();
+    delete (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG];
+  });
+
+  it('enables the global flag when popstate navigates to a debug query parameter and unsubscribes cleanly', () => {
+    const unsubscribe = observeTelemetryDebugQueryParam();
+    expect(isGlobalTelemetryDebugEnabled()).toBe(false);
+
+    window.history.replaceState(null, '', '?firebase_telemetry_debug=true');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    expect(isGlobalTelemetryDebugEnabled()).toBe(true);
+    expect(sessionStorage.getItem(SESSION_STORAGE_DEBUG_KEY)).toBe('true');
+
+    // After unsubscribing and resetting state, popstate no longer flips the flag.
+    unsubscribe();
+    sessionStorage.clear();
+    delete (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG];
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    expect(isGlobalTelemetryDebugEnabled()).toBe(false);
   });
 });

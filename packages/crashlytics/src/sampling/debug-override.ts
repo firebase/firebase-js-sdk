@@ -22,16 +22,29 @@ import {
 } from '../constants';
 
 /**
- * Returns whether the telemetry debug override is active, forcing 100% telemetry collection
- * (stamped with `session.sampling.rate = 1.0` and `session.sampling.forced = true`) for this
- * browser session regardless of the configured sampling rate, including `0.0`. The override doesn't
- * apply when telemetry collection is disabled.
+ * Returns whether the in-memory `FIREBASE_TELEMETRY_DEBUG` global flag is active.
  *
- * The override is enabled by any of:
- * - `self.FIREBASE_TELEMETRY_DEBUG = true` (set by a developer in code or the dev console),
- * - a `?firebase_telemetry_debug=true` query parameter on the page URL, which is then persisted
- *   in `sessionStorage` so it stays active for the lifetime of the browser session,
- * - the persisted `sessionStorage` marker from a previous page load in the same session.
+ * This does not read `sessionStorage` or parse `location.search`, so it can be called on every
+ * sampling decision without synchronous storage or URL parsing overhead.
+ *
+ * @internal
+ */
+export function isGlobalTelemetryDebugEnabled(): boolean {
+  const globalFlag = (globalThis as unknown as Record<string, unknown>)[
+    TELEMETRY_DEBUG_GLOBAL_FLAG
+  ];
+  return globalFlag === true || globalFlag === 'true';
+}
+
+/**
+ * Checks whether the telemetry debug override is active from the global flag, persisted
+ * `sessionStorage` marker, or URL query parameter (`?firebase_telemetry_debug=true`).
+ *
+ * When enabled via `sessionStorage` or the query parameter, this also sets
+ * `FIREBASE_TELEMETRY_DEBUG = true` in memory (and persists the query parameter in `sessionStorage`
+ * so it survives full-page reloads/navigations before an export occurs). Subsequent per-decision
+ * checks can then inspect {@link isGlobalTelemetryDebugEnabled} alone.
+ *
  * @param search - The page's query string. Defaults to `location.search`; exposed for tests.
  *
  * @internal
@@ -41,10 +54,7 @@ export function isTelemetryDebugEnabled(
     ? location.search
     : undefined
 ): boolean {
-  const globalFlag = (globalThis as unknown as Record<string, unknown>)[
-    TELEMETRY_DEBUG_GLOBAL_FLAG
-  ];
-  if (globalFlag === true || globalFlag === 'true') {
+  if (isGlobalTelemetryDebugEnabled()) {
     return true;
   }
 
@@ -54,6 +64,9 @@ export function isTelemetryDebugEnabled(
 
   try {
     if (sessionStorage.getItem(SESSION_STORAGE_DEBUG_KEY) === 'true') {
+      (globalThis as unknown as Record<string, unknown>)[
+        TELEMETRY_DEBUG_GLOBAL_FLAG
+      ] = true;
       return true;
     }
   } catch (e) {
@@ -69,6 +82,9 @@ export function isTelemetryDebugEnabled(
         } catch (e) {
           // Ignore errors accessing sessionStorage (e.g. security restrictions)
         }
+        (globalThis as unknown as Record<string, unknown>)[
+          TELEMETRY_DEBUG_GLOBAL_FLAG
+        ] = true;
         return true;
       }
     }
@@ -77,4 +93,25 @@ export function isTelemetryDebugEnabled(
   }
 
   return false;
+}
+
+/**
+ * Syncs the debug override from `sessionStorage` / `location.search` into the global flag at
+ * startup and whenever the URL changes via browser history navigation (`popstate`), returning an
+ * unsubscribe function.
+ *
+ * @internal
+ */
+export function observeTelemetryDebugQueryParam(): () => void {
+  isTelemetryDebugEnabled();
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
+  const onUrlChange = (): void => {
+    isTelemetryDebugEnabled();
+  };
+  window.addEventListener('popstate', onUrlChange);
+  return () => {
+    window.removeEventListener('popstate', onUrlChange);
+  };
 }

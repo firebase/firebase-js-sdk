@@ -22,7 +22,10 @@ import {
   SESSION_SAMPLING_HASH_BUCKETS
 } from '../constants';
 import type { ClientConfig, ClientConfigStore } from './client-config';
-import { isTelemetryDebugEnabled } from './debug-override';
+import {
+  isGlobalTelemetryDebugEnabled,
+  isTelemetryDebugEnabled
+} from './debug-override';
 import { murmurHash3 } from './murmurhash3';
 
 /**
@@ -102,7 +105,11 @@ export class SessionSampler {
     private readonly _configStore: ClientConfigStore,
     private readonly _attributesStore: AttributesStore,
     private readonly _storageKey: string
-  ) {}
+  ) {
+    // Sync persisted sessionStorage / URL query param state into FIREBASE_TELEMETRY_DEBUG once so
+    // per-export decisions only need to check the in-memory global flag.
+    isTelemetryDebugEnabled();
+  }
 
   /**
    * Returns the decision for the current session, making it from the configuration in memory if
@@ -118,7 +125,7 @@ export class SessionSampler {
       return cached;
     }
 
-    const debug = isTelemetryDebugEnabled();
+    const debug = isGlobalTelemetryDebugEnabled();
     if (cached && !debug) {
       return cached;
     }

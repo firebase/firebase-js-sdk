@@ -521,6 +521,26 @@ describe('SessionSampler', () => {
       }
     });
 
+    it('does not read sessionStorage on subsequent decisions for non-forced sessions', () => {
+      const { sampler } = createSampler({ samplingRate: 0.5 }, SESSION_LOW);
+      const getItemSpy = vi.spyOn(Storage.prototype, 'getItem');
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+      try {
+        expect(sampler.getDecision().sampled).toBe(true);
+        expect(getItemSpy).toHaveBeenCalledTimes(1);
+        expect(setItemSpy).toHaveBeenCalledTimes(1);
+
+        // Subsequent non-forced exports check only the in-memory decision and global flag.
+        expect(sampler.getDecision().sampled).toBe(true);
+        expect(sampler.getDecision().sampled).toBe(true);
+        expect(getItemSpy).toHaveBeenCalledTimes(1);
+        expect(setItemSpy).toHaveBeenCalledTimes(1);
+      } finally {
+        getItemSpy.mockRestore();
+        setItemSpy.mockRestore();
+      }
+    });
+
     it('does not refresh the config for decisions made without the debug override', () => {
       const { sampler, store } = createSampler(
         { samplingRate: 0, enabled: false },
