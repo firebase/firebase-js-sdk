@@ -18,6 +18,7 @@
 import {
   FirebaseApp,
   _addComponent,
+  _getProvider,
   deleteApp,
   getApps,
   initializeApp
@@ -171,7 +172,129 @@ describe('FirebaseSql', () => {
       await deleteApp(app);
 
       expect(client.mutable).toBe(false);
-      expect(() => client.from('users')).toThrow(FirebaseSqlError);
+      expect(() => client.from('users')).toThrow(
+        expect.objectContaining({
+          code: Code.NOT_INITIALIZED,
+          category: FirebaseSqlErrorCategory.SQL_CLIENT
+        })
+      );
+    });
+
+    it('aborts abortSignal before terminating token providers and evicts the instance even if context.resources is already null', async () => {
+      const app = initializeApp({ projectId: 'test-project' });
+      const client = FirebaseSql.getSql(app, defaultSettings);
+      const internals = client as unknown as FirebaseSqlWithInternals;
+
+      client.from('users');
+      if (internals._state.name !== 'immutable') {
+        throw new Error('Expected immutable state');
+      }
+      const { context } = internals._state;
+      const events: string[] = [];
+
+      context.abortSignal.addEventListener('abort', () => {
+        events.push('abort');
+      });
+
+      vi.spyOn(
+        context.resources!.appCheckTokenProvider,
+        'terminate'
+      ).mockImplementation(() => {
+        expect(context.abortSignal.aborted).toBe(true);
+        events.push('appCheckTerminate');
+      });
+
+      vi.spyOn(
+        context.resources!.authTokenProvider,
+        'terminate'
+      ).mockImplementation(() => {
+        expect(context.abortSignal.aborted).toBe(true);
+        // Instance should still be registered while token providers are terminating.
+        expect(FirebaseSql.getSql(app, defaultSettings)).toBe(client);
+        events.push('authTerminate');
+      });
+
+      await FirebaseSql.terminate(client);
+
+      expect(events).toEqual(['abort', 'appCheckTerminate', 'authTerminate']);
+      expect(context.abortSignal.aborted).toBe(true);
+      expect(context.abortSignal.reason).toBeInstanceOf(FirebaseSqlError);
+      expect(context.abortSignal.reason).toEqual(
+        expect.objectContaining({
+          code: Code.NOT_INITIALIZED,
+          category: FirebaseSqlErrorCategory.SQL_CLIENT
+        })
+      );
+      const replacementClient = FirebaseSql.getSql(app, defaultSettings);
+      expect(replacementClient).not.toBe(client);
+
+      // Verify that even if context.resources is already null on an immutable instance,
+      // abortSignal is still aborted and the cached instance is still evicted.
+      replacementClient.from('users');
+      const replacementInternals =
+        replacementClient as unknown as FirebaseSqlWithInternals;
+      if (replacementInternals._state.name !== 'immutable') {
+        throw new Error('Expected immutable state');
+      }
+      const replacementContext = replacementInternals._state.context;
+      replacementContext.resources!.appCheckTokenProvider.terminate();
+      replacementContext.resources!.authTokenProvider.terminate();
+      replacementContext.resources = null;
+
+      await FirebaseSql.terminate(replacementClient);
+
+      expect(replacementContext.abortSignal.aborted).toBe(true);
+      expect(replacementContext.abortSignal.reason).toBeInstanceOf(
+        FirebaseSqlError
+      );
+      expect(replacementContext.abortSignal.reason).toEqual(
+        expect.objectContaining({
+          code: Code.NOT_INITIALIZED,
+          category: FirebaseSqlErrorCategory.SQL_CLIENT
+        })
+      );
+      expect(FirebaseSql.getSql(app, defaultSettings)).not.toBe(
+        replacementClient
+      );
+    });
+
+    it('does not register auth or App Check onInit listeners or transition mutable state if PostgrestClient instantiation throws', () => {
+      const app = initializeApp({ projectId: 'test-project' });
+      const client = FirebaseSql.getSql(app, defaultSettings);
+
+      const authOnInitSpy = vi.spyOn(
+        _getProvider(app, 'auth-internal'),
+        'onInit'
+      );
+      const appCheckOnInitSpy = vi.spyOn(
+        _getProvider(app, 'app-check-internal'),
+        'onInit'
+      );
+
+      const originalFetchDescriptor = Object.getOwnPropertyDescriptor(
+        globalThis,
+        'fetch'
+      );
+      Object.defineProperty(globalThis, 'fetch', {
+        configurable: true,
+        get() {
+          throw new Error('Simulated fetch getter failure');
+        }
+      });
+
+      try {
+        expect(() => client.from('users')).toThrow(
+          'Simulated fetch getter failure'
+        );
+      } finally {
+        if (originalFetchDescriptor) {
+          Object.defineProperty(globalThis, 'fetch', originalFetchDescriptor);
+        }
+      }
+
+      expect(authOnInitSpy).not.toHaveBeenCalled();
+      expect(appCheckOnInitSpy).not.toHaveBeenCalled();
+      expect(client.mutable).toBe(true);
     });
   });
 

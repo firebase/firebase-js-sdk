@@ -78,9 +78,11 @@ export class FirebaseSql {
    * Returns whether this object is in a "mutable" state, such that mutator
    * methods like `setHeaders()` are allowed to be invoked.
    *
-   * An instance of `FirebaseSql` is "mutable" immediately after its creation
-   * until a call to a function that uses the object's settings, such as
-   * `from()` and `rpc()`, or its termination by a call to `terminate()`.
+   * A newly created `FirebaseSql` instance starts in the "mutable" state and
+   * permanently transitions to `mutable === false` upon the first call to
+   * `from()` or `rpc()`, or when terminated via `terminate()` or `deleteApp()`.
+   * Note that `getSql()` returns cached instances, so `mutable` will already be
+   * `false` if the cached instance was previously used.
    */
   get mutable(): boolean {
     return this._state.name === 'mutable';
@@ -145,22 +147,22 @@ export class FirebaseSql {
     const { resources } = context;
     context.resources = null;
 
+    abortController.abort(
+      new FirebaseSqlError(
+        Code.NOT_INITIALIZED,
+        'The Firebase SQL client has been terminated.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      )
+    );
     if (resources !== null) {
-      abortController.abort(
-        new FirebaseSqlError(
-          Code.NOT_INITIALIZED,
-          'The Firebase SQL client has been terminated.',
-          FirebaseSqlErrorCategory.SQL_CLIENT
-        )
-      );
       resources.appCheckTokenProvider.terminate();
       resources.authTokenProvider.terminate();
-      _removeServiceInstance(
-        this.app,
-        FIREBASE_SQL_COMPONENT_NAME,
-        instanceIdentifier
-      );
     }
+    _removeServiceInstance(
+      this.app,
+      FIREBASE_SQL_COMPONENT_NAME,
+      instanceIdentifier
+    );
 
     return Promise.resolve();
   }
@@ -213,16 +215,6 @@ export class FirebaseSql {
 
     const { instanceIdentifier, headers, authProvider, appCheckProvider } =
       this._state;
-    const abortController = new AbortController();
-
-    const context: FirebaseSqlContext = {
-      resources: {
-        appId: this.app.options.appId,
-        authTokenProvider: new FirebaseAuthProvider(this.app, authProvider),
-        appCheckTokenProvider: new AppCheckProvider(this.app, appCheckProvider)
-      },
-      abortSignal: abortController.signal
-    };
 
     // PostgrestClient is deliberately instantiated without a static `fetch` option.
     // Instead, `createBuilderFetch` is passed down to query/filter builders, which
@@ -233,6 +225,16 @@ export class FirebaseSql {
       headers,
       schema: this.schemaName
     });
+
+    const abortController = new AbortController();
+    const context: FirebaseSqlContext = {
+      resources: {
+        appId: this.app.options.appId,
+        authTokenProvider: new FirebaseAuthProvider(this.app, authProvider),
+        appCheckTokenProvider: new AppCheckProvider(this.app, appCheckProvider)
+      },
+      abortSignal: abortController.signal
+    };
 
     this._state = {
       name: 'immutable',
