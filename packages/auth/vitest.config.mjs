@@ -65,7 +65,13 @@ function projectConfigPlugin() {
 
 applyProjectDefaults(config, {
   screenshotFailures: false,
-  ...(hasIntegrationArg ? { testTimeout: 20000, fileParallelism: false } : {})
+  ...(hasIntegrationArg
+    ? {
+        testTimeout: 20000,
+        retry: process.env.CI ? 2 : 0,
+        fileParallelism: false
+      }
+    : {})
 });
 
 for (const project of config.test.projects) {

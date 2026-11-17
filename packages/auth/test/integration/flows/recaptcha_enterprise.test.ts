@@ -60,10 +60,34 @@ const NONFICTIONAL_PHONE = {
 // The CI project has reCAPTCHA bot-score and toll fraud protection enabled.
 describe.runIf(!getEmulatorUrl())(
   'Integration test: phone auth with reCAPTCHA Enterprise ENFORCE mode',
+  { retry: process.env.CI ? 3 : 0 },
   () => {
-    beforeEach(() => {
+    beforeEach(async ctx => {
       emulatorUrl = getEmulatorUrl();
       if (!emulatorUrl) {
+        const retryCount = ctx.task.result?.retryCount ?? 0;
+        if (retryCount > 0) {
+          // Back off with jitter if another CI runner is concurrently using FICTIONAL_PHONE.
+          await new Promise<void>(resolve => {
+            setTimeout(resolve, 1000 + Math.floor(Math.random() * 2000));
+          });
+          if (retryCount >= 2) {
+            const cleanupAuth = getTestInstance();
+            cleanupAuth.settings.appVerificationDisabledForTesting = false;
+            try {
+              const cr = await signInWithPhoneNumber(
+                cleanupAuth,
+                FICTIONAL_PHONE.phoneNumber
+              );
+              const { user } = await cr.confirm(FICTIONAL_PHONE.code);
+              await user.delete();
+            } catch {
+              // Best-effort cleanup of any orphaned account from a crashed run.
+            } finally {
+              await cleanUpTestInstance(cleanupAuth);
+            }
+          }
+        }
         auth = getTestInstance();
         // Sets to false to generate the real reCAPTCHA Enterprise token
         auth.settings.appVerificationDisabledForTesting = false;
