@@ -22,10 +22,7 @@ import {
   SESSION_SAMPLING_HASH_BUCKETS
 } from '../constants';
 import type { ClientConfig, ClientConfigStore } from './client-config';
-import {
-  isGlobalTelemetryDebugEnabled,
-  isTelemetryDebugEnabled
-} from './debug-override';
+import { isGlobalTelemetryDebugEnabled } from './debug-override';
 import { murmurHash3 } from './murmurhash3';
 
 /**
@@ -84,7 +81,7 @@ function decisionsEqual(a: SamplingDecision, b: SamplingDecision): boolean {
  * - A session is either kept completely or discarded completely. Once made, the decision is fixed for the rest of the session and persisted in `sessionStorage`
  *   so page reloads within the session do not flip it. Rate increases apply to new sessions only;
  *   rate decreases are enforced immediately by the backend.
- * - The telemetry debug override (see {@link isTelemetryDebugEnabled}) is the one exception: from
+ * - The telemetry debug override (see {@link isGlobalTelemetryDebugEnabled}) is the one exception: from
  *   the next export after it is turned on, even mid-session, the session is sampled with a stamped
  *   rate of `1.0` and `session.sampling.forced = true`, so the server does not re-sample it.
  *   The session keeps this debug decision even if the override is turned off later. The override
@@ -105,11 +102,7 @@ export class SessionSampler {
     private readonly _configStore: ClientConfigStore,
     private readonly _attributesStore: AttributesStore,
     private readonly _storageKey: string
-  ) {
-    // Sync persisted sessionStorage / URL query param state into FIREBASE_TELEMETRY_DEBUG once so
-    // per-export decisions only need to check the in-memory global flag.
-    isTelemetryDebugEnabled();
-  }
+  ) {}
 
   /**
    * Returns the decision for the current session, making it from the configuration in memory if

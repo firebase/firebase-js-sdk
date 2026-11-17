@@ -37,29 +37,17 @@ export function isGlobalTelemetryDebugEnabled(): boolean {
 }
 
 /**
- * Checks whether the telemetry debug override is active from the global flag, persisted
- * `sessionStorage` marker, or URL query parameter (`?firebase_telemetry_debug=true`).
- *
- * When enabled via `sessionStorage` or the query parameter, this also sets
- * `FIREBASE_TELEMETRY_DEBUG = true` in memory (and persists the query parameter in `sessionStorage`
- * so it survives full-page reloads/navigations before an export occurs). Subsequent per-decision
- * checks can then inspect {@link isGlobalTelemetryDebugEnabled} alone.
- *
- * @param search - The page's query string. Defaults to `location.search`; exposed for tests.
- *
- * @internal
+ * Syncs any persisted `sessionStorage` marker or `?firebase_telemetry_debug=true` URL query
+ * parameter into `FIREBASE_TELEMETRY_DEBUG`, persisting the query parameter in `sessionStorage`
+ * so it survives full-page reloads/navigations before an export occurs.
  */
-export function isTelemetryDebugEnabled(
-  search: string | undefined = typeof location !== 'undefined'
-    ? location.search
-    : undefined
-): boolean {
+function checkQueryParam(): void {
   if (isGlobalTelemetryDebugEnabled()) {
-    return true;
+    return;
   }
 
   if (typeof sessionStorage === 'undefined') {
-    return false;
+    return;
   }
 
   try {
@@ -67,13 +55,15 @@ export function isTelemetryDebugEnabled(
       (globalThis as unknown as Record<string, unknown>)[
         TELEMETRY_DEBUG_GLOBAL_FLAG
       ] = true;
-      return true;
+      return;
     }
   } catch (e) {
     // Ignore errors accessing sessionStorage (e.g. security restrictions)
   }
 
   try {
+    const search =
+      typeof location !== 'undefined' ? location.search : undefined;
     if (search) {
       const params = new URLSearchParams(search);
       if (params.get(TELEMETRY_DEBUG_QUERY_PARAM) === 'true') {
@@ -85,14 +75,11 @@ export function isTelemetryDebugEnabled(
         (globalThis as unknown as Record<string, unknown>)[
           TELEMETRY_DEBUG_GLOBAL_FLAG
         ] = true;
-        return true;
       }
     }
   } catch (e) {
     // Ignore malformed URLs or restricted `location` access.
   }
-
-  return false;
 }
 
 /**
@@ -102,13 +89,13 @@ export function isTelemetryDebugEnabled(
  *
  * @internal
  */
-export function observeTelemetryDebugQueryParam(): () => void {
-  isTelemetryDebugEnabled();
+export function syncTelemetryDebugQueryParam(): () => void {
+  checkQueryParam();
   if (typeof window === 'undefined') {
     return () => {};
   }
   const onUrlChange = (): void => {
-    isTelemetryDebugEnabled();
+    checkQueryParam();
   };
   window.addEventListener('popstate', onUrlChange);
   return () => {
