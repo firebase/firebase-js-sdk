@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { deepCopy, deepExtend } from '../src/deepCopy';
 
 describe('deepCopy()', () => {
