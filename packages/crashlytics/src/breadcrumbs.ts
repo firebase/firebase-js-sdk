@@ -20,7 +20,6 @@ import type {
   LoggerProvider,
   LogRecordExporter
 } from '@opentelemetry/sdk-logs';
-import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { NavigationTimingInstrumentation } from '@opentelemetry/browser-instrumentation/experimental/navigation-timing';
 import { UserActionInstrumentation } from '@opentelemetry/browser-instrumentation/experimental/user-action';
 import { WebVitalsInstrumentation } from '@opentelemetry/browser-instrumentation/experimental/web-vitals';
@@ -65,20 +64,18 @@ class BreadcrumbsFeatureImpl implements CrashlyticsFeatureInternal {
       return;
     }
     /*
-     * Initialize as disabled to prevent the instrumentation from auto-enabling during construction.
-     * In SSR frameworks (like Next.js), the page is already loaded when this script executes, so
-     * it will try to emit the navigation timing immediately. Deferring the enable state ensures
-     * the loggerProvider is fully bound by registerInstrumentations before the event is emitted.
-     * registerInstrumentations will automatically enable it once the provider is set.
+     * Browser instrumentations remain inactive after construction until enable({ loggerProvider })
+     * is called, ensuring the loggerProvider is bound before any events (such as already-completed
+     * navigation timing in SSR frameworks like Next.js) are emitted.
      */
-    const navigationTiming = new NavigationTimingInstrumentation({
-      enabled: false
-    });
+    const navigationTiming = new NavigationTimingInstrumentation();
     const webVitals = new WebVitalsInstrumentation({
-      enabled: false,
       // TODO: Consider making the raw attribution flag configurable in the future. Some customers
       // may want to disable this for performance or data reasons.
       includeRawAttribution: true
+    });
+    const userAction = new UserActionInstrumentation({
+      autoCapturedActions: ['click']
     });
 
     if (this._unregisterLoggerInstrumentationsFn) {
@@ -86,16 +83,16 @@ class BreadcrumbsFeatureImpl implements CrashlyticsFeatureInternal {
       activeUnregisterFns.delete(this._unregisterLoggerInstrumentationsFn);
     }
 
-    const unregister = registerInstrumentations({
-      loggerProvider,
-      instrumentations: [
-        navigationTiming,
-        webVitals,
-        new UserActionInstrumentation({
-          autoCapturedActions: ['click']
-        })
-      ]
-    });
+    const instrumentations = [navigationTiming, webVitals, userAction];
+    for (const instrumentation of instrumentations) {
+      instrumentation.enable({ loggerProvider });
+    }
+
+    const unregister = (): void => {
+      for (const instrumentation of instrumentations) {
+        instrumentation.disable();
+      }
+    };
 
     // Define as non-enumerable so `deepEqual(options1, options2)` in `getCrashlytics()`
     // only compares enumerable properties (`name: 'breadcrumbs'`) across calls.

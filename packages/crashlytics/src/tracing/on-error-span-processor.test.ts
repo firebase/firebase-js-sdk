@@ -16,11 +16,7 @@
  */
 
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
-import {
-  SpanExporter,
-  ReadableSpan,
-  Span
-} from '@opentelemetry/sdk-trace-base';
+import { SpanExporter, ReadableSpan, Span } from '@opentelemetry/sdk-trace';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { context } from '@opentelemetry/api';
 import { OnErrorSpanProcessor } from './on-error-span-processor';

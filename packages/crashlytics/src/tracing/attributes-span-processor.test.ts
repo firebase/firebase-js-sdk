@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ReadableSpan, Span } from '@opentelemetry/sdk-trace-base';
+import { ReadableSpan, Span } from '@opentelemetry/sdk-trace';
 import { ATTR_USER_AGENT_ORIGINAL } from '@opentelemetry/semantic-conventions';
 import { FirebaseAttributesSpanProcessor } from './attributes-span-processor';
 import { AttributesStore, SPAN_ATTR_KEY } from '../attributes-store';

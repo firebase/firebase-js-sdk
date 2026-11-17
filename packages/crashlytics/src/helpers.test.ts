@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-import { LoggerProvider, SdkLogRecord } from '@opentelemetry/sdk-logs';
-import { Logger, LogRecord } from '@opentelemetry/api-logs';
-import { trace, TracerProvider } from '@opentelemetry/api';
+import { LoggerProvider, ReadWriteLogRecord } from '@opentelemetry/sdk-logs';
+import { Logger, LogRecord, trace, TracerProvider } from '@opentelemetry/api';
 import { isNode } from '@firebase/util';
 import {
   registerListeners,
@@ -55,7 +54,7 @@ describe('helpers', () => {
             fakeAttributesStore,
             'my-project'
           );
-          processor.onEmit(logRecord as unknown as SdkLogRecord);
+          processor.onEmit(logRecord as unknown as ReadWriteLogRecord);
           emittedLogs.push(logRecord);
         },
         enabled: () => true

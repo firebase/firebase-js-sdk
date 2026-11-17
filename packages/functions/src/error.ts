@@ -73,7 +73,11 @@ export class FunctionsError extends FirebaseError {
     /**
      * Optional. URL in the request that resulted in the error, if applicable.
      */
-    url?: string
+    url?: string,
+    /**
+     * Optional. The underlying error that caused this error, if applicable.
+     */
+    readonly cause?: unknown
   ) {
     super(
       `${FUNCTIONS_TYPE}/${code}`,
@@ -137,7 +141,8 @@ function codeForHTTPStatus(status: number): FunctionsErrorCode {
 export function _errorForResponse(
   httpStatus: number,
   bodyJSON: HttpResponseBody | null,
-  url?: string
+  url?: string,
+  cause?: unknown
 ): FunctionsError | null {
   let code = codeForHTTPStatus(httpStatus);
 
@@ -158,7 +163,8 @@ export function _errorForResponse(
             'internal',
             `Unknown backend error status: ${statusText} [${httpStatus}]`,
             undefined /* details */,
-            url
+            url,
+            cause
           );
         }
         code = errorCodeMap[statusText];
@@ -193,6 +199,7 @@ export function _errorForResponse(
     code,
     `${description} [${httpStatus}]`,
     details,
-    url
+    url,
+    cause
   );
 }

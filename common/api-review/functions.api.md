@@ -21,7 +21,10 @@ export interface Functions {
 export class FunctionsError extends FirebaseError {
     constructor(
     code: FunctionsErrorCodeCore, message?: string,
-    details?: unknown, url?: string);
+    details?: unknown,
+    url?: string,
+    cause?: unknown);
+    readonly cause?: unknown;
     readonly details?: unknown;
 }
 
@@ -51,6 +54,7 @@ export function httpsCallableFromURL<RequestData = unknown, ResponseData = unkno
 // @public
 export interface HttpsCallableOptions {
     limitedUseAppCheckTokens?: boolean;
+    signal?: AbortSignal;
     timeout?: number;
 }
 
@@ -72,6 +76,5 @@ export interface HttpsCallableStreamResult<ResponseData = unknown, StreamData = 
     // (undocumented)
     readonly stream: AsyncIterable<StreamData>;
 }
-
 
 ```

@@ -21,10 +21,10 @@ import { CrashlyticsOptions } from '../public-types';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
-import { context, trace } from '@opentelemetry/api';
+import { context, propagation, trace } from '@opentelemetry/api';
 import { AttributesStore } from '../attributes-store';
 import { resourceFromAttributes } from '@opentelemetry/resources';
-import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
+import { StackContextManager } from '@opentelemetry/sdk-trace';
 import { CompositePropagator } from '@opentelemetry/core';
 import { TelemetryStore } from '../telemetry-store';
 import { FirebaseAttributesSpanProcessor } from './attributes-span-processor';
@@ -92,12 +92,20 @@ describe('createTracingProvider', () => {
     expect(provider).toBe(trace.getTracerProvider());
   });
 
-  it('should register the WebTracerProvider globally with a W3CTraceContextPropagator', () => {
+  it('should register the TracerProvider globally with a W3CTraceContextPropagator', () => {
     if (typeof window === 'undefined') {
       return;
     }
 
-    const registerSpy = vi.spyOn(WebTracerProvider.prototype, 'register');
+    const setGlobalTracerProviderSpy = vi.spyOn(
+      trace,
+      'setGlobalTracerProvider'
+    );
+    const setGlobalPropagatorSpy = vi.spyOn(propagation, 'setGlobalPropagator');
+    const setGlobalContextManagerSpy = vi.spyOn(
+      context,
+      'setGlobalContextManager'
+    );
 
     const mockCrashlyticsOptions = {
       endpointUrl: 'http://localhost:4318'
@@ -110,13 +118,18 @@ describe('createTracingProvider', () => {
       mockTelemetryStore
     );
 
-    expect(registerSpy).toHaveBeenCalledTimes(1);
-    const registerArgs = registerSpy.mock.calls[0][0];
-    expect(registerArgs).toBeTruthy();
+    expect(setGlobalTracerProviderSpy).toHaveBeenCalledTimes(1);
+    expect(setGlobalTracerProviderSpy).toHaveBeenCalledWith(provider);
 
-    const propagator = registerArgs!.propagator;
+    expect(setGlobalPropagatorSpy).toHaveBeenCalledTimes(1);
+    const propagator = setGlobalPropagatorSpy.mock.calls[0][0];
     expect(propagator).toBeTruthy();
     expect(propagator).toBeInstanceOf(CompositePropagator);
+
+    expect(setGlobalContextManagerSpy).toHaveBeenCalledTimes(1);
+    expect(setGlobalContextManagerSpy.mock.calls[0][0]).toBeInstanceOf(
+      StackContextManager
+    );
 
     // Verify that the registered propagator is a W3C trace context propagator
     // by checking that it injects a W3C spec-compliant 'traceparent' header.
@@ -141,7 +154,7 @@ describe('createTracingProvider', () => {
     expect(provider).toBeTruthy();
   });
 
-  it('should initialize WebTracerProvider with FirebaseAttributesSpanProcessor and OnErrorSpanProcessor', () => {
+  it('should initialize TracerProvider with FirebaseAttributesSpanProcessor and OnErrorSpanProcessor', () => {
     if (typeof window === 'undefined') {
       return;
     }
@@ -214,7 +227,6 @@ describe('createTracingProvider', () => {
         'https://other.com?url=https://my-custom-endpoint.url'
       )
     ).toBe(false);
-    expect(fetchConfig.semconvStabilityOptIn).toBe('http');
   });
 
   it('should register XMLHttpRequestInstrumentation with appropriate config', () => {
@@ -255,7 +267,6 @@ describe('createTracingProvider', () => {
         'https://other.com?url=https://my-custom-endpoint.url'
       )
     ).toBe(false);
-    expect(xhrConfig.semconvStabilityOptIn).toBe('http');
   });
 
   it('should register DocumentLoadInstrumentation with appropriate config', () => {
@@ -274,7 +285,7 @@ describe('createTracingProvider', () => {
     const documentLoadConfig = documentLoadInstrumentationSpy.mock.calls[
       documentLoadInstrumentationSpy.mock.calls.length - 1
     ][0] as any;
-    expect(documentLoadConfig.semconvStabilityOptIn).toBe('http');
+    expect(documentLoadConfig).toEqual({});
   });
 
   it('should populate resource attributes with gcp.firebase.domain, gcp.project_id, and gcp.firebase.app_id', () => {
