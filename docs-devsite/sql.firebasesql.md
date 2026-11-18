@@ -14,7 +14,7 @@ Service client bound to a `FirebaseApp` and a specific Firebase SQL PostgREST en
 
 Do not instantiate directly: obtain instances via [getSql()](./sql.md#getsql_b956f3d)<!-- -->, which validates the `ServiceConfig` and deduplicates clients per `(app, resolvedEndpointUrl, schemaName)`<!-- -->. Configure the target PostgreSQL schema via `schemaName` in [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) when calling [getSql()](./sql.md#getsql_b956f3d) (you can also derive a modified `ServiceConfig` from an existing [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) object via [copyServiceConfig()](./sql.md#copyserviceconfig_b956f3d)<!-- -->; `FirebaseSql` does not expose a `.schema(name)` method).
 
-Read [FirebaseSql.restUrl](./sql.firebasesql.md#firebasesqlresturl) and [FirebaseSql.schemaName](./sql.firebasesql.md#firebasesqlschemaname) to inspect the resolved endpoint URL and active schema. Client-wide static HTTP headers can be configured via [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) while [FirebaseSql.mutable](./sql.firebasesql.md#firebasesqlmutable) is `true` (before the first call to [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->). See [terminate()](./sql.md#terminate_bc2cb94) for shutting down a client and evicting it from the app registry.
+Read [FirebaseSql.restUrl](./sql.firebasesql.md#firebasesqlresturl) and [FirebaseSql.schemaName](./sql.firebasesql.md#firebasesqlschemaname) to inspect the resolved endpoint URL and active schema. Client-wide static HTTP headers can be configured via [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) while [FirebaseSql.isMutable](./sql.firebasesql.md#firebasesqlismutable) is `true` (before the first call to [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->). See [terminate()](./sql.md#terminate_bc2cb94) for shutting down a client and evicting it from the app registry.
 
 Automatically attaches Firebase Authentication ID tokens (`x-firebase-auth-token`<!-- -->, with a single automatic token refresh and retry on HTTP 401 when the authenticated UID is unchanged) and Firebase App Check tokens (`x-firebase-appcheck`<!-- -->) when those services are registered on `app` (including static `authIdToken` and `appCheckToken` credentials configured on a `FirebaseServerApp` via `initializeServerApp`<!-- -->). If App Check cannot obtain a real token, it resolves with a placeholder dummy token sent in `x-firebase-appcheck` (which the backend rejects when App Check is enforced; `x-firebase-appcheck` is omitted only if the App Check provider itself rejects). Auth `getToken()` rejections fail the request. When Auth or App Check has not finished initializing yet, the SDK waits one macrotask (`setTimeout(..., 0)`<!-- -->) for initialization and attaches the token if available; otherwise the request is sent without that token.
 
@@ -31,7 +31,7 @@ export declare class FirebaseSql
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [app](./sql.firebasesql.md#firebasesqlapp) |  | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The bound [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance. |
-|  [mutable](./sql.firebasesql.md#firebasesqlmutable) |  | boolean | Whether this client is still in the mutable configuration state where mutator methods such as [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) are allowed. |
+|  [isMutable](./sql.firebasesql.md#firebasesqlismutable) |  | boolean | Whether this client is still in the mutable configuration state where mutator methods such as [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) are allowed. |
 |  [restUrl](./sql.firebasesql.md#firebasesqlresturl) |  | string | The resolved PostgREST base URL used to communicate with the backend Firebase SQL server. |
 |  [schemaName](./sql.firebasesql.md#firebasesqlschemaname) |  | string \| undefined | The PostgreSQL schema name sent over the wire for queries and RPC calls, or <code>undefined</code> to use the server's default exposed schema. |
 
@@ -55,18 +55,18 @@ Supplies `options.projectId` for endpoint construction as well as optional `appI
 readonly app: FirebaseApp;
 ```
 
-## FirebaseSql.mutable
+## FirebaseSql.isMutable
 
 Whether this client is still in the mutable configuration state where mutator methods such as [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) are allowed.
 
 Starts as `true` on newly created `FirebaseSql` instances and permanently transitions to `false` on the first call to [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->, or when terminated via [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->.
 
-Because [getSql()](./sql.md#getsql_b956f3d) returns cached instances shared per `(app, resolvedEndpointUrl, schemaName)`<!-- -->, `mutable` will already be `false` on a returned instance if it was previously used.
+Because [getSql()](./sql.md#getsql_b956f3d) returns cached instances shared per `(app, resolvedEndpointUrl, schemaName)`<!-- -->, `isMutable` will already be `false` on a returned instance if it was previously used.
 
 <b>Signature:</b>
 
 ```typescript
-get mutable(): boolean;
+get isMutable(): boolean;
 ```
 
 ## FirebaseSql.restUrl
@@ -103,7 +103,7 @@ Do not use for calling stored functions or procedures (use [FirebaseSql.rpc()](.
 
 Preconditions: this `FirebaseSql` instance must not have been terminated via [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->.
 
-Behavior and side effects: synchronous and performs no network I/O. On the first call to `from()` or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->, this client permanently transitions [FirebaseSql.mutable](./sql.firebasesql.md#firebasesqlmutable) to `false` (locking [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders)<!-- -->) and lazily initializes the underlying PostgREST client along with Firebase Authentication and App Check token listeners. The returned [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) clones URL and header state on each verb call (`select`<!-- -->, `insert`<!-- -->, etc.), so a single `sql.from('events')` reference can be safely stored and reused across concurrent queries. Special URI characters (`/`<!-- -->, `?`<!-- -->, `#`<!-- -->) in `table` are percent-encoded to prevent path traversal.
+Behavior and side effects: synchronous and performs no network I/O. On the first successful call to `from()` or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->, this client permanently transitions [FirebaseSql.isMutable](./sql.firebasesql.md#firebasesqlismutable) to `false` (locking [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders)<!-- -->) and lazily initializes the underlying PostgREST client along with Firebase Authentication and App Check token listeners. Terminated state (`not-initialized`<!-- -->) is checked before validating `table`<!-- -->, and a throwing call leaves [FirebaseSql.isMutable](./sql.firebasesql.md#firebasesqlismutable) unchanged. The returned [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) clones URL and header state on each verb call (`select`<!-- -->, `insert`<!-- -->, etc.), so a single `sql.from('events')` reference can be safely stored and reused across concurrent queries. Special URI characters (`/`<!-- -->, `?`<!-- -->, `#`<!-- -->) in `table` are percent-encoded to prevent path traversal.
 
 <b>Signature:</b>
 
@@ -125,7 +125,7 @@ A stateless [QueryBuilder](./sql.querybuilder.md#querybuilder_interface) for sta
 
 #### Exceptions
 
-[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when called after [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->. Obtain a fresh client via [getSql()](./sql.md#getsql_b956f3d)<!-- -->.
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when called after [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()` (evaluated before argument validation). Obtain a fresh client via [getSql()](./sql.md#getsql_b956f3d)<!-- -->.
 
 [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when `table` is `'.'` or `'..'`<!-- -->. Pass a valid PostgreSQL relation identifier.
 
@@ -187,7 +187,7 @@ Do not use for standard single-table CRUD operations; prefer [FirebaseSql.from()
 
 Preconditions: this `FirebaseSql` instance must not have been terminated via [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->. `Args` must be a plain non-iterable key-value object matching the PostgreSQL function's named parameter names (arrays cannot be passed as the top-level `params` argument; wrap array parameters inside an object key, such as `{ target_tags: ['firebase', 'ai'] }`<!-- -->).
 
-Behavior and side effects: builder progression is `FirebaseSql -> FilterBuilder<unknown, 'RPC', false>`<!-- -->. On the first call to `rpc()` or [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom)<!-- -->, this client permanently transitions [FirebaseSql.mutable](./sql.firebasesql.md#firebasesqlmutable) to `false` (locking [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders)<!-- -->) and lazily initializes the underlying PostgREST client along with Firebase Authentication and App Check token listeners. No HTTP request is sent until the returned builder is `await`<!-- -->ed or `.then()` is invoked. Each `await` or `.then()` call sends a new HTTP request (results are not cached); awaiting the same `rpc()` builder twice executes the function twice and duplicates side effects for write functions, so await each mutation RPC builder at most once.
+Behavior and side effects: builder progression is `FirebaseSql -> FilterBuilder<unknown, 'RPC', false>`<!-- -->. On the first successful call to `rpc()` or [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom)<!-- -->, this client permanently transitions [FirebaseSql.isMutable](./sql.firebasesql.md#firebasesqlismutable) to `false` (locking [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders)<!-- -->) and lazily initializes the underlying PostgREST client along with Firebase Authentication and App Check token listeners. Terminated state (`not-initialized`<!-- -->) is checked before validating `fn`<!-- -->, and a throwing call leaves [FirebaseSql.isMutable](./sql.firebasesql.md#firebasesqlismutable) unchanged. No HTTP request is sent until the returned builder is `await`<!-- -->ed or `.then()` is invoked. Each `await` or `.then()` call sends a new HTTP request (results are not cached); awaiting the same `rpc()` builder twice executes the function twice and duplicates side effects for write functions, so await each mutation RPC builder at most once.
 
 Defaults to `POST /rpc/{fn}` with JSON body `params ?? {}` (omit `params` for zero-argument functions: `sql.rpc('fn')`<!-- -->). Set `options.get: true` in [FirebaseSqlRpcOptions](./sql.firebasesqlrpcoptions.md#firebasesqlrpcoptions_interface) for read-only functions to use `GET` with query parameters (enabling automatic transient-error retries). Functions declared `RETURNS void` resolve with HTTP `204` and `data: null`<!-- -->.
 
@@ -223,7 +223,7 @@ A lazy [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) with unty
 
 #### Exceptions
 
-[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when called after [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->. Re-initialize a client with [getSql()](./sql.md#getsql_b956f3d)<!-- -->.
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when called after [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()` (evaluated before argument validation). Re-initialize a client with [getSql()](./sql.md#getsql_b956f3d)<!-- -->.
 
 [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously when `fn` is `'.'` or `'..'`<!-- -->. Pass a valid PostgreSQL function name.
 
@@ -315,11 +315,11 @@ if (headRes.success && headRes.count !== null) {
 
 Sets the client-wide static HTTP headers included on every outgoing request from this client, overwriting any headers set by an earlier `setHeaders()` call.
 
-When to use: configuring shared custom HTTP headers (such as tenant, locale, or correlation headers) while [FirebaseSql.mutable](./sql.firebasesql.md#firebasesqlmutable) is `true`<!-- -->, before calling [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->. Use [Builder.setHeader()](./sql.builder.md#buildersetheader) to attach or override a header for a single request; a same-named header passed to `Builder.setHeader()` overrides the client-level header for that request.
+When to use: configuring shared custom HTTP headers (such as tenant, locale, or correlation headers) while [FirebaseSql.isMutable](./sql.firebasesql.md#firebasesqlismutable) is `true`<!-- -->, before calling [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->. Use [Builder.setHeader()](./sql.builder.md#buildersetheader) to attach or override a header for a single request; a same-named header passed to `Builder.setHeader()` overrides the client-level header for that request.
 
 Behavior and side effects: accepts any `HeadersInit` (`Record<string, string>`<!-- -->, `[string, string][]`<!-- -->, or `Headers`<!-- -->), defensively copies it into a new `Headers` instance (so mutating the caller's object, array, or `Headers` afterward has no effect), and replaces—rather than merges with—any previously set client headers.
 
-Validation and error precedence: `headers` is parsed (`new Headers(headers)`<!-- -->) and checked for protected header names synchronously \*\*before\*\* checking client lifecycle state (`mutable` or terminated). A failing call leaves [FirebaseSql.mutable](./sql.firebasesql.md#firebasesqlmutable) and any previously set headers unchanged.
+Validation and error precedence: `headers` is parsed (`new Headers(headers)`<!-- -->) and checked for protected header names synchronously before checking client lifecycle state (`mutable` or terminated). A failing call leaves [FirebaseSql.isMutable](./sql.firebasesql.md#firebasesqlismutable) and any previously set headers unchanged.
 
 Disallowed headers: do not pass authentication, App Check, or reserved Firebase telemetry and routing headers (`Authorization`<!-- -->, `x-firebase-auth-token`<!-- -->, `x-firebase-appcheck`<!-- -->, `x-goog-api-client`<!-- -->, `x-client-version`<!-- -->, `x-firebase-gmpid`<!-- -->, `x-firebase-client`<!-- -->, `x-firebase-client-log-type`<!-- -->, `x-goog-request-params`<!-- -->, `x-firebase-sqlconnect-affinity`<!-- -->), matched trimmed and case-insensitively. Firebase Auth and App Check tokens are attached automatically when configured on [FirebaseSql.app](./sql.firebasesql.md#firebasesqlapp)<!-- -->.
 
@@ -345,7 +345,7 @@ void
 
 [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously if any header name (trimmed, case-insensitive) matches a protected auth, App Check, or Firebase telemetry/routing header (`Authorization`<!-- -->, `x-firebase-auth-token`<!-- -->, `x-firebase-appcheck`<!-- -->, `x-goog-api-client`<!-- -->, `x-client-version`<!-- -->, `x-firebase-gmpid`<!-- -->, `x-firebase-client`<!-- -->, `x-firebase-client-log-type`<!-- -->, `x-goog-request-params`<!-- -->, `x-firebase-sqlconnect-affinity`<!-- -->). Evaluated before lifecycle state checks.
 
-[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`already-initialized`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously if [FirebaseSql.mutable](./sql.firebasesql.md#firebasesqlmutable) is `false` because [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc) has already been called on this client.
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`already-initialized`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously if [FirebaseSql.isMutable](./sql.firebasesql.md#firebasesqlismutable) is `false` because [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc) has already been called on this client.
 
 [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->) Thrown synchronously if this client has been terminated via [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->.
 
@@ -361,7 +361,7 @@ const sql = getSql({
   location: 'us-central1'
 });
 
-if (sql.mutable) {
+if (sql.isMutable) {
   sql.setHeaders({
     'x-app-locale': 'en-US',
     'x-client-session': 'sess-42'
@@ -371,7 +371,7 @@ if (sql.mutable) {
 // Overwrites previous client headers with only 'x-app-locale'
 sql.setHeaders([['x-app-locale', 'fr-FR']]);
 
-// First from() call locks setHeaders() (sql.mutable becomes false)
+// First from() call locks setHeaders() (sql.isMutable becomes false)
 const res = await sql
   .from('events')
   .select('id, title')
