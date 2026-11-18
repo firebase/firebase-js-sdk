@@ -328,7 +328,7 @@ export class FirebaseSql {
    * than merges with—any previously set client headers.
    *
    * Validation and error precedence: `headers` is parsed (`new Headers(headers)`) and checked for
-   * protected header names synchronously **before** checking client lifecycle state (`mutable` or
+   * protected header names synchronously before checking client lifecycle state (`mutable` or
    * terminated). A failing call leaves {@link FirebaseSql.mutable} and any previously set headers
    * unchanged.
    *
@@ -424,7 +424,7 @@ export class FirebaseSql {
     );
   }
 
-  private _getFirebaseSqlStateImmutableOrThrow(): FirebaseSqlStateImmutable {
+  private _ensureImmutableStateOrThrow(): FirebaseSqlStateImmutable {
     if (this._state.name === 'terminated') {
       this._throwTerminatedError();
     }
@@ -582,8 +582,7 @@ export class FirebaseSql {
   from(table: string): QueryBuilder {
     this._assertNotTerminated();
     const encodedTable = this._encodeTableName(table);
-    const { context, postgrestClient } =
-      this._getFirebaseSqlStateImmutableOrThrow();
+    const { context, postgrestClient } = this._ensureImmutableStateOrThrow();
     const postgrestQueryBuilder = postgrestClient.from(encodedTable);
     return new QueryBuilderImpl(
       postgrestQueryBuilder,
@@ -739,8 +738,7 @@ export class FirebaseSql {
   ): FilterBuilder<unknown, 'RPC'> {
     this._assertNotTerminated();
     const encodedFn = this._encodeFunctionName(fn);
-    const { context, postgrestClient } =
-      this._getFirebaseSqlStateImmutableOrThrow();
+    const { context, postgrestClient } = this._ensureImmutableStateOrThrow();
     const postgrestFilterBuilder = postgrestClient.rpc(
       encodedFn,
       params,
@@ -905,12 +903,12 @@ export function getSql(
 
 export function getSql(
   appOrServiceConfig: FirebaseApp | ServiceConfig,
-  serviceConfigArg?: ServiceConfig
+  serviceConfig?: ServiceConfig
 ): FirebaseSql {
   let app: FirebaseApp;
   let rawServiceConfig: ServiceConfig;
 
-  if (serviceConfigArg === undefined) {
+  if (serviceConfig === undefined) {
     app = getApp();
     rawServiceConfig = appOrServiceConfig as ServiceConfig;
   } else {
@@ -929,7 +927,7 @@ export function getSql(
     } else {
       app = appOrServiceConfig;
     }
-    rawServiceConfig = serviceConfigArg;
+    rawServiceConfig = serviceConfig;
   }
 
   const validatedServiceConfig = validateServiceConfig(rawServiceConfig);
