@@ -100,6 +100,19 @@ export class TestingConnection implements Connection<string> {
     this.resolve();
   }
 
+  simulateNetworkError(): void {
+    if (this.state !== State.SENT) {
+      throw new StorageError(
+        StorageErrorCode.UNKNOWN,
+        "Can't simulate network error before send/more than once"
+      );
+    }
+
+    this.errorCode = ErrorCode.NETWORK_ERROR;
+    this.state = State.DONE;
+    this.resolve();
+  }
+
   getErrorCode(): ErrorCode {
     return this.errorCode;
   }

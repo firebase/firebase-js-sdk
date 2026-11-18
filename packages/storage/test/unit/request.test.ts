@@ -18,7 +18,7 @@
 import { makeRequest } from '../../src/implementation/request';
 import { RequestInfo } from '../../src/implementation/requestinfo';
 import { Connection } from '../../src/implementation/connection';
-import { TestingConnection, newTestConnection } from './connection';
+import { SendHook, TestingConnection, newTestConnection } from './connection';
 
 const TEST_VERSION = '1.2.3';
 
@@ -312,5 +312,70 @@ describe('Firebase Storage > Request', () => {
         assert.fail('Request failed unexpectedly');
       }
     );
+  });
+
+  describe('successCodesAfterRetry', () => {
+    // One entry per attempt: the status code to respond with, or
+    // 'network-error'.
+    function sendOutcomes(outcomes: Array<number | 'network-error'>): SendHook {
+      let attempt = 0;
+      return vi.fn((connection: TestingConnection) => {
+        const outcome = outcomes[attempt++];
+        if (outcome === 'network-error') {
+          connection.simulateNetworkError();
+        } else {
+          connection.simulateResponse(outcome, '', {});
+        }
+      });
+    }
+
+    async function runDelete(
+      spiedSend: SendHook
+    ): Promise<PromiseSettledResult<void>> {
+      vi.useFakeTimers();
+      const requestInfo = new RequestInfo(
+        'http://my-url.com/',
+        'DELETE',
+        () => {},
+        timeout
+      );
+      requestInfo.successCodes = [200, 204];
+      requestInfo.successCodesAfterRetry = [404];
+      const settled = Promise.allSettled([
+        makeRequest(requestInfo, null, null, null, () =>
+          newTestConnection(spiedSend)
+        ).getPromise()
+      ]);
+      await vi.runAllTimersAsync();
+      return (await settled)[0];
+    }
+
+    it('count as success on a retry after a 5xx response', async () => {
+      const spiedSend = sendOutcomes([503, 404]);
+      const result = await runDelete(spiedSend);
+      expect(result.status).toBe('fulfilled');
+      expect(spiedSend).toHaveBeenCalledTimes(2);
+    });
+
+    it('count as success on a retry after a network error', async () => {
+      const spiedSend = sendOutcomes(['network-error', 404]);
+      const result = await runDelete(spiedSend);
+      expect(result.status).toBe('fulfilled');
+      expect(spiedSend).toHaveBeenCalledTimes(2);
+    });
+
+    it('do not count as success on the first attempt', async () => {
+      const spiedSend = sendOutcomes([404]);
+      const result = await runDelete(spiedSend);
+      expect(result.status).toBe('rejected');
+      expect(spiedSend).toHaveBeenCalledTimes(1);
+    });
+
+    it('do not count as success on a retry after a 429 response', async () => {
+      const spiedSend = sendOutcomes([429, 404]);
+      const result = await runDelete(spiedSend);
+      expect(result.status).toBe('rejected');
+      expect(spiedSend).toHaveBeenCalledTimes(2);
+    });
   });
 });

@@ -398,7 +398,8 @@ describe('Firebase Storage > Requests', () => {
           method: 'DELETE',
           body: null,
           headers: {},
-          urlParams: {}
+          urlParams: {},
+          successCodesAfterRetry: [404]
         },
         requestInfo
       );
