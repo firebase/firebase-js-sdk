@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # FirebaseSql class
 Service client bound to a `FirebaseApp` and a specific Firebase SQL PostgREST endpoint.
 
-Do not instantiate directly: obtain instances via [getSql()](./sql.md#getsql_b956f3d)<!-- -->, which validates the `ServiceConfig` and deduplicates clients per `(app, resolvedEndpointUrl, schemaName)`<!-- -->. Configure the target PostgreSQL schema via `schemaName` in [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) when calling [getSql()](./sql.md#getsql_b956f3d) (you can also derive a modified `ServiceConfig` from an existing [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) object via [copyServiceConfig()](./sql.md#copyserviceconfig_b956f3d)<!-- -->; `FirebaseSql` does not expose a `.schema(name)` method).
+Do not instantiate directly: obtain instances via [getSql()](./sql.md#getsql_b956f3d)<!-- -->, which validates the `ServiceConfig` and deduplicates clients per `(app, restUrl, schemaName)`<!-- -->. Configure the target PostgreSQL schema via `schemaName` in [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) when calling [getSql()](./sql.md#getsql_b956f3d) (you can also derive a modified `ServiceConfig` from an existing [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) object via [copyServiceConfig()](./sql.md#copyserviceconfig_b956f3d)<!-- -->; `FirebaseSql` does not expose a `.schema(name)` method).
 
 Read [FirebaseSql.restUrl](./sql.firebasesql.md#firebasesqlresturl) and [FirebaseSql.schemaName](./sql.firebasesql.md#firebasesqlschemaname) to inspect the resolved endpoint URL and active schema. Client-wide static HTTP headers can be configured via [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) while [FirebaseSql.isMutable](./sql.firebasesql.md#firebasesqlismutable) is `true` (before the first call to [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->). See [terminate()](./sql.md#terminate_bc2cb94) for shutting down a client and evicting it from the app registry.
 
@@ -61,7 +61,7 @@ Whether this client is still in the mutable configuration state where mutator me
 
 Starts as `true` on newly created `FirebaseSql` instances and permanently transitions to `false` on the first call to [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->, or when terminated via [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->.
 
-Because [getSql()](./sql.md#getsql_b956f3d) returns cached instances shared per `(app, resolvedEndpointUrl, schemaName)`<!-- -->, `isMutable` will already be `false` on a returned instance if it was previously used.
+Because [getSql()](./sql.md#getsql_b956f3d) returns cached instances shared per `(app, restUrl, schemaName)`<!-- -->, `isMutable` will already be `false` on a returned instance if it was previously used.
 
 <b>Signature:</b>
 

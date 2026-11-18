@@ -128,7 +128,7 @@ export interface FirebaseSqlRpcOptions {
  *
  * @remarks
  * Do not instantiate directly: obtain instances via {@link (getSql:1) | getSql()}, which validates
- * the `ServiceConfig` and deduplicates clients per `(app, resolvedEndpointUrl, schemaName)`.
+ * the `ServiceConfig` and deduplicates clients per `(app, restUrl, schemaName)`.
  * Configure the target PostgreSQL schema via `schemaName` in {@link ServiceConfig} when calling
  * {@link (getSql:1) | getSql()} (you can also derive a modified `ServiceConfig` from an existing
  * {@link ServiceConfig} object via {@link copyServiceConfig}; `FirebaseSql` does not
@@ -223,7 +223,7 @@ export class FirebaseSql {
    * {@link terminate} or `deleteApp()`.
    *
    * Because {@link (getSql:1) | getSql()} returns cached instances shared per
-   * `(app, resolvedEndpointUrl, schemaName)`, `isMutable` will already be `false` on a returned
+   * `(app, restUrl, schemaName)`, `isMutable` will already be `false` on a returned
    * instance if it was previously used.
    *
    * @public
@@ -769,7 +769,7 @@ export class FirebaseSql {
  *
  * Behavior and side effects: synchronous, performs no network I/O, copies and freezes
  * `serviceConfig`, and caches the resulting {@link FirebaseSql} instance on the default app keyed by
- * `(resolvedEndpointUrl, schemaName)`. Repeated calls with the same resolved endpoint and
+ * `(restUrl, schemaName)`. Repeated calls with the same resolved endpoint and
  * `schemaName` return the shared cached instance, including its {@link FirebaseSql.isMutable} and
  * {@link FirebaseSql.setHeaders} state—if the cached instance has already been used, `isMutable` is
  * `false`; use {@link Builder.setHeader} for per-request headers or call {@link terminate} first
@@ -839,7 +839,7 @@ export function getSql(serviceConfig: ServiceConfig): FirebaseSql;
  *
  * Behavior and side effects: synchronous, performs no network I/O, copies and freezes
  * `serviceConfig`, and caches the {@link FirebaseSql} instance on `app` keyed by
- * `(resolvedEndpointUrl, schemaName)`. Repeated calls with the same resolved endpoint and
+ * `(restUrl, schemaName)`. Repeated calls with the same resolved endpoint and
  * `schemaName` return the shared cached instance, sharing its {@link FirebaseSql.isMutable} and
  * {@link FirebaseSql.setHeaders} state—if the cached instance has already been used, `isMutable` is
  * `false`; use {@link Builder.setHeader} for per-operation headers, or call {@link terminate} to

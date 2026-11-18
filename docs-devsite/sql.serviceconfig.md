@@ -14,7 +14,7 @@ Connection and routing configuration for a [FirebaseSql](./sql.firebasesql.md#fi
 
 Passed to [getSql()](./sql.md#getsql_b956f3d)<!-- -->, which validates `serviceId`<!-- -->, `location`<!-- -->, and `port`<!-- -->, creates a shallow frozen copy, and resolves the PostgREST endpoint URL as `{http|https}://{host}[:{port}]/v1/projects/{projectId}/locations/{location}/services/{serviceId}/postgrest`<!-- -->.
 
-Instance caching and HTTP headers: [getSql()](./sql.md#getsql_b956f3d) deduplicates instances by `(app, resolvedEndpointUrl, schemaName)`<!-- -->. Use [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) to configure client-wide static headers while [FirebaseSql.isMutable](./sql.firebasesql.md#firebasesqlismutable) is `true`<!-- -->, and use [Builder.setHeader()](./sql.builder.md#buildersetheader) for per-request header overrides. See [getSql()](./sql.md#getsql_b956f3d) for client initialization and error rules.
+Instance caching and HTTP headers: [getSql()](./sql.md#getsql_b956f3d) deduplicates instances by `(app, restUrl, schemaName)`<!-- -->. Use [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) to configure client-wide static headers while [FirebaseSql.isMutable](./sql.firebasesql.md#firebasesqlismutable) is `true`<!-- -->, and use [Builder.setHeader()](./sql.builder.md#buildersetheader) for per-request header overrides. See [getSql()](./sql.md#getsql_b956f3d) for client initialization and error rules.
 
 <b>Signature:</b>
 

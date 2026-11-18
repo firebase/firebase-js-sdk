@@ -27,7 +27,7 @@ import { FirebaseSqlErrorCategory, Code, FirebaseSqlError } from './error';
  * `{http|https}://{host}[:{port}]/v1/projects/{projectId}/locations/{location}/services/{serviceId}/postgrest`.
  *
  * Instance caching and HTTP headers: {@link (getSql:1) | getSql()} deduplicates instances by
- * `(app, resolvedEndpointUrl, schemaName)`. Use {@link FirebaseSql.setHeaders} to configure
+ * `(app, restUrl, schemaName)`. Use {@link FirebaseSql.setHeaders} to configure
  * client-wide static headers while {@link FirebaseSql.isMutable} is `true`, and use
  * {@link Builder.setHeader} for per-request header overrides. See {@link (getSql:1) | getSql()} for
  * client initialization and error rules.
