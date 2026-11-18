@@ -97,6 +97,7 @@ export class GrpcConnection implements Connection {
 
   // We cache stubs for the most-recently-used token.
   private cachedStub: GeneratedGrpcStub | null = null;
+  private terminated = false;
 
   get shouldResourcePathBeIncludedInRequest(): boolean {
     // Both `invokeRPC()` and `invokeStreamingRPC()` ignore their `path` arguments, and expect
@@ -142,6 +143,9 @@ export class GrpcConnection implements Connection {
     authToken: Token | null,
     appCheckToken: Token | null
   ): Promise<Resp> {
+    if (this.terminated) {
+      return new Promise<Resp>(() => {});
+    }
     const streamId = generateUniqueDebugId();
     const stub = this.ensureActiveStub();
     const metadata = createMetadata(
@@ -164,6 +168,9 @@ export class GrpcConnection implements Connection {
         jsonRequest,
         metadata,
         (grpcError?: grpc.ServiceError, value?: Resp) => {
+          if (this.terminated) {
+            return;
+          }
           if (grpcError) {
             logDebug(
               LOG_TAG,
@@ -197,6 +204,9 @@ export class GrpcConnection implements Connection {
     appCheckToken: Token | null,
     expectedResponseCount?: number
   ): Promise<Resp[]> {
+    if (this.terminated) {
+      return new Promise<Resp[]>(() => {});
+    }
     const streamId = generateUniqueDebugId();
     const results: Resp[] = [];
     const responseDeferred = new Deferred<Resp[]>();
@@ -218,6 +228,9 @@ export class GrpcConnection implements Connection {
     const stream = stub[rpcName](jsonRequest, metadata);
     let callbackFired = false;
     stream.on('data', (response: Resp) => {
+      if (this.terminated) {
+        return;
+      }
       logDebug(
         LOG_TAG,
         `RPC ${rpcName} ${streamId} received result:`,
@@ -233,6 +246,9 @@ export class GrpcConnection implements Connection {
       }
     });
     stream.on('end', () => {
+      if (this.terminated) {
+        return;
+      }
       logDebug(LOG_TAG, `RPC '${rpcName}' ${streamId} completed.`);
       if (!callbackFired) {
         callbackFired = true;
@@ -240,6 +256,9 @@ export class GrpcConnection implements Connection {
       }
     });
     stream.on('error', (grpcError: grpc.ServiceError) => {
+      if (this.terminated) {
+        return;
+      }
       logDebug(
         LOG_TAG,
         `RPC '${rpcName}' ${streamId} failed with error:`,
@@ -368,6 +387,7 @@ export class GrpcConnection implements Connection {
    * in leaked resources of the gRPC client.
    */
   terminate(): void {
+    this.terminated = true;
     if (this.cachedStub) {
       this.cachedStub.close();
       this.cachedStub = undefined;

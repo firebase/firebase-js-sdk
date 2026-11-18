@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
-import { Metadata } from '@grpc/grpc-js';
+import { EventEmitter } from 'events';
+
+import { Metadata, status } from '@grpc/grpc-js';
 
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { ResourcePath } from '../../../src/model/path';
@@ -180,6 +182,131 @@ describe('GrpcConnection', () => {
         'grpc.max_receive_message_length': 17 * 1024 * 1024,
         'grpc.max_send_message_length': 17 * 1024 * 1024
       });
+    });
+  });
+
+  describe('terminate()', () => {
+    it('ignores in-flight invokeStreamingRPC errors emitted during or after terminate()', async () => {
+      const stream = new EventEmitter();
+      const mockProtos = {
+        google: {
+          firestore: {
+            v1: {
+              Firestore: class {
+                RunAggregationQuery(): EventEmitter {
+                  return stream;
+                }
+                close(): void {
+                  stream.emit('error', {
+                    code: status.UNAVAILABLE,
+                    message:
+                      '14 UNAVAILABLE: Channel closed before call started'
+                  });
+                }
+              }
+            }
+          }
+        }
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const conn = new GrpcConnection(mockProtos as any, testDatabaseInfo);
+      let settled = false;
+      void conn
+        .invokeStreamingRPC(
+          'RunAggregationQuery',
+          ResourcePath.emptyPath(),
+          {},
+          null,
+          null
+        )
+        .then(
+          () => {
+            settled = true;
+          },
+          () => {
+            settled = true;
+          }
+        );
+
+      conn.terminate();
+      await Promise.resolve();
+      expect(settled).toBe(false);
+    });
+
+    it('ignores in-flight invokeRPC errors emitted during or after terminate()', async () => {
+      let rpcCallback: ((err: unknown, resp?: unknown) => void) | undefined =
+        undefined;
+      const mockProtos = {
+        google: {
+          firestore: {
+            v1: {
+              Firestore: class {
+                Commit(
+                  _req: unknown,
+                  _metadata: Metadata,
+                  callback: (err: unknown, resp?: unknown) => void
+                ): void {
+                  rpcCallback = callback;
+                }
+                close(): void {
+                  rpcCallback?.({
+                    code: status.UNAVAILABLE,
+                    message:
+                      '14 UNAVAILABLE: Channel closed before call started'
+                  });
+                }
+              }
+            }
+          }
+        }
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const conn = new GrpcConnection(mockProtos as any, testDatabaseInfo);
+      let settled = false;
+      void conn
+        .invokeRPC('Commit', ResourcePath.emptyPath(), {}, null, null)
+        .then(
+          () => {
+            settled = true;
+          },
+          () => {
+            settled = true;
+          }
+        );
+
+      conn.terminate();
+      await Promise.resolve();
+      expect(settled).toBe(false);
+    });
+
+    it('does not create a new stub if invokeRPC or invokeStreamingRPC is called after terminate()', () => {
+      const spyConstructor = vi.fn();
+      const mockProtos = {
+        google: {
+          firestore: {
+            v1: {
+              Firestore: spyConstructor
+            }
+          }
+        }
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const conn = new GrpcConnection(mockProtos as any, testDatabaseInfo);
+      conn.terminate();
+
+      void conn.invokeRPC('Commit', ResourcePath.emptyPath(), {}, null, null);
+      void conn.invokeStreamingRPC(
+        'RunAggregationQuery',
+        ResourcePath.emptyPath(),
+        {},
+        null,
+        null
+      );
+
+      expect(spyConstructor).not.toHaveBeenCalled();
     });
   });
 });
