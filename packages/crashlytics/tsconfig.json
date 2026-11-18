@@ -6,7 +6,7 @@
     "experimentalDecorators": true,
     "paths": {
       "@opentelemetry/browser-api": [
-        "node_modules/@opentelemetry/browser-api/dist/index.d.ts",
+        "./node_modules/@opentelemetry/browser-api/dist/index.d.ts",
         "../../node_modules/@opentelemetry/browser-api/dist/index.d.ts"
       ],
       "@opentelemetry/browser-instrumentation/experimental/*": [
