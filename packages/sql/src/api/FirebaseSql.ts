@@ -410,13 +410,23 @@ export class FirebaseSql {
     this._state.headers = headersCopy;
   }
 
+  private _assertNotTerminated(): void {
+    if (this._state.name === 'terminated') {
+      this._throwTerminatedError();
+    }
+  }
+
+  private _throwTerminatedError(): never {
+    throw new FirebaseSqlError(
+      Code.NOT_INITIALIZED,
+      'The Firebase SQL client has been terminated.',
+      FirebaseSqlErrorCategory.SQL_CLIENT
+    );
+  }
+
   private _getFirebaseSqlStateImmutableOrThrow(): FirebaseSqlStateImmutable {
     if (this._state.name === 'terminated') {
-      throw new FirebaseSqlError(
-        Code.NOT_INITIALIZED,
-        'The Firebase SQL client has been terminated.',
-        FirebaseSqlErrorCategory.SQL_CLIENT
-      );
+      this._throwTerminatedError();
     }
 
     if (this._state.name === 'immutable') {
@@ -459,12 +469,8 @@ export class FirebaseSql {
 
   // Encode table and RPC names so `/`, `?`, `#`, and dot-segments cannot traverse out of
   // `/postgrest` or inject query parameters on the shared `firebasedataconnect.googleapis.com`
-  // origin (deviating from `PostgrestClient`'s raw URL interpolation while leaving blank
-  // `from('')` inputs untouched so `@supabase/postgrest-js`'s raw `Error` still propagates).
-  private _encodeResourceSegment(
-    segment: string,
-    preserveBlank: boolean
-  ): string {
+  // origin (deviating from `PostgrestClient`'s raw URL interpolation).
+  private _encodePathSegment(segment: string): string {
     if (segment === '.' || segment === '..') {
       throw new FirebaseSqlError(
         Code.INVALID_ARGUMENT,
@@ -472,14 +478,23 @@ export class FirebaseSql {
         FirebaseSqlErrorCategory.SQL_CLIENT
       );
     }
-    if (
-      typeof segment !== 'string' ||
-      segment.length === 0 ||
-      (preserveBlank && segment.trim() === '')
-    ) {
+    if (typeof segment !== 'string' || segment.length === 0) {
       return segment;
     }
     return encodeURIComponent(segment);
+  }
+
+  private _encodeTableName(table: string): string {
+    if (!table || typeof table !== 'string' || table.trim() === '') {
+      throw new Error(
+        'Invalid relation name: relation must be a non-empty string.'
+      );
+    }
+    return this._encodePathSegment(table);
+  }
+
+  private _encodeFunctionName(fn: string): string {
+    return this._encodePathSegment(fn);
   }
 
   /**
@@ -499,21 +514,23 @@ export class FirebaseSql {
    * Preconditions: this `FirebaseSql` instance must not have been terminated via {@link terminate}
    * or `deleteApp()`.
    *
-   * Behavior and side effects: synchronous and performs no network I/O. On the first call to
-   * `from()` or {@link FirebaseSql.rpc}, this client permanently transitions
+   * Behavior and side effects: synchronous and performs no network I/O. On the first successful
+   * call to `from()` or {@link FirebaseSql.rpc}, this client permanently transitions
    * {@link FirebaseSql.mutable} to `false` (locking {@link FirebaseSql.setHeaders}) and lazily
    * initializes the underlying PostgREST client along with Firebase Authentication and App Check
-   * token listeners. The returned {@link QueryBuilder} clones URL and header state on each verb
-   * call (`select`, `insert`, etc.), so a single `sql.from('events')` reference can be safely
-   * stored and reused across concurrent queries. Special URI characters (`/`, `?`, `#`) in
-   * `table` are percent-encoded to prevent path traversal.
+   * token listeners. Terminated state (`not-initialized`) is checked before validating `table`,
+   * and a throwing call leaves {@link FirebaseSql.mutable} unchanged. The returned
+   * {@link QueryBuilder} clones URL and header state on each verb call (`select`, `insert`, etc.),
+   * so a single `sql.from('events')` reference can be safely stored and reused across concurrent
+   * queries. Special URI characters (`/`, `?`, `#`) in `table` are percent-encoded to prevent
+   * path traversal.
    *
    * @param table - Non-empty PostgreSQL table or view name (must not be `'.'`, `'..'`, or blank/whitespace).
    * @returns A stateless {@link QueryBuilder} for starting SQL verb chains on `table`.
    *
    * @throws {@link FirebaseSqlError} (`not-initialized`, category `'sql-client'`)
-   * Thrown synchronously when called after {@link terminate} or `deleteApp()`. Obtain a fresh
-   * client via {@link (getSql:1) | getSql()}.
+   * Thrown synchronously when called after {@link terminate} or `deleteApp()` (evaluated before
+   * argument validation). Obtain a fresh client via {@link (getSql:1) | getSql()}.
    * @throws {@link FirebaseSqlError} (`invalid-argument`, category `'sql-client'`)
    * Thrown synchronously when `table` is `'.'` or `'..'`. Pass a valid PostgreSQL relation identifier.
    * @throws `Error`
@@ -563,7 +580,8 @@ export class FirebaseSql {
    * @public
    */
   from(table: string): QueryBuilder {
-    const encodedTable = this._encodeResourceSegment(table, true);
+    this._assertNotTerminated();
+    const encodedTable = this._encodeTableName(table);
     const { context, postgrestClient } =
       this._getFirebaseSqlStateImmutableOrThrow();
     const postgrestQueryBuilder = postgrestClient.from(encodedTable);
@@ -592,13 +610,15 @@ export class FirebaseSql {
    * wrap array parameters inside an object key, such as `{ target_tags: ['firebase', 'ai'] }`).
    *
    * Behavior and side effects: builder progression is `FirebaseSql -> FilterBuilder<unknown, 'RPC', false>`.
-   * On the first call to `rpc()` or {@link FirebaseSql.from}, this client permanently transitions
-   * {@link FirebaseSql.mutable} to `false` (locking {@link FirebaseSql.setHeaders}) and lazily
-   * initializes the underlying PostgREST client along with Firebase Authentication and App Check
-   * token listeners. No HTTP request is sent until the returned builder is `await`ed or `.then()`
-   * is invoked. Each `await` or `.then()` call sends a new HTTP request (results are not cached);
-   * awaiting the same `rpc()` builder twice executes the function twice and duplicates side effects
-   * for write functions, so await each mutation RPC builder at most once.
+   * On the first successful call to `rpc()` or {@link FirebaseSql.from}, this client permanently
+   * transitions {@link FirebaseSql.mutable} to `false` (locking {@link FirebaseSql.setHeaders})
+   * and lazily initializes the underlying PostgREST client along with Firebase Authentication and
+   * App Check token listeners. Terminated state (`not-initialized`) is checked before validating
+   * `fn`, and a throwing call leaves {@link FirebaseSql.mutable} unchanged. No HTTP request is
+   * sent until the returned builder is `await`ed or `.then()` is invoked. Each `await` or
+   * `.then()` call sends a new HTTP request (results are not cached); awaiting the same `rpc()`
+   * builder twice executes the function twice and duplicates side effects for write functions, so
+   * await each mutation RPC builder at most once.
    *
    * Defaults to `POST /rpc/{fn}` with JSON body `params ?? {}` (omit `params` for zero-argument
    * functions: `sql.rpc('fn')`). Set `options.get: true` in {@link FirebaseSqlRpcOptions} for
@@ -627,8 +647,8 @@ export class FirebaseSql {
    * @returns A lazy {@link FilterBuilder} with untyped result `unknown` and method tag `'RPC'`.
    *
    * @throws {@link FirebaseSqlError} (`not-initialized`, category `'sql-client'`)
-   * Thrown synchronously when called after {@link terminate} or `deleteApp()`. Re-initialize a
-   * client with {@link (getSql:1) | getSql()}.
+   * Thrown synchronously when called after {@link terminate} or `deleteApp()` (evaluated before
+   * argument validation). Re-initialize a client with {@link (getSql:1) | getSql()}.
    * @throws {@link FirebaseSqlError} (`invalid-argument`, category `'sql-client'`)
    * Thrown synchronously when `fn` is `'.'` or `'..'`. Pass a valid PostgreSQL function name.
    *
@@ -717,7 +737,8 @@ export class FirebaseSql {
     params?: Args | undefined,
     options?: Readonly<FirebaseSqlRpcOptions> | undefined
   ): FilterBuilder<unknown, 'RPC'> {
-    const encodedFn = this._encodeResourceSegment(fn, false);
+    this._assertNotTerminated();
+    const encodedFn = this._encodeFunctionName(fn);
     const { context, postgrestClient } =
       this._getFirebaseSqlStateImmutableOrThrow();
     const postgrestFilterBuilder = postgrestClient.rpc(

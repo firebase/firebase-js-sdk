@@ -615,6 +615,56 @@ describe('FirebaseSql', () => {
         FirebaseSqlErrorCategory.SQL_CLIENT
       );
     });
+
+    it('throws plain Error on blank from() without transitioning mutable state, registering token listeners, or locking headers', async () => {
+      const app = initializeApp({ projectId: 'proj-1' });
+      const sql = FirebaseSql.getSql(app, defaultServiceConfig);
+
+      const authOnInitSpy = vi.spyOn(
+        _getProvider(app, 'auth-internal'),
+        'onInit'
+      );
+      const appCheckOnInitSpy = vi.spyOn(
+        _getProvider(app, 'app-check-internal'),
+        'onInit'
+      );
+
+      for (const blankTable of ['', ' ']) {
+        let caughtErr: unknown;
+        try {
+          sql.from(blankTable);
+        } catch (err) {
+          caughtErr = err;
+        }
+        expect(caughtErr).toBeInstanceOf(Error);
+        expect(caughtErr).not.toBeInstanceOf(FirebaseSqlError);
+        expect((caughtErr as Error).message).toBe(
+          'Invalid relation name: relation must be a non-empty string.'
+        );
+        expect(sql.mutable).toBe(true);
+        expect(authOnInitSpy).not.toHaveBeenCalled();
+        expect(appCheckOnInitSpy).not.toHaveBeenCalled();
+      }
+
+      // Headers must still be unlocked after rejected blank from() calls.
+      expect(() =>
+        sql.setHeaders({ 'X-After-Blank': 'still-mutable' })
+      ).not.toThrow();
+      expect(sql.mutable).toBe(true);
+
+      const mockFetch = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(new Response('[]', { status: 200 }));
+      vi.stubGlobal('fetch', mockFetch);
+
+      await sql.from('users').select();
+      expect(sql.mutable).toBe(false);
+      const wireHeaders = mockFetch.mock.calls[0][1]?.headers as Record<
+        string,
+        string
+      >;
+      expect(wireHeaders['x-after-blank']).toBe('still-mutable');
+    });
   });
 });
 
@@ -1651,6 +1701,59 @@ describe('FirebaseSql end-to-end operations', () => {
       );
 
       expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('throws NOT_INITIALIZED before argument validation on from() and rpc() after terminate() and deleteApp()', async () => {
+      const terminationModes: Array<{
+        label: string;
+        shutdown: (
+          app: FirebaseApp,
+          sql: FirebaseSql.FirebaseSql
+        ) => Promise<void>;
+      }> = [
+        {
+          label: 'terminate()',
+          shutdown: async (_app, sql) => FirebaseSql.terminate(sql)
+        },
+        {
+          label: 'deleteApp()',
+          shutdown: async app => deleteApp(app)
+        }
+      ];
+
+      for (const { label, shutdown } of terminationModes) {
+        const app = initializeApp(
+          { projectId: 'proj-1' },
+          `terminated-ordering-${label}`
+        );
+        const sql = FirebaseSql.getSql(app, defaultServiceConfig);
+        await shutdown(app, sql);
+
+        const invalidCalls: Array<() => unknown> = [
+          () => sql.from('.'),
+          () => sql.from('..'),
+          () => sql.from(''),
+          () => sql.from(' '),
+          () => sql.rpc('.'),
+          () => sql.rpc('..')
+        ];
+
+        for (const call of invalidCalls) {
+          let caughtErr: unknown;
+          try {
+            void call();
+          } catch (err) {
+            caughtErr = err;
+          }
+          expect(caughtErr).toBeInstanceOf(FirebaseSqlError);
+          expect((caughtErr as FirebaseSqlError).code).toBe(
+            Code.NOT_INITIALIZED
+          );
+          expect((caughtErr as FirebaseSqlError).category).toBe(
+            FirebaseSqlErrorCategory.SQL_CLIENT
+          );
+        }
+      }
     });
   });
 });
