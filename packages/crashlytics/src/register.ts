@@ -41,7 +41,7 @@ import {
 import { CrashlyticsOptions } from './public-types';
 import { ClientConfigStore } from './sampling/client-config';
 import { SessionSampler } from './sampling/session-sampler';
-import { syncTelemetryDebugQueryParam } from './sampling/debug-override';
+import { initTelemetryDebugOverride } from './sampling/debug-override';
 
 // We only import types from this package elsewhere in the `telemetry` package, so this
 // explicit import is needed here to prevent this module from being tree-shaken out.
@@ -87,7 +87,7 @@ export function registerCrashlytics(): void {
         // Evaluate the debug override early (and on history URL changes) so a
         // `?firebase_telemetry_debug=true` query parameter is mirrored into `FIREBASE_TELEMETRY_DEBUG`
         // and persisted for the rest of the browser session.
-        const unsubscribeDebugOverride = syncTelemetryDebugQueryParam();
+        const unsubscribeDebugOverride = initTelemetryDebugOverride();
 
         const { loggerProvider, onErrorLogRecordProcessor } =
           createLoggerProvider(

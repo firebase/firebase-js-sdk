@@ -23,7 +23,7 @@ import {
   TELEMETRY_DEBUG_GLOBAL_FLAG
 } from '../constants';
 import { ClientConfig, ClientConfigStore } from './client-config';
-import { syncTelemetryDebugQueryParam } from './debug-override';
+import { initTelemetryDebugOverride } from './debug-override';
 import { isSessionSampled, SessionSampler } from './session-sampler';
 
 // Session IDs whose hash buckets are 1184, 6018 and 8828 out of 10000.
@@ -389,7 +389,7 @@ describe('SessionSampler', () => {
 
     it('forces sampling via the sessionStorage marker synced at startup and stamps 1.0', () => {
       sessionStorage.setItem(SESSION_STORAGE_DEBUG_KEY, 'true');
-      const unsubscribe = syncTelemetryDebugQueryParam();
+      const unsubscribe = initTelemetryDebugOverride();
       try {
         const { sampler } = createSampler({ samplingRate: 0.25 }, SESSION_HIGH);
         expect(sampler.getDecision()).toEqual({
@@ -511,7 +511,7 @@ describe('SessionSampler', () => {
 
     it('skips checking debug override once a session is forced', () => {
       sessionStorage.setItem(SESSION_STORAGE_DEBUG_KEY, 'true');
-      const unsubscribe = syncTelemetryDebugQueryParam();
+      const unsubscribe = initTelemetryDebugOverride();
       const { sampler } = createSampler({ samplingRate: 0.5 }, SESSION_HIGH);
       const getItemSpy = vi.spyOn(Storage.prototype, 'getItem');
       try {
@@ -597,7 +597,7 @@ describe('SessionSampler', () => {
 
       // E.g. the page is reloaded with `?firebase_telemetry_debug=true`, which sets this marker.
       sessionStorage.setItem(SESSION_STORAGE_DEBUG_KEY, 'true');
-      const unsubscribe = syncTelemetryDebugQueryParam();
+      const unsubscribe = initTelemetryDebugOverride();
       try {
         const { sampler: reloaded } = createSampler(
           { samplingRate: 0.5 },

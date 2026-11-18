@@ -20,8 +20,8 @@ import {
   TELEMETRY_DEBUG_GLOBAL_FLAG
 } from '../constants';
 import {
-  isGlobalTelemetryDebugEnabled,
-  syncTelemetryDebugQueryParam
+  initTelemetryDebugOverride,
+  isTelemetryDebugEnabled
 } from './debug-override';
 
 describe('debug override', () => {
@@ -42,33 +42,33 @@ describe('debug override', () => {
   });
 
   it('is disabled by default', () => {
-    expect(isGlobalTelemetryDebugEnabled()).toBe(false);
-    unsubscribe = syncTelemetryDebugQueryParam();
-    expect(isGlobalTelemetryDebugEnabled()).toBe(false);
+    expect(isTelemetryDebugEnabled()).toBe(false);
+    unsubscribe = initTelemetryDebugOverride();
+    expect(isTelemetryDebugEnabled()).toBe(false);
   });
 
   it('is enabled by the FIREBASE_TELEMETRY_DEBUG global', () => {
     (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] = true;
-    expect(isGlobalTelemetryDebugEnabled()).toBe(true);
+    expect(isTelemetryDebugEnabled()).toBe(true);
     (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
       'true';
-    expect(isGlobalTelemetryDebugEnabled()).toBe(true);
+    expect(isTelemetryDebugEnabled()).toBe(true);
   });
 
   it('ignores falsy or unrelated global values', () => {
     (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
       false;
-    expect(isGlobalTelemetryDebugEnabled()).toBe(false);
+    expect(isTelemetryDebugEnabled()).toBe(false);
     (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
       'yes';
-    expect(isGlobalTelemetryDebugEnabled()).toBe(false);
+    expect(isTelemetryDebugEnabled()).toBe(false);
   });
 
   it('mirrors a persisted sessionStorage marker into the global flag', () => {
     sessionStorage.setItem(SESSION_STORAGE_DEBUG_KEY, 'true');
-    expect(isGlobalTelemetryDebugEnabled()).toBe(false);
-    unsubscribe = syncTelemetryDebugQueryParam();
-    expect(isGlobalTelemetryDebugEnabled()).toBe(true);
+    expect(isTelemetryDebugEnabled()).toBe(false);
+    unsubscribe = initTelemetryDebugOverride();
+    expect(isTelemetryDebugEnabled()).toBe(true);
   });
 
   it('is enabled by the query parameter and persists it for the session', () => {
@@ -77,32 +77,32 @@ describe('debug override', () => {
       '',
       '?foo=1&firebase_telemetry_debug=true'
     );
-    unsubscribe = syncTelemetryDebugQueryParam();
-    expect(isGlobalTelemetryDebugEnabled()).toBe(true);
+    unsubscribe = initTelemetryDebugOverride();
+    expect(isTelemetryDebugEnabled()).toBe(true);
     expect(sessionStorage.getItem(SESSION_STORAGE_DEBUG_KEY)).toBe('true');
 
     // Simulates a full-page reload/navigation without the query parameter.
     unsubscribe();
     delete (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG];
     window.history.replaceState(null, '', originalUrl);
-    unsubscribe = syncTelemetryDebugQueryParam();
-    expect(isGlobalTelemetryDebugEnabled()).toBe(true);
+    unsubscribe = initTelemetryDebugOverride();
+    expect(isTelemetryDebugEnabled()).toBe(true);
   });
 
   it('ignores other values of the query parameter', () => {
     window.history.replaceState(null, '', '?firebase_telemetry_debug=1');
-    unsubscribe = syncTelemetryDebugQueryParam();
-    expect(isGlobalTelemetryDebugEnabled()).toBe(false);
+    unsubscribe = initTelemetryDebugOverride();
+    expect(isTelemetryDebugEnabled()).toBe(false);
     expect(sessionStorage.getItem(SESSION_STORAGE_DEBUG_KEY)).toBeNull();
   });
 
   it('enables the global flag when popstate navigates to a debug query parameter and unsubscribes cleanly', () => {
-    unsubscribe = syncTelemetryDebugQueryParam();
-    expect(isGlobalTelemetryDebugEnabled()).toBe(false);
+    unsubscribe = initTelemetryDebugOverride();
+    expect(isTelemetryDebugEnabled()).toBe(false);
 
     window.history.replaceState(null, '', '?firebase_telemetry_debug=true');
     window.dispatchEvent(new PopStateEvent('popstate'));
-    expect(isGlobalTelemetryDebugEnabled()).toBe(true);
+    expect(isTelemetryDebugEnabled()).toBe(true);
     expect(sessionStorage.getItem(SESSION_STORAGE_DEBUG_KEY)).toBe('true');
 
     // After unsubscribing and resetting state, popstate no longer flips the flag.
@@ -111,18 +111,33 @@ describe('debug override', () => {
     sessionStorage.clear();
     delete (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG];
     window.dispatchEvent(new PopStateEvent('popstate'));
-    expect(isGlobalTelemetryDebugEnabled()).toBe(false);
+    expect(isTelemetryDebugEnabled()).toBe(false);
   });
 
   it('clears the global flag and sessionStorage marker when query parameter is false', () => {
     window.history.replaceState(null, '', '?firebase_telemetry_debug=true');
-    unsubscribe = syncTelemetryDebugQueryParam();
-    expect(isGlobalTelemetryDebugEnabled()).toBe(true);
+    unsubscribe = initTelemetryDebugOverride();
+    expect(isTelemetryDebugEnabled()).toBe(true);
     expect(sessionStorage.getItem(SESSION_STORAGE_DEBUG_KEY)).toBe('true');
 
     window.history.replaceState(null, '', '?firebase_telemetry_debug=false');
     window.dispatchEvent(new PopStateEvent('popstate'));
-    expect(isGlobalTelemetryDebugEnabled()).toBe(false);
+    expect(isTelemetryDebugEnabled()).toBe(false);
     expect(sessionStorage.getItem(SESSION_STORAGE_DEBUG_KEY)).toBeNull();
+  });
+
+  it('clears a persisted sessionStorage marker when startup query parameter is false', () => {
+    sessionStorage.setItem(SESSION_STORAGE_DEBUG_KEY, 'true');
+    window.history.replaceState(null, '', '?firebase_telemetry_debug=false');
+    unsubscribe = initTelemetryDebugOverride();
+    expect(isTelemetryDebugEnabled()).toBe(false);
+    expect(sessionStorage.getItem(SESSION_STORAGE_DEBUG_KEY)).toBeNull();
+  });
+
+  it('does not re-read sessionStorage on popstate', () => {
+    unsubscribe = initTelemetryDebugOverride();
+    sessionStorage.setItem(SESSION_STORAGE_DEBUG_KEY, 'true');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    expect(isTelemetryDebugEnabled()).toBe(false);
   });
 });
