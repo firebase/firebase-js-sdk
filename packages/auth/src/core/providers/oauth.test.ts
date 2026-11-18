@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { OperationType, ProviderId, SignInMethod } from '../../model/enums';
 
@@ -33,10 +31,10 @@ describe('core/providers/oauth', () => {
       idToken: 'id-token',
       accessToken: 'access-token'
     });
-    expect(cred.accessToken).to.eq('access-token');
-    expect(cred.idToken).to.eq('id-token');
-    expect(cred.providerId).to.eq(ProviderId.GOOGLE);
-    expect(cred.signInMethod).to.eq(SignInMethod.GOOGLE);
+    expect(cred.accessToken).toBe('access-token');
+    expect(cred.idToken).toBe('id-token');
+    expect(cred.providerId).toBe(ProviderId.GOOGLE);
+    expect(cred.signInMethod).toBe(SignInMethod.GOOGLE);
   });
 
   it('credentialFromResult creates the cred from a tagged result', async () => {
@@ -53,10 +51,10 @@ describe('core/providers/oauth', () => {
       operationType: OperationType.SIGN_IN
     });
     const cred = OAuthProvider.credentialFromResult(userCred)!;
-    expect(cred.accessToken).to.eq('access-token');
-    expect(cred.idToken).to.eq('id-token');
-    expect(cred.providerId).to.eq(ProviderId.FACEBOOK);
-    expect(cred.signInMethod).to.eq(SignInMethod.FACEBOOK);
+    expect(cred.accessToken).toBe('access-token');
+    expect(cred.idToken).toBe('id-token');
+    expect(cred.providerId).toBe(ProviderId.FACEBOOK);
+    expect(cred.signInMethod).toBe(SignInMethod.FACEBOOK);
   });
 
   it('credentialFromResult returns null if provider ID not specified', async () => {
@@ -71,7 +69,7 @@ describe('core/providers/oauth', () => {
       },
       operationType: OperationType.SIGN_IN
     });
-    expect(OAuthProvider.credentialFromResult(userCred)).to.be.null;
+    expect(OAuthProvider.credentialFromResult(userCred)).toBeNull();
   });
 
   it('credentialFromResult works for oidc', async () => {
@@ -88,10 +86,10 @@ describe('core/providers/oauth', () => {
       operationType: OperationType.SIGN_IN
     });
     const cred = OAuthProvider.credentialFromResult(userCred)!;
-    expect(cred.idToken).to.eq('id-token');
-    expect(cred.providerId).to.eq('oidc.oidctest');
-    expect(cred.signInMethod).to.eq('oidc.oidctest');
-    expect((cred.toJSON() as Record<string, string>).pendingToken).to.eq(
+    expect(cred.idToken).toBe('id-token');
+    expect(cred.providerId).toBe('oidc.oidctest');
+    expect(cred.signInMethod).toBe('oidc.oidctest');
+    expect((cred.toJSON() as Record<string, string>).pendingToken).toBe(
       'pending-token'
     );
   });
@@ -108,10 +106,10 @@ describe('core/providers/oauth', () => {
     };
 
     const cred = OAuthProvider.credentialFromError(error)!;
-    expect(cred.accessToken).to.eq('access-token');
-    expect(cred.idToken).to.eq('id-token');
-    expect(cred.providerId).to.eq(ProviderId.FACEBOOK);
-    expect(cred.signInMethod).to.eq(SignInMethod.FACEBOOK);
+    expect(cred.accessToken).toBe('access-token');
+    expect(cred.idToken).toBe('id-token');
+    expect(cred.providerId).toBe(ProviderId.FACEBOOK);
+    expect(cred.signInMethod).toBe(SignInMethod.FACEBOOK);
   });
 
   it('credential generates the cred with the correct fields', () => {
@@ -120,9 +118,9 @@ describe('core/providers/oauth', () => {
       idToken: 'foo',
       rawNonce: 'i-am-a-nonce'
     });
-    expect(cred.idToken).to.eq('foo');
-    expect(cred.providerId).to.eq('foo.test');
-    expect(cred.signInMethod).to.eq('foo.test');
-    expect((cred.toJSON() as { nonce: string }).nonce).to.eq('i-am-a-nonce');
+    expect(cred.idToken).toBe('foo');
+    expect(cred.providerId).toBe('foo.test');
+    expect(cred.signInMethod).toBe('foo.test');
+    expect((cred.toJSON() as { nonce: string }).nonce).toBe('i-am-a-nonce');
   });
 });

@@ -17,7 +17,6 @@
 
 import { MessagePayload } from '../interfaces/public-types';
 import { MessagePayloadInternal } from '../interfaces/internal-message-payload';
-import { expect } from 'chai';
 import { externalizePayload } from './externalizePayload';
 
 describe('externalizePayload', () => {
@@ -54,7 +53,7 @@ describe('externalizePayload', () => {
         link: 'https://www.self_orgin.com'
       }
     };
-    expect(externalizePayload(internalPayload)).to.deep.equal(payload);
+    expect(externalizePayload(internalPayload)).toEqual(payload);
   });
 
   it('externalizes internalMessage with only data payload', () => {
@@ -79,7 +78,7 @@ describe('externalizePayload', () => {
       collapseKey: 'collapse',
       messageId: 'mid'
     };
-    expect(externalizePayload(internalPayload)).to.deep.equal(payload);
+    expect(externalizePayload(internalPayload)).toEqual(payload);
   });
 
   it('externalizes internalMessage with all three payloads', () => {
@@ -129,6 +128,6 @@ describe('externalizePayload', () => {
       collapseKey: 'collapse',
       messageId: 'mid'
     };
-    expect(externalizePayload(internalPayload)).to.deep.equal(payload);
+    expect(externalizePayload(internalPayload)).toEqual(payload);
   });
 });

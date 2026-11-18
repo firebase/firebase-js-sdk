@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { OperationType, ProviderId } from '../../model/enums';
 
@@ -49,10 +47,10 @@ describe('core/user/additional_user_info', () => {
         });
         const { isNewUser, providerId, username, profile } =
           _fromIdTokenResponse(idResponse)!;
-        expect(isNewUser).to.be.false;
-        expect(providerId).to.eq(ProviderId.FACEBOOK);
-        expect(username).to.be.undefined;
-        expect(profile).to.eql(userProfileWithLogin);
+        expect(isNewUser).toBe(false);
+        expect(providerId).toBe(ProviderId.FACEBOOK);
+        expect(username).toBeUndefined();
+        expect(profile).toEqual(userProfileWithLogin);
       });
 
       it('for GithubAdditionalUserInfo', () => {
@@ -62,10 +60,10 @@ describe('core/user/additional_user_info', () => {
         });
         const { isNewUser, providerId, username, profile } =
           _fromIdTokenResponse(idResponse)!;
-        expect(isNewUser).to.be.false;
-        expect(providerId).to.eq(ProviderId.GITHUB);
-        expect(username).to.eq('scott');
-        expect(profile).to.eql(userProfileWithLogin);
+        expect(isNewUser).toBe(false);
+        expect(providerId).toBe(ProviderId.GITHUB);
+        expect(username).toBe('scott');
+        expect(profile).toEqual(userProfileWithLogin);
       });
 
       it('for GoogleAdditionalUserInfo', () => {
@@ -75,10 +73,10 @@ describe('core/user/additional_user_info', () => {
         });
         const { isNewUser, providerId, username, profile } =
           _fromIdTokenResponse(idResponse)!;
-        expect(isNewUser).to.be.false;
-        expect(providerId).to.eq(ProviderId.GOOGLE);
-        expect(username).to.be.undefined;
-        expect(profile).to.eql(userProfileWithLogin);
+        expect(isNewUser).toBe(false);
+        expect(providerId).toBe(ProviderId.GOOGLE);
+        expect(username).toBeUndefined();
+        expect(profile).toEqual(userProfileWithLogin);
       });
 
       it('for TwitterAdditionalUserInfo', () => {
@@ -89,10 +87,10 @@ describe('core/user/additional_user_info', () => {
         });
         const { isNewUser, providerId, username, profile } =
           _fromIdTokenResponse(idResponse)!;
-        expect(isNewUser).to.be.false;
-        expect(providerId).to.eq(ProviderId.TWITTER);
-        expect(username).to.eq('scott');
-        expect(profile).to.eql(userProfileNoLogin);
+        expect(isNewUser).toBe(false);
+        expect(providerId).toBe(ProviderId.TWITTER);
+        expect(username).toBe('scott');
+        expect(profile).toEqual(userProfileNoLogin);
       });
     });
 
@@ -102,14 +100,14 @@ describe('core/user/additional_user_info', () => {
           providerId: ProviderId.FACEBOOK,
           rawUserInfo: rawUserInfoWithLogin
         });
-        expect(_fromIdTokenResponse(idResponse)!.profile).to.eql(
+        expect(_fromIdTokenResponse(idResponse)!.profile).toEqual(
           userProfileWithLogin
         );
       });
 
       it('for missing JSON', () => {
         const idResponse = idTokenResponse({ providerId: ProviderId.FACEBOOK });
-        expect(_fromIdTokenResponse(idResponse)!.profile).to.be.empty;
+        expect(_fromIdTokenResponse(idResponse)!.profile).toEqual({});
       });
     });
 
@@ -119,7 +117,7 @@ describe('core/user/additional_user_info', () => {
           providerId: ProviderId.FACEBOOK,
           isNewUser: true
         });
-        expect(_fromIdTokenResponse(idResponse)!.isNewUser).to.be.true;
+        expect(_fromIdTokenResponse(idResponse)!.isNewUser).toBe(true);
       });
 
       it('for new users by toolkit response kind', () => {
@@ -127,12 +125,12 @@ describe('core/user/additional_user_info', () => {
           providerId: ProviderId.FACEBOOK,
           kind: IdTokenResponseKind.SignupNewUser
         });
-        expect(_fromIdTokenResponse(idResponse)!.isNewUser).to.be.true;
+        expect(_fromIdTokenResponse(idResponse)!.isNewUser).toBe(true);
       });
 
       it('for old users', () => {
         const idResponse = idTokenResponse({ providerId: ProviderId.FACEBOOK });
-        expect(_fromIdTokenResponse(idResponse)!.isNewUser).to.be.false;
+        expect(_fromIdTokenResponse(idResponse)!.isNewUser).toBe(false);
       });
     });
 
@@ -148,10 +146,10 @@ describe('core/user/additional_user_info', () => {
         });
         const { isNewUser, providerId, username, profile } =
           _fromIdTokenResponse(idResponse)!;
-        expect(isNewUser).to.be.false;
-        expect(providerId).to.be.null;
-        expect(username).to.be.undefined;
-        expect(profile).to.eq(profile);
+        expect(isNewUser).toBe(false);
+        expect(providerId).toBeNull();
+        expect(username).toBeUndefined();
+        expect(profile).toBe(profile);
       });
 
       it('for anonymous auth', () => {
@@ -165,10 +163,10 @@ describe('core/user/additional_user_info', () => {
         });
         const { isNewUser, providerId, username, profile } =
           _fromIdTokenResponse(idResponse)!;
-        expect(isNewUser).to.be.false;
-        expect(providerId).to.be.null;
-        expect(username).to.be.undefined;
-        expect(profile).to.eq(profile);
+        expect(isNewUser).toBe(false);
+        expect(providerId).toBeNull();
+        expect(username).toBeUndefined();
+        expect(profile).toBe(profile);
       });
 
       it('for missing provider IDs in response but not in token', () => {
@@ -184,17 +182,17 @@ describe('core/user/additional_user_info', () => {
           _fromIdTokenResponse(
             idTokenResponse({ rawUserInfo: rawUserInfoWithLogin, idToken })
           )!;
-        expect(isNewUser).to.be.false;
-        expect(providerId).to.eq(ProviderId.FACEBOOK);
-        expect(username).to.be.undefined;
-        expect(profile).to.eq(profile);
+        expect(isNewUser).toBe(false);
+        expect(providerId).toBe(ProviderId.FACEBOOK);
+        expect(username).toBeUndefined();
+        expect(profile).toBe(profile);
       });
     });
 
     describe('returns null', () => {
       it('for missing provider IDs', () => {
         const idResponse = idTokenResponse({});
-        expect(_fromIdTokenResponse(idResponse)).to.be.null;
+        expect(_fromIdTokenResponse(idResponse)).toBeNull();
       });
     });
   });
@@ -220,10 +218,10 @@ describe('core/user/additional_user_info', () => {
       });
       const { isNewUser, providerId, username, profile } =
         getAdditionalUserInfo(cred)!;
-      expect(isNewUser).to.be.false;
-      expect(providerId).to.be.null;
-      expect(username).to.be.undefined;
-      expect(profile).to.eq(profile);
+      expect(isNewUser).toBe(false);
+      expect(providerId).toBeNull();
+      expect(username).toBeUndefined();
+      expect(profile).toBe(profile);
     });
 
     it('calls through to _fromIdTokenResponse preserving isNewUser', () => {
@@ -234,24 +232,24 @@ describe('core/user/additional_user_info', () => {
       });
       const { isNewUser, providerId, username, profile } =
         getAdditionalUserInfo(cred)!;
-      expect(isNewUser).to.be.true;
-      expect(providerId).to.be.null;
-      expect(username).to.be.undefined;
-      expect(profile).to.eq(profile);
+      expect(isNewUser).toBe(true);
+      expect(providerId).toBeNull();
+      expect(username).toBeUndefined();
+      expect(profile).toBe(profile);
     });
 
     it('returns bespoke info if existing anonymous user', () => {
       // Note that _tokenResponse is not set on cred
       (user as unknown as Record<string, unknown>).isAnonymous = true;
       const { isNewUser, providerId, profile } = getAdditionalUserInfo(cred)!;
-      expect(isNewUser).to.be.false;
-      expect(providerId).to.be.null;
-      expect(profile).to.eq(profile);
+      expect(isNewUser).toBe(false);
+      expect(providerId).toBeNull();
+      expect(profile).toBe(profile);
     });
 
     it('returns null if not anonymous', () => {
       // Note that _tokenResponse is not set on cred
-      expect(getAdditionalUserInfo(cred)).to.be.null;
+      expect(getAdditionalUserInfo(cred)).toBeNull();
     });
   });
 });

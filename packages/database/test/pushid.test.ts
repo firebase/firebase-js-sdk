@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { predecessor, successor } from '../src/core/util/NextPushId';
 import {
   INTEGER_32_MIN,
@@ -34,28 +32,28 @@ const MAX_KEY_LEN = 786;
 
 describe('Push ID tests', () => {
   it('predecessor special values', () => {
-    expect(predecessor('' + MIN_PUSH_CHAR)).to.equal('' + INTEGER_32_MAX);
-    expect(predecessor('' + INTEGER_32_MIN)).to.equal('' + MIN_NAME);
+    expect(predecessor('' + MIN_PUSH_CHAR)).toBe('' + INTEGER_32_MAX);
+    expect(predecessor('' + INTEGER_32_MIN)).toBe('' + MIN_NAME);
   });
 
   it('predecessor basic test', () => {
-    expect(predecessor('abc')).to.equal(
+    expect(predecessor('abc')).toBe(
       'abb' + MAX_PUSH_CHAR.repeat(MAX_KEY_LEN - 'abc'.length)
     );
-    expect(predecessor('abc' + MIN_PUSH_CHAR)).to.equal('abc');
+    expect(predecessor('abc' + MIN_PUSH_CHAR)).toBe('abc');
   });
 
   it('successor special values', () => {
-    expect(successor('' + INTEGER_32_MAX)).to.equal(MIN_PUSH_CHAR);
-    expect(successor(MAX_PUSH_CHAR.repeat(MAX_KEY_LEN))).to.equal(MAX_NAME);
+    expect(successor('' + INTEGER_32_MAX)).toBe(MIN_PUSH_CHAR);
+    expect(successor(MAX_PUSH_CHAR.repeat(MAX_KEY_LEN))).toBe(MAX_NAME);
   });
 
   it('successor basic tests', () => {
-    expect(successor('abc')).to.equal('abc' + MIN_PUSH_CHAR);
+    expect(successor('abc')).toBe('abc' + MIN_PUSH_CHAR);
     expect(
       successor('abc' + MAX_PUSH_CHAR.repeat(MAX_KEY_LEN - 'abc'.length))
-    ).to.equal('abd');
-    expect(successor('abc' + MIN_PUSH_CHAR)).to.equal(
+    ).toBe('abd');
+    expect(successor('abc' + MIN_PUSH_CHAR)).toBe(
       'abc' + MIN_PUSH_CHAR.repeat(2)
     );
   });

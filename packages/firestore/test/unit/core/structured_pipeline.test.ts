@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
-import * as sinon from 'sinon';
 
 import { DatabaseId } from '../../../src/core/database_info';
 import {
@@ -34,7 +31,7 @@ import { testUserDataReader } from '../../util/helpers';
 describe('StructuredPipeline', () => {
   it('should serialize the pipeline argument', () => {
     const pipeline: ProtoSerializable<PipelineProto> = {
-      _toProto: sinon.fake.returns({} as PipelineProto)
+      _toProto: vi.fn().mockReturnValue({} as PipelineProto)
     };
     const structuredPipelineOptions = new StructuredPipelineOptions();
     structuredPipelineOptions._readUserData(
@@ -49,17 +46,17 @@ describe('StructuredPipeline', () => {
       new JsonProtoSerializer(DatabaseId.empty(), false)
     );
 
-    expect(proto).to.deep.equal({
+    expect(proto).toEqual({
       pipeline: {},
       options: {}
     });
 
-    expect((pipeline._toProto as sinon.SinonSpy).calledOnce).to.be.true;
+    expect(pipeline._toProto).toHaveBeenCalledTimes(1);
   });
 
   it('should support known options', () => {
     const pipeline: ProtoSerializable<PipelineProto> = {
-      _toProto: sinon.fake.returns({} as PipelineProto)
+      _toProto: vi.fn().mockReturnValue({} as PipelineProto)
     };
 
     const options = new StructuredPipelineOptions({
@@ -74,7 +71,7 @@ describe('StructuredPipeline', () => {
       new JsonProtoSerializer(DatabaseId.empty(), false)
     );
 
-    expect(proto).to.deep.equal({
+    expect(proto).toEqual({
       pipeline: {},
       options: {
         'index_mode': {
@@ -83,12 +80,12 @@ describe('StructuredPipeline', () => {
       }
     });
 
-    expect((pipeline._toProto as sinon.SinonSpy).calledOnce).to.be.true;
+    expect(pipeline._toProto).toHaveBeenCalledTimes(1);
   });
 
   it('should support unknown options', () => {
     const pipeline: ProtoSerializable<PipelineProto> = {
-      _toProto: sinon.fake.returns({} as PipelineProto)
+      _toProto: vi.fn().mockReturnValue({} as PipelineProto)
     };
     const options = new StructuredPipelineOptions(
       {},
@@ -105,7 +102,7 @@ describe('StructuredPipeline', () => {
       new JsonProtoSerializer(DatabaseId.empty(), false)
     );
 
-    expect(proto).to.deep.equal({
+    expect(proto).toEqual({
       pipeline: {},
       options: {
         'foo_bar': {
@@ -114,12 +111,12 @@ describe('StructuredPipeline', () => {
       }
     });
 
-    expect((pipeline._toProto as sinon.SinonSpy).calledOnce).to.be.true;
+    expect(pipeline._toProto).toHaveBeenCalledTimes(1);
   });
 
   it('should support unknown nested options', () => {
     const pipeline: ProtoSerializable<PipelineProto> = {
-      _toProto: sinon.fake.returns({} as PipelineProto)
+      _toProto: vi.fn().mockReturnValue({} as PipelineProto)
     };
     const options = new StructuredPipelineOptions(
       {},
@@ -136,7 +133,7 @@ describe('StructuredPipeline', () => {
       new JsonProtoSerializer(DatabaseId.empty(), false)
     );
 
-    expect(proto).to.deep.equal({
+    expect(proto).toEqual({
       pipeline: {},
       options: {
         'foo': {
@@ -149,12 +146,12 @@ describe('StructuredPipeline', () => {
       }
     });
 
-    expect((pipeline._toProto as sinon.SinonSpy).calledOnce).to.be.true;
+    expect(pipeline._toProto).toHaveBeenCalledTimes(1);
   });
 
   it('should support options override', () => {
     const pipeline: ProtoSerializable<PipelineProto> = {
-      _toProto: sinon.fake.returns({} as PipelineProto)
+      _toProto: vi.fn().mockReturnValue({} as PipelineProto)
     };
     const options = new StructuredPipelineOptions(
       {
@@ -173,7 +170,7 @@ describe('StructuredPipeline', () => {
       new JsonProtoSerializer(DatabaseId.empty(), false)
     );
 
-    expect(proto).to.deep.equal({
+    expect(proto).toEqual({
       pipeline: {},
       options: {
         'index_mode': {
@@ -182,6 +179,6 @@ describe('StructuredPipeline', () => {
       }
     });
 
-    expect((pipeline._toProto as sinon.SinonSpy).calledOnce).to.be.true;
+    expect(pipeline._toProto).toHaveBeenCalledTimes(1);
   });
 });

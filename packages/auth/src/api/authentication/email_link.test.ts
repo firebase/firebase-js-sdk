@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
 import { FirebaseError } from '@firebase/util';
 
 import { Endpoint, HttpHeader } from '../';
@@ -29,9 +26,6 @@ import {
   signInWithEmailLink,
   signInWithEmailLinkForLinking
 } from './email_link';
-
-use(chaiAsPromised);
-
 describe('api/authentication/email_link', () => {
   let auth: TestAuth;
 
@@ -42,7 +36,7 @@ describe('api/authentication/email_link', () => {
 
   afterEach(mockFetch.tearDown);
 
-  context('signInWithEmailLink', () => {
+  describe('signInWithEmailLink', () => {
     const request = {
       email: 'foo@bar.com',
       oobCode: 'my-code'
@@ -56,17 +50,17 @@ describe('api/authentication/email_link', () => {
 
       auth.tenantId = 'tenant-id';
       const response = await signInWithEmailLink(auth, request);
-      expect(response.displayName).to.eq('my-name');
-      expect(response.email).to.eq('test@foo.com');
-      expect(mock.calls[0].request).to.eql({
+      expect(response.displayName).toBe('my-name');
+      expect(response.email).toBe('test@foo.com');
+      expect(mock.calls[0].request).toEqual({
         ...request,
         tenantId: 'tenant-id'
       });
-      expect(mock.calls[0].method).to.eq('POST');
-      expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+      expect(mock.calls[0].method).toBe('POST');
+      expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
         'application/json'
       );
-      expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
         'testSDK/0.0.0'
       );
     });
@@ -88,15 +82,16 @@ describe('api/authentication/email_link', () => {
         400
       );
 
-      await expect(signInWithEmailLink(auth, request)).to.be.rejectedWith(
-        FirebaseError,
+      const promise = signInWithEmailLink(auth, request);
+      await expect(promise).rejects.toThrow(
         'Firebase: The email address is badly formatted. (auth/invalid-email).'
       );
-      expect(mock.calls[0].request).to.eql(request);
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
+      expect(mock.calls[0].request).toEqual(request);
     });
   });
 
-  context('signInWithEmailLinkForLinking', () => {
+  describe('signInWithEmailLinkForLinking', () => {
     const request = {
       email: 'foo@bar.com',
       oobCode: 'my-code',
@@ -111,17 +106,17 @@ describe('api/authentication/email_link', () => {
 
       auth.tenantId = 'tenant-id';
       const response = await signInWithEmailLinkForLinking(auth, request);
-      expect(response.displayName).to.eq('my-name');
-      expect(response.email).to.eq('test@foo.com');
-      expect(mock.calls[0].request).to.eql({
+      expect(response.displayName).toBe('my-name');
+      expect(response.email).toBe('test@foo.com');
+      expect(mock.calls[0].request).toEqual({
         ...request,
         tenantId: 'tenant-id'
       });
-      expect(mock.calls[0].method).to.eq('POST');
-      expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+      expect(mock.calls[0].method).toBe('POST');
+      expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
         'application/json'
       );
-      expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+      expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
         'testSDK/0.0.0'
       );
     });
@@ -143,13 +138,12 @@ describe('api/authentication/email_link', () => {
         400
       );
 
-      await expect(
-        signInWithEmailLinkForLinking(auth, request)
-      ).to.be.rejectedWith(
-        FirebaseError,
+      const promise = signInWithEmailLinkForLinking(auth, request);
+      await expect(promise).rejects.toThrow(
         'Firebase: The email address is badly formatted. (auth/invalid-email).'
       );
-      expect(mock.calls[0].request).to.eql(request);
+      await expect(promise).rejects.toBeInstanceOf(FirebaseError);
+      expect(mock.calls[0].request).toEqual(request);
     });
   });
 });

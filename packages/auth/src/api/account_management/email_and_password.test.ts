@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-
 import { FirebaseError } from '@firebase/util';
 
 import { Endpoint, HttpHeader } from '../';
@@ -31,9 +28,6 @@ import {
   resetPassword,
   updateEmailPassword
 } from './email_and_password';
-
-use(chaiAsPromised);
-
 describe('api/account_management/resetPassword', () => {
   const request = {
     oobCode: 'oob-code',
@@ -56,13 +50,16 @@ describe('api/account_management/resetPassword', () => {
 
     auth.tenantId = 'tenant-id';
     const response = await resetPassword(auth, request);
-    expect(response.email).to.eq('test@foo.com');
-    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.email).toBe('test@foo.com');
+    expect(mock.calls[0].request).toEqual({
+      ...request,
+      tenantId: 'tenant-id'
+    });
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -84,11 +81,12 @@ describe('api/account_management/resetPassword', () => {
       400
     );
 
-    await expect(resetPassword(auth, request)).to.be.rejectedWith(
-      FirebaseError,
+    const promise = resetPassword(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: We have blocked all requests from this device due to unusual activity. Try again later. (auth/too-many-requests).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
 
@@ -115,13 +113,13 @@ describe('api/account_management/linkEmailPassword', () => {
     });
 
     const response = await linkEmailPassword(auth, request);
-    expect(response.idToken).to.eq('id-token');
-    expect(mock.calls[0].request).to.eql(request);
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.idToken).toBe('id-token');
+    expect(mock.calls[0].request).toEqual(request);
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -143,11 +141,12 @@ describe('api/account_management/linkEmailPassword', () => {
       400
     );
 
-    await expect(linkEmailPassword(auth, request)).to.be.rejectedWith(
-      FirebaseError,
+    const promise = linkEmailPassword(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
 
@@ -174,13 +173,13 @@ describe('api/account_management/updateEmailPassword', () => {
     });
 
     const response = await updateEmailPassword(auth, request);
-    expect(response.idToken).to.eq('id-token');
-    expect(mock.calls[0].request).to.eql(request);
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response.idToken).toBe('id-token');
+    expect(mock.calls[0].request).toEqual(request);
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -202,11 +201,12 @@ describe('api/account_management/updateEmailPassword', () => {
       400
     );
 
-    await expect(updateEmailPassword(auth, request)).to.be.rejectedWith(
-      FirebaseError,
+    const promise = updateEmailPassword(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The email address is badly formatted. (auth/invalid-email).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });
 
@@ -229,13 +229,16 @@ describe('api/account_management/applyActionCode', () => {
 
     auth.tenantId = 'tenant-id';
     const response = await applyActionCode(auth, request);
-    expect(response).to.be.empty;
-    expect(mock.calls[0].request).to.eql({ ...request, tenantId: 'tenant-id' });
-    expect(mock.calls[0].method).to.eq('POST');
-    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).to.eq(
+    expect(response).toEqual({});
+    expect(mock.calls[0].request).toEqual({
+      ...request,
+      tenantId: 'tenant-id'
+    });
+    expect(mock.calls[0].method).toBe('POST');
+    expect(mock.calls[0].headers!.get(HttpHeader.CONTENT_TYPE)).toBe(
       'application/json'
     );
-    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).to.eq(
+    expect(mock.calls[0].headers!.get(HttpHeader.X_CLIENT_VERSION)).toBe(
       'testSDK/0.0.0'
     );
   });
@@ -257,10 +260,11 @@ describe('api/account_management/applyActionCode', () => {
       400
     );
 
-    await expect(applyActionCode(auth, request)).to.be.rejectedWith(
-      FirebaseError,
+    const promise = applyActionCode(auth, request);
+    await expect(promise).rejects.toThrow(
       'Firebase: The action code is invalid. This can happen if the code is malformed, expired, or has already been used. (auth/invalid-action-code).'
     );
-    expect(mock.calls[0].request).to.eql(request);
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
+    expect(mock.calls[0].request).toEqual(request);
   });
 });

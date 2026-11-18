@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { assert, EmulatorMockTokenOptions } from '@firebase/util';
+import { assert, type EmulatorMockTokenOptions } from '@firebase/util';
 
 import { LONG_POLLING, WEBSOCKET } from '../realtime/Constants';
 

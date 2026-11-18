@@ -16,48 +16,44 @@
  */
 
 import { deleteApp, initializeApp, FirebaseApp } from '@firebase/app';
-import { expect, use } from 'chai';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 
 import { DataConnect, executeQuery, getDataConnect, queryRef } from '../../src';
 import { initializeFetch } from '../../src/network/rest';
 
-use(sinonChai);
 const json = {
   message: 'unauthorized'
 };
-const fakeFetchImpl = sinon.stub().returns(
-  Promise.resolve({
-    json: () => {
-      return Promise.resolve(json);
-    },
-    status: 401
-  } as Response)
-);
+const fakeFetchImpl = vi.fn();
 
 describe('GMPID Tests', () => {
   let dc: DataConnect;
   let app: FirebaseApp;
   const APPID = 'MYAPPID';
   beforeEach(() => {
+    fakeFetchImpl.mockResolvedValue({
+      json: () => {
+        return Promise.resolve(json);
+      },
+      status: 401
+    } as Response);
     initializeFetch(fakeFetchImpl);
     app = initializeApp({ projectId: 'p', appId: APPID }, 'fdsasdf'); // TODO(mtewani): Replace with util function
     dc = getDataConnect(app, { connector: 'c', location: 'l', service: 's' });
   });
   afterEach(async () => {
+    initializeFetch(globalThis.fetch);
     await dc._delete();
     await deleteApp(app);
   });
   it('should send a request with the corresponding gmpid if using the app id is specified', async () => {
     await executeQuery(queryRef(dc, '')).catch(() => {});
-    expect(fakeFetchImpl).to.be.calledWithMatch(
+    expect(fakeFetchImpl).toHaveBeenCalledWith(
       'https://firebasedataconnect.googleapis.com/v1/projects/p/locations/l/services/s/connectors/c:executeQuery',
-      {
-        headers: {
+      expect.objectContaining({
+        headers: expect.objectContaining({
           ['x-firebase-gmpid']: APPID
-        }
-      }
+        })
+      })
     );
   });
   it('should send a request with no gmpid if using the app id is not specified', async () => {
@@ -69,13 +65,13 @@ describe('GMPID Tests', () => {
     });
     // @ts-ignore
     await executeQuery(queryRef(dc2, '')).catch(() => {});
-    expect(fakeFetchImpl).to.be.calledWithMatch(
+    expect(fakeFetchImpl).toHaveBeenCalledWith(
       'https://firebasedataconnect.googleapis.com/v1/projects/p/locations/l/services/s/connectors/c:executeQuery',
-      {
-        headers: {
-          ['x-firebase-gmpid']: APPID
-        }
-      }
+      expect.objectContaining({
+        headers: expect.not.objectContaining({
+          ['x-firebase-gmpid']: expect.anything()
+        })
+      })
     );
     await dc2._delete();
     await deleteApp(app2);

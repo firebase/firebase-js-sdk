@@ -1,5 +1,17 @@
 # @firebase/remote-config
 
+## 0.10.0
+
+### Minor Changes
+
+- [`1ffc994`](https://github.com/firebase/firebase-js-sdk/commit/1ffc994f68f272f0cea12387a588fffe4c590066) [#10541](https://github.com/firebase/firebase-js-sdk/pull/10541) - Deprecated `RemoteConfigOptions.templateId` and `RemoteConfigOptions.initialFetchResponse`. Remote Config server-side rendering (SSR) hydration is no longer supported, and server templates (`"firebase-server"`) can't be fetched from client apps. These options will be removed in a future major release.
+
+## 0.9.3
+
+### Patch Changes
+
+- [`a034f68`](https://github.com/firebase/firebase-js-sdk/commit/a034f682b6044f238138453d351c0fe89c07e5fb) [#10384](https://github.com/firebase/firebase-js-sdk/pull/10384) (fixes [#9426](https://github.com/firebase/firebase-js-sdk/issues/9426)) - Suppress false-positive `CONFIG_UPDATE_STREAM_ERROR` events emitted by `onConfigUpdated` when the application enters the background, stop recording a connection backoff penalty for these expected closes, and reconnect if the application returns to the foreground before the connection finishes closing.
+
 ## 0.9.2
 
 ### Patch Changes

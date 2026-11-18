@@ -23,8 +23,9 @@ const PORT_NUMBER = '4100';
 
 const INTEGRATION_TEST_ASSETS = express.static(
   path.join(
-    // process.env.PWD == packages-exp/auth
-    process.env.PWD!,
+    process.env.COMPAT_LAYER === 'true'
+      ? path.resolve(__dirname, '../../../../../auth-compat')
+      : path.resolve(__dirname, '../../../..'),
     'test/integration/webdriver/static'
   )
 );

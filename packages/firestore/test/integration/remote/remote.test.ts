@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
@@ -43,13 +41,13 @@ describe('Remote Storage', () => {
 
       await invokeCommitRpc(ds, [mutation]);
       const docs = await invokeBatchGetDocumentsRpc(ds, [k]);
-      expect(docs.length).to.equal(1);
+      expect(docs.length).toBe(1);
 
       const doc = docs[0];
-      expect(doc.isFoundDocument()).to.be.true;
-      expect(doc.data).to.deep.equal(mutation.value);
-      expect(doc.key).to.deep.equal(k);
-      expect(SnapshotVersion.min().compareTo(doc.version)).to.be.lessThan(0);
+      expect(doc.isFoundDocument()).toBe(true);
+      expect(doc.data).toEqual(mutation.value);
+      expect(doc.key).toEqual(k);
+      expect(SnapshotVersion.min().compareTo(doc.version)).toBeLessThan(0);
     });
   });
 
@@ -58,12 +56,12 @@ describe('Remote Storage', () => {
       const k = key('docs/2');
 
       const docs = await invokeBatchGetDocumentsRpc(ds, [k]);
-      expect(docs.length).to.equal(1);
+      expect(docs.length).toBe(1);
 
       const doc = docs[0];
-      expect(doc.isNoDocument()).to.be.true;
-      expect(doc.key).to.deep.equal(k);
-      expect(SnapshotVersion.min().compareTo(doc.version)).to.be.lessThan(0);
+      expect(doc.isNoDocument()).toBe(true);
+      expect(doc.key).toEqual(k);
+      expect(SnapshotVersion.min().compareTo(doc.version)).toBeLessThan(0);
     });
   });
 });

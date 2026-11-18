@@ -9,10 +9,14 @@ import { FirebaseApp } from '@firebase/app';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 
-// @public @deprecated
-export class AgentPlatformBackend extends EnterpriseBackend {
-    // (undocumented)
-    readonly backendType: BackendType;
+// @public
+export class AgentPlatformBackend extends Backend {
+    constructor(location?: string);
+    // @internal (undocumented)
+    _getModelPath(project: string, model: string): string;
+    // @internal (undocumented)
+    _getTemplatePath(project: string, templateId: string): string;
+    readonly location: string;
 }
 
 // @public
@@ -40,6 +44,7 @@ export const AIErrorCode: {
     readonly SESSION_CLOSED: "session-closed";
     readonly INVALID_CONTENT: "invalid-content";
     readonly API_NOT_ENABLED: "api-not-enabled";
+    readonly ALREADY_INITIALIZED: "already-initialized";
     readonly INVALID_SCHEMA: "invalid-schema";
     readonly NO_API_KEY: "no-api-key";
     readonly NO_APP_ID: "no-app-id";
@@ -112,7 +117,6 @@ export abstract class Backend {
 
 // @public
 export const BackendType: {
-    readonly ENTERPRISE: "ENTERPRISE";
     readonly AGENT_PLATFORM: "AGENT_PLATFORM";
     readonly GOOGLE_AI: "GOOGLE_AI";
 };
@@ -267,16 +271,6 @@ export interface EnhancedGenerateContentResponse extends GenerateContentResponse
     inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
     thoughtSummary: () => string | undefined;
-}
-
-// @public
-export class EnterpriseBackend extends Backend {
-    constructor(location?: string);
-    // @internal (undocumented)
-    _getModelPath(project: string, model: string): string;
-    // @internal (undocumented)
-    _getTemplatePath(project: string, templateId: string): string;
-    readonly location: string;
 }
 
 // @public
@@ -1300,6 +1294,12 @@ export interface SpeakerVoiceConfig {
 export type SpeechConfig = SingleSpeakerSpeechConfig | MultiSpeakerSpeechConfig;
 
 // @beta
+export interface SpeechMetadata {
+    speaker?: string;
+    style?: string;
+}
+
+// @beta
 export function startAudioConversation(liveSession: LiveSession, options?: StartAudioConversationOptions): Promise<AudioConversationController>;
 
 // @beta
@@ -1427,6 +1427,8 @@ export interface TemplateToolConfig {
 
 // @public
 export interface TextPart {
+    // @beta
+    speechMetadata?: SpeechMetadata;
     // (undocumented)
     text: string;
     // (undocumented)
@@ -1490,6 +1492,7 @@ export interface UnknownPart {
     functionResponse?: FunctionResponse;
     // (undocumented)
     inlineData?: GenerativeContentBlob;
+    speechMetadata?: SpeechMetadata;
     // (undocumented)
     text?: string;
     // (undocumented)

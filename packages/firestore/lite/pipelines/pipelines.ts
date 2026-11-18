@@ -64,6 +64,8 @@ export { Pipeline } from '../../src/lite-api/pipeline';
 
 export { execute } from '../../src/lite-api/pipeline_impl';
 
+export { PipelineExecuteOptions } from '../../src/lite-api/pipeline_options';
+
 export {
   StageOptions,
   CollectionStageOptions,
@@ -74,6 +76,7 @@ export {
   AddFieldsStageOptions,
   RemoveFieldsStageOptions,
   DefineStageOptions,
+  DeleteStageOptions,
   SelectStageOptions,
   WhereStageOptions,
   OffsetStageOptions,
@@ -81,12 +84,20 @@ export {
   DistinctStageOptions,
   AggregateStageOptions,
   FindNearestStageOptions,
+  InsertStageOptions,
+  LiteralsStageOptions,
   ReplaceWithStageOptions,
   SampleStageOptions,
   UnionStageOptions,
   UnnestStageOptions,
+  UpdateStageOptions,
+  UpsertStageOptions,
   SortStageOptions,
-  SearchStageOptions
+  SearchStageOptions,
+  AddWindowFieldsStageOptions,
+  WindowSpec,
+  DocumentWindowFrame,
+  RangeWindowFrame
   // TODO(search) export with backend support
   // QueryEnhancement
 } from '../../src/lite-api/stage_options';
@@ -247,6 +258,9 @@ export {
   Selectable,
   BooleanExpression,
   AggregateFunction,
+  WindowFunction,
+  AliasedWindowFunction,
+  rank,
   TimeGranularity,
   TimePart,
   TimeUnit

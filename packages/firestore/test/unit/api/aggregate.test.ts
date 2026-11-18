@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,23 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { aggregateFieldEqual, count, sum, average } from '../../../src';
 
 describe('aggregateFieldEqual', () => {
   it('equates two equal aggregate fields', () => {
-    expect(aggregateFieldEqual(count(), count())).to.be.true;
-    expect(aggregateFieldEqual(sum('foo'), sum('foo'))).to.be.true;
-    expect(aggregateFieldEqual(average('bar'), average('bar'))).to.be.true;
-    expect(aggregateFieldEqual(sum('foo.bar'), sum('foo.bar'))).to.be.true;
-    expect(aggregateFieldEqual(average('bar.baz'), average('bar.baz'))).to.be
-      .true;
+    expect(aggregateFieldEqual(count(), count())).toBe(true);
+    expect(aggregateFieldEqual(sum('foo'), sum('foo'))).toBe(true);
+    expect(aggregateFieldEqual(average('bar'), average('bar'))).toBe(true);
+    expect(aggregateFieldEqual(sum('foo.bar'), sum('foo.bar'))).toBe(true);
+    expect(aggregateFieldEqual(average('bar.baz'), average('bar.baz'))).toBe(
+      true
+    );
   });
 
   it('differentiates two different aggregate fields', () => {
-    expect(aggregateFieldEqual(sum('foo'), sum('bar'))).to.be.false;
-    expect(aggregateFieldEqual(average('foo'), average('bar'))).to.be.false;
-    expect(aggregateFieldEqual(average('foo'), sum('foo'))).to.be.false;
-    expect(aggregateFieldEqual(sum('foo'), average('foo'))).to.be.false;
+    expect(aggregateFieldEqual(sum('foo'), sum('bar'))).toBe(false);
+    expect(aggregateFieldEqual(average('foo'), average('bar'))).toBe(false);
+    expect(aggregateFieldEqual(average('foo'), sum('foo'))).toBe(false);
+    expect(aggregateFieldEqual(sum('foo'), average('foo'))).toBe(false);
   });
 });

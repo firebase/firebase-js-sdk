@@ -22,40 +22,46 @@ import {
   getRunEnterpriseTests
 } from '../integration/util/settings';
 
-// Helper to make a type itselt (T) and optionally union that with (T['skip'])
-type tOrSkipT<T> = T | (T extends { skip: unknown } ? T['skip'] : T);
+type SkipChain<S> = S & {
+  skipEmulator: SkipChain<S>;
+  skipEnterprise: SkipChain<S>;
+  skipClassic: SkipChain<S>;
+  skip: SkipChain<S>;
+};
 
-interface ExtendMochaTypeWithHelpers<T> {
-  // Declare helpers
-  skipEmulator: tOrSkipT<T>;
-  skipEnterprise: tOrSkipT<T>;
-  skipClassic: tOrSkipT<T>;
-}
+type ExtendedWithSkipHelpers<T, S> = T & {
+  skipEmulator: SkipChain<S>;
+  skipEnterprise: SkipChain<S>;
+  skipClassic: SkipChain<S>;
+  skip: SkipChain<S>;
+};
 
-declare module 'mocha' {
-  // TODO add mocha types that must be extended
-  interface TestFunction extends ExtendMochaTypeWithHelpers<TestFunction> {}
-  interface PendingTestFunction extends ExtendMochaTypeWithHelpers<PendingTestFunction> {}
-  interface SuiteFunction extends ExtendMochaTypeWithHelpers<SuiteFunction> {}
-  interface PendingSuiteFunction extends ExtendMochaTypeWithHelpers<PendingSuiteFunction> {}
+function getSkip(target: { skip?: unknown }): unknown {
+  const skipFn = target.skip as Record<string, unknown> | undefined;
+  if (skipFn && (typeof skipFn === 'function' || typeof skipFn === 'object')) {
+    skipFn.__isSkip = true;
+    mixinSkipImplementations(skipFn);
+  }
+  return skipFn;
 }
 
 // Define helpers
 export function mixinSkipImplementations(obj: unknown): void {
-  if (Object.getOwnPropertyDescriptor(obj, 'skipEmulator')) {
+  if (!obj || Object.getOwnPropertyDescriptor(obj, 'skipEmulator')) {
     return;
   }
 
   Object.defineProperty(obj, 'skipEmulator', {
     get(): unknown {
-      if (this === it.skip) {
-        return this;
-      }
-      if (this === describe.skip) {
+      if (
+        (this as { __isSkip?: boolean }).__isSkip ||
+        this === it.skip ||
+        this === describe.skip
+      ) {
         return this;
       }
       if (USE_EMULATOR) {
-        return this.skip;
+        return getSkip(this);
       }
       return this;
     }
@@ -63,14 +69,15 @@ export function mixinSkipImplementations(obj: unknown): void {
 
   Object.defineProperty(obj, 'skipEnterprise', {
     get(): unknown {
-      if (this === it.skip) {
-        return this;
-      }
-      if (this === describe.skip) {
+      if (
+        (this as { __isSkip?: boolean }).__isSkip ||
+        this === it.skip ||
+        this === describe.skip
+      ) {
         return this;
       }
       if (getRunEnterpriseTests()) {
-        return this.skip;
+        return getSkip(this);
       }
       return this;
     }
@@ -78,26 +85,27 @@ export function mixinSkipImplementations(obj: unknown): void {
 
   Object.defineProperty(obj, 'skipClassic', {
     get(): unknown {
-      if (this === it.skip) {
-        return this;
-      }
-      if (this === describe.skip) {
+      if (
+        (this as { __isSkip?: boolean }).__isSkip ||
+        this === it.skip ||
+        this === describe.skip
+      ) {
         return this;
       }
       if (!getRunEnterpriseTests()) {
-        return this.skip;
+        return getSkip(this);
       }
       return this;
     }
   });
 }
 
-// TODO add mocha functions that must be extended
-[global.it, global.it.skip, global.describe, global.describe.skip].forEach(
-  mixinSkipImplementations
-);
+[it, it.skip, describe, describe.skip].forEach(mixinSkipImplementations);
 
 // Export modified it and describe.
-const it = global.it;
-const describe = global.describe;
-export { it, describe };
+const extendedIt = it as ExtendedWithSkipHelpers<typeof it, typeof it.skip>;
+const extendedDescribe = describe as ExtendedWithSkipHelpers<
+  typeof describe,
+  typeof describe.skip
+>;
+export { extendedIt as it, extendedDescribe as describe };

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 // eslint-disable-next-line import/order
 import {
@@ -345,13 +343,13 @@ export function expectEqualToConstant(
   evaluated: Value,
   expectedExpression: Expression,
   message?: string
-): Chai.Assertion {
+): void {
   const expected = expectedExpression as Constant;
   const reader = newUserDataReader(db);
   expected._readUserData(
     reader.createContext(UserDataSource.Argument, 'expectEqual')
   );
-  return expect(
+  expect(
     valueEquals(evaluated!, expected._getValue(), {
       nanEqual: true,
       mixIntegerDouble: true,
@@ -362,5 +360,5 @@ export function expectEqualToConstant(
       null,
       2
     )} to equal ${JSON.stringify(evaluated, null, 2)}`
-  ).to.be.true;
+  ).toBe(true);
 }

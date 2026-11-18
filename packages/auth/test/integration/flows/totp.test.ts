@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import sinonChai from 'sinon-chai';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {
   Auth,
@@ -41,10 +38,6 @@ import {
   TotpSecret
 } from '../../../src/mfa/assertions/totp';
 import { getEmulatorUrl } from '../../helpers/integration/settings';
-
-use(chaiAsPromised);
-use(sinonChai);
-
 let auth: Auth;
 let totpSecret: TotpSecret;
 let displayName: string;
@@ -79,9 +72,9 @@ describe.skip(' Integration tests: Mfa enrollment using totp', () => {
     }
   });
 
-  it('should not enroll if incorrect totp supplied', async function () {
+  it('should not enroll if incorrect totp supplied', async ctx => {
     if (emulatorUrl) {
-      this.skip();
+      ctx.skip();
     }
 
     const cr = await signInWithEmailAndPassword(auth, email, password);
@@ -97,12 +90,12 @@ describe.skip(' Integration tests: Mfa enrollment using totp', () => {
 
     await expect(
       mfaUser.enroll(multiFactorAssertion, displayName)
-    ).to.be.rejectedWith('auth/invalid-verification-code');
+    ).rejects.toThrow('auth/invalid-verification-code');
   });
 
-  it('should enroll using correct otp', async function () {
+  it('should enroll using correct otp', async ctx => {
     if (emulatorUrl) {
-      this.skip();
+      ctx.skip();
     }
 
     const cr = await signInWithEmailAndPassword(auth, email, password);
@@ -123,8 +116,9 @@ describe.skip(' Integration tests: Mfa enrollment using totp', () => {
         totpVerificationCode
       );
 
-    await expect(mfaUser.enroll(multiFactorAssertion, displayName)).to.be
-      .fulfilled;
+    await expect(
+      mfaUser.enroll(multiFactorAssertion, displayName)
+    ).resolves.toBeUndefined();
   });
 });
 
@@ -171,48 +165,48 @@ describe.skip('Integration tests: sign-in for mfa-enrolled users', () => {
     }
   });
 
-  it('should not allow sign-in with incorrect totp', async function () {
+  it('should not allow sign-in with incorrect totp', async ctx => {
     let resolver: any;
     if (emulatorUrl) {
-      this.skip();
+      ctx.skip();
     }
     try {
       await signInWithEmailAndPassword(auth, email, password);
 
       throw new Error('Signin should not have been successful');
     } catch (error) {
-      expect(error).to.be.an.instanceOf(FirebaseError);
-      expect((error as any).code).to.eql('auth/multi-factor-auth-required');
+      expect(error).toBeInstanceOf(FirebaseError);
+      expect((error as any).code).toEqual('auth/multi-factor-auth-required');
 
       resolver = getMultiFactorResolver(auth, error as any);
-      expect(resolver.hints).to.have.length(1);
+      expect(resolver.hints).toHaveLength(1);
 
       const assertion = TotpMultiFactorGenerator.assertionForSignIn(
         resolver.hints[0].uid,
         incorrectTotpCode
       );
 
-      await expect(resolver.resolveSignIn(assertion)).to.be.rejectedWith(
+      await expect(resolver.resolveSignIn(assertion)).rejects.toThrow(
         'auth/invalid-verification-code'
       );
     }
   });
 
-  it('should allow sign-in with for correct totp and unenroll successfully', async function () {
+  it('should allow sign-in with for correct totp and unenroll successfully', async ctx => {
     let resolver: any;
     if (emulatorUrl) {
-      this.skip();
+      ctx.skip();
     }
     try {
       await signInWithEmailAndPassword(auth, email, password);
 
       throw new Error('Signin should not have been successful');
     } catch (error) {
-      expect(error).to.be.an.instanceOf(FirebaseError);
-      expect((error as any).code).to.eql('auth/multi-factor-auth-required');
+      expect(error).toBeInstanceOf(FirebaseError);
+      expect((error as any).code).toEqual('auth/multi-factor-auth-required');
 
       resolver = getMultiFactorResolver(auth, error as any);
-      expect(resolver.hints).to.have.length(1);
+      expect(resolver.hints).toHaveLength(1);
 
       totpTimestamp.setSeconds(totpTimestamp.getSeconds() + 30);
 
@@ -230,9 +224,12 @@ describe.skip('Integration tests: sign-in for mfa-enrolled users', () => {
       const userCredential = await resolver.resolveSignIn(assertion);
       mfaUser = multiFactor(userCredential.user);
 
-      await expect(mfaUser.unenroll(resolver.hints[0].uid)).to.be.fulfilled;
-      await expect(signInWithEmailAndPassword(auth, email, password)).to.be
-        .fulfilled;
+      await expect(
+        mfaUser.unenroll(resolver.hints[0].uid)
+      ).resolves.toBeUndefined();
+      await expect(
+        signInWithEmailAndPassword(auth, email, password)
+      ).resolves.toBeDefined();
     }
   });
 });

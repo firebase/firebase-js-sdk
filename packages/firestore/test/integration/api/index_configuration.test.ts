@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { setIndexConfiguration } from '../util/firebase_export';
 import { apiDescribe, withTestDb } from '../util/helpers';
@@ -81,7 +79,7 @@ apiDescribe('Index Configuration:', persistence => {
     return withTestDb(persistence, async db => {
       const action = (): Promise<void> => setIndexConfiguration(db, '{,}');
       if (persistence.storage === 'indexeddb') {
-        expect(action).to.throw(/Failed to parse JSON/);
+        expect(action).toThrow(/Failed to parse JSON/);
       } else {
         // Silently do nothing. Parsing is not done and therefore no error is thrown.
         await action();

@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import type {
   DataConnectOptions,
   TransportOptions
@@ -38,7 +36,7 @@ describe('url builders', () => {
         sslEnabled: true
       };
       const url = restUrlBuilder(projectConfig, transportOptions);
-      expect(url).to.equal(
+      expect(url).toBe(
         'https://firebasedataconnect.googleapis.com/v1/projects/my-project/' +
           'locations/us-central1/services/my-service/connectors/my-connector'
       );
@@ -51,7 +49,7 @@ describe('url builders', () => {
         port: 9399
       };
       const url = restUrlBuilder(projectConfig, transportOptions);
-      expect(url).to.equal(
+      expect(url).toBe(
         'http://localhost:9399/v1/projects/my-project/' +
           'locations/us-central1/services/my-service/connectors/my-connector'
       );
@@ -65,7 +63,7 @@ describe('url builders', () => {
         sslEnabled: true
       };
       const url = websocketUrlBuilder(projectConfig, transportOptions);
-      expect(url).to.equal(
+      expect(url).toBe(
         'wss://firebasedataconnect.googleapis.com/ws/' +
           'google.firebase.dataconnect.v1.ConnectorStreamService.Connect/' +
           'my-project/locations/us-central1/services/my-service'
@@ -79,7 +77,7 @@ describe('url builders', () => {
         port: 9399
       };
       const url = websocketUrlBuilder(projectConfig, transportOptions);
-      expect(url).to.equal(
+      expect(url).toBe(
         'ws://localhost:9399/ws/' +
           'google.firebase.dataconnect.v1.ConnectorStreamService.Connect/' +
           'my-project/locations/us-central1/services/my-service'

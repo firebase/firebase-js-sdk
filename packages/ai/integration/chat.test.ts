@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import {
   Content,
   GenerationConfig,
@@ -27,8 +26,7 @@ import {
 } from '../src';
 import { testConfigs } from './constants';
 
-describe('Chat Session', function () {
-  this.timeout(20_000);
+describe('Chat Session', { timeout: 20_000 }, () => {
   testConfigs.forEach(testConfig => {
     describe(`${testConfig.toString()}`, () => {
       const commonGenerationConfig: GenerationConfig = {
@@ -83,35 +81,35 @@ describe('Chat Session', function () {
         const response2 = result2.response;
         const history = await chat.getHistory();
 
-        expect(response1.text().trim().toLowerCase()).to.include('paris');
-        expect(response1.usageMetadata).to.not.be.null;
-        expect(response2.text().trim().toLowerCase()).to.include('rome');
-        expect(response2.usageMetadata).to.not.be.null;
-        expect(history.length).to.equal(4);
-        expect(history[0].role).to.equal('user');
-        expect((history[0].parts[0] as TextPart).text).to.equal(
+        expect(response1.text().trim().toLowerCase()).toContain('paris');
+        expect(response1.usageMetadata).not.toBeNull();
+        expect(response2.text().trim().toLowerCase()).toContain('rome');
+        expect(response2.usageMetadata).not.toBeNull();
+        expect(history.length).toBe(4);
+        expect(history[0].role).toBe('user');
+        expect((history[0].parts[0] as TextPart).text).toBe(
           'What is the capital of France?'
         );
-        expect(history[1].role).to.equal('model');
-        expect(
-          (history[1].parts[0] as TextPart).text?.toLowerCase()
-        ).to.include('paris');
-        expect(history[2].role).to.equal('user');
-        expect((history[2].parts[0] as TextPart).text).to.equal(
+        expect(history[1].role).toBe('model');
+        expect((history[1].parts[0] as TextPart).text?.toLowerCase()).toContain(
+          'paris'
+        );
+        expect(history[2].role).toBe('user');
+        expect((history[2].parts[0] as TextPart).text).toBe(
           'And what about Italy?'
         );
-        expect(history[3].role).to.equal('model');
-        expect(
-          (history[3].parts[0] as TextPart).text?.toLowerCase()
-        ).to.include('rome');
+        expect(history[3].role).toBe('model');
+        expect((history[3].parts[0] as TextPart).text?.toLowerCase()).toContain(
+          'rome'
+        );
         // Token counts can vary slightly in chat context but are supported by all models
-        expect(response1.usageMetadata!.promptTokenCount).to.not.equal(0);
-        expect(response1.usageMetadata!.candidatesTokenCount).to.not.equal(0);
-        expect(response1.usageMetadata!.totalTokenCount).to.not.equal(0);
+        expect(response1.usageMetadata!.promptTokenCount).not.toBe(0);
+        expect(response1.usageMetadata!.candidatesTokenCount).not.toBe(0);
+        expect(response1.usageMetadata!.totalTokenCount).not.toBe(0);
 
-        expect(response2.usageMetadata!.promptTokenCount).to.not.equal(0);
-        expect(response2.usageMetadata!.candidatesTokenCount).to.not.equal(0);
-        expect(response2.usageMetadata!.totalTokenCount).to.not.equal(0);
+        expect(response2.usageMetadata!.promptTokenCount).not.toBe(0);
+        expect(response2.usageMetadata!.candidatesTokenCount).not.toBe(0);
+        expect(response2.usageMetadata!.totalTokenCount).not.toBe(0);
       });
     });
   });

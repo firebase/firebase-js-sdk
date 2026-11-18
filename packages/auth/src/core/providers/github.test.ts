@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { OperationType, ProviderId, SignInMethod } from '../../model/enums';
 
 import { TEST_ID_TOKEN_RESPONSE } from '../../../test/helpers/id_token_response';
@@ -30,14 +28,14 @@ import { _createError } from '../util/assert';
 describe('core/providers/github', () => {
   it('generates the correct type of oauth credential', () => {
     const cred = GithubAuthProvider.credential('access-token');
-    expect(cred.accessToken).to.eq('access-token');
-    expect(cred.providerId).to.eq(ProviderId.GITHUB);
-    expect(cred.signInMethod).to.eq(SignInMethod.GITHUB);
+    expect(cred.accessToken).toBe('access-token');
+    expect(cred.providerId).toBe(ProviderId.GITHUB);
+    expect(cred.signInMethod).toBe(SignInMethod.GITHUB);
   });
 
   it('generates Github provider', () => {
     const provider = new GithubAuthProvider();
-    expect(provider.providerId).to.eq(ProviderId.GITHUB);
+    expect(provider.providerId).toBe(ProviderId.GITHUB);
   });
 
   it('credentialFromResult creates the cred from a tagged result', async () => {
@@ -52,9 +50,9 @@ describe('core/providers/github', () => {
       operationType: OperationType.SIGN_IN
     });
     const cred = GithubAuthProvider.credentialFromResult(userCred)!;
-    expect(cred.accessToken).to.eq('access-token');
-    expect(cred.providerId).to.eq(ProviderId.GITHUB);
-    expect(cred.signInMethod).to.eq(SignInMethod.GITHUB);
+    expect(cred.accessToken).toBe('access-token');
+    expect(cred.providerId).toBe(ProviderId.GITHUB);
+    expect(cred.signInMethod).toBe(SignInMethod.GITHUB);
   });
 
   it('credentialFromError creates the cred from a tagged error', () => {
@@ -67,9 +65,9 @@ describe('core/providers/github', () => {
     };
 
     const cred = GithubAuthProvider.credentialFromError(error)!;
-    expect(cred.accessToken).to.eq('access-token');
-    expect(cred.providerId).to.eq(ProviderId.GITHUB);
-    expect(cred.signInMethod).to.eq(SignInMethod.GITHUB);
+    expect(cred.accessToken).toBe('access-token');
+    expect(cred.providerId).toBe(ProviderId.GITHUB);
+    expect(cred.signInMethod).toBe(SignInMethod.GITHUB);
   });
 
   it('returns null when _tokenResponse is missing', () => {
@@ -79,7 +77,7 @@ describe('core/providers/github', () => {
     error.customData = {}; // no _tokenResponse
 
     const cred = GithubAuthProvider.credentialFromError(error);
-    expect(cred).to.be.null;
+    expect(cred).toBeNull();
   });
 
   it('returns null when _tokenResponse is missing oauthAccessToken key', () => {
@@ -95,7 +93,7 @@ describe('core/providers/github', () => {
     };
 
     const cred = GithubAuthProvider.credentialFromError(error);
-    expect(cred).to.be.null;
+    expect(cred).toBeNull();
   });
 
   it('returns null when GithubAuthProvider.credential throws', () => {
@@ -115,7 +113,7 @@ describe('core/providers/github', () => {
     };
 
     const cred = GithubAuthProvider.credentialFromError(error);
-    expect(cred).to.be.null;
+    expect(cred).toBeNull();
 
     // Restore original method
     GithubAuthProvider.credential = original;
@@ -130,6 +128,6 @@ describe('core/providers/github', () => {
     delete (error as any).customData;
 
     const cred = GithubAuthProvider.credentialFromError(error);
-    expect(cred).to.be.null;
+    expect(cred).toBeNull();
   });
 });

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { ReferenceSet } from '../../../src/local/reference_set';
 import { key } from '../../util/helpers';
 
@@ -25,20 +23,20 @@ describe('ReferenceSet', () => {
     const documentKey = key('foo/bar');
 
     const refSet = new ReferenceSet();
-    expect(refSet.isEmpty()).to.be.true;
-    expect(refSet.containsKey(documentKey)).to.be.false;
+    expect(refSet.isEmpty()).toBe(true);
+    expect(refSet.containsKey(documentKey)).toBe(false);
     refSet.addReference(documentKey, 1);
-    expect(refSet.isEmpty()).to.be.false;
-    expect(refSet.containsKey(documentKey)).to.be.true;
+    expect(refSet.isEmpty()).toBe(false);
+    expect(refSet.containsKey(documentKey)).toBe(true);
     refSet.addReference(documentKey, 2);
-    expect(refSet.containsKey(documentKey)).to.be.true;
+    expect(refSet.containsKey(documentKey)).toBe(true);
     refSet.removeReference(documentKey, 1);
-    expect(refSet.containsKey(documentKey)).to.be.true;
+    expect(refSet.containsKey(documentKey)).toBe(true);
     refSet.removeReference(documentKey, 3);
-    expect(refSet.containsKey(documentKey)).to.be.true;
+    expect(refSet.containsKey(documentKey)).toBe(true);
     refSet.removeReference(documentKey, 2);
-    expect(refSet.containsKey(documentKey)).to.be.false;
-    expect(refSet.isEmpty()).to.be.true;
+    expect(refSet.containsKey(documentKey)).toBe(false);
+    expect(refSet.isEmpty()).toBe(true);
   });
 
   it('can remove all references for a target ID', () => {
@@ -50,19 +48,19 @@ describe('ReferenceSet', () => {
     refSet.addReference(key1, 1);
     refSet.addReference(key2, 1);
     refSet.addReference(key3, 2);
-    expect(refSet.isEmpty()).to.be.false;
-    expect(refSet.containsKey(key1)).to.be.true;
-    expect(refSet.containsKey(key2)).to.be.true;
-    expect(refSet.containsKey(key3)).to.be.true;
+    expect(refSet.isEmpty()).toBe(false);
+    expect(refSet.containsKey(key1)).toBe(true);
+    expect(refSet.containsKey(key2)).toBe(true);
+    expect(refSet.containsKey(key3)).toBe(true);
     refSet.removeReferencesForId(1);
-    expect(refSet.isEmpty()).to.be.false;
-    expect(refSet.containsKey(key1)).to.be.false;
-    expect(refSet.containsKey(key2)).to.be.false;
-    expect(refSet.containsKey(key3)).to.be.true;
+    expect(refSet.isEmpty()).toBe(false);
+    expect(refSet.containsKey(key1)).toBe(false);
+    expect(refSet.containsKey(key2)).toBe(false);
+    expect(refSet.containsKey(key3)).toBe(true);
     refSet.removeReferencesForId(2);
-    expect(refSet.isEmpty()).to.be.true;
-    expect(refSet.containsKey(key1)).to.be.false;
-    expect(refSet.containsKey(key2)).to.be.false;
-    expect(refSet.containsKey(key3)).to.be.false;
+    expect(refSet.isEmpty()).toBe(true);
+    expect(refSet.containsKey(key1)).toBe(false);
+    expect(refSet.containsKey(key2)).toBe(false);
+    expect(refSet.containsKey(key3)).toBe(false);
   });
 });

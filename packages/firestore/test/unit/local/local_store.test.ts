@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { arrayUnion, increment, Timestamp } from '../../../src';
 import { User } from '../../../src/auth/user';
@@ -391,17 +389,17 @@ class LocalStoreTester {
       if (expectedCount.documentsByKey !== undefined) {
         actualCount.documentsByKey = this.queryEngine.documentsReadByKey;
       }
-      expect(actualCount).to.deep.eq(
-        expectedCount,
+      expect(
+        actualCount,
         `query execution #${this.queryExecutionCount}`
-      );
+      ).toEqual(expectedCount);
     });
     return this;
   }
 
   toReturnTargetId(id: TargetId): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
-      expect(this.lastTargetId).to.equal(id);
+      expect(this.lastTargetId).toBe(id);
     });
     return this;
   }
@@ -418,14 +416,15 @@ class LocalStoreTester {
         'readonly',
         txn => localStoreGetTargetData(this.localStore, txn, target)
       );
-      expect(targetData!.snapshotVersion.isEqual(version(snapshotVersion))).to
-        .be.true;
+      expect(
+        targetData!.snapshotVersion.isEqual(version(snapshotVersion))
+      ).toBe(true);
       expect(
         targetData!.lastLimboFreeSnapshotVersion.isEqual(
           version(lastLimboFreeSnapshotVersion)
         )
-      ).to.be.true;
-      expect(targetData!.resumeToken.isEqual(resumeToken)).to.be.true;
+      ).toBe(true);
+      expect(targetData!.resumeToken.isEqual(resumeToken)).toBe(true);
     });
     return this;
   }
@@ -439,12 +438,12 @@ class LocalStoreTester {
         this.lastChanges !== null,
         'Called toReturnChanged() without prior after()'
       );
-      expect(this.lastChanges.size).to.equal(docs.length, 'number of changes');
+      expect(this.lastChanges.size, 'number of changes').toBe(docs.length);
       for (const doc of docs) {
         const returned = this.lastChanges.get(doc.key);
         const message = `Expected '${returned}' to equal '${doc}'.`;
         if (isEqual) {
-          expect(isEqual(doc, returned)).to.equal(true, message);
+          expect(isEqual(doc, returned), message).toBe(true);
         } else {
           expectEqual(doc, returned, message);
         }
@@ -471,13 +470,13 @@ class LocalStoreTester {
         this.lastChanges !== null,
         'Called toReturnRemoved() without prior after()'
       );
-      expect(this.lastChanges.size).to.equal(
-        keyStrings.length,
+      expect(
+        this.lastChanges.size,
         'Number of actual changes mismatched number of expected changes'
-      );
+      ).toBe(keyStrings.length);
       for (const keyString of keyStrings) {
         const returned = this.lastChanges.get(key(keyString));
-        expect(returned?.isFoundDocument()).to.be.false;
+        expect(returned?.isFoundDocument()).toBe(false);
       }
       this.lastChanges = null;
     });
@@ -494,7 +493,7 @@ class LocalStoreTester {
           result ? result.toString() : null
         } to match ${doc.toString()}.`;
         if (isEqual) {
-          expect(isEqual(result, doc)).to.equal(true, message);
+          expect(isEqual(result, doc), message).toBe(true);
         } else {
           expectEqual(result, doc, message);
         }
@@ -506,7 +505,7 @@ class LocalStoreTester {
   toNotContain(keyStr: string): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() =>
       localStoreReadDocument(this.localStore, key(keyStr)).then(result => {
-        expect(result.isValidDocument()).to.be.false;
+        expect(result.isValidDocument()).toBe(false);
       })
     );
     return this;
@@ -524,7 +523,7 @@ class LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() =>
       localStoreGetHighestUnacknowledgedBatchId(this.localStore).then(
         actual => {
-          expect(actual).to.equal(expectedId);
+          expect(actual).toBe(expectedId);
         }
       )
     );
@@ -545,7 +544,7 @@ class LocalStoreTester {
             .getTargetCache()
             .getMatchingKeysForTargetId(transaction, targetId)
             .next(matchedKeys => {
-              expect(matchedKeys.isEqual(expectedKeys)).to.be.true;
+              expect(matchedKeys.isEqual(expectedKeys)).toBe(true);
             });
         }
       );
@@ -561,7 +560,7 @@ class LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
       return localStoreHasNewerBundle(this.localStore, metadata).then(
         actual => {
-          expect(actual).to.equal(expected);
+          expect(actual).toBe(expected);
         }
       );
     });
@@ -572,10 +571,10 @@ class LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
       return localStoreGetNamedQuery(this.localStore, namedQuery.name).then(
         actual => {
-          expect(actual).to.exist;
-          expect(actual!.name).to.equal(namedQuery.name);
-          expect(namedQuery.readTime.isEqual(actual!.readTime)).to.be.true;
-          expect(queryEquals(actual!.query, namedQuery.query)).to.be.true;
+          expect(actual).toBeDefined();
+          expect(actual!.name).toBe(namedQuery.name);
+          expect(namedQuery.readTime.isEqual(actual!.readTime)).toBe(true);
+          expect(queryEquals(actual!.query, namedQuery.query)).toBe(true);
         }
       );
     });
@@ -650,59 +649,51 @@ describe('LocalStore w/ Memory Persistence and Pipelines', () => {
   });
 });
 
-describe('LocalStore w/ IndexedDB Persistence', () => {
-  if (!IndexedDbPersistence.isAvailable()) {
-    console.warn(
-      'No IndexedDB. Skipping LocalStore w/ IndexedDB persistence tests.'
-    );
-    return;
+describe.skipIf(!IndexedDbPersistence.isAvailable())(
+  'LocalStore w/ IndexedDB Persistence',
+  () => {
+    async function initialize(): Promise<LocalStoreComponents> {
+      const queryEngine = new CountingQueryEngine();
+      const persistence = await persistenceHelpers.testIndexedDbPersistence();
+      const localStore = newLocalStore(
+        persistence,
+        queryEngine,
+        User.UNAUTHENTICATED,
+        JSON_SERIALIZER
+      );
+      return { queryEngine, persistence, localStore };
+    }
+
+    addEqualityMatcher();
+    genericLocalStoreTests(initialize, {
+      gcIsEager: false,
+      convertToPipeline: false
+    });
   }
+);
 
-  async function initialize(): Promise<LocalStoreComponents> {
-    const queryEngine = new CountingQueryEngine();
-    const persistence = await persistenceHelpers.testIndexedDbPersistence();
-    const localStore = newLocalStore(
-      persistence,
-      queryEngine,
-      User.UNAUTHENTICATED,
-      JSON_SERIALIZER
-    );
-    return { queryEngine, persistence, localStore };
+describe.skipIf(!IndexedDbPersistence.isAvailable())(
+  'LocalStore w/ IndexedDB Persistence and Pipeline',
+  () => {
+    async function initialize(): Promise<LocalStoreComponents> {
+      const queryEngine = new CountingQueryEngine();
+      const persistence = await persistenceHelpers.testIndexedDbPersistence();
+      const localStore = newLocalStore(
+        persistence,
+        queryEngine,
+        User.UNAUTHENTICATED,
+        JSON_SERIALIZER
+      );
+      return { queryEngine, persistence, localStore };
+    }
+
+    addEqualityMatcher();
+    genericLocalStoreTests(initialize, {
+      gcIsEager: false,
+      convertToPipeline: true
+    });
   }
-
-  addEqualityMatcher();
-  genericLocalStoreTests(initialize, {
-    gcIsEager: false,
-    convertToPipeline: false
-  });
-});
-
-describe('LocalStore w/ IndexedDB Persistence and Pipeline', () => {
-  if (!IndexedDbPersistence.isAvailable()) {
-    console.warn(
-      'No IndexedDB. Skipping LocalStore w/ IndexedDB persistence tests.'
-    );
-    return;
-  }
-
-  async function initialize(): Promise<LocalStoreComponents> {
-    const queryEngine = new CountingQueryEngine();
-    const persistence = await persistenceHelpers.testIndexedDbPersistence();
-    const localStore = newLocalStore(
-      persistence,
-      queryEngine,
-      User.UNAUTHENTICATED,
-      JSON_SERIALIZER
-    );
-    return { queryEngine, persistence, localStore };
-  }
-
-  addEqualityMatcher();
-  genericLocalStoreTests(initialize, {
-    gcIsEager: false,
-    convertToPipeline: true
-  });
-});
+);
 
 function genericLocalStoreTests(
   getComponents: () => Promise<LocalStoreComponents>,
@@ -749,13 +740,13 @@ function genericLocalStoreTests(
 
   it('localStoreSetIndexAutoCreationEnabled()', () => {
     localStoreSetIndexAutoCreationEnabled(localStore, true);
-    expect(queryEngine.indexAutoCreationEnabled).to.be.true;
+    expect(queryEngine.indexAutoCreationEnabled).toBe(true);
     localStoreSetIndexAutoCreationEnabled(localStore, false);
-    expect(queryEngine.indexAutoCreationEnabled).to.be.false;
+    expect(queryEngine.indexAutoCreationEnabled).toBe(false);
     localStoreSetIndexAutoCreationEnabled(localStore, true);
-    expect(queryEngine.indexAutoCreationEnabled).to.be.true;
+    expect(queryEngine.indexAutoCreationEnabled).toBe(true);
     localStoreSetIndexAutoCreationEnabled(localStore, false);
-    expect(queryEngine.indexAutoCreationEnabled).to.be.false;
+    expect(queryEngine.indexAutoCreationEnabled).toBe(false);
   });
 
   it('handles SetMutation', () => {
@@ -1264,7 +1255,7 @@ function genericLocalStoreTests(
         );
       })
       .then(({ documents }) => {
-        expect(documents.size).to.equal(1);
+        expect(documents.size).toBe(1);
         expectEqual(documents.minKey(), key('foo/bar'));
       });
   });
@@ -1286,7 +1277,7 @@ function genericLocalStoreTests(
         );
       })
       .then(({ documents }) => {
-        expect(documents.size).to.equal(2);
+        expect(documents.size).toBe(2);
         expectEqual(documents.minKey(), key('foo/bar'));
         expectEqual(documents.maxKey(), key('foo/baz'));
       });
@@ -1298,7 +1289,7 @@ function genericLocalStoreTests(
       localStore,
       queryToTarget(query1)
     );
-    expect(targetData.targetId).to.equal(2);
+    expect(targetData.targetId).toBe(2);
     await localStoreApplyRemoteEventToLocalCache(
       localStore,
       docAddedRemoteEvent(doc('foo/baz', 10, { a: 'b' }), [2], [])
@@ -1315,7 +1306,7 @@ function genericLocalStoreTests(
       query1,
       /* usePreviousResults= */ true
     );
-    expect(mapAsArray(documents)).to.deep.equal([
+    expect(mapAsArray(documents)).toEqual([
       { key: key('foo/bar'), value: doc('foo/bar', 20, { a: 'b' }) },
       { key: key('foo/baz'), value: doc('foo/baz', 10, { a: 'b' }) },
       {
@@ -1409,7 +1400,7 @@ function genericLocalStoreTests(
       localStore,
       queryToTarget(query1)
     );
-    expect(targetData2.resumeToken).to.deep.equal(resumeToken);
+    expect(targetData2.resumeToken).toEqual(resumeToken);
   });
 
   // eslint-disable-next-line no-restricted-properties
@@ -1472,7 +1463,7 @@ function genericLocalStoreTests(
         localStore,
         queryToTarget(query1)
       );
-      expect(targetData2.resumeToken).to.deep.equal(resumeToken);
+      expect(targetData2.resumeToken).toEqual(resumeToken);
     }
   );
 
@@ -2134,7 +2125,7 @@ function genericLocalStoreTests(
   });
 
   it('update on remote doc leads to update overlay', () => {
-    expect(new Map([['a', 1]])).to.deep.equal(new Map([['a', 0]]));
+    expect(new Map([['a', 1]])).toEqual(new Map([['a', 0]]));
     return expectLocalStore()
       .afterAllocatingQuery(query('foo'))
       .afterRemoteEvent(docUpdateRemoteEvent(doc('foo/baz', 10, { a: 1 }), [2]))
@@ -2422,8 +2413,9 @@ function genericLocalStoreTests(
         )
       );
     }
-    await expect(expectLocalStore().afterMutations(mutations).finish()).to.not
-      .be.eventually.rejected;
+    await expect(
+      expectLocalStore().afterMutations(mutations).finish()
+    ).resolves.not.toThrow();
   });
 
   it('uses target mapping to execute queries', () => {
@@ -2507,7 +2499,7 @@ function genericLocalStoreTests(
       cachedTargetData!.lastLimboFreeSnapshotVersion.isEqual(
         SnapshotVersion.min()
       )
-    ).to.be.true;
+    ).toBe(true);
 
     // Mark the view synced, which updates the last limbo free snapshot version.
     await localStoreNotifyLocalViewChanges(localStore, [
@@ -2518,8 +2510,9 @@ function genericLocalStoreTests(
       'readonly',
       txn => localStoreGetTargetData(localStore, txn, target)
     );
-    expect(cachedTargetData!.lastLimboFreeSnapshotVersion.isEqual(version(10)))
-      .to.be.true;
+    expect(
+      cachedTargetData!.lastLimboFreeSnapshotVersion.isEqual(version(10))
+    ).toBe(true);
 
     // The last limbo free snapshot version is persisted even if we release the
     // query.
@@ -2537,7 +2530,7 @@ function genericLocalStoreTests(
       );
       expect(
         cachedTargetData!.lastLimboFreeSnapshotVersion.isEqual(version(10))
-      ).to.be.true;
+      ).toBe(true);
     }
   });
 

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   arrayRemove,
@@ -151,9 +149,8 @@ describe('Mutation', () => {
       );
     }
 
-    expect(docForOverlay).to.deep.equal(
-      docForMutations,
-      getDescription(doc, mutations, overlay)
+    expect(docForOverlay, getDescription(doc, mutations, overlay)).toEqual(
+      docForMutations
     );
   }
 
@@ -168,7 +165,7 @@ describe('Mutation', () => {
       /* previousMask= */ null,
       timestamp
     );
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 0, { bar: 'bar-value' }).setHasLocalMutations()
     );
   });
@@ -187,7 +184,7 @@ describe('Mutation', () => {
       /* previousMask= */ null,
       timestamp
     );
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' },
         baz: 'baz-value'
@@ -211,7 +208,7 @@ describe('Mutation', () => {
       /* previousMask= */ null,
       timestamp
     );
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' }
       }).setHasLocalMutations()
@@ -234,7 +231,7 @@ describe('Mutation', () => {
       /* previousMask= */ null,
       timestamp
     );
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' }
       }).setHasLocalMutations()
@@ -255,7 +252,7 @@ describe('Mutation', () => {
       /* previousMask= */ null,
       timestamp
     );
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 0, {
         foo: { baz: 'baz-value' }
       }).setHasLocalMutations()
@@ -277,7 +274,7 @@ describe('Mutation', () => {
       /* previousMask= */ null,
       timestamp
     );
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 0, {
         foo: { bar: 'new-bar-value' },
         baz: 'baz-value'
@@ -294,7 +291,7 @@ describe('Mutation', () => {
       /* previousMask= */ null,
       timestamp
     );
-    expect(document).to.deep.equal(deletedDoc('collection/key', 0));
+    expect(document).toEqual(deletedDoc('collection/key', 0));
   });
 
   it('can apply local serverTimestamp transforms to documents', () => {
@@ -320,7 +317,7 @@ describe('Mutation', () => {
     data.set(field('foo.bar'), serverTimestampInternal(timestamp, null));
     const expectedDoc = doc('collection/key', 0, data).setHasLocalMutations();
 
-    expect(document).to.deep.equal(expectedDoc);
+    expect(document).toEqual(expectedDoc);
   });
 
   // NOTE: This is more a test of UserDataReader code than Mutation code but
@@ -331,17 +328,17 @@ describe('Mutation', () => {
       a: arrayUnion('tag'),
       'bar.baz': arrayUnion(true, { nested: { a: [1, 2] } })
     });
-    expect(transform.fieldTransforms).to.have.lengthOf(2);
+    expect(transform.fieldTransforms).toHaveLength(2);
 
     const first = transform.fieldTransforms[0];
-    expect(first.field).to.deep.equal(field('a'));
-    expect(first.transform).to.deep.equal(
+    expect(first.field).toEqual(field('a'));
+    expect(first.transform).toEqual(
       new ArrayUnionTransformOperation([wrap('tag')])
     );
 
     const second = transform.fieldTransforms[1];
-    expect(second.field).to.deep.equal(field('bar.baz'));
-    expect(second.transform).to.deep.equal(
+    expect(second.field).toEqual(field('bar.baz'));
+    expect(second.transform).toEqual(
       new ArrayUnionTransformOperation([
         wrap(true),
         wrap({ nested: { a: [1, 2] } })
@@ -356,11 +353,11 @@ describe('Mutation', () => {
     const transform = patchMutation('collection/key', {
       foo: arrayRemove('tag')
     });
-    expect(transform.fieldTransforms).to.have.lengthOf(1);
+    expect(transform.fieldTransforms).toHaveLength(1);
 
     const first = transform.fieldTransforms[0];
-    expect(first.field).to.deep.equal(field('foo'));
-    expect(first.transform).to.deep.equal(
+    expect(first.field).toEqual(field('foo'));
+    expect(first.transform).toEqual(
       new ArrayRemoveTransformOperation([wrap('tag')])
     );
   });
@@ -488,7 +485,7 @@ describe('Mutation', () => {
       0,
       expectedData
     ).setHasLocalMutations();
-    expect(document).to.deep.equal(expectedDoc);
+    expect(document).toEqual(expectedDoc);
   }
 
   it('can apply server-acked serverTimestamp transform to documents', () => {
@@ -509,7 +506,7 @@ describe('Mutation', () => {
     ]);
     mutationApplyToRemoteDocument(transform, document, mutationResult);
 
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 1, {
         foo: { bar: timestamp.toDate() },
         baz: 'baz-value'
@@ -529,7 +526,7 @@ describe('Mutation', () => {
     const mutationResult = new MutationResult(version(1), [null, null]);
     mutationApplyToRemoteDocument(transform, document, mutationResult);
 
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 1, {
         array1: [1, 2, 3],
         array2: ['b']
@@ -592,7 +589,7 @@ describe('Mutation', () => {
   ): void {
     const op = new OpClass(dummySerializer, wrap(operandValue));
     const res = applyFn(op, baseValue === null ? null : wrap(baseValue));
-    expect(res).to.deep.equal(wrap(expectedValue));
+    expect(res).toEqual(wrap(expectedValue));
   }
 
   describe('Model-level increment evaluation', () => {
@@ -1105,7 +1102,7 @@ describe('Mutation', () => {
     ]);
     mutationApplyToRemoteDocument(transform, document, mutationResult);
 
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 1, { sum: 3 }).setHasCommittedMutations()
     );
   });
@@ -1120,7 +1117,7 @@ describe('Mutation', () => {
       /* previousMask= */ null,
       Timestamp.now()
     );
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       deletedDoc('collection/key', 0).setHasLocalMutations()
     );
   });
@@ -1131,7 +1128,7 @@ describe('Mutation', () => {
     const docSet = setMutation('collection/key', { foo: 'new-bar' });
     const setResult = mutationResult(4);
     mutationApplyToRemoteDocument(docSet, document, setResult);
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 4, { foo: 'new-bar' }).setHasCommittedMutations()
     );
   });
@@ -1142,7 +1139,7 @@ describe('Mutation', () => {
     const mutation = patchMutation('collection/key', { foo: 'new-bar' });
     const result = mutationResult(5);
     mutationApplyToRemoteDocument(mutation, document, result);
-    expect(document).to.deep.equal(
+    expect(document).toEqual(
       doc('collection/key', 5, { foo: 'new-bar' }).setHasCommittedMutations()
     );
   });
@@ -1155,7 +1152,7 @@ describe('Mutation', () => {
   ): void {
     const documentCopy = base.mutableCopy();
     mutationApplyToRemoteDocument(mutation, documentCopy, mutationResult);
-    expect(documentCopy).to.deep.equal(expected);
+    expect(documentCopy).toEqual(expected);
   }
 
   it('transitions versions correctly', () => {
@@ -1200,13 +1197,13 @@ describe('Mutation', () => {
     const baseDoc = doc('collection/key', 0, data);
 
     const set = setMutation('collection/key', { foo: 'bar' });
-    expect(mutationExtractBaseValue(set, baseDoc)).to.be.null;
+    expect(mutationExtractBaseValue(set, baseDoc)).toBeNull();
 
     const patch = patchMutation('collection/key', { foo: 'bar' });
-    expect(mutationExtractBaseValue(patch, baseDoc)).to.be.null;
+    expect(mutationExtractBaseValue(patch, baseDoc)).toBeNull();
 
     const deleter = deleteMutation('collection/key');
-    expect(mutationExtractBaseValue(deleter, baseDoc)).to.be.null;
+    expect(mutationExtractBaseValue(deleter, baseDoc)).toBeNull();
   });
 
   it('extracts null base value for ServerTimestamp', () => {
@@ -1220,7 +1217,7 @@ describe('Mutation', () => {
 
     // Server timestamps are idempotent and don't have base values.
     const transform = patchMutation('collection/key', allTransforms);
-    expect(mutationExtractBaseValue(transform, baseDoc)).to.be.null;
+    expect(mutationExtractBaseValue(transform, baseDoc)).toBeNull();
   });
 
   it('extracts base value for increment', () => {
@@ -1260,7 +1257,7 @@ describe('Mutation', () => {
     });
     const actualBaseValue = mutationExtractBaseValue(transform, baseDoc);
 
-    expect(expectedBaseValue.isEqual(actualBaseValue!)).to.be.true;
+    expect(expectedBaseValue.isEqual(actualBaseValue!)).toBe(true);
   });
 
   it('increment twice', () => {
@@ -1282,8 +1279,8 @@ describe('Mutation', () => {
       Timestamp.now()
     );
 
-    expect(document.isFoundDocument()).to.be.true;
-    expect(document.data.field(field('sum'))).to.deep.equal(wrap(2));
+    expect(document.isFoundDocument()).toBe(true);
+    expect(document.data.field(field('sum'))).toEqual(wrap(2));
   });
 
   // Mutation Overlay tests
@@ -1481,7 +1478,7 @@ describe('Mutation', () => {
     const testCases = runPermutationTests(docs, mutations);
 
     // There are 4! * 3 cases
-    expect(testCases).to.equal(72);
+    expect(testCases).toBe(72);
   });
 
   it('overlay by combinations and permutations', () => {
@@ -1520,8 +1517,8 @@ describe('Mutation', () => {
     });
 
     // There are (0! + 7*1! + 21*2! + 35*3! + 35*4! + 21*5! + 7*6! + 7!) * 3 = 41100 cases.
-    expect(testCases).to.equal(41100);
-  }).timeout(10000);
+    expect(testCases).toBe(41100);
+  }, 10000);
 
   it('overlay by combinations and permutations for array transforms', () => {
     const docs: MutableDocument[] = [
@@ -1559,7 +1556,7 @@ describe('Mutation', () => {
     });
 
     // There are (0! + 6*1! + 15*2! + 20*3! + 15*4! + 6*5! + 6!) * 3 = 5871 cases.
-    expect(testCases).to.equal(5871);
+    expect(testCases).toBe(5871);
   });
 
   it('overlay by combinations and permutations for increments', () => {
@@ -1596,6 +1593,6 @@ describe('Mutation', () => {
     });
 
     // There are (0! + 6*1! + 15*2! + 20*3! + 15*4! + 6*5! + 6!) * 3 = 5871 cases.
-    expect(testCases).to.equal(5871);
+    expect(testCases).toBe(5871);
   });
 });

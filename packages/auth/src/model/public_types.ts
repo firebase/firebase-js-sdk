@@ -33,7 +33,7 @@ import {
   ActionCodeOperation as ActionCodeOperationMap
 } from './enum_maps';
 
-export { CompleteFn, ErrorFn, NextFn, Unsubscribe };
+export type { CompleteFn, ErrorFn, NextFn, Unsubscribe };
 
 /**
  * Interface representing the `Auth` config.

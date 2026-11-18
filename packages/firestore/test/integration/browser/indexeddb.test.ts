@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   enableIndexedDbPersistence,
@@ -31,51 +29,50 @@ import {
   PERSISTENCE_MODE_UNSPECIFIED
 } from '../util/helpers';
 
-describe('where indexeddb is not available: ', () => {
-  // Only test on platforms where persistence is *not* available (e.g. Edge,
-  // Node.JS).
-  if (isPersistenceAvailable()) {
-    return;
+describe.skipIf(isPersistenceAvailable())(
+  'where indexeddb is not available: ',
+  () => {
+    // Only test on platforms where persistence is *not* available (e.g. Edge,
+    // Node.JS).
+    // TODO(pipeline) fix test or SDK
+    // eslint-disable-next-line -- no-restricted-properties
+    it.skip('fails with code unimplemented', () => {
+      // withTestDb will fail the test if persistence is requested but it fails
+      // so we'll enable persistence here instead.
+      return withTestDb(PERSISTENCE_MODE_UNSPECIFIED, db => {
+        return enableIndexedDbPersistence(db).then(
+          () => expect.fail('enablePersistence should not have succeeded!'),
+          (error: FirestoreError) => {
+            expect(error.code).toBe('unimplemented');
+          }
+        );
+      });
+    });
+
+    it('falls back without requiring a wait for the promise', () => {
+      return withTestDb(PERSISTENCE_MODE_UNSPECIFIED, db => {
+        const persistenceFailedPromise = enableIndexedDbPersistence(db).catch(
+          (err: FirestoreError) => {
+            expect(err.code).toBe('unimplemented');
+          }
+        );
+
+        // Do the set immediately without waiting on the promise.
+        const testDoc = doc(collection(db, 'test-collection'));
+        return setDoc(testDoc, { foo: 'bar' }).then(
+          () => persistenceFailedPromise
+        );
+      });
+    });
+
+    it('falls back to memory cache with initializeFirestore too', () => {
+      // withTestDb will fail the test if persistence is requested but it fails
+      // so we'll enable persistence here instead.
+      return withTestDb(new IndexedDbPersistenceMode(), db => {
+        // Do the set immediately without waiting on the promise.
+        const testDoc = doc(collection(db, 'test-collection'));
+        return setDoc(testDoc, { foo: 'bar' });
+      });
+    });
   }
-
-  // TODO(pipeline) fix test or SDK
-  // eslint-disable-next-line -- no-restricted-properties
-  it.skip('fails with code unimplemented', () => {
-    // withTestDb will fail the test if persistence is requested but it fails
-    // so we'll enable persistence here instead.
-    return withTestDb(PERSISTENCE_MODE_UNSPECIFIED, db => {
-      return enableIndexedDbPersistence(db).then(
-        () => expect.fail('enablePersistence should not have succeeded!'),
-        (error: FirestoreError) => {
-          expect(error.code).to.equal('unimplemented');
-        }
-      );
-    });
-  });
-
-  it('falls back without requiring a wait for the promise', () => {
-    return withTestDb(PERSISTENCE_MODE_UNSPECIFIED, db => {
-      const persistenceFailedPromise = enableIndexedDbPersistence(db).catch(
-        (err: FirestoreError) => {
-          expect(err.code).to.equal('unimplemented');
-        }
-      );
-
-      // Do the set immediately without waiting on the promise.
-      const testDoc = doc(collection(db, 'test-collection'));
-      return setDoc(testDoc, { foo: 'bar' }).then(
-        () => persistenceFailedPromise
-      );
-    });
-  });
-
-  it('falls back to memory cache with initializeFirestore too', () => {
-    // withTestDb will fail the test if persistence is requested but it fails
-    // so we'll enable persistence here instead.
-    return withTestDb(new IndexedDbPersistenceMode(), db => {
-      // Do the set immediately without waiting on the promise.
-      const testDoc = doc(collection(db, 'test-collection'));
-      return setDoc(testDoc, { foo: 'bar' });
-    });
-  });
-});
+);

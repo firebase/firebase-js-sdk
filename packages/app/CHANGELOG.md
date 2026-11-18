@@ -1,5 +1,35 @@
 # @firebase/app
 
+## 0.16.7
+
+### Patch Changes
+
+- [`e101b00`](https://github.com/firebase/firebase-js-sdk/commit/e101b004a39fa9ad63212d69f8dc68e825cfcc6a) [#10609](https://github.com/firebase/firebase-js-sdk/pull/10609) - Load external scripts through a single shared Trusted Types policy named `firebase-js-sdk-policy`, so that Auth (gapi and reCAPTCHA scripts), Analytics (gtag), and App Check (reCAPTCHA scripts) work on pages that enforce Trusted Types with `require-trusted-types-for 'script'`. If the page's CSP restricts policy names with the `trusted-types` directive, it must allow `firebase-js-sdk-policy`; if it doesn't, an error explaining this is logged when a script fails to load.
+
+## 0.16.6
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.16.5
+
+### Patch Changes
+
+- [`fe5dd06`](https://github.com/firebase/firebase-js-sdk/commit/fe5dd06c03ad6d5393b01590ec61bdd9be5e2839) [#10548](https://github.com/firebase/firebase-js-sdk/pull/10548) - First release of Crashlytics for public preview
+
+## 0.16.4
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
+## 0.16.3
+
+### Patch Changes
+
+- Update SDK_VERSION.
+
 ## 0.16.2
 
 ### Patch Changes

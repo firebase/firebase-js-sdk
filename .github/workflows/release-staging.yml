@@ -65,9 +65,9 @@ jobs:
     - name: Set up Node (24)
       uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
       with:
-        node-version: 24.19.0
+        node-version: 24.22.1
     - name: Merge main into release
-      uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # ratchet:actions/github-script@v7
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # ratchet:actions/github-script@v9
       with:
         github-token: ${{ steps.generate-token.outputs.token }}
         script: |
@@ -111,6 +111,7 @@ jobs:
         NPM_TOKEN_AUTH_INTEROP_TYPES: ${{secrets.NPM_TOKEN_AUTH_INTEROP_TYPES}}
         NPM_TOKEN_AUTH_TYPES: ${{secrets.NPM_TOKEN_AUTH_TYPES}}
         NPM_TOKEN_COMPONENT: ${{secrets.NPM_TOKEN_COMPONENT}}
+        NPM_TOKEN_CRASHLYTICS: ${{secrets.NPM_TOKEN_CRASHLYTICS}}
         NPM_TOKEN_DATA_CONNECT: ${{secrets.NPM_TOKEN_DATA_CONNECT}}
         NPM_TOKEN_DATABASE: ${{secrets.NPM_TOKEN_DATABASE}}
         NPM_TOKEN_DATABASE_TYPES: ${{secrets.NPM_TOKEN_DATABASE_TYPES}}
@@ -199,7 +200,7 @@ jobs:
       with:
         credentials_json: ${{ secrets.RELEASE_TRACKER_SA_KEY }}
         token_format: 'id_token'
-        id_token_audience: ${{ secrets.RELEASE_TRACKER_URL }}
+        id_token_audience: ${{ secrets.RELEASE_TRACKER_URL }}/logStaging
     - name: Log to release tracker
       # Sends release information to cloud functions endpoint of release tracker.
       if: ${{ always() }}

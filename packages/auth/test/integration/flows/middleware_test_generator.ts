@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,15 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
-
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Auth, createUserWithEmailAndPassword, User } from '@firebase/auth';
 import { randomEmail } from '../../helpers/integration/helpers';
-
-use(chaiAsPromised);
-use(sinonChai);
 
 export function generateMiddlewareTests(
   authGetter: () => Auth,
   signIn: () => Promise<unknown>
 ): void {
-  context('middleware', () => {
+  describe('middleware', () => {
     let auth: Auth;
     let unsubscribes: Array<() => void>;
     let password: string;
@@ -67,8 +59,8 @@ export function generateMiddlewareTests(
         throw new Error('stop sign in');
       });
 
-      await expect(signIn()).to.be.rejectedWith('auth/login-blocked');
-      expect(auth.currentUser).to.be.null;
+      await expect(signIn()).rejects.toThrow('auth/login-blocked');
+      expect(auth.currentUser).toBeNull();
     });
 
     it('can prevent user sign in as a promise', async () => {
@@ -76,8 +68,8 @@ export function generateMiddlewareTests(
         return Promise.reject('stop sign in');
       });
 
-      await expect(signIn()).to.be.rejectedWith('auth/login-blocked');
-      expect(auth.currentUser).to.be.null;
+      await expect(signIn()).rejects.toThrow('auth/login-blocked');
+      expect(auth.currentUser).toBeNull();
     });
 
     it('keeps previously-logged in user if blocked', async () => {
@@ -92,8 +84,8 @@ export function generateMiddlewareTests(
         throw new Error('stop sign in');
       });
 
-      await expect(signIn()).to.be.rejectedWith('auth/login-blocked');
-      expect(auth.currentUser).to.eq(baseUser);
+      await expect(signIn()).rejects.toThrow('auth/login-blocked');
+      expect(auth.currentUser).toBe(baseUser);
     });
 
     it('can allow sign in', async () => {
@@ -101,8 +93,8 @@ export function generateMiddlewareTests(
         // Pass
       });
 
-      await expect(signIn()).not.to.be.rejected;
-      expect(auth.currentUser).not.to.be.null;
+      await expect(signIn()).resolves.not.toThrow();
+      expect(auth.currentUser).not.toBeNull();
     });
 
     it('can allow sign in as a promise', async () => {
@@ -110,8 +102,8 @@ export function generateMiddlewareTests(
         return Promise.resolve();
       });
 
-      await expect(signIn()).not.to.be.rejected;
-      expect(auth.currentUser).not.to.be.null;
+      await expect(signIn()).resolves.not.toThrow();
+      expect(auth.currentUser).not.toBeNull();
     });
 
     it('overrides previous user if allowed', async () => {
@@ -126,14 +118,14 @@ export function generateMiddlewareTests(
         // Pass
       });
 
-      await expect(signIn()).not.to.be.rejected;
-      expect(auth.currentUser).not.to.eq(baseUser);
+      await expect(signIn()).resolves.not.toThrow();
+      expect(auth.currentUser).not.toBe(baseUser);
     });
 
     it('will reject if one callback fails', async () => {
       // Also check that the function is called multiple
       // times
-      const spy = sinon.spy();
+      const spy = vi.fn();
 
       beforeAuthStateChanged(spy);
       beforeAuthStateChanged(spy);
@@ -142,9 +134,9 @@ export function generateMiddlewareTests(
         throw new Error('stop sign in');
       });
 
-      await expect(signIn()).to.be.rejectedWith('auth/login-blocked');
-      expect(auth.currentUser).to.be.null;
-      expect(spy).to.have.been.calledThrice;
+      await expect(signIn()).rejects.toThrow('auth/login-blocked');
+      expect(auth.currentUser).toBeNull();
+      expect(spy).toHaveBeenCalledTimes(3);
     });
 
     it('keeps previously-logged in user if one rejects', async () => {
@@ -157,7 +149,7 @@ export function generateMiddlewareTests(
 
       // Also check that the function is called multiple
       // times
-      const spy = sinon.spy();
+      const spy = vi.fn();
 
       beforeAuthStateChanged(spy);
       beforeAuthStateChanged(spy);
@@ -166,9 +158,9 @@ export function generateMiddlewareTests(
         throw new Error('stop sign in');
       });
 
-      await expect(signIn()).to.be.rejectedWith('auth/login-blocked');
-      expect(auth.currentUser).to.eq(baseUser);
-      expect(spy).to.have.been.calledThrice;
+      await expect(signIn()).rejects.toThrow('auth/login-blocked');
+      expect(auth.currentUser).toBe(baseUser);
+      expect(spy).toHaveBeenCalledTimes(3);
     });
 
     it('allows sign in with multiple callbacks all pass', async () => {
@@ -181,20 +173,20 @@ export function generateMiddlewareTests(
 
       // Also check that the function is called multiple
       // times
-      const spy = sinon.spy();
+      const spy = vi.fn();
 
       beforeAuthStateChanged(spy);
       beforeAuthStateChanged(spy);
       beforeAuthStateChanged(spy);
 
-      await expect(signIn()).not.to.be.rejected;
-      expect(auth.currentUser).not.to.eq(baseUser);
-      expect(spy).to.have.been.calledThrice;
+      await expect(signIn()).resolves.not.toThrow();
+      expect(auth.currentUser).not.toBe(baseUser);
+      expect(spy).toHaveBeenCalledTimes(3);
     });
 
     it('does not call subsequent callbacks after rejection', async () => {
-      const firstSpy = sinon.spy();
-      const secondSpy = sinon.spy();
+      const firstSpy = vi.fn();
+      const secondSpy = vi.fn();
 
       beforeAuthStateChanged(firstSpy);
       beforeAuthStateChanged(() => {
@@ -202,9 +194,9 @@ export function generateMiddlewareTests(
       });
       beforeAuthStateChanged(secondSpy);
 
-      await expect(signIn()).to.be.rejectedWith('auth/login-blocked');
-      expect(firstSpy).to.have.been.calledOnce;
-      expect(secondSpy).not.to.have.been.called;
+      await expect(signIn()).rejects.toThrow('auth/login-blocked');
+      expect(firstSpy).toHaveBeenCalledTimes(1);
+      expect(secondSpy).not.toHaveBeenCalled();
     });
 
     it('can prevent sign-out', async () => {
@@ -215,12 +207,12 @@ export function generateMiddlewareTests(
         throw new Error('block sign out');
       });
 
-      await expect(auth.signOut()).to.be.rejectedWith('auth/login-blocked');
-      expect(auth.currentUser).to.eq(user);
+      await expect(auth.signOut()).rejects.toThrow('auth/login-blocked');
+      expect(auth.currentUser).toBe(user);
     });
 
     it('calls onAbort after rejection', async () => {
-      const onAbort = sinon.spy();
+      const onAbort = vi.fn();
       beforeAuthStateChanged(() => {
         // Pass
       }, onAbort);
@@ -228,8 +220,8 @@ export function generateMiddlewareTests(
         throw new Error('block sign out');
       });
 
-      await expect(signIn()).to.be.rejectedWith('auth/login-blocked');
-      expect(onAbort).to.have.been.called;
+      await expect(signIn()).rejects.toThrow('auth/login-blocked');
+      expect(onAbort).toHaveBeenCalled();
     });
   });
 }

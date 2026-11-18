@@ -16,7 +16,6 @@
  */
 
 import { DataSnapshot as ExpDataSnapshot } from '@firebase/database';
-import { expect } from 'chai';
 
 import { PRIORITY_INDEX } from '../../database/src/core/snap/indexes/PriorityIndex';
 import { nodeFromJSON } from '../../database/src/core/snap/nodeFromJSON';
@@ -40,41 +39,41 @@ describe('DataSnapshot Tests', () => {
 
   it('DataSnapshot.hasChildren() works.', () => {
     let snap = snapshotForJSON({});
-    expect(snap.hasChildren()).to.equal(false);
+    expect(snap.hasChildren()).toBe(false);
 
     snap = snapshotForJSON(5);
-    expect(snap.hasChildren()).to.equal(false);
+    expect(snap.hasChildren()).toBe(false);
 
     snap = snapshotForJSON({ x: 5 });
-    expect(snap.hasChildren()).to.equal(true);
+    expect(snap.hasChildren()).toBe(true);
   });
 
   it('DataSnapshot.exists() works.', () => {
     let snap = snapshotForJSON({});
-    expect(snap.exists()).to.equal(false);
+    expect(snap.exists()).toBe(false);
 
     snap = snapshotForJSON({ '.priority': 1 });
-    expect(snap.exists()).to.equal(false);
+    expect(snap.exists()).toBe(false);
 
     snap = snapshotForJSON(null);
-    expect(snap.exists()).to.equal(false);
+    expect(snap.exists()).toBe(false);
 
     snap = snapshotForJSON(true);
-    expect(snap.exists()).to.equal(true);
+    expect(snap.exists()).toBe(true);
 
     snap = snapshotForJSON(5);
-    expect(snap.exists()).to.equal(true);
+    expect(snap.exists()).toBe(true);
 
     snap = snapshotForJSON({ x: 5 });
-    expect(snap.exists()).to.equal(true);
+    expect(snap.exists()).toBe(true);
   });
 
   it('DataSnapshot.val() works.', () => {
     let snap = snapshotForJSON(5);
-    expect(snap.val()).to.equal(5);
+    expect(snap.val()).toBe(5);
 
     snap = snapshotForJSON({});
-    expect(snap.val()).to.equal(null);
+    expect(snap.val()).toBe(null);
 
     const json = {
       x: 5,
@@ -85,39 +84,39 @@ describe('DataSnapshot Tests', () => {
       }
     };
     snap = snapshotForJSON(json);
-    expect(snap.val()).to.deep.equal(json);
+    expect(snap.val()).toEqual(json);
   });
 
   it('DataSnapshot.child() works.', () => {
     const snap = snapshotForJSON({ x: 5, y: { yy: 3, yz: 4 } });
-    expect(snap.child('x').val()).to.equal(5);
-    expect(snap.child('y').val()).to.deep.equal({ yy: 3, yz: 4 });
-    expect(snap.child('y').child('yy').val()).to.equal(3);
-    expect(snap.child('y/yz').val()).to.equal(4);
-    expect(snap.child('z').val()).to.equal(null);
-    expect(snap.child('x/y').val()).to.equal(null);
-    expect(snap.child('x').child('y').val()).to.equal(null);
+    expect(snap.child('x').val()).toBe(5);
+    expect(snap.child('y').val()).toEqual({ yy: 3, yz: 4 });
+    expect(snap.child('y').child('yy').val()).toBe(3);
+    expect(snap.child('y/yz').val()).toBe(4);
+    expect(snap.child('z').val()).toBe(null);
+    expect(snap.child('x/y').val()).toBe(null);
+    expect(snap.child('x').child('y').val()).toBe(null);
   });
 
   it('DataSnapshot.hasChild() works.', () => {
     const snap = snapshotForJSON({ x: 5, y: { yy: 3, yz: 4 } });
-    expect(snap.hasChild('x')).to.equal(true);
-    expect(snap.hasChild('y/yy')).to.equal(true);
-    expect(snap.hasChild('dinosaur')).to.equal(false);
-    expect(snap.child('x').hasChild('anything')).to.equal(false);
-    expect(snap.hasChild('x/anything/at/all')).to.equal(false);
+    expect(snap.hasChild('x')).toBe(true);
+    expect(snap.hasChild('y/yy')).toBe(true);
+    expect(snap.hasChild('dinosaur')).toBe(false);
+    expect(snap.child('x').hasChild('anything')).toBe(false);
+    expect(snap.hasChild('x/anything/at/all')).toBe(false);
   });
 
   it('DataSnapshot.key works.', () => {
     const snap = snapshotForJSON({ a: { b: { c: 5 } } });
-    expect(snap.child('a').key).to.equal('a');
-    expect(snap.child('a/b/c').key).to.equal('c');
-    expect(snap.child('/a/b/c/').key).to.equal('c');
-    expect(snap.child('////a////b/c///').key).to.equal('c');
-    expect(snap.child('///').key).to.equal(snap.key);
+    expect(snap.child('a').key).toBe('a');
+    expect(snap.child('a/b/c').key).toBe('c');
+    expect(snap.child('/a/b/c/').key).toBe('c');
+    expect(snap.child('////a////b/c///').key).toBe('c');
+    expect(snap.child('///').key).toBe(snap.key);
 
     // Should also work for nonexistent paths.
-    expect(snap.child('/z/q/r/v/m').key).to.equal('m');
+    expect(snap.child('/z/q/r/v/m').key).toBe('m');
   });
 
   it('DataSnapshot.forEach() works: no priorities.', () => {
@@ -135,7 +134,7 @@ describe('DataSnapshot Tests', () => {
       out = out + child.key + ':' + child.val() + ':';
     });
 
-    expect(out).to.equal('a:1:b:2:c:3:e:5:m:13:n:14:z:26:');
+    expect(out).toBe('a:1:b:2:c:3:e:5:m:13:n:14:z:26:');
   });
 
   it('DataSnapshot.forEach() works: numeric priorities.', () => {
@@ -154,7 +153,7 @@ describe('DataSnapshot Tests', () => {
       out = out + child.key + ':' + child.val() + ':';
     });
 
-    expect(out).to.equal('z:26:n:14:m:13:e:5:c:3:b:2:a:1:');
+    expect(out).toBe('z:26:n:14:m:13:e:5:c:3:b:2:a:1:');
   });
 
   it('DataSnapshot.forEach() works: numeric priorities as strings.', () => {
@@ -173,7 +172,7 @@ describe('DataSnapshot Tests', () => {
       out = out + child.key + ':' + child.val() + ':';
     });
 
-    expect(out).to.equal('z:26:n:14:m:13:e:5:c:3:b:2:a:1:');
+    expect(out).toBe('z:26:n:14:m:13:e:5:c:3:b:2:a:1:');
   });
 
   it('DataSnapshot.forEach() works: alpha priorities.', () => {
@@ -192,7 +191,7 @@ describe('DataSnapshot Tests', () => {
       out = out + child.key + ':' + child.val() + ':';
     });
 
-    expect(out).to.equal('c:3:a:1:n:14:z:26:e:5:b:2:m:13:');
+    expect(out).toBe('c:3:a:1:n:14:z:26:e:5:b:2:m:13:');
   });
 
   it('DataSnapshot.foreach() works: mixed alpha and numeric priorities', () => {
@@ -224,7 +223,7 @@ describe('DataSnapshot Tests', () => {
       out = out + child.key + ', ';
     });
 
-    expect(out).to.equal(
+    expect(out).toBe(
       'noPriorityA, noPriorityB, noPriorityC, num10, num20, num30, num40, num41, num42, num50, num60, num70, num80, alpha10, alpha20, alpha30, alpha40, alpha41, alpha42, '
     );
   });
@@ -233,8 +232,8 @@ describe('DataSnapshot Tests', () => {
     const array = ['bob', 'and', 'becky', 'seem', 'really', 'nice', 'yeah?'];
     const snap = snapshotForJSON(array);
     const snapVal = snap.val();
-    expect(snapVal).to.deep.equal(array);
-    expect(snapVal instanceof Array).to.equal(true); // to.equal doesn't verify type.
+    expect(snapVal).toEqual(array);
+    expect(snapVal instanceof Array).toBe(true); // to.equal doesn't verify type.
   });
 
   it('DataSnapshot can be JSON serialized', () => {
@@ -243,6 +242,6 @@ describe('DataSnapshot Tests', () => {
       '.priority': 1
     };
     const snap = snapshotForJSON(json);
-    expect(JSON.parse(JSON.stringify(snap))).to.deep.equal(json);
+    expect(JSON.parse(JSON.stringify(snap))).toEqual(json);
   });
 });

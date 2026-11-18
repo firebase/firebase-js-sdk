@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   arrayContainsAny,
@@ -43,9 +41,12 @@ describe('Number Semantics', () => {
       .database()
       .where(field('score').equal(constant(-0.0)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc3, doc4]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc3,
+      doc4
+    ]);
   });
 
   it('zero_negativeIntegerZero', () => {
@@ -60,9 +61,12 @@ describe('Number Semantics', () => {
       .database()
       .where(field('score').equal(constant(-0)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc3, doc4]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc3,
+      doc4
+    ]);
   });
 
   it('zero_positiveDoubleZero', () => {
@@ -77,9 +81,12 @@ describe('Number Semantics', () => {
       .database()
       .where(field('score').equal(constant(0.0)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc3, doc4]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc3,
+      doc4
+    ]);
   });
 
   it('zero_positiveIntegerZero', () => {
@@ -94,9 +101,12 @@ describe('Number Semantics', () => {
       .database()
       .where(field('score').equal(constant(0)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).to.deep.equal(
-      [doc1, doc2, doc3, doc4]
-    );
+    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5])).toEqual([
+      doc1,
+      doc2,
+      doc3,
+      doc4
+    ]);
   });
 
   it('equalNan', () => {
@@ -109,7 +119,7 @@ describe('Number Semantics', () => {
       .collection('/users')
       .where(field('age').equal(constant(NaN)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toHaveLength(0);
   });
 
   it('lessThanNan', () => {
@@ -122,7 +132,7 @@ describe('Number Semantics', () => {
       .collection('/users')
       .where(field('age').lessThan(constant(NaN)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toHaveLength(0);
   });
 
   it('lessThanEqualNan', () => {
@@ -135,7 +145,7 @@ describe('Number Semantics', () => {
       .collection('/users')
       .where(field('age').lessThanOrEqual(constant(NaN)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toHaveLength(0);
   });
 
   it('greaterThanEqualNan', () => {
@@ -148,7 +158,7 @@ describe('Number Semantics', () => {
       .collection('/users')
       .where(field('age').greaterThanOrEqual(constant(NaN)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toHaveLength(0);
   });
 
   it('greaterThanNan', () => {
@@ -161,7 +171,7 @@ describe('Number Semantics', () => {
       .collection('/users')
       .where(field('age').greaterThan(constant(NaN)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toHaveLength(0);
   });
 
   it('notEqualNan', () => {
@@ -174,7 +184,7 @@ describe('Number Semantics', () => {
       .collection('/users')
       .where(field('age').notEqual(constant(NaN)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc1,
       doc2,
       doc3
@@ -191,7 +201,7 @@ describe('Number Semantics', () => {
       .collection('/users')
       .where(field('name').equalAny([constant(NaN), constant('alice')]));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc1]);
   });
 
   it('eqAny_containsNanOnly_isEmpty', () => {
@@ -204,7 +214,7 @@ describe('Number Semantics', () => {
       .collection('/users')
       .where(field('age').equalAny([constant(NaN)]));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toHaveLength(0);
   });
 
   it('arrayContains_nanOnly_isEmpty', () => {
@@ -217,7 +227,7 @@ describe('Number Semantics', () => {
       .collection('/users')
       .where(arrayContains(field('age'), constant(NaN)) as BooleanExpr);
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toHaveLength(0);
   });
 
   it('arrayContainsAny_withNaN', () => {
@@ -232,7 +242,7 @@ describe('Number Semantics', () => {
         arrayContainsAny(field('field'), [constant(NaN), constant('foo')])
       );
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc3]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc3]);
   });
 
   it('notEqAny_containsNan', () => {
@@ -245,10 +255,7 @@ describe('Number Semantics', () => {
       .collection('/users')
       .where(field('age').notEqualAny([constant(NaN), constant(42)]));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc2,
-      doc3
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([doc2, doc3]);
   });
 
   it('notEqAny_containsNanOnly_isEmpty', () => {
@@ -261,7 +268,7 @@ describe('Number Semantics', () => {
       .collection('/users')
       .where(field('age').notEqualAny([constant(NaN)]));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).toEqual([
       doc1,
       doc2,
       doc3
@@ -277,7 +284,7 @@ describe('Number Semantics', () => {
       .database()
       .where(field('foo').equal(constantArray([NaN])));
 
-    expect(runPipeline(pipeline, [doc1, doc2])).to.be.empty;
+    expect(runPipeline(pipeline, [doc1, doc2])).toHaveLength(0);
   });
 
   // it('map_withNan', () => {

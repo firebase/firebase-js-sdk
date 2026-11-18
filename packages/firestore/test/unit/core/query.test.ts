@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { Bytes, GeoPoint, Timestamp } from '../../../src';
 import { Bound, boundEquals } from '../../../src/core/bound';
@@ -69,23 +67,23 @@ describe('Bound', () => {
 
   it('implements isEqual', () => {
     let bound = makeBound([1, 2], true);
-    expect(boundEquals(bound, makeBound([1, 2], true))).to.be.true;
+    expect(boundEquals(bound, makeBound([1, 2], true))).toBe(true);
 
     // Mismatch values
-    expect(boundEquals(bound, makeBound([2, 2], true))).to.be.false;
-    expect(boundEquals(bound, makeBound([1, 3], true))).to.be.false;
+    expect(boundEquals(bound, makeBound([2, 2], true))).toBe(false);
+    expect(boundEquals(bound, makeBound([1, 3], true))).toBe(false);
 
     // Mismatch before
-    expect(boundEquals(bound, makeBound([1, 2], false))).to.be.false;
+    expect(boundEquals(bound, makeBound([1, 2], false))).toBe(false);
 
     // Unequal lengths
-    expect(boundEquals(bound, makeBound([], true))).to.be.false;
-    expect(boundEquals(bound, makeBound([1], true))).to.be.false;
-    expect(boundEquals(bound, makeBound([1, 2, 3], true))).to.be.false;
+    expect(boundEquals(bound, makeBound([], true))).toBe(false);
+    expect(boundEquals(bound, makeBound([1], true))).toBe(false);
+    expect(boundEquals(bound, makeBound([1, 2, 3], true))).toBe(false);
 
     // Zero length
     bound = makeBound([], false);
-    expect(boundEquals(bound, makeBound([], false))).to.be.true;
+    expect(boundEquals(bound, makeBound([], false))).toBe(true);
   });
 });
 
@@ -93,11 +91,9 @@ describe('Query', () => {
   addEqualityMatcher({ equalsFn: queryEquals, forType: QueryImpl });
 
   it('can get collection group', () => {
-    expect(queryCollectionGroup(query('foo'))).to.equal('foo');
-    expect(queryCollectionGroup(query('foo/bar'))).to.equal('foo');
-    expect(queryCollectionGroup(newQueryForCollectionGroup('foo'))).to.equal(
-      'foo'
-    );
+    expect(queryCollectionGroup(query('foo'))).toBe('foo');
+    expect(queryCollectionGroup(query('foo/bar'))).toBe('foo');
+    expect(queryCollectionGroup(newQueryForCollectionGroup('foo'))).toBe('foo');
   });
 
   it('matches based on document key', () => {
@@ -107,9 +103,9 @@ describe('Query', () => {
     const doc3 = doc('rooms/other/messages/1', 0, { text: 'msg3' });
     // document query
     const query = newQueryForPath(queryKey);
-    expect(queryMatches(query, doc1)).to.equal(true);
-    expect(queryMatches(query, doc2)).to.equal(false);
-    expect(queryMatches(query, doc3)).to.equal(false);
+    expect(queryMatches(query, doc1)).toBe(true);
+    expect(queryMatches(query, doc2)).toBe(false);
+    expect(queryMatches(query, doc3)).toBe(false);
   });
 
   it('matches correctly for shallow ancestor query', () => {
@@ -122,10 +118,10 @@ describe('Query', () => {
     const doc3 = doc('rooms/other/messages/1', 0, { text: 'msg3' });
     // shallow ancestor query
     const query = newQueryForPath(queryPath);
-    expect(queryMatches(query, doc1)).to.equal(true);
-    expect(queryMatches(query, doc1meta)).to.equal(false);
-    expect(queryMatches(query, doc2)).to.equal(true);
-    expect(queryMatches(query, doc3)).to.equal(false);
+    expect(queryMatches(query, doc1)).toBe(true);
+    expect(queryMatches(query, doc1meta)).toBe(false);
+    expect(queryMatches(query, doc2)).toBe(true);
+    expect(queryMatches(query, doc3)).toBe(false);
   });
 
   it('matches primitive values for filters', () => {
@@ -137,17 +133,17 @@ describe('Query', () => {
     const doc4 = doc('collection/4', 0, { sort: false });
     const doc5 = doc('collection/5', 0, { sort: 'string' });
 
-    expect(queryMatches(query1, doc1)).to.equal(false);
-    expect(queryMatches(query1, doc2)).to.equal(true);
-    expect(queryMatches(query1, doc3)).to.equal(true);
-    expect(queryMatches(query1, doc4)).to.equal(false);
-    expect(queryMatches(query1, doc5)).to.equal(false);
+    expect(queryMatches(query1, doc1)).toBe(false);
+    expect(queryMatches(query1, doc2)).toBe(true);
+    expect(queryMatches(query1, doc3)).toBe(true);
+    expect(queryMatches(query1, doc4)).toBe(false);
+    expect(queryMatches(query1, doc5)).toBe(false);
 
-    expect(queryMatches(query2, doc1)).to.equal(true);
-    expect(queryMatches(query2, doc2)).to.equal(true);
-    expect(queryMatches(query2, doc3)).to.equal(false);
-    expect(queryMatches(query2, doc4)).to.equal(false);
-    expect(queryMatches(query2, doc5)).to.equal(false);
+    expect(queryMatches(query2, doc1)).toBe(true);
+    expect(queryMatches(query2, doc2)).toBe(true);
+    expect(queryMatches(query2, doc3)).toBe(false);
+    expect(queryMatches(query2, doc4)).toBe(false);
+    expect(queryMatches(query2, doc5)).toBe(false);
   });
 
   it('matches array-contains filters', () => {
@@ -155,11 +151,11 @@ describe('Query', () => {
 
     // not an array
     let document = doc('collection/1', 0, { array: 1 });
-    expect(queryMatches(query1, document)).to.be.false;
+    expect(queryMatches(query1, document)).toBe(false);
 
     // empty array.
     document = doc('collection/1', 0, { array: [] });
-    expect(queryMatches(query1, document)).to.be.false;
+    expect(queryMatches(query1, document)).toBe(false);
 
     // array without element (and make sure it doesn't match in a nested field
     // or a different field).
@@ -167,11 +163,11 @@ describe('Query', () => {
       array: [41, '42', { a: 42, b: [42] }],
       different: [42]
     });
-    expect(queryMatches(query1, document)).to.be.false;
+    expect(queryMatches(query1, document)).toBe(false);
 
     // array with element.
     document = doc('collection/1', 0, { array: [1, '2', 42, { a: 1 }] });
-    expect(queryMatches(query1, document)).to.be.true;
+    expect(queryMatches(query1, document)).toBe(true);
   });
 
   it('matches array-contains filters with object values', () => {
@@ -185,34 +181,34 @@ describe('Query', () => {
     let document = doc('collection/1', 0, {
       array: [{ a: 42 }, { a: [42, 43] }, { b: [42] }, { a: [42], b: 42 }]
     });
-    expect(queryMatches(query1, document)).to.be.false;
+    expect(queryMatches(query1, document)).toBe(false);
 
     // array with element.
     document = doc('collection/1', 0, {
       array: [1, '2', 42, { a: [42] }]
     });
-    expect(queryMatches(query1, document)).to.be.true;
+    expect(queryMatches(query1, document)).toBe(true);
   });
 
   it('matches IN filters', () => {
     const query1 = query('collection', filter('zip', 'in', [12345]));
 
     let document = doc('collection/1', 0, { zip: 12345 });
-    expect(queryMatches(query1, document)).to.be.true;
+    expect(queryMatches(query1, document)).toBe(true);
 
     // Value matches in array.
     document = doc('collection/1', 0, { zip: [12345] });
-    expect(queryMatches(query1, document)).to.be.false;
+    expect(queryMatches(query1, document)).toBe(false);
 
     // Non-type match.
     document = doc('collection/1', 0, { zip: '123435' });
-    expect(queryMatches(query1, document)).to.be.false;
+    expect(queryMatches(query1, document)).toBe(false);
 
     // Nested match.
     document = doc('collection/1', 0, {
       zip: [123, '12345', { zip: 12345, b: [42] }]
     });
-    expect(queryMatches(query1, document)).to.be.false;
+    expect(queryMatches(query1, document)).toBe(false);
   });
 
   it('matches IN filters with object values', () => {
@@ -222,13 +218,13 @@ describe('Query', () => {
     let document = doc('collection/1', 0, {
       zip: [{ a: 42 }]
     });
-    expect(queryMatches(query1, document)).to.be.false;
+    expect(queryMatches(query1, document)).toBe(false);
 
     // Containing object.
     document = doc('collection/1', 0, {
       zip: { a: [42] }
     });
-    expect(queryMatches(query1, document)).to.be.true;
+    expect(queryMatches(query1, document)).toBe(true);
   });
 
   it('matches not-in filters', () => {
@@ -236,41 +232,41 @@ describe('Query', () => {
 
     // No match.
     let document = doc('collection/1', 0, { zip: 23456 });
-    expect(queryMatches(query1, document)).to.be.true;
+    expect(queryMatches(query1, document)).toBe(true);
 
     // Value matches in array.
     document = doc('collection/1', 0, { zip: [12345] });
-    expect(queryMatches(query1, document)).to.be.true;
+    expect(queryMatches(query1, document)).toBe(true);
 
     // Non-type match.
     document = doc('collection/1', 0, { zip: '12345' });
-    expect(queryMatches(query1, document)).to.be.true;
+    expect(queryMatches(query1, document)).toBe(true);
 
     // Nested match.
     document = doc('collection/1', 0, {
       zip: [123, '12345', { zip: 12345, b: [42] }]
     });
-    expect(queryMatches(query1, document)).to.be.true;
+    expect(queryMatches(query1, document)).toBe(true);
 
     // Null match.
     document = doc('collection/1', 0, {
       zip: null
     });
-    expect(queryMatches(query1, document)).to.be.false;
+    expect(queryMatches(query1, document)).toBe(false);
 
     // NaN match.
     document = doc('collection/1', 0, {
       zip: Number.NaN
     });
-    expect(queryMatches(query1, document)).to.be.true;
+    expect(queryMatches(query1, document)).toBe(true);
 
     // Direct match.
     document = doc('collection/1', 0, { zip: 12345 });
-    expect(queryMatches(query1, document)).to.be.false;
+    expect(queryMatches(query1, document)).toBe(false);
 
     // Field not set.
     document = doc('collection/1', 0, { chip: 23456 });
-    expect(queryMatches(query1, document)).to.be.false;
+    expect(queryMatches(query1, document)).toBe(false);
   });
 
   it('matches not-in filters with object values', () => {
@@ -280,13 +276,13 @@ describe('Query', () => {
     let document = doc('collection/1', 0, {
       zip: [{ a: 42 }]
     });
-    expect(queryMatches(query1, document)).to.be.true;
+    expect(queryMatches(query1, document)).toBe(true);
 
     // Containing object.
     document = doc('collection/1', 0, {
       zip: { a: [42] }
     });
-    expect(queryMatches(query1, document)).to.be.false;
+    expect(queryMatches(query1, document)).toBe(false);
   });
 
   it('matches array-contains-any filters', () => {
@@ -296,21 +292,21 @@ describe('Query', () => {
     );
 
     let document = doc('collection/1', 0, { zip: [12345] });
-    expect(queryMatches(query1, document)).to.be.true;
+    expect(queryMatches(query1, document)).toBe(true);
 
     // Value matches in non-array.
     document = doc('collection/1', 0, { zip: 12345 });
-    expect(queryMatches(query1, document)).to.be.false;
+    expect(queryMatches(query1, document)).toBe(false);
 
     // Non-type match.
     document = doc('collection/1', 0, { zip: ['12345'] });
-    expect(queryMatches(query1, document)).to.be.false;
+    expect(queryMatches(query1, document)).toBe(false);
 
     // Nested match.
     document = doc('collection/1', 0, {
       zip: [123, '12345', { zip: [12345], b: [42] }]
     });
-    expect(queryMatches(query1, document)).to.be.false;
+    expect(queryMatches(query1, document)).toBe(false);
   });
 
   it('matches array-contains-any filters with object values', () => {
@@ -323,13 +319,13 @@ describe('Query', () => {
     let document = doc('collection/1', 0, {
       zip: [{ a: [42] }]
     });
-    expect(queryMatches(query1, document)).to.be.true;
+    expect(queryMatches(query1, document)).toBe(true);
 
     // Containing object.
     document = doc('collection/1', 0, {
       zip: { a: [42] }
     });
-    expect(queryMatches(query1, document)).to.be.false;
+    expect(queryMatches(query1, document)).toBe(false);
   });
 
   it('matches NaN for filters', () => {
@@ -341,20 +337,20 @@ describe('Query', () => {
     const doc5 = doc('collection/5', 0, { sort: 'string' });
     const doc6 = doc('collection/6', 0, { sort: null });
 
-    expect(queryMatches(query1, doc1)).to.equal(true);
-    expect(queryMatches(query1, doc2)).to.equal(false);
-    expect(queryMatches(query1, doc3)).to.equal(false);
-    expect(queryMatches(query1, doc4)).to.equal(false);
-    expect(queryMatches(query1, doc5)).to.equal(false);
-    expect(queryMatches(query1, doc6)).to.equal(false);
+    expect(queryMatches(query1, doc1)).toBe(true);
+    expect(queryMatches(query1, doc2)).toBe(false);
+    expect(queryMatches(query1, doc3)).toBe(false);
+    expect(queryMatches(query1, doc4)).toBe(false);
+    expect(queryMatches(query1, doc5)).toBe(false);
+    expect(queryMatches(query1, doc6)).toBe(false);
 
     const query2 = query('collection', filter('sort', '!=', NaN));
-    expect(queryMatches(query2, doc1)).to.equal(false);
-    expect(queryMatches(query2, doc2)).to.equal(true);
-    expect(queryMatches(query2, doc3)).to.equal(true);
-    expect(queryMatches(query2, doc4)).to.equal(true);
-    expect(queryMatches(query2, doc5)).to.equal(true);
-    expect(queryMatches(query2, doc6)).to.equal(false);
+    expect(queryMatches(query2, doc1)).toBe(false);
+    expect(queryMatches(query2, doc2)).toBe(true);
+    expect(queryMatches(query2, doc3)).toBe(true);
+    expect(queryMatches(query2, doc4)).toBe(true);
+    expect(queryMatches(query2, doc5)).toBe(true);
+    expect(queryMatches(query2, doc6)).toBe(false);
   });
 
   it('matches null for filters', () => {
@@ -366,20 +362,20 @@ describe('Query', () => {
     const doc5 = doc('collection/5', 0, { sort: 'string' });
     const doc6 = doc('collection/1', 0, { sort: NaN });
 
-    expect(queryMatches(query1, doc1)).to.equal(true);
-    expect(queryMatches(query1, doc2)).to.equal(false);
-    expect(queryMatches(query1, doc3)).to.equal(false);
-    expect(queryMatches(query1, doc4)).to.equal(false);
-    expect(queryMatches(query1, doc5)).to.equal(false);
-    expect(queryMatches(query1, doc6)).to.equal(false);
+    expect(queryMatches(query1, doc1)).toBe(true);
+    expect(queryMatches(query1, doc2)).toBe(false);
+    expect(queryMatches(query1, doc3)).toBe(false);
+    expect(queryMatches(query1, doc4)).toBe(false);
+    expect(queryMatches(query1, doc5)).toBe(false);
+    expect(queryMatches(query1, doc6)).toBe(false);
 
     const query2 = query('collection', filter('sort', '!=', null));
-    expect(queryMatches(query2, doc1)).to.equal(false);
-    expect(queryMatches(query2, doc2)).to.equal(true);
-    expect(queryMatches(query2, doc3)).to.equal(true);
-    expect(queryMatches(query2, doc4)).to.equal(true);
-    expect(queryMatches(query2, doc5)).to.equal(true);
-    expect(queryMatches(query2, doc6)).to.equal(true);
+    expect(queryMatches(query2, doc1)).toBe(false);
+    expect(queryMatches(query2, doc2)).toBe(true);
+    expect(queryMatches(query2, doc3)).toBe(true);
+    expect(queryMatches(query2, doc4)).toBe(true);
+    expect(queryMatches(query2, doc5)).toBe(true);
+    expect(queryMatches(query2, doc6)).toBe(true);
   });
 
   it('matches complex objects for filters', () => {
@@ -394,21 +390,21 @@ describe('Query', () => {
     const doc6 = doc('collection/6', 0, {}); // no sort field
     const doc7 = doc('collection/7', 0, { sort: [3, 1] });
 
-    expect(queryMatches(query1, doc1)).to.equal(true);
-    expect(queryMatches(query1, doc2)).to.equal(false);
-    expect(queryMatches(query1, doc3)).to.equal(false);
-    expect(queryMatches(query1, doc4)).to.equal(false);
-    expect(queryMatches(query1, doc5)).to.equal(false);
-    expect(queryMatches(query1, doc6)).to.equal(false);
-    expect(queryMatches(query1, doc7)).to.equal(false);
+    expect(queryMatches(query1, doc1)).toBe(true);
+    expect(queryMatches(query1, doc2)).toBe(false);
+    expect(queryMatches(query1, doc3)).toBe(false);
+    expect(queryMatches(query1, doc4)).toBe(false);
+    expect(queryMatches(query1, doc5)).toBe(false);
+    expect(queryMatches(query1, doc6)).toBe(false);
+    expect(queryMatches(query1, doc7)).toBe(false);
 
-    expect(queryMatches(query2, doc1)).to.equal(true);
-    expect(queryMatches(query2, doc2)).to.equal(false);
-    expect(queryMatches(query2, doc3)).to.equal(false);
-    expect(queryMatches(query2, doc4)).to.equal(false);
-    expect(queryMatches(query2, doc5)).to.equal(false);
-    expect(queryMatches(query2, doc6)).to.equal(false);
-    expect(queryMatches(query2, doc7)).to.equal(false);
+    expect(queryMatches(query2, doc1)).toBe(true);
+    expect(queryMatches(query2, doc2)).toBe(false);
+    expect(queryMatches(query2, doc3)).toBe(false);
+    expect(queryMatches(query2, doc4)).toBe(false);
+    expect(queryMatches(query2, doc5)).toBe(false);
+    expect(queryMatches(query2, doc6)).toBe(false);
+    expect(queryMatches(query2, doc7)).toBe(false);
   });
 
   it("doesn't crash querying unset fields", () => {
@@ -417,8 +413,8 @@ describe('Query', () => {
     const doc1 = doc('collection/1', 0, { sort: 2 });
     const doc2 = doc('collection/1', 0, {});
 
-    expect(queryMatches(query1, doc1)).to.equal(true);
-    expect(queryMatches(query1, doc2)).to.equal(false);
+    expect(queryMatches(query1, doc1)).toBe(true);
+    expect(queryMatches(query1, doc2)).toBe(false);
   });
 
   it("doesn't remove complex objects with orderBy", () => {
@@ -430,11 +426,11 @@ describe('Query', () => {
     const doc4 = doc('collection/4', 0, { sort: { foo: 2 } });
     const doc5 = doc('collection/5', 0, { sort: { foo: 'bar' } });
 
-    expect(queryMatches(query1, doc1)).to.equal(true);
-    expect(queryMatches(query1, doc2)).to.equal(true);
-    expect(queryMatches(query1, doc3)).to.equal(true);
-    expect(queryMatches(query1, doc4)).to.equal(true);
-    expect(queryMatches(query1, doc5)).to.equal(true);
+    expect(queryMatches(query1, doc1)).toBe(true);
+    expect(queryMatches(query1, doc2)).toBe(true);
+    expect(queryMatches(query1, doc3)).toBe(true);
+    expect(queryMatches(query1, doc4)).toBe(true);
+    expect(queryMatches(query1, doc5)).toBe(true);
   });
 
   it('filters based on array value', () => {
@@ -448,11 +444,11 @@ describe('Query', () => {
     ];
     for (const filter of matchingFilters) {
       const filteredQuery = queryWithAddedFilter(baseQuery, filter);
-      expect(queryMatches(filteredQuery, doc1)).to.equal(true);
+      expect(queryMatches(filteredQuery, doc1)).toBe(true);
     }
     for (const filter of nonMatchingFilters) {
       const filteredQuery = queryWithAddedFilter(baseQuery, filter);
-      expect(queryMatches(filteredQuery, doc1)).to.equal(false);
+      expect(queryMatches(filteredQuery, doc1)).toBe(false);
     }
   });
 
@@ -472,11 +468,11 @@ describe('Query', () => {
     ];
     for (const filter of matchingFilters) {
       const filteredQuery = queryWithAddedFilter(baseQuery, filter);
-      expect(queryMatches(filteredQuery, doc1)).to.equal(true);
+      expect(queryMatches(filteredQuery, doc1)).toBe(true);
     }
     for (const filter of nonMatchingFilters) {
       const filteredQuery = queryWithAddedFilter(baseQuery, filter);
-      expect(queryMatches(filteredQuery, doc1)).to.equal(false);
+      expect(queryMatches(filteredQuery, doc1)).toBe(false);
     }
   });
 
@@ -918,25 +914,25 @@ describe('Query', () => {
 
   it('matchesAllDocuments() considers filters, orders and bounds', () => {
     const baseQuery = newQueryForPath(ResourcePath.fromString('collection'));
-    expect(queryMatchesAllDocuments(baseQuery)).to.be.true;
+    expect(queryMatchesAllDocuments(baseQuery)).toBe(true);
 
     let query1 = query('collection', orderBy('__name__'));
-    expect(queryMatchesAllDocuments(query1)).to.be.true;
+    expect(queryMatchesAllDocuments(query1)).toBe(true);
 
     query1 = query('collection', orderBy('foo'));
-    expect(queryMatchesAllDocuments(query1)).to.be.false;
+    expect(queryMatchesAllDocuments(query1)).toBe(false);
 
     query1 = query('collection', filter('foo', '==', 'bar'));
-    expect(queryMatchesAllDocuments(query1)).to.be.false;
+    expect(queryMatchesAllDocuments(query1)).toBe(false);
 
     query1 = queryWithLimit(query('foo'), 1, LimitType.First);
-    expect(queryMatchesAllDocuments(query1)).to.be.false;
+    expect(queryMatchesAllDocuments(query1)).toBe(false);
 
     query1 = queryWithStartAt(baseQuery, bound([], true));
-    expect(queryMatchesAllDocuments(query1)).to.be.false;
+    expect(queryMatchesAllDocuments(query1)).toBe(false);
 
     query1 = queryWithEndAt(baseQuery, bound([], false));
-    expect(queryMatchesAllDocuments(query1)).to.be.false;
+    expect(queryMatchesAllDocuments(query1)).toBe(false);
   });
 
   it('matches composite queries', () => {
@@ -1037,12 +1033,12 @@ describe('Query', () => {
     const aggregateTarget = queryToAggregateTarget(query1);
     const target = queryToTarget(query2);
 
-    expect(aggregateTarget.orderBy.length).to.equal(0);
-    expect(target.orderBy.length).to.equal(2);
-    expect(target.orderBy[0].dir).to.equal('asc');
-    expect(target.orderBy[0].field.canonicalString()).to.equal('foo');
-    expect(target.orderBy[1].dir).to.equal('asc');
-    expect(target.orderBy[1].field.canonicalString()).to.equal('__name__');
+    expect(aggregateTarget.orderBy.length).toBe(0);
+    expect(target.orderBy.length).toBe(2);
+    expect(target.orderBy[0].dir).toBe('asc');
+    expect(target.orderBy[0].field.canonicalString()).toBe('foo');
+    expect(target.orderBy[1].dir).toBe('asc');
+    expect(target.orderBy[1].field.canonicalString()).toBe('__name__');
   });
 
   it('generated order-bys are not affected by previously memoized targets', () => {
@@ -1060,21 +1056,21 @@ describe('Query', () => {
     const target2 = queryToTarget(query2);
     const aggregateTarget2 = queryToAggregateTarget(query2);
 
-    expect(aggregateTarget1.orderBy.length).to.equal(0);
+    expect(aggregateTarget1.orderBy.length).toBe(0);
 
-    expect(aggregateTarget2.orderBy.length).to.equal(0);
+    expect(aggregateTarget2.orderBy.length).toBe(0);
 
-    expect(target1.orderBy.length).to.equal(2);
-    expect(target1.orderBy[0].dir).to.equal('asc');
-    expect(target1.orderBy[0].field.canonicalString()).to.equal('foo');
-    expect(target1.orderBy[1].dir).to.equal('asc');
-    expect(target1.orderBy[1].field.canonicalString()).to.equal('__name__');
+    expect(target1.orderBy.length).toBe(2);
+    expect(target1.orderBy[0].dir).toBe('asc');
+    expect(target1.orderBy[0].field.canonicalString()).toBe('foo');
+    expect(target1.orderBy[1].dir).toBe('asc');
+    expect(target1.orderBy[1].field.canonicalString()).toBe('__name__');
 
-    expect(target2.orderBy.length).to.equal(2);
-    expect(target2.orderBy[0].dir).to.equal('asc');
-    expect(target2.orderBy[0].field.canonicalString()).to.equal('foo');
-    expect(target2.orderBy[1].dir).to.equal('asc');
-    expect(target2.orderBy[1].field.canonicalString()).to.equal('__name__');
+    expect(target2.orderBy.length).toBe(2);
+    expect(target2.orderBy[0].dir).toBe('asc');
+    expect(target2.orderBy[0].field.canonicalString()).toBe('foo');
+    expect(target2.orderBy[1].dir).toBe('asc');
+    expect(target2.orderBy[1].field.canonicalString()).toBe('__name__');
   });
 
   function assertQueryMatches(
@@ -1083,18 +1079,18 @@ describe('Query', () => {
     nonMatching: MutableDocument[]
   ): void {
     for (const doc of matching) {
-      expect(queryMatches(query, doc)).to.be.true;
+      expect(queryMatches(query, doc)).toBe(true);
     }
     for (const doc of nonMatching) {
-      expect(queryMatches(query, doc)).to.be.false;
+      expect(queryMatches(query, doc)).toBe(false);
     }
   }
 
   function assertImplicitOrderBy(query: Query, ...orderBys: OrderBy[]): void {
-    expect(queryNormalizedOrderBy(query)).to.deep.equal(orderBys);
+    expect(queryNormalizedOrderBy(query)).toEqual(orderBys);
   }
 
   function assertCanonicalId(query: Query, expectedCanonicalId: string): void {
-    expect(canonifyTarget(queryToTarget(query))).to.equal(expectedCanonicalId);
+    expect(canonifyTarget(queryToTarget(query))).toBe(expectedCanonicalId);
   }
 });

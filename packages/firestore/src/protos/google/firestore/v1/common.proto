@@ -56,6 +56,18 @@ message Precondition {
 
 // Options for creating a new transaction.
 message TransactionOptions {
+  // The mode in which concurrency is managed for the transaction.
+  enum ConcurrencyMode {
+    // Not specified.
+    CONCURRENCY_MODE_UNSPECIFIED = 0;
+
+    // Optimistic concurrency control.
+    OPTIMISTIC = 1;
+
+    // Pessimistic concurrency control.
+    PESSIMISTIC = 2;
+  }
+
   // Options for a transaction that can be used to read and write documents.
   //
   // Firestore does not allow 3rd party auth requests to create read-write.
@@ -63,6 +75,9 @@ message TransactionOptions {
   message ReadWrite {
     // An optional transaction to retry.
     bytes retry_transaction = 1;
+
+    // Optional. The concurrency control mode to use for this transaction.
+    ConcurrencyMode concurrency_mode = 2;
   }
 
   // Options for a transaction that can only be used to read documents.
@@ -87,4 +102,10 @@ message TransactionOptions {
     // The transaction can be used for both read and write operations.
     ReadWrite read_write = 3;
   }
+}
+
+// Options for a server request.
+message RequestOptions {
+  // The request tags for the request.
+  repeated string request_tags = 1 [(google.api.field_behavior) = OPTIONAL];
 }

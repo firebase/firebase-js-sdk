@@ -29,7 +29,7 @@ import { _tokenExpiresIn } from './id_token_result';
  * to refresh that token, to provide a buffer for RPCs to complete.
  */
 export const enum Buffer {
-  TOKEN_REFRESH = 30_000
+  TOKEN_REFRESH = 5 * 60 * 1000
 }
 
 /**

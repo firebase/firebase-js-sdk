@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-
 import { ProviderId } from '../../model/enums';
 import { ParsedToken } from '../../model/public_types';
 import { FirebaseError } from '@firebase/util';
@@ -27,9 +23,6 @@ import { makeJWT } from '../../../test/helpers/jwt';
 import { testAuth, testUser } from '../../../test/helpers/mock_auth';
 import { UserInternal } from '../../model/user';
 import { getIdTokenResult } from './id_token_result';
-
-use(chaiAsPromised);
-
 const MAY_1 = new Date('May 1, 2020');
 const MAY_2 = new Date('May 2, 2020');
 const MAY_3 = new Date('May 3, 2020');
@@ -42,15 +35,16 @@ describe('core/user/id_token_result', () => {
   });
 
   function setup(token: string): void {
-    sinon.stub(user, 'getIdToken').returns(Promise.resolve(token));
+    vi.spyOn(user, 'getIdToken').mockReturnValue(Promise.resolve(token));
   }
 
   it('throws an internal error when the token is malformed', async () => {
     setup('not.valid');
-    await expect(getIdTokenResult(user)).to.be.rejectedWith(
-      FirebaseError,
+    const promise = getIdTokenResult(user);
+    await expect(promise).rejects.toThrow(
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('builds the result properly w/ timestamps', async () => {
@@ -63,7 +57,7 @@ describe('core/user/id_token_result', () => {
     const encodedStr = makeJWT(token);
     setup(encodedStr);
     const result = await getIdTokenResult(user);
-    expect(result).to.eql({
+    expect(result).toEqual({
       claims: token,
       token: encodedStr,
       issuedAtTime: MAY_1.toUTCString(),
@@ -88,7 +82,7 @@ describe('core/user/id_token_result', () => {
     const encodedStr = makeJWT(token);
     setup(encodedStr);
     const result = await getIdTokenResult(user);
-    expect(result).to.eql({
+    expect(result).toEqual({
       claims: token,
       token: encodedStr,
       issuedAtTime: MAY_1.toUTCString(),
@@ -107,10 +101,11 @@ describe('core/user/id_token_result', () => {
 
     const encodedStr = makeJWT(token);
     setup(encodedStr);
-    await expect(getIdTokenResult(user)).to.be.rejectedWith(
-      FirebaseError,
+    const promise = getIdTokenResult(user);
+    await expect(promise).rejects.toThrow(
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('errors if auth_time is missing', async () => {
@@ -121,10 +116,11 @@ describe('core/user/id_token_result', () => {
 
     const encodedStr = makeJWT(token);
     setup(encodedStr);
-    await expect(getIdTokenResult(user)).to.be.rejectedWith(
-      FirebaseError,
+    const promise = getIdTokenResult(user);
+    await expect(promise).rejects.toThrow(
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('errors if exp is missing', async () => {
@@ -135,10 +131,11 @@ describe('core/user/id_token_result', () => {
 
     const encodedStr = makeJWT(token);
     setup(encodedStr);
-    await expect(getIdTokenResult(user)).to.be.rejectedWith(
-      FirebaseError,
+    const promise = getIdTokenResult(user);
+    await expect(promise).rejects.toThrow(
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
+    await expect(promise).rejects.toBeInstanceOf(FirebaseError);
   });
 
   it('Parses custom claims with multiple types', () => {
@@ -147,8 +144,8 @@ describe('core/user/id_token_result', () => {
       'object_claim': { key1: 'value1' },
       'boolean_claim': true
     };
-    expect(token.boolean_claim as boolean).to.equal(true);
-    expect(token.string_claim as string).to.equal('foo');
-    expect((token.object_claim as { key1: string }).key1).to.equal('value1');
+    expect(token.boolean_claim as boolean).toBe(true);
+    expect(token.string_claim as string).toBe('foo');
+    expect((token.object_claim as { key1: string }).key1).toBe('value1');
   });
 });

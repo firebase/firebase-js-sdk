@@ -27,7 +27,9 @@ export function createTestService(
     app,
     getFunctions(app, regionOrCustomDomain)
   );
-  const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_HOST;
+  const useEmulator =
+    typeof process !== 'undefined' &&
+    !!process.env?.FIREBASE_FUNCTIONS_EMULATOR_HOST;
   if (useEmulator) {
     functions.useEmulator(
       process.env.FIREBASE_FUNCTIONS_EMULATOR_HOST!,

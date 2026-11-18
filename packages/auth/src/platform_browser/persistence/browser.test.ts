@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { PersistenceType } from '../../core/persistence';
 import { BrowserPersistenceClass } from './browser';
 
@@ -32,6 +31,6 @@ describe('platform_browser/persistence/browser', () => {
     const browserPersistence = new TestPersistence(() => {
       throw new DOMException('no');
     });
-    expect(await browserPersistence._isAvailable()).to.be.false;
+    expect(await browserPersistence._isAvailable()).toBe(false);
   });
 });

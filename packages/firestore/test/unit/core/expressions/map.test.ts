@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { EvaluateResult } from '../../../../src/core/expressions';
 import { constant, mapGet } from '../../../../src/lite-api/expressions';
@@ -39,21 +37,21 @@ describe('Map Functions', () => {
 
     it('get_missingKey_returnsUnset', () => {
       const map = { a: 1, b: 2, c: 3 };
-      expect(evaluateToResult(mapGet(constantMap(map), 'd'))).to.deep.equal(
+      expect(evaluateToResult(mapGet(constantMap(map), 'd'))).toEqual(
         EvaluateResult.newUnset()
       );
     });
 
     it('get_emptyMap_returnsUnset', () => {
       const map = {};
-      expect(evaluateToResult(mapGet(constantMap(map), 'd'))).to.deep.equal(
+      expect(evaluateToResult(mapGet(constantMap(map), 'd'))).toEqual(
         EvaluateResult.newUnset()
       );
     });
 
     it('get_wrongMapType_returnsError', () => {
       const map = 'not a map';
-      expect(evaluateToValue(mapGet(constant(map), 'd'))).to.be.undefined;
+      expect(evaluateToValue(mapGet(constant(map), 'd'))).toBeUndefined();
     });
 
     // it('get_wrongKeyType_returnsError', () => {

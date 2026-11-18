@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { Timestamp } from '../../../src';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
@@ -34,20 +32,18 @@ describe('field index', () => {
     const indexOriginal = fieldIndex('collA');
     const indexSame = fieldIndex('collA');
     const indexDifferent = fieldIndex('collB');
-    expect(fieldIndexSemanticComparator(indexOriginal, indexSame)).to.equal(0);
-    expect(
-      fieldIndexSemanticComparator(indexOriginal, indexDifferent)
-    ).to.equal(-1);
+    expect(fieldIndexSemanticComparator(indexOriginal, indexSame)).toBe(0);
+    expect(fieldIndexSemanticComparator(indexOriginal, indexDifferent)).toBe(
+      -1
+    );
   });
 
   it('comparator ignores index id', () => {
     const indexOriginal = fieldIndex('collA', { id: 1 });
     const indexSame = fieldIndex('collA', { id: 1 });
     const indexDifferent = fieldIndex('collA', { id: 2 });
-    expect(fieldIndexSemanticComparator(indexOriginal, indexSame)).to.equal(0);
-    expect(
-      fieldIndexSemanticComparator(indexOriginal, indexDifferent)
-    ).to.equal(0);
+    expect(fieldIndexSemanticComparator(indexOriginal, indexSame)).toBe(0);
+    expect(fieldIndexSemanticComparator(indexOriginal, indexDifferent)).toBe(0);
   });
 
   it('comparator ignores index offset', () => {
@@ -56,10 +52,8 @@ describe('field index', () => {
     const indexDifferent = fieldIndex('collA', {
       offset: new IndexOffset(version(2), DocumentKey.empty(), -1)
     });
-    expect(fieldIndexSemanticComparator(indexOriginal, indexSame)).to.equal(0);
-    expect(
-      fieldIndexSemanticComparator(indexOriginal, indexDifferent)
-    ).to.equal(0);
+    expect(fieldIndexSemanticComparator(indexOriginal, indexSame)).toBe(0);
+    expect(fieldIndexSemanticComparator(indexOriginal, indexDifferent)).toBe(0);
   });
 
   it('comparator includes field name', () => {
@@ -72,10 +66,10 @@ describe('field index', () => {
     const indexDifferent = fieldIndex('collA', {
       fields: [['b', IndexKind.ASCENDING]]
     });
-    expect(fieldIndexSemanticComparator(indexOriginal, indexSame)).to.equal(0);
-    expect(
-      fieldIndexSemanticComparator(indexOriginal, indexDifferent)
-    ).to.equal(-1);
+    expect(fieldIndexSemanticComparator(indexOriginal, indexSame)).toBe(0);
+    expect(fieldIndexSemanticComparator(indexOriginal, indexDifferent)).toBe(
+      -1
+    );
   });
 
   it('comparator includes segment kind', () => {
@@ -88,10 +82,10 @@ describe('field index', () => {
     const indexDifferent = fieldIndex('collA', {
       fields: [['a', IndexKind.DESCENDING]]
     });
-    expect(fieldIndexSemanticComparator(indexOriginal, indexSame)).to.equal(0);
-    expect(
-      fieldIndexSemanticComparator(indexOriginal, indexDifferent)
-    ).to.equal(-1);
+    expect(fieldIndexSemanticComparator(indexOriginal, indexSame)).toBe(0);
+    expect(fieldIndexSemanticComparator(indexOriginal, indexDifferent)).toBe(
+      -1
+    );
   });
 
   it('comparator includes segment length', () => {
@@ -107,10 +101,10 @@ describe('field index', () => {
         ['b', IndexKind.ASCENDING]
       ]
     });
-    expect(fieldIndexSemanticComparator(indexOriginal, indexSame)).to.equal(0);
-    expect(
-      fieldIndexSemanticComparator(indexOriginal, indexDifferent)
-    ).to.equal(-1);
+    expect(fieldIndexSemanticComparator(indexOriginal, indexSame)).toBe(0);
+    expect(fieldIndexSemanticComparator(indexOriginal, indexDifferent)).toBe(
+      -1
+    );
   });
 });
 
@@ -122,11 +116,11 @@ describe('index offset', () => {
     const docCOffset = new IndexOffset(version(2), key('foo/c'), -1);
     const version2Offset = newIndexOffsetSuccessorFromReadTime(version(2), -1);
 
-    expect(indexOffsetComparator(docAOffset, docBOffset)).to.equal(-1);
-    expect(indexOffsetComparator(docAOffset, version1Offset)).to.equal(-1);
-    expect(indexOffsetComparator(version1Offset, docCOffset)).to.equal(-1);
-    expect(indexOffsetComparator(version1Offset, version2Offset)).to.equal(-1);
-    expect(indexOffsetComparator(docCOffset, version2Offset)).to.equal(-1);
+    expect(indexOffsetComparator(docAOffset, docBOffset)).toBe(-1);
+    expect(indexOffsetComparator(docAOffset, version1Offset)).toBe(-1);
+    expect(indexOffsetComparator(version1Offset, docCOffset)).toBe(-1);
+    expect(indexOffsetComparator(version1Offset, version2Offset)).toBe(-1);
+    expect(indexOffsetComparator(docCOffset, version2Offset)).toBe(-1);
   });
 
   it('advances seconds', () => {
@@ -139,8 +133,6 @@ describe('index offset', () => {
       DocumentKey.empty(),
       -1
     );
-    expect(indexOffsetComparator(actualSuccessor, expectedSuccessor)).to.equal(
-      0
-    );
+    expect(indexOffsetComparator(actualSuccessor, expectedSuccessor)).toBe(0);
   });
 });

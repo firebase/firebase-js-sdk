@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { _allSettled } from './promise';
 
 describe('platform_browser/messagechannel/promise', () => {
   describe('_allSettled', () => {
     it('should work with a single successful promise', async () => {
       const result = await _allSettled([Promise.resolve('foo')]);
-      expect(result).to.have.deep.members([
+      expect(result).toEqual([
         {
           fulfilled: true,
           value: 'foo'
@@ -32,7 +31,7 @@ describe('platform_browser/messagechannel/promise', () => {
 
     it('should work with a failed promise', async () => {
       const result = await _allSettled([Promise.reject('bar')]);
-      expect(result).to.have.deep.members([
+      expect(result).toEqual([
         {
           fulfilled: false,
           reason: 'bar'
@@ -45,7 +44,7 @@ describe('platform_browser/messagechannel/promise', () => {
         Promise.resolve('foo'),
         Promise.reject('bar')
       ]);
-      expect(result).to.have.deep.members([
+      expect(result).toEqual([
         {
           fulfilled: true,
           value: 'foo'

@@ -19,10 +19,7 @@
 // See LICENSE in the project root for license information.
 
 import { IndentedWriter } from '../IndentedWriter';
-import { expect, use } from 'chai';
-import { jestSnapshotPlugin } from 'mocha-chai-jest-snapshot';
-
-use(jestSnapshotPlugin());
+import { expect, it } from 'vitest';
 
 it('01 Demo from docs', () => {
   const indentedWriter: IndentedWriter = new IndentedWriter();

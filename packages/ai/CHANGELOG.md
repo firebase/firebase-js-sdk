@@ -1,5 +1,48 @@
 # @firebase/ai
 
+## 3.1.0
+
+### Minor Changes
+
+- [`36a8dda`](https://github.com/firebase/firebase-js-sdk/commit/36a8ddaa8b13f3f81b026c44c6ab701b53103666) [#10504](https://github.com/firebase/firebase-js-sdk/pull/10504) - Added `SpeechMetadata` and `TextPart.speechMetadata` (in Public Preview) to specify the speaker and vocal style for a piece of text when generating speech with Gemini TTS models.
+
+### Patch Changes
+
+- [`c0a4c7b`](https://github.com/firebase/firebase-js-sdk/commit/c0a4c7ba42ce3110b61ef2e8986a77995141bb2b) [#10554](https://github.com/firebase/firebase-js-sdk/pull/10554) - Fixed an issue where calling `getAI()` for an app and backend that already had an `AI` instance silently replaced that instance's options, so an instance created with `useLimitedUseAppCheckTokens: true` would start sending standard App Check tokens after a later `getAI()` call. `getAI()` now returns the existing instance unchanged when `useLimitedUseAppCheckTokens` is omitted or matches, and throws an `AIError` with code `already-initialized` when a different value is requested.
+
+- [`cd161bf`](https://github.com/firebase/firebase-js-sdk/commit/cd161bf5be6a4ec7bb6b27073ca7af764bc7e933) [#10591](https://github.com/firebase/firebase-js-sdk/pull/10591) - Fixed an issue where `response.promptFeedback` was always `undefined` for `GoogleAIBackend` responses because the mapped prompt feedback was assigned to the wrong property.
+
+## 3.0.0
+
+### Major Changes
+
+- [`42ce99c`](https://github.com/firebase/firebase-js-sdk/commit/42ce99c05df4835054bfc2535afa040a3705247e) [#10380](https://github.com/firebase/firebase-js-sdk/pull/10380) - Refactored `TemplateGenerativeModel.generateContent` and `TemplateGenerativeModel.generateContentStream` to accept a unified `TemplateRequest` object (`{ templateId, templateVariables, toolConfig? }`) as the first parameter.
+  Made `templateVariables` required in both `TemplateRequest` and `StartTemplateChatParams`.
+
+- [`f83cc32`](https://github.com/firebase/firebase-js-sdk/commit/f83cc32a2ea4c12a3bba9ed8de2e2129ca139cb3) [#10392](https://github.com/firebase/firebase-js-sdk/pull/10392) - Removed APIs that were previously deprecated.
+
+  Removed the previously deprecated `VertexAIBackend` (and `BackendType.VERTEX_AI`). Use `AgentPlatformBackend` (and `BackendType.AGENT_PLATFORM`) instead.
+
+  The only difference for `AgentPlatformBackend` is the default
+  [location for accessing the model](https://firebase.google.com/docs/ai-logic/locations?api=vertex).
+  The default location for `AgentPlatformBackend` is `global`, whereas the default location for `VertexAIBackend` was `us-central1`. To use `us-central1` with `AgentPlatformBackend`, specify `getAI(app, { backend: new AgentPlatformBackend('us-central1') })` when initializing the SDK. However, note that most new Gemini models do not support `us-central1`.
+
+  Updated default hybrid-in-cloud model to `gemini-3.5-flash-lite`.
+
+- [`b70fa6f`](https://github.com/firebase/firebase-js-sdk/commit/b70fa6f0134b6d8fad62d724ee2c4d6845b382a5) [#10398](https://github.com/firebase/firebase-js-sdk/pull/10398) - Refactored `Part` into a discriminated union with explicit `type` properties, introduced `UnknownPart` for raw wire and user-provided inputs, stripped `type` discriminators on wire egress, and ensured defensive deep copying for chat history.
+
+### Minor Changes
+
+- [`87adc59`](https://github.com/firebase/firebase-js-sdk/commit/87adc59cae9f3892ae3c475395ad4707510f665e) [#10362](https://github.com/firebase/firebase-js-sdk/pull/10362) - Deprecated `candidateCount`, `temperature`, `topP`, `topK`, `presencePenalty`, and `frequencyPenalty` in both `GenerationConfig` and `LiveGenerationConfig`. These parameters are unsupported in Gemini 3.x and later models.
+
+- [`565da23`](https://github.com/firebase/firebase-js-sdk/commit/565da231ab250b7dfbf8cc99bc62e1b893e3ba9d) [#10334](https://github.com/firebase/firebase-js-sdk/pull/10334) - Exported a `ChatSession` interface instead of the `ChatSession` class.
+
+  Cleaned up AI Logic doc comments.
+
+### Patch Changes
+
+- [`ac44c69`](https://github.com/firebase/firebase-js-sdk/commit/ac44c691708a1a3cd3a16ef3435d50b53fe3ab34) [#10363](https://github.com/firebase/firebase-js-sdk/pull/10363) - Migrate test suite to Vitest and update type-only re-exports.
+
 ## 2.16.0
 
 ### Minor Changes

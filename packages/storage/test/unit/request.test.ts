@@ -14,8 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { assert } from 'chai';
-import * as sinon from 'sinon';
+
 import { makeRequest } from '../../src/implementation/request';
 import { RequestInfo } from '../../src/implementation/requestinfo';
 import { Connection } from '../../src/implementation/connection';
@@ -42,12 +41,12 @@ describe('Firebase Storage > Request', () => {
       responseHeaders[responseHeader] = responseValue;
       connection.simulateResponse(status, response, responseHeaders);
     }
-    const spiedSend = sinon.spy(newSend);
+    const spiedSend = vi.fn(newSend);
 
     function handler(connection: Connection<string>, text: string): string {
-      assert.equal(text, response);
-      assert.equal(connection.getResponseHeader(responseHeader), responseValue);
-      assert.equal(connection.getStatus(), status);
+      expect(text).toBe(response);
+      expect(connection.getResponseHeader(responseHeader)).toBe(responseValue);
+      expect(connection.getStatus()).toBe(status);
       return text;
     }
 
@@ -69,16 +68,16 @@ describe('Firebase Storage > Request', () => {
       .getPromise()
       .then(
         result => {
-          assert.equal(result, response);
-          assert.isTrue(spiedSend.calledOnce);
+          expect(result).toBe(response);
+          expect(spiedSend).toHaveBeenCalledTimes(1);
 
-          const args: unknown[] = spiedSend.getCall(0).args;
-          assert.equal(args[1], url);
-          assert.equal(args[2], method);
+          const args: unknown[] = spiedSend.mock.calls[0];
+          expect(args[1]).toBe(url);
+          expect(args[2]).toBe(method);
           const expectedHeaders: { [key: string]: string } = {};
           expectedHeaders[requestHeader] = requestValue;
           expectedHeaders[versionHeaderName] = versionHeaderValue;
-          assert.deepEqual(args[4], expectedHeaders);
+          expect(args[4]).toEqual(expectedHeaders);
         },
         () => {
           assert.fail('Errored in successful call...');
@@ -90,7 +89,7 @@ describe('Firebase Storage > Request', () => {
     function newSend(connection: TestingConnection): void {
       connection.simulateResponse(200, '', {});
     }
-    const spiedSend = sinon.spy(newSend);
+    const spiedSend = vi.fn(newSend);
 
     function handler(connection: Connection<string>, text: string): string {
       return text;
@@ -113,7 +112,7 @@ describe('Firebase Storage > Request', () => {
       .getPromise()
       .then(
         () => {
-          assert.isTrue(spiedSend.calledOnce);
+          expect(spiedSend).toHaveBeenCalledTimes(1);
 
           const fullUrl =
             url +
@@ -125,10 +124,10 @@ describe('Firebase Storage > Request', () => {
             encodeURIComponent(p2) +
             '=' +
             encodeURIComponent(v2);
-          const args: unknown[] = spiedSend.getCall(0).args;
-          assert.equal(args[1], fullUrl);
-          assert.equal(args[2], method);
-          assert.equal(args[3], requestInfo.body);
+          const args: unknown[] = spiedSend.mock.calls[0];
+          expect(args[1]).toBe(fullUrl);
+          expect(args[2]).toBe(method);
+          expect(args[3]).toBe(requestInfo.body);
         },
         () => {
           assert.fail('Request failed unexpectedly');
@@ -161,7 +160,7 @@ describe('Firebase Storage > Request', () => {
           assert.fail('Succeeded when handler gave error');
         },
         error => {
-          assert.equal(error.message, errorMessage);
+          expect(error.message).toBe(errorMessage);
         }
       );
   });
@@ -197,7 +196,7 @@ describe('Firebase Storage > Request', () => {
     function newSend(connection: TestingConnection): void {
       connection.simulateResponse(200, '', {});
     }
-    const spiedSend = sinon.spy(newSend);
+    const spiedSend = vi.fn(newSend);
 
     const authToken = 'totallyLegitAuthToken';
     function handler(): boolean {
@@ -219,13 +218,13 @@ describe('Firebase Storage > Request', () => {
     );
     return request.getPromise().then(
       () => {
-        assert.isTrue(spiedSend.calledOnce);
-        const args: unknown[] = spiedSend.getCall(0).args;
+        expect(spiedSend).toHaveBeenCalledTimes(1);
+        const args: unknown[] = spiedSend.mock.calls[0];
         const expectedHeaders: { [key: string]: string } = {
           Authorization: 'Firebase ' + authToken
         };
         expectedHeaders[versionHeaderName] = versionHeaderValue;
-        assert.deepEqual(args[4], expectedHeaders);
+        expect(args[4]).toEqual(expectedHeaders);
       },
       () => {
         assert.fail('Request failed unexpectedly');
@@ -239,7 +238,7 @@ describe('Firebase Storage > Request', () => {
     function newSend(connection: TestingConnection): void {
       connection.simulateResponse(200, '', {});
     }
-    const spiedSend = sinon.spy(newSend);
+    const spiedSend = vi.fn(newSend);
 
     function handler(): boolean {
       return true;
@@ -260,13 +259,13 @@ describe('Firebase Storage > Request', () => {
     );
     return request.getPromise().then(
       () => {
-        assert.isTrue(spiedSend.calledOnce);
-        const args: unknown[] = spiedSend.getCall(0).args;
+        expect(spiedSend).toHaveBeenCalledTimes(1);
+        const args: unknown[] = spiedSend.mock.calls[0];
         const expectedHeaders: { [key: string]: string } = {
           'X-Firebase-GMPID': appId
         };
         expectedHeaders[versionHeaderName] = versionHeaderValue;
-        assert.deepEqual(args[4], expectedHeaders);
+        expect(args[4]).toEqual(expectedHeaders);
       },
       () => {
         assert.fail('Request failed unexpectedly');
@@ -280,7 +279,7 @@ describe('Firebase Storage > Request', () => {
     function newSend(connection: TestingConnection): void {
       connection.simulateResponse(200, '', {});
     }
-    const spiedSend = sinon.spy(newSend);
+    const spiedSend = vi.fn(newSend);
 
     function handler(): boolean {
       return true;
@@ -301,13 +300,13 @@ describe('Firebase Storage > Request', () => {
     );
     return request.getPromise().then(
       () => {
-        assert.isTrue(spiedSend.calledOnce);
-        const args: unknown[] = spiedSend.getCall(0).args;
+        expect(spiedSend).toHaveBeenCalledTimes(1);
+        const args: unknown[] = spiedSend.mock.calls[0];
         const expectedHeaders: { [key: string]: string } = {
           'X-Firebase-AppCheck': appCheckToken
         };
         expectedHeaders[versionHeaderName] = versionHeaderValue;
-        assert.deepEqual(args[4], expectedHeaders);
+        expect(args[4]).toEqual(expectedHeaders);
       },
       () => {
         assert.fail('Request failed unexpectedly');

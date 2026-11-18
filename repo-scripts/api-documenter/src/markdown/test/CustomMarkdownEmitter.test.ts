@@ -39,10 +39,7 @@ import { DocTableRow } from '../../nodes/DocTableRow';
 import { DocTableCell } from '../../nodes/DocTableCell';
 import { CustomMarkdownEmitter } from '../CustomMarkdownEmitter';
 import { ApiModel, ApiItem } from '@microsoft/api-extractor-model';
-import { expect, use } from 'chai';
-import { jestSnapshotPlugin } from 'mocha-chai-jest-snapshot';
-
-use(jestSnapshotPlugin());
+import { expect, it } from 'vitest';
 
 it('render Markdown from TSDoc', () => {
   const configuration: TSDocConfiguration = CustomDocNodes.configuration;

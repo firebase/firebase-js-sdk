@@ -57,45 +57,12 @@ const argv = yargs
   })
   .parseSync();
 
-const nyc = resolve(__dirname, '../../../node_modules/.bin/nyc');
-const mocha = resolve(__dirname, '../../../node_modules/.bin/mocha');
-const babel = resolve(__dirname, '../babel-register.js');
+const vitest = resolve(__dirname, '../../../node_modules/.bin/vitest');
 
-// used in '../../config/mocharc.node.js' to disable ts-node
-process.env.NO_TS_NODE = 'true';
 process.env.TEST_PLATFORM = argv.platform;
 
 if (argv.targetBackend) {
   process.env.FIRESTORE_TARGET_BACKEND = argv.targetBackend;
-}
-
-let executable = nyc;
-let args = [
-  '--reporter',
-  'lcovonly',
-  mocha,
-  '--require',
-  babel,
-  '--require',
-  resolve(argv.main),
-  '--config',
-  '../../config/mocharc.node.js'
-];
-
-if (argv.debug) {
-  // Bypassing nyc for debug mode
-  executable = 'node';
-  args = [
-    '--inspect-brk',
-    mocha,
-    '--require',
-    babel,
-    '--require',
-    resolve(argv.main),
-    '--config',
-    '../../config/mocharc.node.js',
-    '--no-timeouts'
-  ];
 }
 
 if (argv.emulator) {
@@ -104,7 +71,6 @@ if (argv.emulator) {
 
 if (argv.persistence) {
   process.env.USE_MOCK_PERSISTENCE = 'YES';
-  args.push('--require', resolve('test/util/node_persistence.ts'));
 }
 
 if (argv.databaseId) {
@@ -117,11 +83,23 @@ if (argv.firestoreEdition) {
   }
 }
 
-if (argv.grep) {
-  args.push('--grep', argv.grep);
+let executable = vitest;
+let args = ['run', '--project=node'];
+
+if (argv.debug) {
+  executable = 'node';
+  const vitestMjs = resolve(__dirname, '../../../node_modules/vitest/vitest.mjs');
+  args = ['--inspect-brk', vitestMjs, '--project=node', '--no-file-parallelism'];
 }
 
-args = args.concat(argv._ as string[]);
+if (argv.grep) {
+  args.push('-t', argv.grep);
+}
+
+const fileArgs = (argv._ as string[]).filter(
+  pattern => !pattern.includes('{,!(browser|lite)')
+);
+args = args.concat(fileArgs);
 
 const spawnPromise = spawn(executable, args, {
   stdio: 'inherit',
@@ -135,7 +113,7 @@ spawnPromise.catch(error => {
   // and don't print a stack trace.
   // Note: error.code is the exit code of the spawned process.
   if (typeof error.code === 'number' && error.code > 0) {
-    // If it's a standard test failure (mocha exit code), we don't need a runner stack trace.
+    // If it's a standard test failure (vitest exit code), we don't need a runner stack trace.
     process.exit(error.code);
   } else {
     // For other errors (spawn failed, runner crash, etc.), print the stack trace.

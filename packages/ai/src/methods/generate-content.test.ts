@@ -44,7 +44,7 @@ import {
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
 import { mapGenerateContentRequest } from '../googleai-mappers';
-import { GoogleAIBackend, EnterpriseBackend } from '../backend';
+import { GoogleAIBackend, AgentPlatformBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 
 import { cleanGenerateContentRequestForWire } from '../requests/request-helpers';
@@ -52,7 +52,7 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  backend: new EnterpriseBackend()
+  backend: new AgentPlatformBackend()
 };
 
 const fakeGoogleAIApiSettings: ApiSettings = {
@@ -424,6 +424,22 @@ describe('generateContent()', () => {
         singleRequestOptions: undefined
       },
       JSON.stringify(fakeWireRequestParams)
+    );
+  });
+  it('blocked prompt without safetyRatings (googleAI)', async () => {
+    const mockResponse = getMockResponse(
+      'googleAI',
+      'unary-failure-only-prompt-feedback.json'
+    );
+    vi.spyOn(mockRequest, 'makeRequest').mockResolvedValue(
+      mockResponse as Response
+    );
+    const result = await generateContent(fakeGoogleAIApiSettings, 'model', {
+      contents: [{ role: 'user', parts: [{ type: 'text', text: 'hello' }] }]
+    });
+    expect(result.response.text).to.throw();
+    expect(result.response.promptFeedback?.blockReasonMessage).to.equal(
+      'Message'
     );
   });
   it('finishReason safety', async () => {

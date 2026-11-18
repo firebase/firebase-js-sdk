@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2022 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   compositeFilterIsConjunction,
@@ -32,9 +30,9 @@ describe('FieldFilter', () => {
   it('exposes field filter members', () => {
     const f = filter('foo', '==', 'bar');
 
-    expect(f.field.toString()).to.equal('foo');
-    expect(f.value.stringValue).to.equal('bar');
-    expect(f.op).to.equal(Operator.EQUAL);
+    expect(f.field.toString()).toBe('foo');
+    expect(f.value.stringValue).toBe('bar');
+    expect(f.op).toBe(Operator.EQUAL);
   });
 });
 
@@ -58,46 +56,46 @@ describe('CompositeFilter', () => {
   it('exposes composite filter members for AND filter', () => {
     const f = andFilter(a, b, c);
 
-    expect(compositeFilterIsConjunction(f)).to.be.true;
-    expect(f.getFilters()).to.deep.equal([a, b, c]);
+    expect(compositeFilterIsConjunction(f)).toBe(true);
+    expect(f.getFilters()).toEqual([a, b, c]);
   });
 
   it('exposes composite filter members for OR filter', () => {
     const f = orFilter(a, b, c);
 
-    expect(compositeFilterIsDisjunction(f)).to.be.true;
-    expect(f.getFilters()).to.deep.equal([a, b, c]);
+    expect(compositeFilterIsDisjunction(f)).toBe(true);
+    expect(f.getFilters()).toEqual([a, b, c]);
   });
 
   it('has working composite filter nested checks', () => {
     const andFilter1 = andFilter(a, b, c);
-    expect(compositeFilterIsFlat(andFilter1)).true;
-    expect(compositeFilterIsConjunction(andFilter1)).true;
-    expect(compositeFilterIsDisjunction(andFilter1)).false;
-    expect(compositeFilterIsFlatConjunction(andFilter1)).true;
+    expect(compositeFilterIsFlat(andFilter1)).toBe(true);
+    expect(compositeFilterIsConjunction(andFilter1)).toBe(true);
+    expect(compositeFilterIsDisjunction(andFilter1)).toBe(false);
+    expect(compositeFilterIsFlatConjunction(andFilter1)).toBe(true);
 
     const orFilter1 = orFilter(a, b, c);
-    expect(compositeFilterIsConjunction(orFilter1)).false;
-    expect(compositeFilterIsDisjunction(orFilter1)).true;
-    expect(compositeFilterIsFlat(orFilter1)).true;
-    expect(compositeFilterIsFlatConjunction(orFilter1)).false;
+    expect(compositeFilterIsConjunction(orFilter1)).toBe(false);
+    expect(compositeFilterIsDisjunction(orFilter1)).toBe(true);
+    expect(compositeFilterIsFlat(orFilter1)).toBe(true);
+    expect(compositeFilterIsFlatConjunction(orFilter1)).toBe(false);
 
     const andFilter2 = andFilter(d, andFilter1);
-    expect(compositeFilterIsConjunction(andFilter2)).true;
-    expect(compositeFilterIsDisjunction(andFilter2)).false;
-    expect(compositeFilterIsFlat(andFilter2)).false;
-    expect(compositeFilterIsFlatConjunction(andFilter2)).false;
+    expect(compositeFilterIsConjunction(andFilter2)).toBe(true);
+    expect(compositeFilterIsDisjunction(andFilter2)).toBe(false);
+    expect(compositeFilterIsFlat(andFilter2)).toBe(false);
+    expect(compositeFilterIsFlatConjunction(andFilter2)).toBe(false);
 
     const orFilter2 = orFilter(d, andFilter1);
-    expect(compositeFilterIsConjunction(orFilter2)).false;
-    expect(compositeFilterIsDisjunction(orFilter2)).true;
-    expect(compositeFilterIsFlat(orFilter2)).false;
-    expect(compositeFilterIsFlatConjunction(orFilter2)).false;
+    expect(compositeFilterIsConjunction(orFilter2)).toBe(false);
+    expect(compositeFilterIsDisjunction(orFilter2)).toBe(true);
+    expect(compositeFilterIsFlat(orFilter2)).toBe(false);
+    expect(compositeFilterIsFlatConjunction(orFilter2)).toBe(false);
   });
 
   it('computes canonical id of flat conjunctions', () => {
     const query1 = query('col', a, b, c);
     const query2 = query('col', andFilter(a, b, c));
-    expect(canonifyQuery(query1)).to.equal(canonifyQuery(query2));
+    expect(canonifyQuery(query1)).toBe(canonifyQuery(query2));
   });
 });

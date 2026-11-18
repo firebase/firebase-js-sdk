@@ -15,4 +15,6 @@
  * limitations under the License.
  */
 
-export const TEST_PROJECT_CONFIG = require('../../config/project.json');
+import TEST_PROJECT_CONFIG from '../../config/project.json';
+
+export { TEST_PROJECT_CONFIG };

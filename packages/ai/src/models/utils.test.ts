@@ -16,7 +16,7 @@
  */
 import { AI, AIErrorCode } from '../public-types';
 import { AIError } from '../errors';
-import { EnterpriseBackend } from '../backend';
+import { AgentPlatformBackend } from '../backend';
 import { AIService } from '../service';
 import { initApiSettings } from './utils';
 import { fakeAI } from '../../test-utils/get-fake-firebase-services';
@@ -75,7 +75,7 @@ describe('initApiSettings', () => {
           projectId: 'my-project'
         }
       },
-      backend: new EnterpriseBackend('global')
+      backend: new AgentPlatformBackend('global')
     };
     try {
       initApiSettings(fakeAI);
@@ -92,7 +92,7 @@ describe('initApiSettings', () => {
           apiKey: 'key'
         }
       },
-      backend: new EnterpriseBackend('global')
+      backend: new AgentPlatformBackend('global')
     };
     try {
       initApiSettings(fakeAI);
@@ -110,7 +110,7 @@ describe('initApiSettings', () => {
           projectId: 'my-project'
         }
       },
-      backend: new EnterpriseBackend('global')
+      backend: new AgentPlatformBackend('global')
     };
     try {
       initApiSettings(fakeAI);

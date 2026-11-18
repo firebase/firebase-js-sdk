@@ -156,6 +156,9 @@ export class FirebaseServerAppImpl
   // reference counts and delete itself if no reference count remain. The coordinating logic that
   // handles this is in deleteApp(...).
   private automaticCleanup(): void {
+    if (this.isDeleted) {
+      return;
+    }
     void deleteApp(this);
   }
 

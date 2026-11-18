@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,18 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { _generateEventId } from './event_id';
 
 describe('core/util/event_id', () => {
   it('sub-15 digit id', () => {
-    expect(_generateEventId('', 10)).to.have.length(10);
+    expect(_generateEventId('', 10)).toHaveLength(10);
   });
 
   it('15 digit id', () => {
-    expect(_generateEventId('', 15)).to.have.length(15);
+    expect(_generateEventId('', 15)).toHaveLength(15);
   });
 
   it('above-15 digit id', () => {
-    expect(_generateEventId('', 20)).to.have.length(20);
+    expect(_generateEventId('', 20)).toHaveLength(20);
   });
 });

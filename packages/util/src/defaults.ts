@@ -75,6 +75,96 @@ const getDefaultsFromEnvVariable = (): FirebaseDefaults | undefined => {
   }
 };
 
+const LOOPBACK_HOSTNAME_RE =
+  /^(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*localhost|127\.0\.0\.1|\[::1\]|::1)$/i;
+
+const LOOPBACK_HOST_RE =
+  /^(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*localhost|127\.0\.0\.1|\[::1\]):(\d{1,5})$/i;
+
+const loggedCookieWarnings = new Set<string>();
+
+function warnAboutCookieOnce(message: string): void {
+  if (!loggedCookieWarnings.has(message)) {
+    loggedCookieWarnings.add(message);
+    console.warn(`[@firebase/util] ${message}`);
+  }
+}
+
+function isLoopbackHostWithPort(host: unknown): host is string {
+  if (typeof host !== 'string') {
+    return false;
+  }
+  const match = LOOPBACK_HOST_RE.exec(host);
+  if (!match) {
+    return false;
+  }
+  const port = Number(match[1]);
+  return port >= 1 && port <= 65535;
+}
+
+/**
+ * Sanitize configuration loaded from the `__FIREBASE_DEFAULTS__` cookie.
+ * Cookies can be set by sibling subdomains or on non-HSTS origins, so unlike
+ * `globalThis` or environment-variable defaults they are not a trusted
+ * same-origin source. Preserve `config` (and experimental settings such as
+ * `_authTokenSyncURL`, which Auth restricts to same-origin) for deployed
+ * Firebase Web Frameworks apps, strip `forceEnvironment`, and honor
+ * `emulatorHosts` only when both the current page and each target emulator
+ * host are loopback addresses.
+ */
+function sanitizeCookieDefaults(
+  defaults: unknown
+): FirebaseDefaults | undefined {
+  if (!defaults || typeof defaults !== 'object' || Array.isArray(defaults)) {
+    return undefined;
+  }
+  const sanitized = defaults as FirebaseDefaults;
+  if ('forceEnvironment' in sanitized) {
+    warnAboutCookieOnce(
+      'Ignoring `forceEnvironment` in the __FIREBASE_DEFAULTS__ cookie.'
+    );
+    delete sanitized.forceEnvironment;
+  }
+  if ('emulatorHosts' in sanitized) {
+    const pageHostname =
+      typeof location !== 'undefined' && location
+        ? location.hostname
+        : document.location?.hostname;
+    if (!pageHostname || !LOOPBACK_HOSTNAME_RE.test(pageHostname)) {
+      warnAboutCookieOnce(
+        `Ignoring \`emulatorHosts\` in the __FIREBASE_DEFAULTS__ cookie because ` +
+          `'${pageHostname || 'unknown'}' is not a loopback address, so the SDK ` +
+          `will connect to production services. Call connect*Emulator() to use ` +
+          `the emulators here.`
+      );
+      delete sanitized.emulatorHosts;
+    } else if (
+      !sanitized.emulatorHosts ||
+      typeof sanitized.emulatorHosts !== 'object' ||
+      Array.isArray(sanitized.emulatorHosts)
+    ) {
+      delete sanitized.emulatorHosts;
+    } else {
+      for (const product of Object.keys(sanitized.emulatorHosts)) {
+        const host = sanitized.emulatorHosts[product];
+        if (!isLoopbackHostWithPort(host)) {
+          warnAboutCookieOnce(
+            `Ignoring \`emulatorHosts.${product}\` in the __FIREBASE_DEFAULTS__ ` +
+              `cookie because '${String(host)}' is not a loopback host, so ` +
+              `'${product}' will connect to production. Call connect*Emulator() ` +
+              `to use an emulator on another host.`
+          );
+          delete sanitized.emulatorHosts[product];
+        }
+      }
+      if (Object.keys(sanitized.emulatorHosts).length === 0) {
+        delete sanitized.emulatorHosts;
+      }
+    }
+  }
+  return Object.keys(sanitized).length > 0 ? sanitized : undefined;
+}
+
 const getDefaultsFromCookie = (): FirebaseDefaults | undefined => {
   if (typeof document === 'undefined') {
     return;
@@ -88,7 +178,7 @@ const getDefaultsFromCookie = (): FirebaseDefaults | undefined => {
     return;
   }
   const decoded = match && base64Decode(match[1]);
-  return decoded && JSON.parse(decoded);
+  return decoded ? sanitizeCookieDefaults(JSON.parse(decoded)) : undefined;
 };
 
 /**

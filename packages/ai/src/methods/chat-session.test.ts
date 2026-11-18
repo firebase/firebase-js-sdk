@@ -32,7 +32,7 @@ import {
 } from '../types';
 import { ChatSessionImpl } from './chat-session';
 import { ApiSettings } from '../types/internal';
-import { EnterpriseBackend } from '../backend';
+import { AgentPlatformBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 import { logger } from '../logger';
 import { Schema } from '../api';
@@ -41,7 +41,7 @@ const fakeApiSettings: ApiSettings = {
   apiKey: 'key',
   project: 'my-project',
   appId: 'my-appid',
-  backend: new EnterpriseBackend()
+  backend: new AgentPlatformBackend()
 };
 
 function getGreeting({

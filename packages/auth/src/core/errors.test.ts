@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import {
   AuthErrorCode,
   debugErrorMap,
@@ -44,11 +43,11 @@ describe('verboseErrorMap', () => {
       AuthErrorCode.INTERNAL_ERROR,
       {}
     );
-    expect(error.code).to.eq('auth/internal-error');
-    expect(error.message).to.eq(
+    expect(error.code).toBe('auth/internal-error');
+    expect(error.message).toBe(
       'Firebase: An internal AuthError has occurred. (auth/internal-error).'
     );
-    expect(error.name).to.eq('FirebaseError');
+    expect(error.name).toBe('FirebaseError');
   });
 });
 
@@ -58,8 +57,8 @@ describe('prodErrorMap', () => {
       AuthErrorCode.INTERNAL_ERROR,
       {}
     );
-    expect(error.code).to.eq('auth/internal-error');
-    expect(error.message).to.eq('Firebase: Error (auth/internal-error).');
-    expect(error.name).to.eq('FirebaseError');
+    expect(error.code).toBe('auth/internal-error');
+    expect(error.message).toBe('Firebase: Error (auth/internal-error).');
+    expect(error.name).toBe('FirebaseError');
   });
 });

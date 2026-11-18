@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2025 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { Bytes } from '../../../../src';
 import {
@@ -55,22 +53,22 @@ describe('String Functions', () => {
     });
 
     it('nonStringOrBytes_returnsError', () => {
-      expect(evaluateToValue(byteLength(constant(123)))).to.be.undefined;
+      expect(evaluateToValue(byteLength(constant(123)))).toBeUndefined();
     });
 
     it('highSurrogateOnly', () => {
       const s = '\uD83C'; // high surrogate, missing low surrogate
-      expect(evaluateToValue(byteLength(constant(s)))).to.be.undefined;
+      expect(evaluateToValue(byteLength(constant(s)))).toBeUndefined();
     });
 
     it('lowSurrogateOnly', () => {
       const s = '\uDF53'; // low surrogate, missing high surrogate
-      expect(evaluateToValue(byteLength(constant(s)))).to.be.undefined;
+      expect(evaluateToValue(byteLength(constant(s)))).toBeUndefined();
     });
 
     it('lowAndHighSurrogate_swapped', () => {
       const s = '\uDF53\uD83C'; // swapped high with low, invalid sequence
-      expect(evaluateToValue(byteLength(constant(s)))).to.be.undefined;
+      expect(evaluateToValue(byteLength(constant(s)))).toBeUndefined();
     });
 
     it('ascii', () => {
@@ -175,7 +173,7 @@ describe('String Functions', () => {
             constant(Bytes.fromUint8Array(new TextEncoder().encode('abc')))
           )
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('baseCase_bmp', () => {
@@ -315,7 +313,7 @@ describe('String Functions', () => {
         evaluateToValue(
           stringConcat(constant('foo'), constant(42), constant('bar'))
         )
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('multipleCalls', () => {
@@ -367,43 +365,45 @@ describe('String Functions', () => {
 
   describe('endsWith', () => {
     it('get_nonStringValue_isError', () => {
-      expect(evaluateToValue(endsWith(constant(42), constant('search')))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(endsWith(constant(42), constant('search')))
+      ).toBeUndefined();
     });
 
     it('get_nonStringSuffix_isError', () => {
-      expect(evaluateToValue(endsWith(constant('search'), constant(42)))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(endsWith(constant('search'), constant(42)))
+      ).toBeUndefined();
     });
 
     it('get_emptyInputs_returnsTrue', () => {
-      expect(
-        evaluateToValue(endsWith(constant(''), constant('')))
-      ).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(endsWith(constant(''), constant('')))).toEqual(
+        TRUE_VALUE
+      );
     });
 
     it('get_emptyValue_returnsFalse', () => {
-      expect(
-        evaluateToValue(endsWith(constant(''), constant('v')))
-      ).to.deep.equal(FALSE_VALUE);
+      expect(evaluateToValue(endsWith(constant(''), constant('v')))).toEqual(
+        FALSE_VALUE
+      );
     });
 
     it('get_emptySuffix_returnsTrue', () => {
       expect(
         evaluateToValue(endsWith(constant('value'), constant('')))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('get_returnsTrue', () => {
       expect(
         evaluateToValue(endsWith(constant('search'), constant('rch')))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('get_returnsFalse', () => {
       expect(
         evaluateToValue(endsWith(constant('search'), constant('rcH')))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('get_largeSuffix_returnsFalse', () => {
@@ -411,54 +411,52 @@ describe('String Functions', () => {
         evaluateToValue(
           endsWith(constant('val'), constant('a very long suffix'))
         )
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
   }); // end describe('endsWith')
 
   describe('like', () => {
     it('get_nonStringLike_isError', () => {
-      expect(evaluateToValue(like(constant(42), constant('search')))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(like(constant(42), constant('search')))
+      ).toBeUndefined();
     });
 
     it('get_nonStringValue_isError', () => {
-      expect(evaluateToValue(like(constant('ear'), constant(42)))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(like(constant('ear'), constant(42)))
+      ).toBeUndefined();
     });
 
     it('get_staticLike', () => {
       const func = like(constant('yummy food'), constant('%food'));
-      expect(evaluateToValue(func)).to.deep.equal(TRUE_VALUE);
-      expect(evaluateToValue(func)).to.deep.equal(TRUE_VALUE);
-      expect(evaluateToValue(func)).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(func)).toEqual(TRUE_VALUE);
+      expect(evaluateToValue(func)).toEqual(TRUE_VALUE);
+      expect(evaluateToValue(func)).toEqual(TRUE_VALUE);
     });
 
     it('get_emptySearchString', () => {
       const func = like(constant(''), constant('%hi%'));
-      expect(evaluateToValue(func)).to.deep.equal(FALSE_VALUE);
+      expect(evaluateToValue(func)).toEqual(FALSE_VALUE);
     });
 
     it('get_emptyLike', () => {
       const func = like(constant('yummy food'), constant(''));
-      expect(evaluateToValue(func)).to.deep.equal(FALSE_VALUE);
+      expect(evaluateToValue(func)).toEqual(FALSE_VALUE);
     });
 
     it('get_escapedLike', () => {
       const func = like(constant('yummy food??'), constant('%food??'));
-      expect(evaluateToValue(func)).to.deep.equal(TRUE_VALUE);
-      expect(evaluateToValue(func)).to.deep.equal(TRUE_VALUE);
-      expect(evaluateToValue(func)).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(func)).toEqual(TRUE_VALUE);
+      expect(evaluateToValue(func)).toEqual(TRUE_VALUE);
+      expect(evaluateToValue(func)).toEqual(TRUE_VALUE);
     });
 
     it('get_dynamicLike', () => {
       const func = like(constant('yummy food'), field('regex'));
-      expect(evaluateToValue(func, { regex: 'yummy%' })).to.deep.equal(
-        TRUE_VALUE
-      );
-      expect(evaluateToValue(func, { regex: 'food%' })).to.deep.equal(
-        FALSE_VALUE
-      );
-      expect(evaluateToValue(func, { regex: 'yummy_food' })).to.deep.equal(
+      expect(evaluateToValue(func, { regex: 'yummy%' })).toEqual(TRUE_VALUE);
+      expect(evaluateToValue(func, { regex: 'food%' })).toEqual(FALSE_VALUE);
+      expect(evaluateToValue(func, { regex: 'yummy_food' })).toEqual(
         TRUE_VALUE
       );
     });
@@ -466,137 +464,135 @@ describe('String Functions', () => {
 
   describe('regexContains', () => {
     it('get_nonStringRegex_isError', () => {
-      expect(evaluateToValue(regexContains(constant(42), constant('search'))))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(regexContains(constant(42), constant('search')))
+      ).toBeUndefined();
     });
 
     it('get_nonStringValue_isError', () => {
-      expect(evaluateToValue(regexContains(constant('ear'), constant(42)))).to
-        .be.undefined;
+      expect(
+        evaluateToValue(regexContains(constant('ear'), constant(42)))
+      ).toBeUndefined();
     });
 
     it('get_invalidRegex_isError', () => {
       const func = regexContains(constant('abcabc'), constant('(abc)\\1'));
-      expect(evaluateToValue(func)).to.be.undefined;
-      expect(evaluateToValue(func)).to.be.undefined;
-      expect(evaluateToValue(func)).to.be.undefined;
+      expect(evaluateToValue(func)).toBeUndefined();
+      expect(evaluateToValue(func)).toBeUndefined();
+      expect(evaluateToValue(func)).toBeUndefined();
     });
 
     it('get_staticRegex', () => {
       const func = regexContains(constant('yummy food'), constant('.*oo.*'));
-      expect(evaluateToValue(func)).to.deep.equal(TRUE_VALUE);
-      expect(evaluateToValue(func)).to.deep.equal(TRUE_VALUE);
-      expect(evaluateToValue(func)).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(func)).toEqual(TRUE_VALUE);
+      expect(evaluateToValue(func)).toEqual(TRUE_VALUE);
+      expect(evaluateToValue(func)).toEqual(TRUE_VALUE);
     });
 
     it('get_subString_literal', () => {
       const func = regexContains(constant('yummy good food'), constant('good'));
-      expect(evaluateToValue(func)).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(func)).toEqual(TRUE_VALUE);
     });
 
     it('get_subString_regex', () => {
       const func = regexContains(constant('yummy good food'), constant('go*d'));
-      expect(evaluateToValue(func)).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(func)).toEqual(TRUE_VALUE);
     });
 
     it('get_dynamicRegex', () => {
       const func = regexContains(constant('yummy food'), field('regex'));
-      expect(evaluateToValue(func, { regex: '^yummy.*' })).to.deep.equal(
-        TRUE_VALUE
-      );
-      expect(evaluateToValue(func, { regex: 'fooood$' })).to.deep.equal(
-        FALSE_VALUE
-      );
-      expect(evaluateToValue(func, { regex: '.*' })).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(func, { regex: '^yummy.*' })).toEqual(TRUE_VALUE);
+      expect(evaluateToValue(func, { regex: 'fooood$' })).toEqual(FALSE_VALUE);
+      expect(evaluateToValue(func, { regex: '.*' })).toEqual(TRUE_VALUE);
     });
   }); // end describe('regexContains')
 
   describe('regexMatch', () => {
     it('get_nonStringRegex_isError', () => {
-      expect(evaluateToValue(regexMatch(constant(42), constant('search')))).to
-        .be.undefined;
+      expect(
+        evaluateToValue(regexMatch(constant(42), constant('search')))
+      ).toBeUndefined();
     });
 
     it('get_nonStringValue_isError', () => {
-      expect(evaluateToValue(regexMatch(constant('ear'), constant(42)))).to.be
-        .undefined;
+      expect(
+        evaluateToValue(regexMatch(constant('ear'), constant(42)))
+      ).toBeUndefined();
     });
 
     it('get_invalidRegex_isError', () => {
       const func = regexMatch(constant('abcabc'), constant('(abc)\\1'));
-      expect(evaluateToValue(func)).to.be.undefined;
-      expect(evaluateToValue(func)).to.be.undefined;
-      expect(evaluateToValue(func)).to.be.undefined;
+      expect(evaluateToValue(func)).toBeUndefined();
+      expect(evaluateToValue(func)).toBeUndefined();
+      expect(evaluateToValue(func)).toBeUndefined();
     });
 
     it('get_staticRegex', () => {
       const func = regexMatch(constant('yummy food'), constant('.*oo.*'));
-      expect(evaluateToValue(func)).to.deep.equal(TRUE_VALUE);
-      expect(evaluateToValue(func)).to.deep.equal(TRUE_VALUE);
-      expect(evaluateToValue(func)).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(func)).toEqual(TRUE_VALUE);
+      expect(evaluateToValue(func)).toEqual(TRUE_VALUE);
+      expect(evaluateToValue(func)).toEqual(TRUE_VALUE);
     });
 
     it('get_subString_literal', () => {
       const func = regexMatch(constant('yummy good food'), constant('good'));
-      expect(evaluateToValue(func)).to.deep.equal(FALSE_VALUE);
+      expect(evaluateToValue(func)).toEqual(FALSE_VALUE);
     });
 
     it('get_subString_regex', () => {
       const func = regexMatch(constant('yummy good food'), constant('go*d'));
-      expect(evaluateToValue(func)).to.deep.equal(FALSE_VALUE);
+      expect(evaluateToValue(func)).toEqual(FALSE_VALUE);
     });
 
     it('get_dynamicRegex', () => {
       const func = regexMatch(constant('yummy food'), field('regex'));
-      expect(evaluateToValue(func, { regex: '^yummy.*' })).to.deep.equal(
-        TRUE_VALUE
-      );
-      expect(evaluateToValue(func, { regex: 'fooood$' })).to.deep.equal(
-        FALSE_VALUE
-      );
-      expect(evaluateToValue(func, { regex: '.*' })).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(func, { regex: '^yummy.*' })).toEqual(TRUE_VALUE);
+      expect(evaluateToValue(func, { regex: 'fooood$' })).toEqual(FALSE_VALUE);
+      expect(evaluateToValue(func, { regex: '.*' })).toEqual(TRUE_VALUE);
     });
   }); // end describe('regexMatch')
 
   describe('startsWith', () => {
     it('get_nonStringValue_isError', () => {
-      expect(evaluateToValue(startsWith(constant(42), constant('search')))).to
-        .be.undefined;
+      expect(
+        evaluateToValue(startsWith(constant(42), constant('search')))
+      ).toBeUndefined();
     });
 
     it('get_nonStringPrefix_isError', () => {
-      expect(evaluateToValue(startsWith(constant('search'), constant(42)))).to
-        .be.undefined;
+      expect(
+        evaluateToValue(startsWith(constant('search'), constant(42)))
+      ).toBeUndefined();
     });
 
     it('get_emptyInputs_returnsTrue', () => {
-      expect(
-        evaluateToValue(startsWith(constant(''), constant('')))
-      ).to.deep.equal(TRUE_VALUE);
+      expect(evaluateToValue(startsWith(constant(''), constant('')))).toEqual(
+        TRUE_VALUE
+      );
     });
 
     it('get_emptyValue_returnsFalse', () => {
-      expect(
-        evaluateToValue(startsWith(constant(''), constant('v')))
-      ).to.deep.equal(FALSE_VALUE);
+      expect(evaluateToValue(startsWith(constant(''), constant('v')))).toEqual(
+        FALSE_VALUE
+      );
     });
 
     it('get_emptyPrefix_returnsTrue', () => {
       expect(
         evaluateToValue(startsWith(constant('value'), constant('')))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('get_returnsTrue', () => {
       expect(
         evaluateToValue(startsWith(constant('search'), constant('sea')))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('get_returnsFalse', () => {
       expect(
         evaluateToValue(startsWith(constant('search'), constant('Sea')))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
 
     it('get_largePrefix_returnsFalse', () => {
@@ -604,56 +600,57 @@ describe('String Functions', () => {
         evaluateToValue(
           startsWith(constant('val'), constant('a very long prefix'))
         )
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
   }); // end describe('startsWith')
 
   describe('stringContains', () => {
     it('value_nonString_isError', () => {
-      expect(evaluateToValue(stringContains(constant(42), constant('value'))))
-        .to.be.undefined;
+      expect(
+        evaluateToValue(stringContains(constant(42), constant('value')))
+      ).toBeUndefined();
     });
 
     it('subString_nonString_isError', () => {
       expect(
         evaluateToValue(stringContains(constant('search space'), constant(42)))
-      ).to.be.undefined;
+      ).toBeUndefined();
     });
 
     it('execute_true', () => {
       expect(
         evaluateToValue(stringContains(constant('abc'), constant('c')))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
       expect(
         evaluateToValue(stringContains(constant('abc'), constant('bc')))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
       expect(
         evaluateToValue(stringContains(constant('abc'), constant('abc')))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
       expect(
         evaluateToValue(stringContains(constant('abc'), constant('')))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
       expect(
         evaluateToValue(stringContains(constant(''), constant('')))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
       expect(
         evaluateToValue(stringContains(constant('☃☃☃'), constant('☃')))
-      ).to.deep.equal(TRUE_VALUE);
+      ).toEqual(TRUE_VALUE);
     });
 
     it('execute_false', () => {
       expect(
         evaluateToValue(stringContains(constant('abc'), constant('abcd')))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
       expect(
         evaluateToValue(stringContains(constant('abc'), constant('d')))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
       expect(
         evaluateToValue(stringContains(constant(''), constant('a')))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
       expect(
         evaluateToValue(stringContains(constant(''), constant('abcde')))
-      ).to.deep.equal(FALSE_VALUE);
+      ).toEqual(FALSE_VALUE);
     });
   }); // end describe('stringContains')
 
@@ -766,7 +763,7 @@ describe('String Functions', () => {
     });
 
     it('reverse_onUnsupportedType', () => {
-      expect(evaluateToValue(reverse(constant(1)))).to.be.undefined;
+      expect(evaluateToValue(reverse(constant(1)))).toBeUndefined();
     });
   }); // end describe('stringReverse')
 }); // end describe('String Functions')

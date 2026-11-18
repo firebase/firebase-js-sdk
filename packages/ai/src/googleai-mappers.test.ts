@@ -209,11 +209,49 @@ describe('Google AI Mappers', () => {
         googleAIResponse.usageMetadata
       );
     });
+
+    it('should map promptFeedback to promptFeedback property when present', () => {
+      const googleAIResponse: GoogleAIGenerateContentResponse = {
+        promptFeedback: {
+          blockReason: BlockReason.SAFETY,
+          safetyRatings: [
+            {
+              category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+              probability: HarmProbability.HIGH,
+              blocked: true
+            } as any
+          ]
+        }
+      };
+      const mappedResponse = mapGenerateContentResponse(googleAIResponse);
+      expect(mappedResponse.promptFeedback).toBeDefined();
+      expect(mappedResponse.promptFeedback?.blockReason).to.equal(
+        BlockReason.SAFETY
+      );
+      expect(
+        mappedResponse.promptFeedback?.safetyRatings?.[0]?.category
+      ).to.equal(HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT);
+      expect(
+        mappedResponse.promptFeedback?.safetyRatings?.[0]?.severity
+      ).to.equal(HarmSeverity.HARM_SEVERITY_UNSUPPORTED);
+    });
+
+    it('should map promptFeedback when safetyRatings is omitted', () => {
+      const googleAIResponse = {
+        candidates: [],
+        promptFeedback: { blockReasonMessage: 'Message' }
+      } as unknown as GoogleAIGenerateContentResponse;
+      const mappedResponse = mapGenerateContentResponse(googleAIResponse);
+      expect(mappedResponse.promptFeedback?.blockReasonMessage).to.equal(
+        'Message'
+      );
+      expect(mappedResponse.promptFeedback?.safetyRatings).to.deep.equal([]);
+    });
   });
 
   describe('mapCountTokensRequest', () => {
-    it('should map a Vertex AI CountTokensRequest to Google AI format', () => {
-      const vertexRequest: CountTokensRequest = {
+    it('should map an Agent Platform CountTokensRequest to Google AI format', () => {
+      const agentPlatformRequest: CountTokensRequest = {
         contents: fakeContents,
         systemInstruction: {
           role: 'system',
@@ -228,19 +266,22 @@ describe('Google AI Mappers', () => {
       const expectedGoogleAIRequest: GoogleAICountTokensRequest = {
         generateContentRequest: {
           model: fakeModel,
-          contents: vertexRequest.contents,
-          systemInstruction: vertexRequest.systemInstruction,
-          tools: vertexRequest.tools,
-          generationConfig: vertexRequest.generationConfig
+          contents: agentPlatformRequest.contents,
+          systemInstruction: agentPlatformRequest.systemInstruction,
+          tools: agentPlatformRequest.tools,
+          generationConfig: agentPlatformRequest.generationConfig
         }
       };
 
-      const mappedRequest = mapCountTokensRequest(vertexRequest, fakeModel);
+      const mappedRequest = mapCountTokensRequest(
+        agentPlatformRequest,
+        fakeModel
+      );
       expect(mappedRequest).to.deep.equal(expectedGoogleAIRequest);
     });
 
-    it('should map a minimal Vertex AI CountTokensRequest', () => {
-      const vertexRequest: CountTokensRequest = {
+    it('should map a minimal Agent Platform CountTokensRequest', () => {
+      const agentPlatformRequest: CountTokensRequest = {
         contents: fakeContents,
         systemInstruction: {
           role: 'system',
@@ -252,7 +293,7 @@ describe('Google AI Mappers', () => {
       const expectedGoogleAIRequest: GoogleAICountTokensRequest = {
         generateContentRequest: {
           model: fakeModel,
-          contents: vertexRequest.contents,
+          contents: agentPlatformRequest.contents,
           systemInstruction: {
             role: 'system',
             parts: [{ type: 'text', text: 'Be nice' }]
@@ -261,7 +302,10 @@ describe('Google AI Mappers', () => {
         }
       };
 
-      const mappedRequest = mapCountTokensRequest(vertexRequest, fakeModel);
+      const mappedRequest = mapCountTokensRequest(
+        agentPlatformRequest,
+        fakeModel
+      );
       expect(mappedRequest).to.deep.equal(expectedGoogleAIRequest);
     });
   });

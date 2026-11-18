@@ -14,12 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect, use } from 'chai';
+
 import { AppCheckService } from './service';
 import firebase, { FirebaseApp } from '@firebase/app-compat';
 import * as appCheckExp from '@firebase/app-check';
-import { stub, match, SinonStub } from 'sinon';
-import sinonChai from 'sinon-chai';
 import {
   AppCheck,
   CustomProvider,
@@ -29,7 +27,7 @@ import { AppCheckTokenResult } from '@firebase/app-check-types';
 import { PartialObserver } from '@firebase/util';
 import { AppCheckError } from './errors';
 
-use(sinonChai);
+vi.mock('@firebase/app-check', { spy: true });
 
 function createTestService(app: FirebaseApp): AppCheckService {
   return new AppCheckService(app);
@@ -37,12 +35,11 @@ function createTestService(app: FirebaseApp): AppCheckService {
 
 function createActivatedTestService(app: FirebaseApp): AppCheckService {
   const service = new AppCheckService(app);
-  const initializeAppCheckStub = stub(
-    appCheckExp,
-    'initializeAppCheck'
-  ).returns({} as AppCheck);
+  const initializeAppCheckSpy = vi
+    .spyOn(appCheckExp, 'initializeAppCheck')
+    .mockReturnValue({} as AppCheck);
   service.activate('a-site-key');
-  initializeAppCheckStub.restore();
+  initializeAppCheckSpy.mockRestore();
   return service;
 }
 
@@ -67,14 +64,15 @@ describe('Firebase App Check > Service', () => {
     'activate("string") calls modular initializeAppCheck() with a ' +
       'ReCaptchaV3Provider',
     () => {
-      const initializeAppCheckStub = stub(appCheckExp, 'initializeAppCheck');
+      const initializeAppCheckSpy = vi
+        .spyOn(appCheckExp, 'initializeAppCheck')
+        .mockReturnValue({} as AppCheck);
       service = new AppCheckService(app);
       service.activate('my_site_key');
-      expect(initializeAppCheckStub).to.be.calledWith(app, {
-        provider: match.instanceOf(ReCaptchaV3Provider),
+      expect(initializeAppCheckSpy).toHaveBeenCalledWith(app, {
+        provider: expect.any(ReCaptchaV3Provider),
         isTokenAutoRefreshEnabled: undefined
       });
-      initializeAppCheckStub.restore();
     }
   );
 
@@ -82,24 +80,22 @@ describe('Firebase App Check > Service', () => {
     'activate({getToken: () => token}) calls modular initializeAppCheck() with' +
       ' a CustomProvider',
     () => {
-      const initializeAppCheckStub = stub(appCheckExp, 'initializeAppCheck');
+      const initializeAppCheckSpy = vi
+        .spyOn(appCheckExp, 'initializeAppCheck')
+        .mockReturnValue({} as AppCheck);
       service = new AppCheckService(app);
-      const customGetTokenStub = stub();
+      const customGetTokenStub = vi.fn();
       service.activate({
         getToken: customGetTokenStub
       });
-      expect(initializeAppCheckStub).to.be.calledWith(app, {
-        provider: match
-          .instanceOf(CustomProvider)
-          .and(
-            match.hasNested(
-              '_customProviderOptions.getToken',
-              customGetTokenStub
-            )
-          ),
+      expect(initializeAppCheckSpy).toHaveBeenCalledWith(app, {
+        provider: expect.objectContaining({
+          _customProviderOptions: expect.objectContaining({
+            getToken: customGetTokenStub
+          })
+        }),
         isTokenAutoRefreshEnabled: undefined
       });
-      initializeAppCheckStub.restore();
     }
   );
 
@@ -107,14 +103,15 @@ describe('Firebase App Check > Service', () => {
     'activate(new RecaptchaV3Provider(...)) calls modular initializeAppCheck() with' +
       ' a RecaptchaV3Provider',
     () => {
-      const initializeAppCheckStub = stub(appCheckExp, 'initializeAppCheck');
+      const initializeAppCheckSpy = vi
+        .spyOn(appCheckExp, 'initializeAppCheck')
+        .mockReturnValue({} as AppCheck);
       service = new AppCheckService(app);
       service.activate(new ReCaptchaV3Provider('a-site-key'));
-      expect(initializeAppCheckStub).to.be.calledWith(app, {
-        provider: match.instanceOf(ReCaptchaV3Provider),
+      expect(initializeAppCheckSpy).toHaveBeenCalledWith(app, {
+        provider: expect.any(ReCaptchaV3Provider),
         isTokenAutoRefreshEnabled: undefined
       });
-      initializeAppCheckStub.restore();
     }
   );
 
@@ -122,83 +119,91 @@ describe('Firebase App Check > Service', () => {
     'activate(new CustomProvider(...)) calls modular initializeAppCheck() with' +
       ' a CustomProvider',
     () => {
-      const initializeAppCheckStub = stub(appCheckExp, 'initializeAppCheck');
+      const initializeAppCheckSpy = vi
+        .spyOn(appCheckExp, 'initializeAppCheck')
+        .mockReturnValue({} as AppCheck);
       service = new AppCheckService(app);
-      const customGetTokenStub = stub();
+      const customGetTokenStub = vi.fn();
       service.activate(new CustomProvider({ getToken: customGetTokenStub }));
-      expect(initializeAppCheckStub).to.be.calledWith(app, {
-        provider: match.instanceOf(CustomProvider),
+      expect(initializeAppCheckSpy).toHaveBeenCalledWith(app, {
+        provider: expect.any(CustomProvider),
         isTokenAutoRefreshEnabled: undefined
       });
-      initializeAppCheckStub.restore();
     }
   );
 
   it('setTokenAutoRefreshEnabled() calls modular setTokenAutoRefreshEnabled()', () => {
-    const setTokenAutoRefreshEnabledStub: SinonStub = stub(
-      appCheckExp,
-      'setTokenAutoRefreshEnabled'
-    );
+    const setTokenAutoRefreshEnabledSpy = vi
+      .spyOn(appCheckExp, 'setTokenAutoRefreshEnabled')
+      .mockReturnValue();
     service = createActivatedTestService(app);
     service.setTokenAutoRefreshEnabled(true);
-    expect(setTokenAutoRefreshEnabledStub).to.be.calledWith(
+    expect(setTokenAutoRefreshEnabledSpy).toHaveBeenCalledWith(
       service._delegate,
       true
     );
-    setTokenAutoRefreshEnabledStub.restore();
   });
 
   it('getToken() calls modular getToken()', async () => {
     service = createActivatedTestService(app);
-    const getTokenStub = stub(appCheckExp, 'getToken');
+    const getTokenSpy = vi
+      .spyOn(appCheckExp, 'getToken')
+      .mockResolvedValue({} as any);
     await service.getToken(true);
-    expect(getTokenStub).to.be.calledWith(service._delegate, true);
-    getTokenStub.restore();
+    expect(getTokenSpy).toHaveBeenCalledWith(service._delegate, true);
   });
 
   it('onTokenChanged() calls modular onTokenChanged() with observer', () => {
-    const onTokenChangedStub = stub(appCheckExp, 'onTokenChanged');
+    const onTokenChangedSpy = vi
+      .spyOn(appCheckExp, 'onTokenChanged')
+      .mockReturnValue(() => {});
     service = createActivatedTestService(app);
     const observer: PartialObserver<AppCheckTokenResult> = {
-      next: stub(),
-      error: stub()
+      next: vi.fn(),
+      error: vi.fn()
     };
     service.onTokenChanged(observer);
-    expect(onTokenChangedStub).to.be.calledWith(service._delegate, observer);
-    onTokenChangedStub.restore();
+    expect(onTokenChangedSpy).toHaveBeenCalledWith(
+      service._delegate,
+      observer,
+      undefined,
+      undefined
+    );
   });
 
   it('onTokenChanged() calls modular onTokenChanged() with next/error fns', () => {
-    const onTokenChangedStub = stub(appCheckExp, 'onTokenChanged');
+    const onTokenChangedSpy = vi
+      .spyOn(appCheckExp, 'onTokenChanged')
+      .mockReturnValue(() => {});
     service = createActivatedTestService(app);
-    const nextFn = stub();
-    const errorFn = stub();
+    const nextFn = vi.fn();
+    const errorFn = vi.fn();
     service.onTokenChanged(nextFn, errorFn);
-    expect(onTokenChangedStub).to.be.calledWith(
+    expect(onTokenChangedSpy).toHaveBeenCalledWith(
       service._delegate,
       nextFn,
-      errorFn
+      errorFn,
+      undefined
     );
-    onTokenChangedStub.restore();
   });
 
-  it('setTokenAutoRefreshEnabled() throws if activate() has not been called', async () => {
+  it('setTokenAutoRefreshEnabled() throws if activate() has not been called', () => {
     service = createTestService(app);
-    expect(() => service.setTokenAutoRefreshEnabled(true)).to.throw(
+    expect(() => service.setTokenAutoRefreshEnabled(true)).toThrow(
       AppCheckError.USE_BEFORE_ACTIVATION
     );
   });
 
-  it('getToken() throws if activate() has not been called', async () => {
+  it('getToken() throws if activate() has not been called', () => {
     service = createTestService(app);
-    expect(() => service.getToken(true)).to.throw(
+    expect(() => service.getToken(true)).toThrow(
       AppCheckError.USE_BEFORE_ACTIVATION
     );
   });
 
-  it('onTokenChanged() throws if activate() has not been called', async () => {
+  it('onTokenChanged() throws if activate() has not been called', () => {
     service = createTestService(app);
-    expect(() => service.onTokenChanged(() => {})).to.throw(
+    expect(() => service.onTokenChanged(() => {})).toThrow(
       AppCheckError.USE_BEFORE_ACTIVATION
     );
   });

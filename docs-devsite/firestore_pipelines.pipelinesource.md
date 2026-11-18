@@ -33,6 +33,8 @@ export declare class PipelineSource<PipelineType>
 |  [database(options)](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase) |  | Returns all documents from the entire database. |
 |  [documents(docs)](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments) |  | Set the pipeline's source to the documents specified by the given paths and DocumentReferences. |
 |  [documents(options)](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments) |  | Set the pipeline's source to the documents specified by the given paths and DocumentReferences. |
+|  [literals(documents)](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) |  | Set the pipeline's source to the documents specified by the given array of literal objects.<!-- -->Each object in the array represents a document where keys are field names and values are constants or [Expression](./firestore_lite_pipelines.expression.md#expression_class) instances. |
+|  [literals(options)](./firestore_pipelines.pipelinesource.md#pipelinesourceliterals) |  | Set the pipeline's source to the documents specified by the given [LiteralsStageOptions](./firestore_lite_pipelines.md#literalsstageoptions)<!-- -->. |
 
 ## PipelineSource.collection()
 
@@ -218,4 +220,57 @@ PipelineType
 #### Exceptions
 
 `FirestoreError` Thrown if any of the provided DocumentReferences target a different project or database than the pipeline.
+
+## PipelineSource.literals()
+
+Set the pipeline's source to the documents specified by the given array of literal objects.
+
+Each object in the array represents a document where keys are field names and values are constants or [Expression](./firestore_lite_pipelines.expression.md#expression_class) instances.
+
+<b>Signature:</b>
+
+```typescript
+literals(documents: Array<Record<string, unknown>>): PipelineType;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  documents | Array&lt;Record&lt;string, unknown&gt;&gt; | An array of literal document objects. |
+
+<b>Returns:</b>
+
+PipelineType
+
+### Example
+
+
+```typescript
+firestore.pipeline().literals([
+  { name: 'Alice', score: 50 },
+  { name: 'Bob', score: add(constant(30), constant(40)) }
+]);
+
+```
+
+## PipelineSource.literals()
+
+Set the pipeline's source to the documents specified by the given [LiteralsStageOptions](./firestore_lite_pipelines.md#literalsstageoptions)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+literals(options: LiteralsStageOptions): PipelineType;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | [LiteralsStageOptions](./firestore_pipelines.md#literalsstageoptions) | Options defining how this <code>LiteralsStage</code> is evaluated. |
+
+<b>Returns:</b>
+
+PipelineType
 

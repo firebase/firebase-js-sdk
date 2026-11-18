@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import {
   FieldPath,
@@ -62,7 +60,7 @@ apiDescribe('Nested Fields', persistence => {
       return setDoc(doc, testData())
         .then(() => getDoc(doc))
         .then(docSnap => {
-          expect(docSnap.data()).to.deep.equal(testData());
+          expect(docSnap.data()).toEqual(testData());
         });
     });
   });
@@ -73,14 +71,14 @@ apiDescribe('Nested Fields', persistence => {
       return setDoc(doc, obj)
         .then(() => getDoc(doc))
         .then(docSnap => {
-          expect(docSnap.data()).to.deep.equal(obj);
-          expect(docSnap.get('name')).to.deep.equal(obj.name);
-          expect(docSnap.get('metadata')).to.deep.equal(obj.metadata);
-          expect(docSnap.get('metadata.deep.field')).to.deep.equal(
+          expect(docSnap.data()).toEqual(obj);
+          expect(docSnap.get('name')).toEqual(obj.name);
+          expect(docSnap.get('metadata')).toEqual(obj.metadata);
+          expect(docSnap.get('metadata.deep.field')).toEqual(
             obj.metadata.deep.field
           );
-          expect(docSnap.get('metadata.nofield')).to.be.undefined;
-          expect(docSnap.get('nometadata.nofield')).to.be.undefined;
+          expect(docSnap.get('metadata.nofield')).toBeUndefined();
+          expect(docSnap.get('nometadata.nofield')).toBeUndefined();
         });
     });
   });
@@ -91,18 +89,18 @@ apiDescribe('Nested Fields', persistence => {
       return setDoc(doc, obj)
         .then(() => getDoc(doc))
         .then(docSnap => {
-          expect(docSnap.data()).to.deep.equal(obj);
-          expect(docSnap.get(new FieldPath('name'))).to.deep.equal(obj.name);
-          expect(docSnap.get(new FieldPath('metadata'))).to.deep.equal(
-            obj.metadata
-          );
+          expect(docSnap.data()).toEqual(obj);
+          expect(docSnap.get(new FieldPath('name'))).toEqual(obj.name);
+          expect(docSnap.get(new FieldPath('metadata'))).toEqual(obj.metadata);
           expect(
             docSnap.get(new FieldPath('metadata', 'deep', 'field'))
-          ).to.deep.equal(obj.metadata.deep.field);
-          expect(docSnap.get(new FieldPath('metadata', 'nofield'))).to.be
-            .undefined;
-          expect(docSnap.get(new FieldPath('nometadata', 'nofield'))).to.be
-            .undefined;
+          ).toEqual(obj.metadata.deep.field);
+          expect(
+            docSnap.get(new FieldPath('metadata', 'nofield'))
+          ).toBeUndefined();
+          expect(
+            docSnap.get(new FieldPath('nometadata', 'nofield'))
+          ).toBeUndefined();
         });
     });
   });
@@ -118,7 +116,7 @@ apiDescribe('Nested Fields', persistence => {
         )
         .then(() => getDoc(doc))
         .then(docSnap => {
-          expect(docSnap.data()).to.deep.equal({
+          expect(docSnap.data()).toEqual({
             name: 'room 1',
             metadata: {
               createdAt: 1,
@@ -146,7 +144,7 @@ apiDescribe('Nested Fields', persistence => {
         )
         .then(() => getDoc(doc))
         .then(docSnap => {
-          expect(docSnap.data()).to.deep.equal({
+          expect(docSnap.data()).toEqual({
             name: 'room 1',
             metadata: {
               createdAt: 1,
@@ -170,10 +168,7 @@ apiDescribe('Nested Fields', persistence => {
       return getDocs(query(coll, where('metadata.createdAt', '>=', 200))).then(
         results => {
           // inequality adds implicit sort on field
-          expect(toDataArray(results)).to.deep.equal([
-            testData(200),
-            testData(300)
-          ]);
+          expect(toDataArray(results)).toEqual([testData(200), testData(300)]);
         }
       );
     });
@@ -190,10 +185,7 @@ apiDescribe('Nested Fields', persistence => {
         query(coll, where(new FieldPath('metadata', 'createdAt'), '>=', 200))
       ).then(results => {
         // inequality adds implicit sort on field
-        expect(toDataArray(results)).to.deep.equal([
-          testData(200),
-          testData(300)
-        ]);
+        expect(toDataArray(results)).toEqual([testData(200), testData(300)]);
       });
     });
   });
@@ -207,7 +199,7 @@ apiDescribe('Nested Fields', persistence => {
     return withTestCollection(persistence, testDocs, coll => {
       return getDocs(query(coll, orderBy('metadata.createdAt'))).then(
         results => {
-          expect(toDataArray(results)).to.deep.equal([
+          expect(toDataArray(results)).toEqual([
             testData(100),
             testData(200),
             testData(300)
@@ -227,7 +219,7 @@ apiDescribe('Nested Fields', persistence => {
       return getDocs(
         query(coll, orderBy(new FieldPath('metadata', 'createdAt')))
       ).then(results => {
-        expect(toDataArray(results)).to.deep.equal([
+        expect(toDataArray(results)).toEqual([
           testData(100),
           testData(200),
           testData(300)
@@ -255,7 +247,7 @@ apiDescribe('Fields with special characters', persistence => {
       return setDoc(doc, testData())
         .then(() => getDoc(doc))
         .then(docSnap => {
-          expect(docSnap.data()).to.deep.equal(testData());
+          expect(docSnap.data()).toEqual(testData());
         });
     });
   });
@@ -266,13 +258,11 @@ apiDescribe('Fields with special characters', persistence => {
       return setDoc(doc, obj)
         .then(() => getDoc(doc))
         .then(docSnap => {
-          expect(docSnap.data()).to.deep.equal(obj);
-          expect(docSnap.get(new FieldPath('field.dot'))).to.deep.equal(
+          expect(docSnap.data()).toEqual(obj);
+          expect(docSnap.get(new FieldPath('field.dot'))).toEqual(
             obj['field.dot']
           );
-          expect(docSnap.get('field\\slash')).to.deep.equal(
-            obj['field\\slash']
-          );
+          expect(docSnap.get('field\\slash')).toEqual(obj['field\\slash']);
         });
     });
   });
@@ -291,7 +281,7 @@ apiDescribe('Fields with special characters', persistence => {
         })
         .then(() => getDoc(doc))
         .then(docSnap => {
-          expect(docSnap.data()).to.deep.equal({
+          expect(docSnap.data()).toEqual({
             field: 'field 1',
             'field.dot': 100,
             'field\\slash': 200
@@ -311,11 +301,11 @@ apiDescribe('Fields with special characters', persistence => {
       const expected = [testData(200), testData(300)];
       return getDocs(query(coll, where(new FieldPath('field.dot'), '>=', 200)))
         .then(results => {
-          expect(toDataArray(results)).to.deep.equal(expected);
+          expect(toDataArray(results)).toEqual(expected);
         })
         .then(() => getDocs(query(coll, where('field\\slash', '>=', 200))))
         .then(results => {
-          expect(toDataArray(results)).to.deep.equal(expected);
+          expect(toDataArray(results)).toEqual(expected);
         });
     });
   });
@@ -330,11 +320,11 @@ apiDescribe('Fields with special characters', persistence => {
       const expected = [testData(100), testData(200), testData(300)];
       return getDocs(query(coll, orderBy(new FieldPath('field.dot'))))
         .then(results => {
-          expect(toDataArray(results)).to.deep.equal(expected);
+          expect(toDataArray(results)).toEqual(expected);
         })
         .then(() => getDocs(query(coll, orderBy('field\\slash'))))
         .then(results => {
-          expect(toDataArray(results)).to.deep.equal(expected);
+          expect(toDataArray(results)).toEqual(expected);
         });
     });
   });
@@ -361,19 +351,19 @@ apiDescribe('Timestamp Fields in snapshots', persistence => {
       return setDoc(doc, testDataWithTimestamps(timestamp))
         .then(() => getDoc(doc))
         .then(docSnap => {
-          expect(docSnap.get('timestamp'))
-            .to.be.an.instanceof(Timestamp)
-            .that.deep.equals(truncatedTimestamp);
-          expect(docSnap.data()!['timestamp'])
-            .to.be.an.instanceof(Timestamp)
-            .that.deep.equals(truncatedTimestamp);
+          expect(docSnap.get('timestamp')).toBeInstanceOf(Timestamp);
+          expect(docSnap.get('timestamp')).toEqual(truncatedTimestamp);
+          expect(docSnap.data()!['timestamp']).toBeInstanceOf(Timestamp);
+          expect(docSnap.data()!['timestamp']).toEqual(truncatedTimestamp);
 
-          expect(docSnap.get('nested.timestamp2'))
-            .to.be.an.instanceof(Timestamp)
-            .that.deep.equals(truncatedTimestamp);
-          expect(docSnap.data()!['nested']['timestamp2'])
-            .to.be.an.instanceof(Timestamp)
-            .that.deep.equals(truncatedTimestamp);
+          expect(docSnap.get('nested.timestamp2')).toBeInstanceOf(Timestamp);
+          expect(docSnap.get('nested.timestamp2')).toEqual(truncatedTimestamp);
+          expect(docSnap.data()!['nested']['timestamp2']).toBeInstanceOf(
+            Timestamp
+          );
+          expect(docSnap.data()!['nested']['timestamp2']).toEqual(
+            truncatedTimestamp
+          );
         });
     });
   });
@@ -387,7 +377,7 @@ apiDescribe('`undefined` properties', persistence => {
     return withTestDocAndSettings(persistence, settings, async doc => {
       await setDoc(doc, { foo: 'foo', 'bar': undefined });
       const docSnap = await getDoc(doc);
-      expect(docSnap.data()).to.deep.equal({ foo: 'foo' });
+      expect(docSnap.data()).toEqual({ foo: 'foo' });
     });
   });
 
@@ -396,7 +386,7 @@ apiDescribe('`undefined` properties', persistence => {
       await setDoc(doc, { foo: 'foo', bar: 'unchanged' });
       await setDoc(doc, { foo: 'foo', bar: undefined }, { merge: true });
       const docSnap = await getDoc(doc);
-      expect(docSnap.data()).to.deep.equal({ foo: 'foo', bar: 'unchanged' });
+      expect(docSnap.data()).toEqual({ foo: 'foo', bar: 'unchanged' });
     });
   });
 
@@ -406,7 +396,7 @@ apiDescribe('`undefined` properties', persistence => {
       await updateDoc(doc, { a: { foo: 'foo', 'bar': undefined } });
       await updateDoc(doc, 'b', { foo: 'foo', 'bar': undefined });
       const docSnap = await getDoc(doc);
-      expect(docSnap.data()).to.deep.equal({
+      expect(docSnap.data()).toEqual({
         a: { foo: 'foo' },
         b: { foo: 'foo' }
       });
@@ -427,7 +417,7 @@ apiDescribe('`undefined` properties', persistence => {
           })
         );
         const querySnap = await getDocs(filteredQuery);
-        expect(querySnap.size).to.equal(1);
+        expect(querySnap.size).toBe(1);
       }
     );
   });
@@ -444,7 +434,7 @@ apiDescribe('`undefined` properties', persistence => {
           startAt({ foo: 'foo', 'bar': undefined })
         );
         const querySnap = await getDocs(orderedQuery);
-        expect(querySnap.size).to.equal(1);
+        expect(querySnap.size).toBe(1);
       }
     );
   });

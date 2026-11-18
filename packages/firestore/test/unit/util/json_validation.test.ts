@@ -15,16 +15,14 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { property, validateJSON } from '../../../src/util/json_validation';
 
 describe('JSON Validation', () => {
   it('validates property constructor helper correctly', () => {
     const prop = property('string', 'hello');
-    expect(prop.typeString).to.equal('string');
-    expect(prop.value).to.equal('hello');
-    expect(prop.optional).to.be.undefined;
+    expect(prop.typeString).toBe('string');
+    expect(prop.value).toBe('hello');
+    expect(prop.optional).toBeUndefined();
   });
 
   it('validates standard required fields schema', () => {
@@ -39,7 +37,7 @@ describe('JSON Validation', () => {
       requiredNum: 42,
       requiredBool: true
     };
-    expect(validateJSON(validObj, schema)).to.be.true;
+    expect(validateJSON(validObj, schema)).toBe(true);
 
     // Missing string property
     expect(() => {
@@ -50,7 +48,7 @@ describe('JSON Validation', () => {
         },
         schema
       );
-    }).to.throw("JSON missing required field: 'requiredStr'");
+    }).toThrow("JSON missing required field: 'requiredStr'");
 
     // Wrong type for number property
     expect(() => {
@@ -62,7 +60,7 @@ describe('JSON Validation', () => {
         },
         schema
       );
-    }).to.throw("JSON field 'requiredNum' must be a number.");
+    }).toThrow("JSON field 'requiredNum' must be a number.");
   });
 
   it('validates exact property values', () => {
@@ -70,11 +68,11 @@ describe('JSON Validation', () => {
       exactVersion: property('string', 'v1.0')
     };
 
-    expect(validateJSON({ exactVersion: 'v1.0' }, schema)).to.be.true;
+    expect(validateJSON({ exactVersion: 'v1.0' }, schema)).toBe(true);
 
     expect(() => {
       validateJSON({ exactVersion: 'v2.0' }, schema);
-    }).to.throw("Expected 'exactVersion' field to equal 'v1.0'");
+    }).toThrow("Expected 'exactVersion' field to equal 'v1.0'");
   });
 
   it('validates optional fields in schema', () => {
@@ -92,7 +90,7 @@ describe('JSON Validation', () => {
         },
         schema
       )
-    ).to.be.true;
+    ).toBe(true);
 
     // Optional omitted
     expect(
@@ -102,7 +100,7 @@ describe('JSON Validation', () => {
         },
         schema
       )
-    ).to.be.true;
+    ).toBe(true);
 
     // Optional provided but incorrect type
     expect(() => {
@@ -113,6 +111,6 @@ describe('JSON Validation', () => {
         },
         schema
       );
-    }).to.throw("JSON field 'optionalField' must be a number.");
+    }).toThrow("JSON field 'optionalField' must be a number.");
   });
 });

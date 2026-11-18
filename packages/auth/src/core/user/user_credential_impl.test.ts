@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,6 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
-
 import { OperationType, ProviderId } from '../../model/enums';
 
 import { mockEndpoint } from '../../../test/helpers/api/helper';
@@ -31,10 +26,6 @@ import { APIUserInfo } from '../../api/account_management/account';
 import { IdTokenResponse, IdTokenResponseKind } from '../../model/id_token';
 import { UserInternal } from '../../model/user';
 import { UserCredentialImpl } from './user_credential_impl';
-
-use(chaiAsPromised);
-use(sinonChai);
-
 describe('core/user/user_credential_impl', () => {
   const serverUser: APIUserInfo = {
     localId: 'local-id',
@@ -74,24 +65,24 @@ describe('core/user/user_credential_impl', () => {
         OperationType.SIGN_IN,
         idTokenResponse
       );
-      expect(userCredential.providerId).to.be.null;
-      expect(userCredential._tokenResponse).to.eq(idTokenResponse);
-      expect(userCredential.operationType).to.eq(OperationType.SIGN_IN);
-      expect(userCredential.user.uid).to.eq('local-id');
+      expect(userCredential.providerId).toBeNull();
+      expect(userCredential._tokenResponse).toBe(idTokenResponse);
+      expect(userCredential.operationType).toBe(OperationType.SIGN_IN);
+      expect(userCredential.user.uid).toBe('local-id');
     });
 
     it('should not trigger callbacks', async () => {
-      const cb = sinon.spy();
+      const cb = vi.fn();
       auth.onAuthStateChanged(cb);
       await auth._updateCurrentUser(null);
-      cb.resetHistory();
+      cb.mockClear();
 
       await UserCredentialImpl._fromIdTokenResponse(
         auth,
         OperationType.SIGN_IN,
         idTokenResponse
       );
-      expect(cb).not.to.have.been.called;
+      expect(cb).not.toHaveBeenCalled();
     });
   });
 
@@ -114,15 +105,15 @@ describe('core/user/user_credential_impl', () => {
         }
       );
 
-      expect(cred.providerId).to.eq(ProviderId.PHONE);
-      expect(cred.operationType).to.eq(OperationType.REAUTHENTICATE);
+      expect(cred.providerId).toBe(ProviderId.PHONE);
+      expect(cred.operationType).toBe(OperationType.REAUTHENTICATE);
     });
 
     it('persists the user', async () => {
       await UserCredentialImpl._forOperation(user, OperationType.LINK, {
         ...TEST_ID_TOKEN_RESPONSE
       });
-      expect(auth.persistenceLayer.lastObjectSet).to.eql(user.toJSON());
+      expect(auth.persistenceLayer.lastObjectSet).toEqual(user.toJSON());
     });
   });
 });

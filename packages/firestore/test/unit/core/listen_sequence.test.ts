@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { ListenSequence } from '../../../src/core/listen_sequence';
 import { ListenSequenceNumber } from '../../../src/core/types';
@@ -34,7 +32,7 @@ describe('ListenSequence', () => {
     for (let i = 0; i < 3; i++) {
       producedNumbers.push(listenSequence.next());
     }
-    expect(writtenNumbers).to.deep.equal(producedNumbers);
+    expect(writtenNumbers).toEqual(producedNumbers);
   });
 
   it('bumps the next value based on notifications from the syncer', () => {
@@ -45,9 +43,9 @@ describe('ListenSequence', () => {
     };
     const listenSequence = new ListenSequence(0, syncParams);
     syncParams.sequenceNumberHandler!(5);
-    expect(listenSequence.next()).to.equal(6);
-    expect(listenSequence.next()).to.equal(7);
+    expect(listenSequence.next()).toBe(6);
+    expect(listenSequence.next()).toBe(7);
     syncParams.sequenceNumberHandler!(18);
-    expect(listenSequence.next()).to.equal(19);
+    expect(listenSequence.next()).toBe(19);
   });
 });

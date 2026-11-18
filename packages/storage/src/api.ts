@@ -51,13 +51,13 @@ import {
 } from './reference';
 import { STORAGE_TYPE } from './constants';
 import {
-  EmulatorMockTokenOptions,
   getModularInstance,
   getDefaultEmulatorHostnameAndPort
 } from '@firebase/util';
+import type { EmulatorMockTokenOptions } from '@firebase/util';
 import { StringFormat } from './implementation/string';
 
-export { EmulatorMockTokenOptions } from '@firebase/util';
+export type { EmulatorMockTokenOptions } from '@firebase/util';
 
 export { StorageError, StorageErrorCode } from './implementation/error';
 

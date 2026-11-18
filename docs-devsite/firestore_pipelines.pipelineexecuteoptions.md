@@ -22,9 +22,22 @@ export declare interface PipelineExecuteOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [atomic](./firestore_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionsatomic) | boolean | If <code>true</code>, the pipeline is executed in a new read-write transaction that is committed automatically when the pipeline completes, so all writes made by DML stages (<code>insert</code>, <code>upsert</code>, <code>update</code>, <code>delete</code>) succeed or fail together.<!-- -->If <code>false</code> or omitted, DML writes are applied per document without a transaction, and the pipeline may partially succeed. Some DML pipelines (e.g. an <code>upsert</code> from a <code>literals()</code> source) can only be executed atomically, and are otherwise rejected with "The non-transactional DML operation was rejected because it was impossible to guarantee document-level atomicity." |
 |  [indexMode](./firestore_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionsindexmode) | 'recommended' | Specify the index mode. |
 |  [pipeline](./firestore_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionspipeline) | [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) | Pipeline to be evaluated. |
 |  [rawOptions](./firestore_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionsrawoptions) | { \[name: string\]: unknown; } | An escape hatch to set options not known at SDK build time. These values will be passed directly to the Firestore backend and not used by the SDK.<!-- -->The option name will be used as provided. And must match the name format used by the backend (hint: use a snake\_case\_name).<!-- -->Custom option values can be any type supported by Firestore (for example: string, boolean, number, map, …). Value types not known to the SDK will be rejected.<!-- -->Values specified in rawOptions will take precedence over any options with the same name set by the SDK. |
+
+## PipelineExecuteOptions.atomic
+
+If `true`<!-- -->, the pipeline is executed in a new read-write transaction that is committed automatically when the pipeline completes, so all writes made by DML stages (`insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, `delete`<!-- -->) succeed or fail together.
+
+If `false` or omitted, DML writes are applied per document without a transaction, and the pipeline may partially succeed. Some DML pipelines (e.g. an `upsert` from a `literals()` source) can only be executed atomically, and are otherwise rejected with "The non-transactional DML operation was rejected because it was impossible to guarantee document-level atomicity."
+
+<b>Signature:</b>
+
+```typescript
+atomic?: boolean;
+```
 
 ## PipelineExecuteOptions.indexMode
 

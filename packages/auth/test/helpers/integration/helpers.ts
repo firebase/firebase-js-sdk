@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as sinon from 'sinon';
 import { FirebaseServerApp, deleteApp, initializeApp } from '@firebase/app';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Auth, User } from '@firebase/auth';
@@ -27,6 +26,8 @@ import { resetEmulator } from './emulator_rest_helpers';
 // @ts-ignore - ignore types since this is only used in tests.
 import totp from 'totp-generator';
 import { _castAuth } from '../../../internal';
+import { MockInstance } from 'vitest';
+
 interface IntegrationTestAuth extends Auth {
   cleanUp(): Promise<void>;
 }
@@ -46,7 +47,7 @@ export function getTestInstance(requireEmulator = false): Auth {
   if (emulatorUrl) {
     const stub = stubConsoleToSilenceEmulatorWarnings();
     connectAuthEmulator(auth, emulatorUrl, { disableWarnings: true });
-    stub.restore();
+    stub.mockRestore();
   } else if (requireEmulator) {
     /* Emulator wasn't configured but test must use emulator */
     throw new Error('Test may only be run using the Auth Emulator!');
@@ -119,9 +120,9 @@ export async function cleanUpTestInstance(auth: Auth): Promise<void> {
   await (auth as IntegrationTestAuth).cleanUp();
 }
 
-function stubConsoleToSilenceEmulatorWarnings(): sinon.SinonStub {
+function stubConsoleToSilenceEmulatorWarnings(): MockInstance {
   const originalConsoleInfo = console.info.bind(console);
-  return sinon.stub(console, 'info').callsFake((...args: unknown[]) => {
+  return vi.spyOn(console, 'info').mockImplementation((...args: unknown[]) => {
     if (
       !JSON.stringify(args[0]).includes(
         'WARNING: You are using the Auth Emulator'

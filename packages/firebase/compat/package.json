@@ -5,6 +5,13 @@
   "module": "dist/esm/index.esm.js",
   "react-native": "dist/index.rn.cjs.js",
   "typings": "index.d.ts",
+  "typesVersions": {
+    "<4.5": {
+      "*": [
+        "../typescript-version-check.ts"
+      ]
+    }
+  },
   "components": [
     "app",
     "analytics",

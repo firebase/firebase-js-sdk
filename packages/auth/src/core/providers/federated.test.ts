@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { FederatedAuthProvider } from './federated';
 
 /** Federated provider is marked abstract; create a pass-through class */
@@ -29,20 +28,20 @@ describe('core/providers/federated', () => {
   });
 
   it('has the providerId', () => {
-    expect(federatedProvider.providerId).to.eq('federated');
+    expect(federatedProvider.providerId).toBe('federated');
   });
 
   it('allows setting a default language code', () => {
-    expect(federatedProvider.defaultLanguageCode).to.be.null;
+    expect(federatedProvider.defaultLanguageCode).toBeNull();
     federatedProvider.setDefaultLanguage('en-US');
-    expect(federatedProvider.defaultLanguageCode).to.eq('en-US');
+    expect(federatedProvider.defaultLanguageCode).toBe('en-US');
   });
 
   it('can set and retrieve custom parameters', () => {
-    expect(federatedProvider.getCustomParameters()).to.eql({});
-    expect(federatedProvider.setCustomParameters({ foo: 'bar' })).to.eq(
+    expect(federatedProvider.getCustomParameters()).toEqual({});
+    expect(federatedProvider.setCustomParameters({ foo: 'bar' })).toBe(
       federatedProvider
     );
-    expect(federatedProvider.getCustomParameters()).to.eql({ foo: 'bar' });
+    expect(federatedProvider.getCustomParameters()).toEqual({ foo: 'bar' });
   });
 });

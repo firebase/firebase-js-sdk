@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { expect } from 'chai';
 
 import { Document } from '../../../src/model/document';
 import { DocumentSet } from '../../../src/model/document_set';
@@ -36,22 +34,22 @@ describe('DocumentSet', () => {
     const comp = DocComparator.byField('sort');
     const set = documentSet(comp, d1, d2, d3);
 
-    expect(set.size).to.equal(3);
+    expect(set.size).toBe(3);
 
-    expect(set.has(d1.key)).to.equal(true);
-    expect(set.has(d2.key)).to.equal(true);
-    expect(set.has(d3.key)).to.equal(true);
+    expect(set.has(d1.key)).toBe(true);
+    expect(set.has(d2.key)).toBe(true);
+    expect(set.has(d3.key)).toBe(true);
 
-    expect(set.get(d1.key)).to.equal(d1);
-    expect(set.get(d2.key)).to.equal(d2);
-    expect(set.get(d3.key)).to.equal(d3);
+    expect(set.get(d1.key)).toBe(d1);
+    expect(set.get(d2.key)).toBe(d2);
+    expect(set.get(d3.key)).toBe(d3);
 
-    expect(set.first()).to.deep.equal(d3);
-    expect(set.last()).to.deep.equal(d2);
+    expect(set.first()).toEqual(d3);
+    expect(set.last()).toEqual(d2);
 
     const results: Document[] = [];
     set.forEach((d: Document) => results.push(d));
-    expect(results).to.deep.equal([d3, d1, d2]);
+    expect(results).toEqual([d3, d1, d2]);
   });
 
   it('adds and deletes elements', () => {
@@ -61,20 +59,20 @@ describe('DocumentSet', () => {
       .add(d3)
       .delete(d1.key)
       .delete(d3.key);
-    expect(set.size).to.equal(1);
-    expect(set.first()).to.equal(d2);
-    expect(set.last()).to.equal(d2);
+    expect(set.size).toBe(1);
+    expect(set.first()).toBe(d2);
+    expect(set.last()).toBe(d2);
   });
 
   it('updates documents', () => {
     const comp = DocComparator.byField('sort');
     let set = new DocumentSet(comp).add(d1).add(d2).add(d3);
-    expect(set.size).to.equal(3);
+    expect(set.size).toBe(3);
 
     const d2prime = doc('docs/2', 2, { sort: 9 });
     set = set.add(d2prime);
-    expect(set.size).to.equal(3);
-    expect(set.get(d2prime.key)).to.deep.equal(d2prime);
+    expect(set.size).toBe(3);
+    expect(set.get(d2prime.key)).toEqual(d2prime);
   });
 
   it('adds docs equal to comparator with different keys', () => {
@@ -83,8 +81,8 @@ describe('DocumentSet', () => {
     const doc2 = doc('docs/2', 1, { sort: 1 });
 
     const set = documentSet(comp, doc1, doc2);
-    expect(set.has(doc1.key)).to.equal(true);
-    expect(set.has(doc2.key)).to.equal(true);
+    expect(set.has(doc1.key)).toBe(true);
+    expect(set.has(doc2.key)).toBe(true);
   });
 
   it('equals to other document set with the same elements and order', () => {
@@ -93,7 +91,7 @@ describe('DocumentSet', () => {
     expectEqual(documentSet(d1, d2, d3), documentSet(d1, d2, d3));
     expectEqual(documentSet(comp, d1, d2, d3), documentSet(comp, d1, d2, d3));
 
-    expect(documentSet(d1, d2, d3).isEqual(null)).to.equal(false);
+    expect(documentSet(d1, d2, d3).isEqual(null)).toBe(false);
     expectNotEqual(documentSet(d1, d2, d3), documentSet(d1, d2));
     expectNotEqual(documentSet(d1, d2, d3), documentSet(comp, d1, d2, d3));
   });

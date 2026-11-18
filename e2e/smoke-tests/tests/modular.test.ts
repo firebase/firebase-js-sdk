@@ -90,13 +90,11 @@ import {
   getGenerativeModel,
   getAI,
   AI,
-  EnterpriseBackend,
   AgentPlatformBackend
 } from 'firebase/ai';
 import { getDataConnect, DataConnect } from 'firebase/data-connect';
 // @ts-ignore
 import { config, testAccount } from '../firebase-config';
-import 'jest';
 
 describe('MODULAR', () => {
   let app: FirebaseApp;
@@ -106,9 +104,9 @@ describe('MODULAR', () => {
     setLogLevel('warn');
   });
 
-  afterAll(() => {
-    signOut(getAuth(app));
-    deleteApp(app);
+  afterAll(async () => {
+    await signOut(getAuth(app));
+    await deleteApp(app);
   });
 
   describe('AUTH', () => {
@@ -194,9 +192,7 @@ describe('MODULAR', () => {
   describe('FIRESTORE', () => {
     let firestore: Firestore;
     it('initializeFirestore()', () => {
-      // fetch streams doesn't work in Jest.
-      // @ts-ignore I think the option is private so TS doesn't like it.
-      firestore = initializeFirestore(app, { useFetchStreams: false });
+      firestore = initializeFirestore(app, {});
     });
     it('getFirestore()', () => {
       firestore = getFirestore(app);
@@ -269,15 +265,7 @@ describe('MODULAR', () => {
 
   describe('MESSAGING', () => {
     it('getMessaging()', () => {
-      // @ts-ignore Stub missing browser APIs that FCM depends on
-      window.indexedDB = { open: () => Promise.resolve() };
-      // @ts-ignore Stub missing browser APIs that FCM depends on
-      navigator.serviceWorker = { addEventListener: () => {} };
       getMessaging(app);
-      // @ts-ignore
-      delete window.indexedDB;
-      // @ts-ignore
-      delete navigator.serviceWorker;
     });
   });
 
@@ -287,13 +275,7 @@ describe('MODULAR', () => {
       analyticsIsSupported();
     });
     it('getAnalytics()', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementationOnce(() => {});
       analytics = getAnalytics(app);
-      expect(warn).toHaveBeenCalledWith(
-        expect.stringMatching('@firebase/analytics'),
-        expect.stringMatching(/IndexedDB unavailable/)
-      );
-      warn.mockRestore();
     });
     it("logEvent() doesn't error", () => {
       logEvent(analytics, 'begin_checkout');
@@ -316,11 +298,9 @@ describe('MODULAR', () => {
 
   describe('AI', () => {
     let ai: AI;
-    it('getAI with EnterpriseBackend()', () => {
-      ai = getAI(app, { backend: new EnterpriseBackend() });
-    });
     it('getAI with AgentPlatformBackend()', () => {
-      expect(getAI(app, { backend: new AgentPlatformBackend() })).toBeDefined();
+      ai = getAI(app, { backend: new AgentPlatformBackend() });
+      expect(ai).toBeDefined();
     });
     it('getGenerativeModel()', async () => {
       const model = getGenerativeModel(ai, { model: 'gemini-3.5-flash' });
