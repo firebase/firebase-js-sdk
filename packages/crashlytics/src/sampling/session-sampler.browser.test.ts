@@ -23,6 +23,7 @@ import {
   TELEMETRY_DEBUG_GLOBAL_FLAG
 } from '../constants';
 import { ClientConfig, ClientConfigStore } from './client-config';
+import { initTelemetryDebugOverride } from './debug-override';
 import { isSessionSampled, SessionSampler } from './session-sampler';
 
 // Session IDs whose hash buckets are 1184, 6018 and 8828 out of 10000.
@@ -386,15 +387,20 @@ describe('SessionSampler', () => {
       });
     });
 
-    it('forces sampling via the sessionStorage marker and stamps 1.0', () => {
+    it('forces sampling via the sessionStorage marker synced at startup and stamps 1.0', () => {
       sessionStorage.setItem(SESSION_STORAGE_DEBUG_KEY, 'true');
-      const { sampler } = createSampler({ samplingRate: 0.25 }, SESSION_HIGH);
-      expect(sampler.getDecision()).toEqual({
-        sessionId: SESSION_HIGH,
-        sampled: true,
-        samplingRate: 1,
-        forced: true
-      });
+      const unsubscribe = initTelemetryDebugOverride();
+      try {
+        const { sampler } = createSampler({ samplingRate: 0.25 }, SESSION_HIGH);
+        expect(sampler.getDecision()).toEqual({
+          sessionId: SESSION_HIGH,
+          sampled: true,
+          samplingRate: 1,
+          forced: true
+        });
+      } finally {
+        unsubscribe();
+      }
     });
 
     it('forces sampling even when collection is paused (rate 0.0)', () => {
@@ -451,7 +457,7 @@ describe('SessionSampler', () => {
       expect(records).toEqual([{ attributes: {} }]);
     });
 
-    it('does not re-fetch the config while waiting to be forced, so re-enabling telemetry applies after a reload', () => {
+    it('refreshes the config without waiting until the session is forced, so re-enabling telemetry is picked up', () => {
       (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
         true;
       const { sampler, store } = createSampler(
@@ -459,20 +465,98 @@ describe('SessionSampler', () => {
         SESSION_HIGH
       );
       expect(sampler.getDecision().sampled).toBe(false);
-      expect(sampler.getDecision().sampled).toBe(false);
-      expect(store.refreshCount).toBe(0);
+      expect(store.refreshCount).toBe(1);
 
-      // After a reload, the new page's store has the re-enabled config.
-      const { sampler: reloaded } = createSampler(
-        { samplingRate: 0.5, enabled: true },
-        SESSION_HIGH
-      );
-      expect(reloaded.getDecision()).toEqual({
+      // The refresh returns after that decision: telemetry was re-enabled.
+      store.config = { samplingRate: 0.5, enabled: true };
+      expect(sampler.getDecision()).toEqual({
         sessionId: SESSION_HIGH,
         sampled: true,
         samplingRate: 1,
         forced: true
       });
+      expect(store.refreshCount).toBe(2);
+
+      // The forced decision is kept without refreshing again.
+      sampler.getDecision();
+      expect(store.refreshCount).toBe(2);
+    });
+
+    it('avoids redundant sessionStorage I/O on repeated unforced debug checks while disabled', () => {
+      (globalThis as Record<string, unknown>)[TELEMETRY_DEBUG_GLOBAL_FLAG] =
+        true;
+      const { sampler, store } = createSampler(
+        { samplingRate: 0, enabled: false },
+        SESSION_HIGH
+      );
+      const getItemSpy = vi.spyOn(Storage.prototype, 'getItem');
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+      try {
+        expect(sampler.getDecision().sampled).toBe(false);
+        expect(getItemSpy).toHaveBeenCalledTimes(1);
+        expect(setItemSpy).toHaveBeenCalledTimes(1);
+        expect(store.stopCount).toBe(1);
+
+        // Subsequent calls hit the in-memory decision instead of sessionStorage.
+        expect(sampler.getDecision().sampled).toBe(false);
+        expect(sampler.getDecision().sampled).toBe(false);
+        expect(getItemSpy).toHaveBeenCalledTimes(1);
+        expect(setItemSpy).toHaveBeenCalledTimes(1);
+        expect(store.stopCount).toBe(1);
+      } finally {
+        getItemSpy.mockRestore();
+        setItemSpy.mockRestore();
+      }
+    });
+
+    it('skips checking debug override once a session is forced', () => {
+      sessionStorage.setItem(SESSION_STORAGE_DEBUG_KEY, 'true');
+      const unsubscribe = initTelemetryDebugOverride();
+      const { sampler } = createSampler({ samplingRate: 0.5 }, SESSION_HIGH);
+      const getItemSpy = vi.spyOn(Storage.prototype, 'getItem');
+      try {
+        expect(sampler.getDecision().forced).toBe(true);
+        const initialReads = getItemSpy.mock.calls.length;
+        expect(initialReads).toBeGreaterThan(0);
+
+        // Once forced, later calls return cached without reading sessionStorage again.
+        expect(sampler.getDecision().forced).toBe(true);
+        expect(sampler.getDecision().forced).toBe(true);
+        expect(getItemSpy).toHaveBeenCalledTimes(initialReads);
+      } finally {
+        getItemSpy.mockRestore();
+        unsubscribe();
+      }
+    });
+
+    it('does not read sessionStorage on subsequent decisions for non-forced sessions', () => {
+      const { sampler } = createSampler({ samplingRate: 0.5 }, SESSION_LOW);
+      const getItemSpy = vi.spyOn(Storage.prototype, 'getItem');
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+      try {
+        expect(sampler.getDecision().sampled).toBe(true);
+        expect(getItemSpy).toHaveBeenCalledTimes(1);
+        expect(setItemSpy).toHaveBeenCalledTimes(1);
+
+        // Subsequent non-forced exports check only the in-memory decision and global flag.
+        expect(sampler.getDecision().sampled).toBe(true);
+        expect(sampler.getDecision().sampled).toBe(true);
+        expect(getItemSpy).toHaveBeenCalledTimes(1);
+        expect(setItemSpy).toHaveBeenCalledTimes(1);
+      } finally {
+        getItemSpy.mockRestore();
+        setItemSpy.mockRestore();
+      }
+    });
+
+    it('does not refresh the config for decisions made without the debug override', () => {
+      const { sampler, store } = createSampler(
+        { samplingRate: 0, enabled: false },
+        SESSION_HIGH
+      );
+      sampler.getDecision();
+      sampler.getDecision();
+      expect(store.refreshCount).toBe(0);
     });
 
     it('overrides a previously cached unsampled decision when enabled mid-session', () => {
@@ -513,16 +597,21 @@ describe('SessionSampler', () => {
 
       // E.g. the page is reloaded with `?firebase_telemetry_debug=true`, which sets this marker.
       sessionStorage.setItem(SESSION_STORAGE_DEBUG_KEY, 'true');
-      const { sampler: reloaded } = createSampler(
-        { samplingRate: 0.5 },
-        SESSION_HIGH
-      );
-      expect(reloaded.getDecision()).toEqual({
-        sessionId: SESSION_HIGH,
-        sampled: true,
-        samplingRate: 1,
-        forced: true
-      });
+      const unsubscribe = initTelemetryDebugOverride();
+      try {
+        const { sampler: reloaded } = createSampler(
+          { samplingRate: 0.5 },
+          SESSION_HIGH
+        );
+        expect(reloaded.getDecision()).toEqual({
+          sessionId: SESSION_HIGH,
+          sampled: true,
+          samplingRate: 1,
+          forced: true
+        });
+      } finally {
+        unsubscribe();
+      }
     });
 
     it('keeps the debug decision after the override is turned off, including after a reload', () => {

@@ -62,6 +62,18 @@ export function isSessionSampled(sessionId: string, rate: number): boolean {
 }
 
 /**
+ * Returns whether two {@link SamplingDecision} objects have identical values.
+ */
+function decisionsEqual(a: SamplingDecision, b: SamplingDecision): boolean {
+  return (
+    a.sessionId === b.sessionId &&
+    a.sampled === b.sampled &&
+    a.samplingRate === b.samplingRate &&
+    a.forced === b.forced
+  );
+}
+
+/**
  * Makes and remembers the session sampling decision for a Crashlytics instance.
  *
  * - The decision is made lazily, at the first telemetry export of the session: it uses the configuration in memory, which is the latest one fetched, else the cached
@@ -96,21 +108,37 @@ export class SessionSampler {
    * Returns the decision for the current session, making it from the configuration in memory if
    * none has been made yet.
    *
-   * A debug session that isn't forced because telemetry is disabled stays unforced until the page
-   * reloads, even if telemetry is re-enabled: the configuration isn't re-fetched for the decision.
+   * While the debug override is on and the session isn't forced yet (e.g. because telemetry is
+   * disabled), this triggers a non-blocking refresh so a later export can pick up re-enablement.
    */
   getDecision(): SamplingDecision {
-    const cached = this._cachedDecision();
-    if (cached) {
+    const sessionId = this._attributesStore.sessionId;
+    const cached = this._cachedDecision(sessionId);
+    if (cached?.forced) {
       return cached;
     }
+
+    const debug = isTelemetryDebugEnabled();
+    if (cached && !debug) {
+      return cached;
+    }
+
+    if (debug) {
+      // Not forced yet (e.g. telemetry is disabled): refresh for a later export.
+      void this._configStore.refreshIfStale();
+    }
+
     const decision = this._computeDecision(
-      this._attributesStore.sessionId,
-      this._configStore.config
+      sessionId,
+      this._configStore.config,
+      debug
     );
-    this._decision = decision;
-    this._persistDecision(decision);
-    this._configStore.stop();
+    if (!cached || !decisionsEqual(cached, decision)) {
+      this._decision = decision;
+      this._persistDecision(decision);
+      this._configStore.stop();
+    }
+
     return decision;
   }
 
@@ -139,11 +167,12 @@ export class SessionSampler {
 
   private _computeDecision(
     sessionId: string | undefined,
-    config: ClientConfig
+    config: ClientConfig,
+    debug: boolean
   ): SamplingDecision {
     // The debug override forces sampling at any rate, including a paused 0.0, but not when
     // telemetry is disabled for the app.
-    if (config.enabled && isTelemetryDebugEnabled()) {
+    if (config.enabled && debug) {
       return { sessionId, sampled: true, samplingRate: 1.0, forced: true };
     }
 
@@ -153,25 +182,24 @@ export class SessionSampler {
   }
 
   /**
-   * Returns the session's saved decision, if any. While the debug override is on, a non-forced
-   * decision is ignored, so the session gets a forced one (unless telemetry is disabled) and
-   * keeps it.
+   * Returns the cached decision for `sessionId` from memory or `sessionStorage`, if any.
    */
-  private _cachedDecision(): SamplingDecision | undefined {
-    const sessionId = this._attributesStore.sessionId;
+  private _cachedDecision(
+    sessionId: string | undefined
+  ): SamplingDecision | undefined {
     if (this._decision && this._decision.sessionId === sessionId) {
-      if (this._decision.forced || !isTelemetryDebugEnabled()) {
-        return this._decision;
-      }
+      return this._decision;
     }
-    // Not in memory yet (e.g. the page was reloaded): use the decision saved for this session.
+    if (!sessionId) {
+      this._decision = undefined;
+      return undefined;
+    }
+
     const persisted = this._loadPersistedDecision();
-    if (persisted && persisted.sessionId === sessionId && sessionId) {
-      if (persisted.forced || !isTelemetryDebugEnabled()) {
-        this._decision = persisted;
-        this._configStore.stop();
-        return persisted;
-      }
+    if (persisted && persisted.sessionId === sessionId) {
+      this._decision = persisted;
+      this._configStore.stop();
+      return persisted;
     }
     this._decision = undefined;
     return undefined;
