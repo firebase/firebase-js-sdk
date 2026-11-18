@@ -543,15 +543,7 @@
   dependencies:
     googleapis-common "^7.0.0"
 
-"@grpc/grpc-js@^1.12.6":
-  version "1.14.4"
-  resolved "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-1.14.4.tgz#e73ff57d97802f063999545f43ebb2b1eca65d9d"
-  integrity sha512-k9Dj3DV/itK9D06Y8f190Qgop7/Ui+D0njFV3LHMPwPT75DpXLQohE9Wmz0QElrJnzsjB7KPWiKJbOl7IPDArQ==
-  dependencies:
-    "@grpc/proto-loader" "^0.8.0"
-    "@js-sdsl/ordered-map" "^4.4.2"
-
-"@grpc/grpc-js@~1.14.7":
+"@grpc/grpc-js@^1.12.6", "@grpc/grpc-js@~1.14.7":
   version "1.14.7"
   resolved "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-1.14.7.tgz#e799e26396c8c8c32465f027b3e713f366143bc6"
   integrity sha512-W4W/fcBMGRVtG6dW2c7cw2mnpS3hvbBd+oQXjh2iYFTZDk1JJmcNqkM5KSaPubQpamlUUurrlb7G1s9NJeERmQ==
