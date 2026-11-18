@@ -56,11 +56,11 @@ export const DOC_EXAMPLES_CATALOG: DocExampleScenario[] = [
       'FirebaseSql',
       'FirebaseSql.restUrl',
       'FirebaseSql.schemaName',
-      'FirebaseSql.mutable',
+      'FirebaseSql.isMutable',
       'ServiceConfig'
     ],
     description:
-      'Obtains the FirebaseSql client for (serviceId, location) using the default schema, inspects restUrl/schemaName/mutable, and verifies instance caching.',
+      'Obtains the FirebaseSql client for (serviceId, location) using the default schema, inspects restUrl/schemaName/isMutable, and verifies instance caching.',
     code: `const sql = getSql(app, {
   serviceId: 'YOUR_SERVICE_ID',
   location: 'us-central1'
@@ -71,7 +71,7 @@ const cached = getSql(app, {
 });
 // sql === cached
 const res = await sql.from('venues').select('id, slug, name, city');
-// sql.restUrl, sql.schemaName, sql.mutable === false`,
+// sql.restUrl, sql.schemaName, sql.isMutable === false`,
     run: async () => {
       const sql = getActiveSql();
       const { serviceId, location } = getActiveConnection();
@@ -93,7 +93,7 @@ const res = await sql.from('venues').select('id, slug, name, city');
         passed:
           sameInstance &&
           typeof sql.restUrl === 'string' &&
-          !sql.mutable &&
+          !sql.isMutable &&
           res.data.length > 0,
         status: res.status,
         summary: `Deduplicated instance (${sameInstance}); schema=${sql.schemaName ?? '(default)'}; fetched ${res.data.length} venues`,
@@ -101,7 +101,7 @@ const res = await sql.from('venues').select('id, slug, name, city');
           sameInstance,
           restUrl: sql.restUrl,
           schemaName: sql.schemaName ?? '(default)',
-          mutable: sql.mutable,
+          isMutable: sql.isMutable,
           venues: res.data
         }
       };
@@ -240,26 +240,26 @@ const res = await pendingQuery;
   {
     id: 'client-setheaders-mutability',
     category: 'Client & ServiceConfig',
-    title: '4. setHeaders(), mutable, restUrl, & Code.ALREADY_INITIALIZED',
+    title: '4. setHeaders(), isMutable, restUrl, & Code.ALREADY_INITIALIZED',
     apiSymbols: [
       'FirebaseSql.setHeaders',
-      'FirebaseSql.mutable',
+      'FirebaseSql.isMutable',
       'FirebaseSql.restUrl',
       'FirebaseSql.schemaName',
       'Code.ALREADY_INITIALIZED'
     ],
     description:
-      'Inspects restUrl, schemaName, and mutable === true on a fresh client, configures default headers via setHeaders(), runs a query (transitioning mutable to false), and verifies late setHeaders() throws Code.ALREADY_INITIALIZED.',
+      'Inspects restUrl, schemaName, and isMutable === true on a fresh client, configures default headers via setHeaders(), runs a query (transitioning isMutable to false), and verifies late setHeaders() throws Code.ALREADY_INITIALIZED.',
     code: `const scopedSql = getSql(app, {
   serviceId: 'YOUR_SERVICE_ID',
   location: 'us-central1',
   schemaName: 'public'
 });
-// scopedSql.mutable === true, scopedSql.restUrl, scopedSql.schemaName === 'public'
+// scopedSql.isMutable === true, scopedSql.restUrl, scopedSql.schemaName === 'public'
 scopedSql.setHeaders({ 'x-Verify-Client': 'events-hub' });
 
 const query = scopedSql.from('venues').select('id, slug, name').limit(2);
-// scopedSql.mutable === false once from() or rpc() is called
+// scopedSql.isMutable === false once from() or rpc() is called
 const res = await query;
 
 try {
@@ -278,7 +278,7 @@ try {
         schemaName: 'public'
       };
       const prior = getSql(app, serviceConfig);
-      if (!prior.mutable) {
+      if (!prior.isMutable) {
         await terminate(prior);
       }
       const scopedSql = getSql(app, serviceConfig);
@@ -286,7 +286,7 @@ try {
       try {
         const initialRestUrl = scopedSql.restUrl;
         const initialSchemaName = scopedSql.schemaName;
-        const initialMutable = scopedSql.mutable;
+        const initialIsMutable = scopedSql.isMutable;
 
         scopedSql.setHeaders({ 'x-Verify-Client': 'events-hub' });
 
@@ -295,7 +295,7 @@ try {
           .select('id, slug, name')
           .limit(2)
           .returns<Array<Pick<Venue, 'id' | 'slug' | 'name'>>>();
-        const mutableAfterFrom = scopedSql.mutable;
+        const isMutableAfterFrom = scopedSql.isMutable;
         const res = await query;
 
         let alreadyInitializedCode: string | null = null;
@@ -315,8 +315,8 @@ try {
             payload: {
               restUrl: initialRestUrl,
               schemaName: initialSchemaName,
-              initialMutable,
-              mutableAfterFrom,
+              initialIsMutable,
+              isMutableAfterFrom,
               alreadyInitializedCode,
               error: res.error.toJSON()
             }
@@ -327,20 +327,20 @@ try {
           typeof initialRestUrl === 'string' &&
           initialRestUrl.includes('/postgrest') &&
           initialSchemaName === 'public' &&
-          initialMutable === true &&
-          mutableAfterFrom === false &&
+          initialIsMutable === true &&
+          isMutableAfterFrom === false &&
           alreadyInitializedCode === Code.ALREADY_INITIALIZED &&
           res.data.length > 0;
 
         return {
           passed,
           status: res.status,
-          summary: `mutable: ${initialMutable} -> ${mutableAfterFrom}; setHeaders() after from() threw ${alreadyInitializedCode}; fetched ${res.data.length} venues`,
+          summary: `isMutable: ${initialIsMutable} -> ${isMutableAfterFrom}; setHeaders() after from() threw ${alreadyInitializedCode}; fetched ${res.data.length} venues`,
           payload: {
             restUrl: initialRestUrl,
             schemaName: initialSchemaName,
-            initialMutable,
-            mutableAfterFrom,
+            initialIsMutable,
+            isMutableAfterFrom,
             alreadyInitializedCode,
             venues: res.data
           }

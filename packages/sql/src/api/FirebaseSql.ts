@@ -136,7 +136,7 @@ export interface FirebaseSqlRpcOptions {
  *
  * Read {@link FirebaseSql.restUrl} and {@link FirebaseSql.schemaName} to inspect the resolved
  * endpoint URL and active schema. Client-wide static HTTP headers can be configured via
- * {@link FirebaseSql.setHeaders} while {@link FirebaseSql.mutable} is `true` (before the first call
+ * {@link FirebaseSql.setHeaders} while {@link FirebaseSql.isMutable} is `true` (before the first call
  * to {@link FirebaseSql.from} or {@link FirebaseSql.rpc}). See {@link terminate} for shutting down
  * a client and evicting it from the app registry.
  *
@@ -223,12 +223,12 @@ export class FirebaseSql {
    * {@link terminate} or `deleteApp()`.
    *
    * Because {@link (getSql:1) | getSql()} returns cached instances shared per
-   * `(app, resolvedEndpointUrl, schemaName)`, `mutable` will already be `false` on a returned
+   * `(app, resolvedEndpointUrl, schemaName)`, `isMutable` will already be `false` on a returned
    * instance if it was previously used.
    *
    * @public
    */
-  get mutable(): boolean {
+  get isMutable(): boolean {
     return this._state.name === 'mutable';
   }
 
@@ -317,7 +317,7 @@ export class FirebaseSql {
    *
    * @remarks
    * When to use: configuring shared custom HTTP headers (such as tenant, locale, or correlation
-   * headers) while {@link FirebaseSql.mutable} is `true`, before calling {@link FirebaseSql.from}
+   * headers) while {@link FirebaseSql.isMutable} is `true`, before calling {@link FirebaseSql.from}
    * or {@link FirebaseSql.rpc}. Use {@link Builder.setHeader} to attach or override a header for a
    * single request; a same-named header passed to `Builder.setHeader()` overrides the client-level
    * header for that request.
@@ -329,7 +329,7 @@ export class FirebaseSql {
    *
    * Validation and error precedence: `headers` is parsed (`new Headers(headers)`) and checked for
    * protected header names synchronously before checking client lifecycle state (`mutable` or
-   * terminated). A failing call leaves {@link FirebaseSql.mutable} and any previously set headers
+   * terminated). A failing call leaves {@link FirebaseSql.isMutable} and any previously set headers
    * unchanged.
    *
    * Disallowed headers: do not pass authentication, App Check, or reserved Firebase telemetry and
@@ -352,7 +352,7 @@ export class FirebaseSql {
    * `x-firebase-client`, `x-firebase-client-log-type`, `x-goog-request-params`,
    * `x-firebase-sqlconnect-affinity`). Evaluated before lifecycle state checks.
    * @throws {@link FirebaseSqlError} (`already-initialized`, category `'sql-client'`)
-   * Thrown synchronously if {@link FirebaseSql.mutable} is `false` because {@link FirebaseSql.from}
+   * Thrown synchronously if {@link FirebaseSql.isMutable} is `false` because {@link FirebaseSql.from}
    * or {@link FirebaseSql.rpc} has already been called on this client.
    * @throws {@link FirebaseSqlError} (`not-initialized`, category `'sql-client'`)
    * Thrown synchronously if this client has been terminated via {@link terminate} or `deleteApp()`.
@@ -367,7 +367,7 @@ export class FirebaseSql {
    *   location: 'us-central1'
    * });
    *
-   * if (sql.mutable) {
+   * if (sql.isMutable) {
    *   sql.setHeaders({
    *     'x-app-locale': 'en-US',
    *     'x-client-session': 'sess-42'
@@ -377,7 +377,7 @@ export class FirebaseSql {
    * // Overwrites previous client headers with only 'x-app-locale'
    * sql.setHeaders([['x-app-locale', 'fr-FR']]);
    *
-   * // First from() call locks setHeaders() (sql.mutable becomes false)
+   * // First from() call locks setHeaders() (sql.isMutable becomes false)
    * const res = await sql
    *   .from('events')
    *   .select('id, title')
@@ -516,10 +516,10 @@ export class FirebaseSql {
    *
    * Behavior and side effects: synchronous and performs no network I/O. On the first successful
    * call to `from()` or {@link FirebaseSql.rpc}, this client permanently transitions
-   * {@link FirebaseSql.mutable} to `false` (locking {@link FirebaseSql.setHeaders}) and lazily
+   * {@link FirebaseSql.isMutable} to `false` (locking {@link FirebaseSql.setHeaders}) and lazily
    * initializes the underlying PostgREST client along with Firebase Authentication and App Check
    * token listeners. Terminated state (`not-initialized`) is checked before validating `table`,
-   * and a throwing call leaves {@link FirebaseSql.mutable} unchanged. The returned
+   * and a throwing call leaves {@link FirebaseSql.isMutable} unchanged. The returned
    * {@link QueryBuilder} clones URL and header state on each verb call (`select`, `insert`, etc.),
    * so a single `sql.from('events')` reference can be safely stored and reused across concurrent
    * queries. Special URI characters (`/`, `?`, `#`) in `table` are percent-encoded to prevent
@@ -610,10 +610,10 @@ export class FirebaseSql {
    *
    * Behavior and side effects: builder progression is `FirebaseSql -> FilterBuilder<unknown, 'RPC', false>`.
    * On the first successful call to `rpc()` or {@link FirebaseSql.from}, this client permanently
-   * transitions {@link FirebaseSql.mutable} to `false` (locking {@link FirebaseSql.setHeaders})
+   * transitions {@link FirebaseSql.isMutable} to `false` (locking {@link FirebaseSql.setHeaders})
    * and lazily initializes the underlying PostgREST client along with Firebase Authentication and
    * App Check token listeners. Terminated state (`not-initialized`) is checked before validating
-   * `fn`, and a throwing call leaves {@link FirebaseSql.mutable} unchanged. No HTTP request is
+   * `fn`, and a throwing call leaves {@link FirebaseSql.isMutable} unchanged. No HTTP request is
    * sent until the returned builder is `await`ed or `.then()` is invoked. Each `await` or
    * `.then()` call sends a new HTTP request (results are not cached); awaiting the same `rpc()`
    * builder twice executes the function twice and duplicates side effects for write functions, so
@@ -770,8 +770,8 @@ export class FirebaseSql {
  * Behavior and side effects: synchronous, performs no network I/O, copies and freezes
  * `serviceConfig`, and caches the resulting {@link FirebaseSql} instance on the default app keyed by
  * `(resolvedEndpointUrl, schemaName)`. Repeated calls with the same resolved endpoint and
- * `schemaName` return the shared cached instance, including its {@link FirebaseSql.mutable} and
- * {@link FirebaseSql.setHeaders} state—if the cached instance has already been used, `mutable` is
+ * `schemaName` return the shared cached instance, including its {@link FirebaseSql.isMutable} and
+ * {@link FirebaseSql.setHeaders} state—if the cached instance has already been used, `isMutable` is
  * `false`; use {@link Builder.setHeader} for per-request headers or call {@link terminate} first
  * to obtain a fresh mutable client. Note that if `serviceConfig.host` contains a scheme or path (such
  * as `'http://example.com'`), it does not throw—it resolves to the unintended hostname `'http'` and
@@ -840,8 +840,8 @@ export function getSql(serviceConfig: ServiceConfig): FirebaseSql;
  * Behavior and side effects: synchronous, performs no network I/O, copies and freezes
  * `serviceConfig`, and caches the {@link FirebaseSql} instance on `app` keyed by
  * `(resolvedEndpointUrl, schemaName)`. Repeated calls with the same resolved endpoint and
- * `schemaName` return the shared cached instance, sharing its {@link FirebaseSql.mutable} and
- * {@link FirebaseSql.setHeaders} state—if the cached instance has already been used, `mutable` is
+ * `schemaName` return the shared cached instance, sharing its {@link FirebaseSql.isMutable} and
+ * {@link FirebaseSql.setHeaders} state—if the cached instance has already been used, `isMutable` is
  * `false`; use {@link Builder.setHeader} for per-operation headers, or call {@link terminate} to
  * evict the cached instance and obtain a fresh mutable client. Note that passing a scheme or path
  * in `serviceConfig.host` does not throw and silently produces a wrong endpoint (for example,
@@ -969,7 +969,7 @@ export function getSql(
  * @remarks
  * When to use: tearing down a client during test cleanup, user session isolation, or evicting a
  * used client so a subsequent {@link (getSql:1) | getSql()} call creates a fresh client with
- * {@link FirebaseSql.mutable} equal to `true` (for example, to call {@link FirebaseSql.setHeaders}
+ * {@link FirebaseSql.isMutable} equal to `true` (for example, to call {@link FirebaseSql.setHeaders}
  * again after queries have started).
  *
  * Behavior and side effects: idempotent—calling `terminate(sql)` repeatedly on an

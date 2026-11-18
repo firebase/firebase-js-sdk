@@ -71,14 +71,14 @@ describe('FirebaseSql', () => {
       const client1 = FirebaseSql.getSql(app, defaultServiceConfig);
       const client2 = FirebaseSql.getSql(app, defaultServiceConfig);
       expect(client1).toBe(client2);
-      expect(client1.mutable).toBe(true);
+      expect(client1.isMutable).toBe(true);
 
       await FirebaseSql.terminate(client1);
-      expect(client1.mutable).toBe(false);
+      expect(client1.isMutable).toBe(false);
 
       const client3 = FirebaseSql.getSql(app, defaultServiceConfig);
       expect(client3).not.toBe(client1);
-      expect(client3.mutable).toBe(true);
+      expect(client3.isMutable).toBe(true);
 
       // Re-terminating an already-terminated instance must not evict the new live instance.
       await FirebaseSql.terminate(client1);
@@ -86,7 +86,7 @@ describe('FirebaseSql', () => {
 
       // Transition client3 to immutable before terminating.
       client3.from('users');
-      expect(client3.mutable).toBe(false);
+      expect(client3.isMutable).toBe(false);
       await FirebaseSql.terminate(client3);
 
       const client4 = FirebaseSql.getSql(app, defaultServiceConfig);
@@ -164,11 +164,11 @@ describe('FirebaseSql', () => {
     it('terminates a mutable instance cleanly when deleteApp() is called', async () => {
       const app = initializeApp({ projectId: 'test-project' });
       const client = FirebaseSql.getSql(app, defaultServiceConfig);
-      expect(client.mutable).toBe(true);
+      expect(client.isMutable).toBe(true);
 
       await deleteApp(app);
 
-      expect(client.mutable).toBe(false);
+      expect(client.isMutable).toBe(false);
       expect(() => client.from('users')).toThrow(
         expect.objectContaining({
           code: Code.NOT_INITIALIZED,
@@ -291,11 +291,11 @@ describe('FirebaseSql', () => {
 
       expect(authOnInitSpy).not.toHaveBeenCalled();
       expect(appCheckOnInitSpy).not.toHaveBeenCalled();
-      expect(client.mutable).toBe(true);
+      expect(client.isMutable).toBe(true);
     });
   });
 
-  describe('mutable and setHeaders()', () => {
+  describe('isMutable and setHeaders()', () => {
     afterEach(() => {
       vi.unstubAllGlobals();
     });
@@ -303,7 +303,7 @@ describe('FirebaseSql', () => {
     it('allows setting and overwriting headers while mutable, defensively copies inputs, and locks on from()/rpc()', async () => {
       const app = initializeApp({ projectId: 'proj-1' });
       const sql = FirebaseSql.getSql(app, defaultServiceConfig);
-      expect(sql.mutable).toBe(true);
+      expect(sql.isMutable).toBe(true);
 
       sql.setHeaders({ 'X-First': 'one', 'X-Shared': 'initial' });
 
@@ -316,7 +316,7 @@ describe('FirebaseSql', () => {
       mutableHeaders['X-Second'] = 'mutated';
       mutableHeaders['X-Injected'] = 'late';
 
-      expect(sql.mutable).toBe(true);
+      expect(sql.isMutable).toBe(true);
 
       const mockFetch = vi
         .fn<typeof fetch>()
@@ -325,7 +325,7 @@ describe('FirebaseSql', () => {
       vi.stubGlobal('fetch', mockFetch);
 
       const builder1 = sql.from('users').select().setHeader('X-Op', 'op1');
-      expect(sql.mutable).toBe(false);
+      expect(sql.isMutable).toBe(false);
 
       // Subsequent setHeaders() calls throw ALREADY_INITIALIZED once immutable.
       let immutableErr: unknown;
@@ -363,7 +363,7 @@ describe('FirebaseSql', () => {
       expect(headers2['x-op']).toBeUndefined();
     });
 
-    it('transitions mutable to false on rpc() and throws NOT_INITIALIZED on setHeaders() after terminate() from either mutable or immutable state', async () => {
+    it('transitions isMutable to false on rpc() and throws NOT_INITIALIZED on setHeaders() after terminate() from either mutable or immutable state', async () => {
       const app = initializeApp({ projectId: 'proj-1' });
 
       const sqlFromMutable = FirebaseSql.getSql(app, {
@@ -371,7 +371,7 @@ describe('FirebaseSql', () => {
         location: 'us-central1'
       });
       await FirebaseSql.terminate(sqlFromMutable);
-      expect(sqlFromMutable.mutable).toBe(false);
+      expect(sqlFromMutable.isMutable).toBe(false);
 
       let errAfterMutableTerminate: unknown;
       try {
@@ -391,12 +391,12 @@ describe('FirebaseSql', () => {
         serviceId: 'svc-rpc',
         location: 'us-central1'
       });
-      expect(sqlFromRpc.mutable).toBe(true);
+      expect(sqlFromRpc.isMutable).toBe(true);
       void sqlFromRpc.rpc('ping');
-      expect(sqlFromRpc.mutable).toBe(false);
+      expect(sqlFromRpc.isMutable).toBe(false);
 
       await FirebaseSql.terminate(sqlFromRpc);
-      expect(sqlFromRpc.mutable).toBe(false);
+      expect(sqlFromRpc.isMutable).toBe(false);
 
       let errAfterImmutableTerminate: unknown;
       try {
@@ -502,7 +502,7 @@ describe('FirebaseSql', () => {
           FirebaseSqlErrorCategory.SQL_CLIENT
         );
       }
-      expect(sqlMutable.mutable).toBe(true);
+      expect(sqlMutable.isMutable).toBe(true);
     });
 
     it('propagates TypeError synchronously on invalid HTTP header names/values or malformed inputs while preserving mutable state and prior headers', async () => {
@@ -518,7 +518,7 @@ describe('FirebaseSql', () => {
 
       for (const badInput of invalidInputs) {
         expect(() => sql.setHeaders(badInput)).toThrow(TypeError);
-        expect(sql.mutable).toBe(true);
+        expect(sql.isMutable).toBe(true);
       }
 
       const mockFetch = vi
@@ -577,7 +577,7 @@ describe('FirebaseSql', () => {
 
       // When client is immutable, invalid HTTP header syntax still throws TypeError
       // and disallowed headers still throw INVALID_ARGUMENT before ALREADY_INITIALIZED.
-      expect(sql.mutable).toBe(false);
+      expect(sql.isMutable).toBe(false);
       expect(() => sql.setHeaders({ 'Invalid Header': 'val' })).toThrow(
         TypeError
       );
@@ -641,7 +641,7 @@ describe('FirebaseSql', () => {
         expect((caughtErr as Error).message).toBe(
           'Invalid relation name: relation must be a non-empty string.'
         );
-        expect(sql.mutable).toBe(true);
+        expect(sql.isMutable).toBe(true);
         expect(authOnInitSpy).not.toHaveBeenCalled();
         expect(appCheckOnInitSpy).not.toHaveBeenCalled();
       }
@@ -650,7 +650,7 @@ describe('FirebaseSql', () => {
       expect(() =>
         sql.setHeaders({ 'X-After-Blank': 'still-mutable' })
       ).not.toThrow();
-      expect(sql.mutable).toBe(true);
+      expect(sql.isMutable).toBe(true);
 
       const mockFetch = vi
         .fn<typeof fetch>()
@@ -658,7 +658,7 @@ describe('FirebaseSql', () => {
       vi.stubGlobal('fetch', mockFetch);
 
       await sql.from('users').select();
-      expect(sql.mutable).toBe(false);
+      expect(sql.isMutable).toBe(false);
       const wireHeaders = mockFetch.mock.calls[0][1]?.headers as Record<
         string,
         string
@@ -1026,7 +1026,7 @@ describe('getSql()', () => {
       });
 
       expect(client1).toBe(client2);
-      expect(client2.mutable).toBe(true);
+      expect(client2.isMutable).toBe(true);
 
       client2.setHeaders({ 'X-Two': '2' });
       const mockFetch = vi
@@ -1038,7 +1038,7 @@ describe('getSql()', () => {
       } finally {
         vi.unstubAllGlobals();
       }
-      expect(client2.mutable).toBe(false);
+      expect(client2.isMutable).toBe(false);
       const wireHeaders = mockFetch.mock.calls[0][1]?.headers as Record<
         string,
         string
@@ -1446,7 +1446,7 @@ describe('FirebaseSql end-to-end operations', () => {
         } catch (err) {
           setHeadersErr = err;
         }
-        expect(mutableSql.mutable).toBe(true);
+        expect(mutableSql.isMutable).toBe(true);
         expect(setHeadersErr).toBeInstanceOf(FirebaseSqlError);
         expect((setHeadersErr as FirebaseSqlError).code).toBe(
           Code.INVALID_ARGUMENT

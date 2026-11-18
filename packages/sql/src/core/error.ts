@@ -94,7 +94,7 @@ export type Code = FirebaseSqlErrorCode;
  *
  * `Code.ALREADY_INITIALIZED` (`'already-initialized'`): thrown synchronously by
  * {@link FirebaseSql.setHeaders} (`category: 'sql-client'`) when called after the client has
- * transitioned to {@link FirebaseSql.mutable} === false (i.e., after the first
+ * transitioned to {@link FirebaseSql.isMutable} === false (i.e., after the first
  * {@link FirebaseSql.from} or {@link FirebaseSql.rpc} call).
  *
  * `Code.PARTIAL_ERROR` (`'partial-error'`): reserved error code.

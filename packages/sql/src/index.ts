@@ -9,7 +9,7 @@
  * Builder state machine and chain order: queries and mutations progress through five stages (the
  * entry client and four lazy TypeScript builder interfaces): (1) {@link FirebaseSql}, the entry client exposing
  * `sql.from(table)`, `sql.rpc(fn, params, options)`, and client-wide header setup via
- * `sql.setHeaders(headers)` (while `sql.mutable` is `true`); (2) {@link QueryBuilder}, the SQL table
+ * `sql.setHeaders(headers)` (while `sql.isMutable` is `true`); (2) {@link QueryBuilder}, the SQL table
  * verb selector (`select`, `insert`, `upsert`, `update`, `delete`); (3) {@link FilterBuilder}, row
  * filters (`eq`, `in`, `gte`, `contains`, `or`, `not`, and related operators);
  * (4) {@link TransformBuilder}, ordering, pagination, post-mutation `select()`, server preferences

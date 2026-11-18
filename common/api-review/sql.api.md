@@ -137,7 +137,7 @@ export class FirebaseSql {
     // @internal
     _delete(): Promise<void>;
     from(table: string): QueryBuilder;
-    get mutable(): boolean;
+    get isMutable(): boolean;
     readonly restUrl: string;
     rpc<Args extends object & {
         readonly [K in keyof Args]: unknown;

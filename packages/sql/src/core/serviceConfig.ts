@@ -28,7 +28,7 @@ import { FirebaseSqlErrorCategory, Code, FirebaseSqlError } from './error';
  *
  * Instance caching and HTTP headers: {@link (getSql:1) | getSql()} deduplicates instances by
  * `(app, resolvedEndpointUrl, schemaName)`. Use {@link FirebaseSql.setHeaders} to configure
- * client-wide static headers while {@link FirebaseSql.mutable} is `true`, and use
+ * client-wide static headers while {@link FirebaseSql.isMutable} is `true`, and use
  * {@link Builder.setHeader} for per-request header overrides. See {@link (getSql:1) | getSql()} for
  * client initialization and error rules.
  *
