@@ -144,6 +144,10 @@ export class GrpcConnection implements Connection {
     appCheckToken: Token | null
   ): Promise<Resp> {
     if (this.terminated) {
+      logDebug(
+        LOG_TAG,
+        `RPC '${rpcName}' not invoked because GrpcConnection is terminated.`
+      );
       return new Promise<Resp>(() => {});
     }
     const streamId = generateUniqueDebugId();
@@ -169,6 +173,10 @@ export class GrpcConnection implements Connection {
         metadata,
         (grpcError?: grpc.ServiceError, value?: Resp) => {
           if (this.terminated) {
+            logDebug(
+              LOG_TAG,
+              `RPC '${rpcName}' ${streamId} ignoring callback after terminate.`
+            );
             return;
           }
           if (grpcError) {
@@ -205,6 +213,10 @@ export class GrpcConnection implements Connection {
     expectedResponseCount?: number
   ): Promise<Resp[]> {
     if (this.terminated) {
+      logDebug(
+        LOG_TAG,
+        `RPC '${rpcName}' (streaming) not invoked because GrpcConnection is terminated.`
+      );
       return new Promise<Resp[]>(() => {});
     }
     const streamId = generateUniqueDebugId();
@@ -229,6 +241,10 @@ export class GrpcConnection implements Connection {
     let callbackFired = false;
     stream.on('data', (response: Resp) => {
       if (this.terminated) {
+        logDebug(
+          LOG_TAG,
+          `RPC '${rpcName}' ${streamId} ignoring data after terminate.`
+        );
         return;
       }
       logDebug(
@@ -247,6 +263,10 @@ export class GrpcConnection implements Connection {
     });
     stream.on('end', () => {
       if (this.terminated) {
+        logDebug(
+          LOG_TAG,
+          `RPC '${rpcName}' ${streamId} ignoring end after terminate.`
+        );
         return;
       }
       logDebug(LOG_TAG, `RPC '${rpcName}' ${streamId} completed.`);
@@ -257,6 +277,11 @@ export class GrpcConnection implements Connection {
     });
     stream.on('error', (grpcError: grpc.ServiceError) => {
       if (this.terminated) {
+        logDebug(
+          LOG_TAG,
+          `RPC '${rpcName}' ${streamId} ignoring error after terminate:`,
+          grpcError
+        );
         return;
       }
       logDebug(
@@ -277,6 +302,16 @@ export class GrpcConnection implements Connection {
     authToken: Token | null,
     appCheckToken: Token | null
   ): Stream<Req, Resp> {
+    if (this.terminated) {
+      logDebug(
+        LOG_TAG,
+        `RPC '${rpcName}' stream not opened because GrpcConnection is terminated.`
+      );
+      return new StreamBridge<Req, Resp>({
+        sendFn: () => {},
+        closeFn: () => {}
+      });
+    }
     const streamId = generateUniqueDebugId();
     const stub = this.ensureActiveStub();
     const metadata = createMetadata(
@@ -388,9 +423,8 @@ export class GrpcConnection implements Connection {
    */
   terminate(): void {
     this.terminated = true;
-    if (this.cachedStub) {
-      this.cachedStub.close();
-      this.cachedStub = undefined;
-    }
+    const stub = this.cachedStub;
+    this.cachedStub = null;
+    stub?.close();
   }
 }
