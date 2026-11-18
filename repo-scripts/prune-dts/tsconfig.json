@@ -11,7 +11,7 @@
     "strict": true,
     "skipLibCheck": true,
     "sourceMap": true,
-    "types": ["node", "mocha"]
+    "types": ["node"]
   },
   "exclude": ["dist/**/*", "tests/**/*.d.ts"]
 }
