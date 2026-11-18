@@ -188,33 +188,40 @@ describe('GrpcConnection', () => {
   describe('terminate()', () => {
     const flushAsync = (): Promise<void> =>
       new Promise(resolve => setImmediate(resolve));
+    const channelClosedError = {
+      code: status.UNAVAILABLE,
+      message: '14 UNAVAILABLE: Channel closed before call started'
+    };
+    const createConnectionWithStub = (FirestoreStub: unknown): GrpcConnection =>
+      new GrpcConnection(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { google: { firestore: { v1: { Firestore: FirestoreStub } } } } as any,
+        testDatabaseInfo
+      );
 
-    it('ignores in-flight invokeStreamingRPC errors emitted synchronously during terminate()', async () => {
-      const stream = new EventEmitter();
-      const mockProtos = {
-        google: {
-          firestore: {
-            v1: {
-              Firestore: class {
-                RunAggregationQuery(): EventEmitter {
-                  return stream;
-                }
-                close(): void {
-                  stream.emit('error', {
-                    code: status.UNAVAILABLE,
-                    message:
-                      '14 UNAVAILABLE: Channel closed before call started'
-                  });
-                }
-              }
-            }
+    it('ignores in-flight invokeStreamingRPC sync/async errors, data, and end events during and after terminate()', async () => {
+      const streams = [new EventEmitter(), new EventEmitter()];
+      let callIndex = 0;
+      const conn = createConnectionWithStub(
+        class {
+          RunAggregationQuery(): EventEmitter {
+            return streams[callIndex++];
+          }
+          close(): void {
+            streams[0].emit('error', channelClosedError);
+            process.nextTick(() => {
+              streams[1].emit('data', { result: {} });
+              streams[1].emit('end');
+              streams[1].emit('error', channelClosedError);
+            });
           }
         }
-      };
+      );
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const conn = new GrpcConnection(mockProtos as any, testDatabaseInfo);
       let settled = false;
+      const markSettled = (): void => {
+        settled = true;
+      };
       void conn
         .invokeStreamingRPC(
           'RunAggregationQuery',
@@ -223,50 +230,7 @@ describe('GrpcConnection', () => {
           null,
           null
         )
-        .then(
-          () => {
-            settled = true;
-          },
-          () => {
-            settled = true;
-          }
-        );
-
-      conn.terminate();
-      await flushAsync();
-      expect(settled).toBe(false);
-    });
-
-    it('ignores in-flight invokeStreamingRPC data, end, and async nextTick errors after terminate()', async () => {
-      const stream = new EventEmitter();
-      const mockProtos = {
-        google: {
-          firestore: {
-            v1: {
-              Firestore: class {
-                RunAggregationQuery(): EventEmitter {
-                  return stream;
-                }
-                close(): void {
-                  process.nextTick(() => {
-                    stream.emit('data', { result: {} });
-                    stream.emit('end');
-                    stream.emit('error', {
-                      code: status.UNAVAILABLE,
-                      message:
-                        '14 UNAVAILABLE: Channel closed before call started'
-                    });
-                  });
-                }
-              }
-            }
-          }
-        }
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const conn = new GrpcConnection(mockProtos as any, testDatabaseInfo);
-      let settled = false;
+        .then(markSettled, markSettled);
       void conn
         .invokeStreamingRPC(
           'RunAggregationQuery',
@@ -276,14 +240,7 @@ describe('GrpcConnection', () => {
           null,
           /*expectedResponseCount=*/ 1
         )
-        .then(
-          () => {
-            settled = true;
-          },
-          () => {
-            settled = true;
-          }
-        );
+        .then(markSettled, markSettled);
 
       conn.terminate();
       await flushAsync();
@@ -292,51 +249,28 @@ describe('GrpcConnection', () => {
 
     it('ignores in-flight invokeRPC error and success callbacks during and after terminate()', async () => {
       const callbacks: Array<(err: unknown, resp?: unknown) => void> = [];
-      const mockProtos = {
-        google: {
-          firestore: {
-            v1: {
-              Firestore: class {
-                Commit(
-                  _req: unknown,
-                  _metadata: Metadata,
-                  callback: (err: unknown, resp?: unknown) => void
-                ): void {
-                  callbacks.push(callback);
-                }
-                close(): void {
-                  // Synchronous error callback during close()
-                  callbacks[0]?.({
-                    code: status.UNAVAILABLE,
-                    message:
-                      '14 UNAVAILABLE: Channel closed before call started'
-                  });
-                  // Asynchronous success and error callbacks after close()
-                  process.nextTick(() => {
-                    callbacks[1]?.(undefined, { writeResults: [] });
-                    callbacks[2]?.({
-                      code: status.UNAVAILABLE,
-                      message:
-                        '14 UNAVAILABLE: Channel closed before call started'
-                    });
-                  });
-                }
-              }
-            }
+      const conn = createConnectionWithStub(
+        class {
+          Commit(
+            _req: unknown,
+            _metadata: Metadata,
+            callback: (err: unknown, resp?: unknown) => void
+          ): void {
+            callbacks.push(callback);
+          }
+          close(): void {
+            callbacks[0]?.(channelClosedError);
+            process.nextTick(() => {
+              callbacks[1]?.(undefined, { writeResults: [] });
+            });
           }
         }
-      };
+      );
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const conn = new GrpcConnection(mockProtos as any, testDatabaseInfo);
       let settled = false;
       const markSettled = (): void => {
         settled = true;
       };
-
-      void conn
-        .invokeRPC('Commit', ResourcePath.emptyPath(), {}, null, null)
-        .then(markSettled, markSettled);
       void conn
         .invokeRPC('Commit', ResourcePath.emptyPath(), {}, null, null)
         .then(markSettled, markSettled);
@@ -352,43 +286,31 @@ describe('GrpcConnection', () => {
     it('closes active stub once and does not recreate a stub for RPCs or streams after terminate()', async () => {
       const closeSpy = vi.fn();
       let constructorCalls = 0;
-      const mockProtos = {
-        google: {
-          firestore: {
-            v1: {
-              Firestore: class {
-                constructor() {
-                  constructorCalls += 1;
-                }
-                Commit(
-                  _req: unknown,
-                  _metadata: Metadata,
-                  callback: (err: unknown, resp?: unknown) => void
-                ): void {
-                  callback(undefined, {});
-                }
-                close(): void {
-                  closeSpy();
-                }
-              }
-            }
+      const conn = createConnectionWithStub(
+        class {
+          constructor() {
+            constructorCalls += 1;
+          }
+          Commit(
+            _req: unknown,
+            _metadata: Metadata,
+            callback: (err: unknown, resp?: unknown) => void
+          ): void {
+            callback(undefined, {});
+          }
+          close(): void {
+            closeSpy();
           }
         }
-      };
+      );
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const conn = new GrpcConnection(mockProtos as any, testDatabaseInfo);
-
-      // 1. Initial RPC creates the stub.
       await conn.invokeRPC('Commit', ResourcePath.emptyPath(), {}, null, null);
       expect(constructorCalls).toBe(1);
 
-      // 2. terminate() closes and clears the cached stub; repeated terminate() is a no-op.
       conn.terminate();
       conn.terminate();
       expect(closeSpy).toHaveBeenCalledTimes(1);
 
-      // 3. Subsequent RPCs and openStream() do not construct a second stub or settle.
       let settled = false;
       const markSettled = (): void => {
         settled = true;
@@ -414,7 +336,7 @@ describe('GrpcConnection', () => {
       stream.send({});
       stream.close();
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => setTimeout(resolve, 0));
       expect(constructorCalls).toBe(1);
       expect(settled).toBe(false);
       expect(streamOpened).toBe(false);
