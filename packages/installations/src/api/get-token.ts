@@ -15,10 +15,13 @@
  * limitations under the License.
  */
 
+import { FirebaseError } from '@firebase/util';
 import { getInstallationEntry } from '../helpers/get-installation-entry';
 import { refreshAuthToken } from '../helpers/refresh-auth-token';
 import { FirebaseInstallationsImpl } from '../interfaces/installation-impl';
 import { Installations } from '../interfaces/public-types';
+import { SERVICE } from '../util/constants';
+import { ErrorCode, isServerError } from '../util/errors';
 
 /**
  * Returns a Firebase Installations auth token, identifying the current
@@ -33,12 +36,42 @@ export async function getToken(
   forceRefresh = false
 ): Promise<string> {
   const installationsImpl = installations as FirebaseInstallationsImpl;
-  await completeInstallationRegistration(installationsImpl);
+  try {
+    return await getTokenOfRegisteredInstallation(
+      installationsImpl,
+      forceRefresh
+    );
+  } catch (e) {
+    if (!isInstallationRejectedError(e)) {
+      throw e;
+    }
+    return getTokenOfRegisteredInstallation(installationsImpl, forceRefresh);
+  }
+}
+
+async function getTokenOfRegisteredInstallation(
+  installations: FirebaseInstallationsImpl,
+  forceRefresh: boolean
+): Promise<string> {
+  await completeInstallationRegistration(installations);
 
   // At this point we either have a Registered Installation in the DB, or we've
   // already thrown an error.
-  const authToken = await refreshAuthToken(installationsImpl, forceRefresh);
+  const authToken = await refreshAuthToken(installations, forceRefresh);
   return authToken.token;
+}
+
+function isInstallationRejectedError(e: unknown): boolean {
+  if (isServerError(e)) {
+    return (
+      e.customData.requestName === 'Generate Auth Token' &&
+      (e.customData.serverCode === 401 || e.customData.serverCode === 404)
+    );
+  }
+  return (
+    e instanceof FirebaseError &&
+    e.code === `${SERVICE}/${ErrorCode.NOT_REGISTERED}`
+  );
 }
 
 async function completeInstallationRegistration(

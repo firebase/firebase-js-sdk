@@ -139,6 +139,23 @@ describe('RestClient', () => {
       });
     });
 
+    it('sends the installation ID the token was issued for', async () => {
+      let currentFid = 'rejected-fis-id';
+      firebaseInstallations.getToken = vi.fn().mockImplementation(async () => {
+        currentFid = 'new-fis-id';
+        return 'new-fis-token';
+      });
+      firebaseInstallations.getId = vi
+        .fn()
+        .mockImplementation(async () => currentFid);
+
+      await client.fetch(DEFAULT_REQUEST);
+
+      const requestBody = JSON.parse(fetchStub.mock.calls[0][1].body);
+      expect(requestBody['app_instance_id']).toBe('new-fis-id');
+      expect(requestBody['app_instance_id_token']).toBe('new-fis-token');
+    });
+
     it('throws on network failure', async () => {
       // The Fetch API throws a TypeError on network failure:
       // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch#Exceptions

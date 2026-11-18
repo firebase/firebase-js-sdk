@@ -323,11 +323,11 @@ describe('getToken', () => {
     });
 
     describe('and the server returns an error', () => {
-      it('removes the FID from the DB if the server returns a 401 response', async () => {
+      it('registers a new FID if the server returns a 401 response', async () => {
         vi.spyOn(
           generateAuthTokenRequestModule,
           'generateAuthTokenRequest'
-        ).mockImplementation(async () => {
+        ).mockImplementationOnce(async () => {
           throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
             requestName: 'Generate Auth Token',
             serverCode: 401,
@@ -336,15 +336,22 @@ describe('getToken', () => {
           });
         });
 
-        await expect(getToken(installations)).rejects.toThrow();
-        expect(await get(installations.appConfig)).toBeUndefined();
+        const token = await getToken(installations);
+
+        expect(token).toBe(NEW_AUTH_TOKEN);
+        expect(
+          createInstallationRequestModule.createInstallationRequest
+        ).toHaveBeenCalledTimes(1);
+        const entry = await get(installations.appConfig);
+        expect(entry?.fid).not.toBe(FID);
+        expect(entry?.registrationStatus).toBe(RequestStatus.COMPLETED);
       });
 
-      it('removes the FID from the DB if the server returns a 404 response', async () => {
+      it('registers a new FID if the server returns a 404 response', async () => {
         vi.spyOn(
           generateAuthTokenRequestModule,
           'generateAuthTokenRequest'
-        ).mockImplementation(async () => {
+        ).mockImplementationOnce(async () => {
           throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
             requestName: 'Generate Auth Token',
             serverCode: 404,
@@ -353,8 +360,40 @@ describe('getToken', () => {
           });
         });
 
-        await expect(getToken(installations)).rejects.toThrow();
-        expect(await get(installations.appConfig)).toBeUndefined();
+        const token = await getToken(installations);
+
+        expect(token).toBe(NEW_AUTH_TOKEN);
+        expect(
+          createInstallationRequestModule.createInstallationRequest
+        ).toHaveBeenCalledTimes(1);
+        const entry = await get(installations.appConfig);
+        expect(entry?.fid).not.toBe(FID);
+        expect(entry?.registrationStatus).toBe(RequestStatus.COMPLETED);
+      });
+
+      it('registers a new FID for simultaneous calls if the server returns a 404 response', async () => {
+        vi.spyOn(
+          generateAuthTokenRequestModule,
+          'generateAuthTokenRequest'
+        ).mockImplementationOnce(async () => {
+          await sleep(100);
+          throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
+            requestName: 'Generate Auth Token',
+            serverCode: 404,
+            serverStatus: 'NOT_FOUND',
+            serverMessage: 'FID not found.'
+          });
+        });
+
+        const tokens = await Promise.all([
+          getToken(installations),
+          getToken(installations)
+        ]);
+
+        expect(tokens).toEqual([NEW_AUTH_TOKEN, NEW_AUTH_TOKEN]);
+        expect(
+          createInstallationRequestModule.createInstallationRequest
+        ).toHaveBeenCalledTimes(1);
       });
 
       it('does not remove the FID from the DB if the server returns any other response', async () => {
