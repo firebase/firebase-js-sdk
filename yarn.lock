@@ -1600,10 +1600,10 @@
     "@grpc/proto-loader" "^0.8.0"
     "@js-sdsl/ordered-map" "^4.4.2"
 
-"@grpc/grpc-js@~1.14.5":
-  version "1.14.5"
-  resolved "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-1.14.5.tgz#12f97bd9f716358e377ffaa768195d1219eb76a3"
-  integrity sha512-7VZM+SVdEcUUqSQeNI3zM8Qs/BhQKZndPo2h5VkYkAM8Iz0wJIa8mKV5ekQGqG8UUsnkQ0NMxIxwkIHYvj0qOw==
+"@grpc/grpc-js@~1.14.7":
+  version "1.14.7"
+  resolved "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-1.14.7.tgz#e799e26396c8c8c32465f027b3e713f366143bc6"
+  integrity sha512-W4W/fcBMGRVtG6dW2c7cw2mnpS3hvbBd+oQXjh2iYFTZDk1JJmcNqkM5KSaPubQpamlUUurrlb7G1s9NJeERmQ==
   dependencies:
     "@grpc/proto-loader" "^0.8.0"
     "@js-sdsl/ordered-map" "^4.4.2"
