@@ -62,6 +62,7 @@ function projectConfigPlugin() {
 }
 
 for (const project of config.test.projects) {
+  project.test.retry = process.env.CI ? 3 : 0;
   const exclude = [...(project.test.exclude || [])];
   if (!hasIntegrationArg) {
     exclude.push('test/integration/**');

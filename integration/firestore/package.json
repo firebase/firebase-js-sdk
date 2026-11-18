@@ -16,15 +16,13 @@
     "test:memory:debug": "yarn build:memory && vitest --project=browser --browser.headless=false"
   },
   "dependencies": {
-    "@firebase/app": "0.16.6",
+    "@firebase/app": "0.16.7",
     "@firebase/firestore": "4.20.0"
   },
   "devDependencies": {
     "gulp": "5.0.1",
-    "gulp-filter": "7.0.0",
     "gulp-replace": "1.1.4",
-    "typescript": "5.5.4",
-    "webpack-stream": "7.0.0"
+    "typescript": "5.5.4"
   },
   "engines": {
     "node": ">=24.12.0"

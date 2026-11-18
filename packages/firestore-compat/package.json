@@ -56,7 +56,7 @@
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.5.22",
+    "@firebase/app-compat": "0.5.23",
     "rollup": "4.62.2",
     "rollup-plugin-sourcemaps": "0.6.3",
     "@rollup/plugin-terser": "0.4.4",
