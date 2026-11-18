@@ -31,8 +31,8 @@ export declare class FunctionsError extends FirebaseError
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [cause](./functions.functionserror.md#functionserrorcause) |  | unknown | Optional. The underlying error that caused this error, if applicable. |
-|  [details](./functions.functionserror.md#functionserrordetails) |  | unknown | Additional details to be converted to JSON and included in the error response. |
+|  [cause](./functions.functionserror.md#functionserrorcause) |  | unknown \| undefined | Optional. The underlying error that caused this error, if applicable. |
+|  [details](./functions.functionserror.md#functionserrordetails) |  | unknown \| undefined | Additional details to be converted to JSON and included in the error response. |
 
 ## FunctionsError.(constructor)
 
@@ -43,9 +43,9 @@ Constructs a new instance of the `FunctionsError` class.
 ```typescript
 constructor(
     code: FunctionsErrorCode, message?: string, 
-    details?: unknown, 
+    details?: unknown | undefined, 
     url?: string, 
-    cause?: unknown);
+    cause?: unknown | undefined);
 ```
 
 #### Parameters
@@ -54,9 +54,9 @@ constructor(
 |  --- | --- | --- |
 |  code | [FunctionsErrorCode](./functions.md#functionserrorcodecore) |  |
 |  message | string |  |
-|  details | unknown |  |
+|  details | unknown \| undefined |  |
 |  url | string |  |
-|  cause | unknown |  |
+|  cause | unknown \| undefined |  |
 
 ## FunctionsError.cause
 
@@ -65,7 +65,7 @@ Optional. The underlying error that caused this error, if applicable.
 <b>Signature:</b>
 
 ```typescript
-readonly cause?: unknown;
+readonly cause?: unknown | undefined;
 ```
 
 ## FunctionsError.details
@@ -75,5 +75,5 @@ Additional details to be converted to JSON and included in the error response.
 <b>Signature:</b>
 
 ```typescript
-readonly details?: unknown;
+readonly details?: unknown | undefined;
 ```
