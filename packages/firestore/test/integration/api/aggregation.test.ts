@@ -128,7 +128,7 @@ apiDescribe('Count queries', persistence => {
 
   it("terminate doesn't crash when there is count query in flight", () => {
     return withEmptyTestCollection(persistence, async (coll, firestore) => {
-      void getCountFromServer(coll);
+      void getCountFromServer(coll).catch(() => {});
       await terminate(firestore);
     });
   });
@@ -339,7 +339,7 @@ apiDescribe('Aggregation queries', persistence => {
 
   it("terminate doesn't crash when there is aggregate query in flight", () => {
     return withEmptyTestCollection(persistence, async (coll, firestore) => {
-      void getAggregateFromServer(coll, { count: count() });
+      void getAggregateFromServer(coll, { count: count() }).catch(() => {});
       await terminate(firestore);
     });
   });
