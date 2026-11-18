@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # FirebaseServerApp interface
 A [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) holds the initialization information for a collection of services running in server environments.
 
-Do not call this constructor directly. Instead, use [initializeServerApp()](./app.md#initializeserverapp_30ab697) to create an app.
+Do not call this constructor directly. Instead, use [initializeServerApp()](./app.md#initializeserverapp_dc3e48f) to create an app.
 
 <b>Signature:</b>
 
@@ -26,7 +26,7 @@ export interface FirebaseServerApp extends FirebaseApp
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [name](./app.firebaseserverapp.md#firebaseserverappname) | string | There is no <code>getApp()</code> operation for <code>FirebaseServerApp</code>, so the name is not relevant for applications. However, it may be used internally, and is declared here so that <code>FirebaseServerApp</code> conforms to the <code>FirebaseApp</code> interface. |
-|  [settings](./app.firebaseserverapp.md#firebaseserverappsettings) | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | The (read-only) configuration settings for this server app. These are the original parameters given in [initializeServerApp()](./app.md#initializeserverapp_30ab697)<!-- -->. |
+|  [settings](./app.firebaseserverapp.md#firebaseserverappsettings) | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | The (read-only) configuration settings for this server app. These are the original parameters given in [initializeServerApp()](./app.md#initializeserverapp_dc3e48f)<!-- -->. |
 
 ## FirebaseServerApp.name
 
@@ -40,7 +40,7 @@ name: string;
 
 ## FirebaseServerApp.settings
 
-The (read-only) configuration settings for this server app. These are the original parameters given in [initializeServerApp()](./app.md#initializeserverapp_30ab697)<!-- -->.
+The (read-only) configuration settings for this server app. These are the original parameters given in [initializeServerApp()](./app.md#initializeserverapp_dc3e48f)<!-- -->.
 
 <b>Signature:</b>
 
