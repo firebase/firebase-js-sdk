@@ -544,7 +544,7 @@ export interface Builder<
    *
    * Do not use in code paths that prefer exhaustive discriminated-union checking (`if (!res.success)`)
    * without `try / catch`; omit `throwOnError()` to receive {@link OperationResult}. Note that a
-   * `settings.schemaName` containing invalid HTTP header characters always rejects with a `TypeError`
+   * `serviceConfig.schemaName` containing invalid HTTP header characters always rejects with a `TypeError`
    * when setting the profile header, regardless of `throwOnError()`.
    *
    * Behavior and side effects: even with `throwOnError()`, awaiting the builder resolves to
@@ -623,11 +623,11 @@ export interface Builder<
   stripNulls(): this;
 
   /**
-   * Sets a custom HTTP header on this single request, overriding any client-level header of the same name from {@link SqlServiceSettings.headers}.
+   * Sets a custom HTTP header on this single request, overriding any client-level header of the same name configured via {@link FirebaseSql.setHeaders}.
    *
    * @remarks
    * When to use: attaching per-request correlation, tracing, or custom application headers (see
-   * {@link SqlServiceSettings.headers} for client-wide static headers).
+   * {@link FirebaseSql.setHeaders} for client-wide static headers).
    *
    * Do not use for authentication, App Check, or Firebase telemetry headers—passing any protected
    * header name (matched case-insensitively after trimming: `'authorization'`,

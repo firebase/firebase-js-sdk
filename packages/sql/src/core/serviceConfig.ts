@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { validateHeaders } from '../network/headers';
-
 import { FirebaseSqlErrorCategory, Code, FirebaseSqlError } from './error';
 
 /**
@@ -24,33 +22,33 @@ import { FirebaseSqlErrorCategory, Code, FirebaseSqlError } from './error';
  * initialized via {@link (getSql:1) | getSql()}.
  *
  * @remarks
- * Passed to {@link (getSql:1) | getSql()}, which validates `serviceId`, `location`, `port`, and
- * protected `headers` keys, creates a deep frozen copy, and resolves the PostgREST endpoint URL as
+ * Passed to {@link (getSql:1) | getSql()}, which validates `serviceId`, `location`, and `port`,
+ * creates a shallow frozen copy, and resolves the PostgREST endpoint URL as
  * `{http|https}://{host}[:{port}]/v1/projects/{projectId}/locations/{location}/services/{serviceId}/postgrest`.
  *
- * Instance caching: {@link (getSql:1) | getSql()} deduplicates instances by `(app, resolvedUrl, schemaName)`.
- * Different `headers` objects passed with an already-initialized `(app, resolvedUrl, schemaName)`
- * reuse the cached {@link FirebaseSql} instance and its original `headers`; use
+ * Instance caching and HTTP headers: {@link (getSql:1) | getSql()} deduplicates instances by
+ * `(app, restUrl, schemaName)`. Use {@link FirebaseSql.setHeaders} to configure
+ * client-wide static headers while {@link FirebaseSql.isMutable} is `true`, and use
  * {@link Builder.setHeader} for per-request header overrides. See {@link (getSql:1) | getSql()} for
  * client initialization and error rules.
  *
  * @example
- * Configure settings using the default schema:
+ * Configure a `ServiceConfig` using the default schema:
  * ```ts
- * import type { SqlServiceSettings } from 'firebase/sql';
+ * import type { ServiceConfig } from 'firebase/sql';
  *
- * const settings: SqlServiceSettings = {
+ * const serviceConfig: ServiceConfig = {
  *   serviceId: 'events-db',
  *   location: 'us-central1'
  * };
  * ```
  *
  * @example
- * Configure settings targeting a non-default PostgreSQL schema:
+ * Configure a `ServiceConfig` targeting a non-default PostgreSQL schema:
  * ```ts
- * import type { SqlServiceSettings } from 'firebase/sql';
+ * import type { ServiceConfig } from 'firebase/sql';
  *
- * const analyticsSettings: SqlServiceSettings = {
+ * const analyticsServiceConfig: ServiceConfig = {
  *   serviceId: 'events-db',
  *   location: 'us-central1',
  *   schemaName: 'analytics'
@@ -59,7 +57,7 @@ import { FirebaseSqlErrorCategory, Code, FirebaseSqlError } from './error';
  *
  * @public
  */
-export interface SqlServiceSettings {
+export interface ServiceConfig {
   /**
    * Target PostgreSQL schema exposed by PostgREST (for example, `'analytics'`).
    *
@@ -77,28 +75,6 @@ export interface SqlServiceSettings {
    * produce distinct cached {@link FirebaseSql} instances.
    */
   schemaName?: string | undefined;
-
-  /**
-   * Static custom HTTP headers included on every outgoing request from this client instance.
-   *
-   * @remarks
-   * Defaults to `undefined`. Do not use for authentication or App Check tokens (`Authorization`,
-   * `x-firebase-auth-token`, `x-firebase-appcheck`) or reserved Firebase telemetry and routing
-   * headers (`x-goog-api-client`, `x-client-version`, `x-firebase-gmpid`, `x-firebase-client`,
-   * `x-firebase-client-log-type`, `x-goog-request-params`, `x-firebase-sqlconnect-affinity`).
-   * Supplying any protected header key (case-insensitive) causes {@link (getSql:1) | getSql()} to
-   * throw {@link FirebaseSqlError} (`invalid-argument`). Every header name and value must also be a
-   * valid HTTP header accepted by the Fetch `Headers` constructor (no spaces in header names, no
-   * CR/LF, and Latin-1 characters only), or {@link (getSql:1) | getSql()} throws a `TypeError`
-   * synchronously when creating a new client (if a client is already cached for the same endpoint
-   * and `schemaName`, `getSql()` returns the cached client and ignores `settings.headers`).
-   * Firebase Auth and App Check tokens are attached automatically when configured on
-   * the bound `FirebaseApp`.
-   *
-   * Excluded from the {@link (getSql:1) | getSql()} instance cache key; use {@link Builder.setHeader}
-   * for request-scoped headers.
-   */
-  headers?: Record<string, string> | undefined;
 
   /**
    * Non-empty Firebase SQL service identifier within the Firebase project (for example, `'events-db'`).
@@ -154,56 +130,51 @@ export interface SqlServiceSettings {
 }
 
 /**
- * Creates a mutable deep copy of a {@link SqlServiceSettings} object, cloning nested `headers` if present.
+ * Creates a mutable shallow copy of a {@link ServiceConfig} object (`Object.assign({}, serviceConfig)`).
  *
  * @remarks
- * When to use: cloning a frozen `sql.settings` object (returned by {@link FirebaseSql.settings})
- * to derive configuration for another {@link FirebaseSql} instance (such as targeting a different
- * `schemaName` or `serviceId`).
+ * When to use: deriving a modified configuration (for example, targeting another `schemaName` or
+ * `serviceId`) from an existing or frozen {@link ServiceConfig} object without mutating the
+ * original.
  *
- * Behavior and side effects: pure synchronous clone with no network I/O or validation. Unlike
- * `sql.settings`, the returned object and its `headers` map are unfrozen and safe to mutate before
- * passing to {@link (getSql:1) | getSql()}.
+ * Behavior and side effects: pure synchronous shallow copy with no network I/O or validation. The
+ * returned object is unfrozen and safe to mutate before passing to {@link (getSql:1) | getSql()}.
  *
- * @param settings - Source {@link SqlServiceSettings} object to clone.
- * @returns A new mutable {@link SqlServiceSettings} object with an independent copy of `headers`.
+ * @param serviceConfig - Source {@link ServiceConfig} object to copy.
+ * @returns A new mutable shallow copy of `serviceConfig`.
  *
  * @example
- * Derive a secondary schema client from existing settings:
+ * Derive a secondary schema client from an existing ServiceConfig object:
  * ```ts
- * import { copySqlServiceSettings, getSql } from 'firebase/sql';
+ * import {
+ *   copyServiceConfig,
+ *   getSql,
+ *   type ServiceConfig
+ * } from 'firebase/sql';
  *
- * const sql = getSql({ serviceId: 'events-db', location: 'us-central1' });
- * const analyticsSettings = copySqlServiceSettings(sql.settings);
- * analyticsSettings.schemaName = 'analytics';
+ * const baseServiceConfig: ServiceConfig = {
+ *   serviceId: 'events-db',
+ *   location: 'us-central1'
+ * };
+ * const sql = getSql(baseServiceConfig);
  *
- * const analyticsSql = getSql(sql.app, analyticsSettings);
+ * const analyticsServiceConfig = copyServiceConfig(baseServiceConfig);
+ * analyticsServiceConfig.schemaName = 'analytics';
+ * const analyticsSql = getSql(analyticsServiceConfig);
  * ```
  *
  * @public
  */
-export function copySqlServiceSettings(
-  settings: SqlServiceSettings
-): SqlServiceSettings {
-  const settingsCopy: SqlServiceSettings = Object.assign({}, settings);
-  if (settings.headers !== undefined) {
-    settingsCopy.headers = Object.assign({}, settings.headers);
-  }
-  return settingsCopy;
+export function copyServiceConfig(serviceConfig: ServiceConfig): ServiceConfig {
+  return Object.assign({}, serviceConfig);
 }
 
 /**
- * Freezes a deep copy of the `SqlServiceSettings`.
+ * Freezes a `ServiceConfig` object in place using `Object.freeze` and returns `void`.
  * @internal
  */
-export function freezeSqlServiceSettings(
-  settings: SqlServiceSettings
-): SqlServiceSettings {
-  const settingsCopy = copySqlServiceSettings(settings);
-  if (settingsCopy.headers !== undefined) {
-    Object.freeze(settingsCopy.headers);
-  }
-  return Object.freeze(settingsCopy);
+export function freezeServiceConfig(serviceConfig: ServiceConfig): void {
+  Object.freeze(serviceConfig);
 }
 
 /**
@@ -230,37 +201,43 @@ function validatePort(port: unknown): void {
 }
 
 /**
- * Validates required `SqlServiceSettings` fields.
+ * Copies the given `ServiceConfig` via {@link copyServiceConfig}, freezes the copy in
+ * place, validates required fields (`serviceId`, `location`) and optional `port`, and returns the
+ * frozen copy.
  *
- * @returns a deep, frozen copy of the settings.
- * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if required fields are missing or invalid.
+ * @returns a frozen shallow copy of the ServiceConfig.
+ * @throws `FirebaseSqlError` with `Code.INVALID_ARGUMENT` and `FirebaseSqlErrorCategory.SQL_CLIENT` if `serviceConfig` is missing or any validated field is invalid.
  * @internal
  */
-export function validateSqlServiceSettings(
-  settings: SqlServiceSettings
-): SqlServiceSettings {
-  if (!settings) {
+export function validateServiceConfig(
+  serviceConfig: ServiceConfig
+): ServiceConfig {
+  if (!serviceConfig) {
     throw new FirebaseSqlError(
       Code.INVALID_ARGUMENT,
-      'SqlServiceSettings must be provided.',
+      'ServiceConfig must be provided.',
       FirebaseSqlErrorCategory.SQL_CLIENT
     );
   }
-  if (!settings.serviceId) {
+
+  serviceConfig = copyServiceConfig(serviceConfig);
+  freezeServiceConfig(serviceConfig);
+
+  if (!serviceConfig.serviceId) {
     throw new FirebaseSqlError(
       Code.INVALID_ARGUMENT,
       'serviceId is required.',
       FirebaseSqlErrorCategory.SQL_CLIENT
     );
   }
-  if (!settings.location) {
+  if (!serviceConfig.location) {
     throw new FirebaseSqlError(
       Code.INVALID_ARGUMENT,
       'location is required.',
       FirebaseSqlErrorCategory.SQL_CLIENT
     );
   }
-  validatePort(settings.port);
-  validateHeaders(settings.headers);
-  return freezeSqlServiceSettings(settings);
+  validatePort(serviceConfig.port);
+
+  return serviceConfig;
 }

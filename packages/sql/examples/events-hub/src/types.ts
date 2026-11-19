@@ -75,7 +75,7 @@ export interface GeoJsonFeatureCollection {
 }
 
 export type ExampleCategory =
-  | 'Client & Settings'
+  | 'Client & ServiceConfig'
   | 'QueryBuilder Verbs'
   | 'FilterBuilder Operators'
   | 'TransformBuilder Modifiers'

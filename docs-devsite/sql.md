@@ -14,13 +14,13 @@ PostgREST-compatible SQL client SDK (`firebase/sql`<!-- -->) for querying Postgr
 
 Application import path: install `firebase` and import from `firebase/sql` (do not import `@firebase/sql` directly in application code).
 
-Builder state machine and chain order: queries and mutations progress through five stages (the entry client and four lazy TypeScript builder interfaces): (1) [FirebaseSql](./sql.firebasesql.md#firebasesql_class)<!-- -->, the entry client exposing `sql.from(table)` and `sql.rpc(fn, params, options)`<!-- -->; (2) [QueryBuilder](./sql.querybuilder.md#querybuilder_interface)<!-- -->, the SQL table verb selector (`select`<!-- -->, `insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, `delete`<!-- -->); (3) [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->, row filters (`eq`<!-- -->, `in`<!-- -->, `gte`<!-- -->, `contains`<!-- -->, `or`<!-- -->, `not`<!-- -->, and related operators); (4) [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface)<!-- -->, ordering, pagination, post-mutation `select()`<!-- -->, server preferences (`maxAffected`<!-- -->, `rollback`<!-- -->), cancellation (`abortSignal`<!-- -->), full-type narrowing (`returns`<!-- -->), and cardinality/format modifiers (`single`<!-- -->, `maybeSingle`<!-- -->, `csv`<!-- -->, `geojson`<!-- -->, `explain`<!-- -->); and (5) [Builder](./sql.builder.md#builder_interface)<!-- -->, static result-type overrides (`returns`<!-- -->, `overrideTypes`<!-- -->), `stripNulls`<!-- -->, `setHeader`<!-- -->, `retry`<!-- -->, `throwOnError`<!-- -->, and `PromiseLike` execution (`await`<!-- -->).
+Builder state machine and chain order: queries and mutations progress through five stages (the entry client and four lazy TypeScript builder interfaces): (1) [FirebaseSql](./sql.firebasesql.md#firebasesql_class)<!-- -->, the entry client exposing `sql.from(table)`<!-- -->, `sql.rpc(fn, params, options)`<!-- -->, and client-wide header setup via `sql.setHeaders(headers)` (while `sql.isMutable` is `true`<!-- -->); (2) [QueryBuilder](./sql.querybuilder.md#querybuilder_interface)<!-- -->, the SQL table verb selector (`select`<!-- -->, `insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, `delete`<!-- -->); (3) [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface)<!-- -->, row filters (`eq`<!-- -->, `in`<!-- -->, `gte`<!-- -->, `contains`<!-- -->, `or`<!-- -->, `not`<!-- -->, and related operators); (4) [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface)<!-- -->, ordering, pagination, post-mutation `select()`<!-- -->, server preferences (`maxAffected`<!-- -->, `rollback`<!-- -->), cancellation (`abortSignal`<!-- -->), full-type narrowing (`returns`<!-- -->), and cardinality/format modifiers (`single`<!-- -->, `maybeSingle`<!-- -->, `csv`<!-- -->, `geojson`<!-- -->, `explain`<!-- -->); and (5) [Builder](./sql.builder.md#builder_interface)<!-- -->, static result-type overrides (`returns`<!-- -->, `overrideTypes`<!-- -->), `stripNulls`<!-- -->, `setHeader`<!-- -->, `retry`<!-- -->, `throwOnError`<!-- -->, and `PromiseLike` execution (`await`<!-- -->).
 
 Always apply [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) predicates before calling `.returns()`<!-- -->, and apply all [FilterBuilder](./sql.filterbuilder.md#filterbuilder_interface) and [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) methods before calling `.single()`<!-- -->, `.maybeSingle()`<!-- -->, `.csv()`<!-- -->, `.geojson()`<!-- -->, `.explain()`<!-- -->, or `.overrideTypes()`<!-- -->, because those methods narrow the static return type to [Builder](./sql.builder.md#builder_interface)<!-- -->. Each `await` or `.then()` sends a new HTTP request (results are never cached), so await each mutation builder at most once.
 
-Untyped defaults and type narrowing: [getSql()](./sql.md#getsql_e89ea77) and [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) do not accept `<Database>` or `<Row>` generics, and there is no `sql.schema()` method (pass `schemaName` in [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) to [getSql()](./sql.md#getsql_e89ea77) instead). Table `select()` defaults `data` to `Array<Record<string, unknown>>`<!-- -->; `insert()`<!-- -->, `upsert()`<!-- -->, `update()`<!-- -->, and `delete()` default `data` to `null` unless `.select()` is chained; and `rpc()` defaults `data` to `unknown` (its `<Args>` generic types input parameters only). Chain `.returns<Row[]>()` (or `.single().returns<Row>()` / `.returns<T>()` on `rpc()`<!-- -->) to assign a full static TypeScript type to `data`<!-- -->, and use `.overrideTypes<PartialRow>()` when partially overriding or refining specific fields on an already-typed builder.
+Untyped defaults and type narrowing: [getSql()](./sql.md#getsql_b956f3d) and [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) do not accept `<Database>` or `<Row>` generics, and there is no `sql.schema()` method (pass `schemaName` in [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) to [getSql()](./sql.md#getsql_b956f3d) instead). Table `select()` defaults `data` to `Array<Record<string, unknown>>`<!-- -->; `insert()`<!-- -->, `upsert()`<!-- -->, `update()`<!-- -->, and `delete()` default `data` to `null` unless `.select()` is chained; and `rpc()` defaults `data` to `unknown` (its `<Args>` generic types input parameters only). Chain `.returns<Row[]>()` (or `.single().returns<Row>()` / `.returns<T>()` on `rpc()`<!-- -->) to assign a full static TypeScript type to `data`<!-- -->, and use `.overrideTypes<PartialRow>()` when partially overriding or refining specific fields on an already-typed builder.
 
-Result envelope vs. throwing mode: by default, `await builder` resolves to [OperationResult](./sql.md#operationresult) (`{ success: true, data, count, error: null, status, statusText }` or `{ success: false, data: null, count: null, error: FirebaseSqlError, status, statusText }`<!-- -->) for HTTP, PostgREST, platform, and network failures (note that a `settings.schemaName` containing invalid HTTP header characters rejects with a `TypeError` when setting the profile header). Narrow via `if (!res.success)` or `const { data, error } = await ...; if (error)`<!-- -->—never narrow with `if (!data)` when `data` can legitimately be `null` (such as `.maybeSingle()`<!-- -->, `head: true`<!-- -->, or mutations without `.select()`<!-- -->). Chain [.throwOnError()](./sql.builder.md#builderthrowonerror) to reject with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) on failure and narrow the resolved envelope to [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface) (still destructure `const { data } = await query.throwOnError()`<!-- -->, as it resolves `{ data, count, status, statusText, success: true, error: null }`<!-- -->, not raw `T`<!-- -->).
+Result envelope vs. throwing mode: by default, `await builder` resolves to [OperationResult](./sql.md#operationresult) (`{ success: true, data, count, error: null, status, statusText }` or `{ success: false, data: null, count: null, error: FirebaseSqlError, status, statusText }`<!-- -->) for HTTP, PostgREST, platform, and network failures (note that a `serviceConfig.schemaName` containing invalid HTTP header characters rejects with a `TypeError` when setting the profile header). Narrow via `if (!res.success)` or `const { data, error } = await ...; if (error)`<!-- -->—never narrow with `if (!data)` when `data` can legitimately be `null` (such as `.maybeSingle()`<!-- -->, `head: true`<!-- -->, or mutations without `.select()`<!-- -->). Chain [.throwOnError()](./sql.builder.md#builderthrowonerror) to reject with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) on failure and narrow the resolved envelope to [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface) (still destructure `const { data } = await query.throwOnError()`<!-- -->, as it resolves `{ data, count, status, statusText, success: true, error: null }`<!-- -->, not raw `T`<!-- -->).
 
 Example conventions and reference schema: code examples across this package assume an initialized client `const sql = getSql({ serviceId: 'events-db', location: 'us-central1' });` unless client initialization is shown explicitly, and share three PostgreSQL tables plus two stored functions: `venues(id uuid PK, slug text UNIQUE, name text, city text, capacity int4, coords geography(Point, 4326))`<!-- -->, `events(id uuid PK, venue_id uuid FK NULL, code text UNIQUE, title text, status text DEFAULT 'draft', is_featured bool DEFAULT false, ticket_price numeric, tags text[], metadata jsonb, schedule tstzrange, search_doc tsvector, created_at timestamptz DEFAULT now())`<!-- -->, `registrations(id uuid PK, event_id uuid FK, user_uid text, attendee_email text, role text DEFAULT 'attendee', checked_in_at timestamptz NULL, UNIQUE (event_id, attendee_email))`<!-- -->, `remaining_seats(target_event_id uuid) RETURNS int4`<!-- -->, and `list_events_by_city(target_city text) RETURNS SETOF events`<!-- -->.
 
@@ -29,10 +29,10 @@ Example conventions and reference schema: code examples across this package assu
 |  Function | Description |
 |  --- | --- |
 |  <b>function(app, ...)</b> |
-|  [getSql(app, settings)](./sql.md#getsql_94d2423) | Returns the cached or newly initialized [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client bound to the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) and [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface)<!-- -->. |
-|  <b>function(settings, ...)</b> |
-|  [copySqlServiceSettings(settings)](./sql.md#copysqlservicesettings_e89ea77) | Creates a mutable deep copy of a [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) object, cloning nested <code>headers</code> if present. |
-|  [getSql(settings)](./sql.md#getsql_e89ea77) | Returns the cached or newly initialized [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client bound to the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) and the specified [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface)<!-- -->. |
+|  [getSql(app, serviceConfig)](./sql.md#getsql_38182ec) | Returns the cached or newly initialized [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client bound to the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) and [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface)<!-- -->. |
+|  <b>function(serviceConfig, ...)</b> |
+|  [copyServiceConfig(serviceConfig)](./sql.md#copyserviceconfig_b956f3d) | Creates a mutable shallow copy of a [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) object (<code>Object.assign({}, serviceConfig)</code>). |
+|  [getSql(serviceConfig)](./sql.md#getsql_b956f3d) | Returns the cached or newly initialized [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client bound to the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) and the specified [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface)<!-- -->. |
 |  <b>function(sql, ...)</b> |
 |  [terminate(sql)](./sql.md#terminate_bc2cb94) | Terminates a [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client, aborts any in-flight HTTP requests, cancels pending Auth and App Check initialization subscriptions, and evicts the instance from its <code>FirebaseApp</code> component cache. |
 
@@ -63,7 +63,7 @@ Example conventions and reference schema: code examples across this package assu
 |  [QueryUpdateOptions](./sql.queryupdateoptions.md#queryupdateoptions_interface) | Execution options for [QueryBuilder.update()](./sql.querybuilder.md#querybuilderupdate)<!-- -->. |
 |  [QueryUpsertOptions](./sql.queryupsertoptions.md#queryupsertoptions_interface) | Conflict-resolution and execution options for [QueryBuilder.upsert()](./sql.querybuilder.md#querybuilderupsert)<!-- -->. |
 |  [SerializedFirebaseSqlError](./sql.serializedfirebasesqlerror.md#serializedfirebasesqlerror_interface) | Plain JSON-serializable object returned by [FirebaseSqlError.toJSON()](./sql.firebasesqlerror.md#firebasesqlerrortojson)<!-- -->. |
-|  [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Connection and routing configuration for a [FirebaseSql](./sql.firebasesql.md#firebasesql_class) service client instance initialized via [getSql()](./sql.md#getsql_e89ea77)<!-- -->. |
+|  [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) | Connection and routing configuration for a [FirebaseSql](./sql.firebasesql.md#firebasesql_class) service client instance initialized via [getSql()](./sql.md#getsql_b956f3d)<!-- -->. |
 |  [TransformBuilder](./sql.transformbuilder.md#transformbuilder_interface) | Lazy PostgREST result-shaping builder supporting post-mutation projection (<code>select</code>), ordering, pagination (<code>limit</code>, <code>range</code>), server preferences (<code>maxAffected</code>, <code>rollback</code>), client fetch cancellation (<code>abortSignal</code>), and cardinality/format narrowing (<code>single</code>, <code>maybeSingle</code>, <code>csv</code>, <code>geojson</code>, <code>explain</code>). |
 |  [TransformExplainOptions](./sql.transformexplainoptions.md#transformexplainoptions_interface) | PostgreSQL <code>EXPLAIN</code> execution flags and output format options for [TransformBuilder.explain()](./sql.transformbuilder.md#transformbuilderexplain)<!-- -->. |
 |  [TransformLimitOptions](./sql.transformlimitoptions.md#transformlimitoptions_interface) | Embedded-table targeting options for [TransformBuilder.limit()](./sql.transformbuilder.md#transformbuilderlimit)<!-- -->. |
@@ -104,20 +104,20 @@ Example conventions and reference schema: code examples across this package assu
 
 ## function(app, ...)
 
-### getSql(app, settings) {:#getsql_94d2423}
+### getSql(app, serviceConfig) {:#getsql_38182ec}
 
-Returns the cached or newly initialized [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client bound to the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) and [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface)<!-- -->.
+Returns the cached or newly initialized [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client bound to the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) and [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface)<!-- -->.
 
 When to use: binding to a specific `FirebaseApp` instance (including named secondary apps or `FirebaseServerApp` instances created via `initializeServerApp`<!-- -->) or maintaining explicit dependency injection of `app`<!-- -->.
 
 Preconditions: `app.options.projectId` must be a non-empty string.
 
-Behavior and side effects: synchronous, performs no network I/O, deep-clones and freezes `settings`<!-- -->, and caches the [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instance on `app` keyed by `(resolvedEndpointUrl, schemaName)` (`settings.headers` is excluded from the cache key; use [Builder.setHeader()](./sql.builder.md#buildersetheader) for per-operation headers, or [terminate()](./sql.md#terminate_bc2cb94) to evict the cached instance). Note that passing a scheme or path in `settings.host` does not throw and silently produces a wrong endpoint (for example, `'http://example.com'` resolves to hostname `'http'`<!-- -->).
+Behavior and side effects: synchronous, performs no network I/O, copies and freezes `serviceConfig`<!-- -->, and caches the [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instance on `app` keyed by `(restUrl, schemaName)`<!-- -->. Repeated calls with the same resolved endpoint and `schemaName` return the shared cached instance, sharing its [FirebaseSql.isMutable](./sql.firebasesql.md#firebasesqlismutable) and [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) state—if the cached instance has already been used, `isMutable` is `false`<!-- -->; use [Builder.setHeader()](./sql.builder.md#buildersetheader) for per-operation headers, or call [terminate()](./sql.md#terminate_bc2cb94) to evict the cached instance and obtain a fresh mutable client. Note that passing a scheme or path in `serviceConfig.host` does not throw and silently produces a wrong endpoint (for example, `'http://example.com'` resolves to hostname `'http'`<!-- -->).
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getSql(app: FirebaseApp, settings: SqlServiceSettings): FirebaseSql;
+export declare function getSql(app: FirebaseApp, serviceConfig: ServiceConfig): FirebaseSql;
 ```
 
 #### Parameters
@@ -125,7 +125,7 @@ export declare function getSql(app: FirebaseApp, settings: SqlServiceSettings): 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance whose <code>projectId</code>, Auth, and App Check providers will be used. |
-|  settings | [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Required service connection settings (<code>serviceId</code> and <code>location</code> are mandatory). See [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface)<!-- -->. |
+|  serviceConfig | [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) | Required service connection configuration (<code>serviceId</code> and <code>location</code> are mandatory). See [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface)<!-- -->. |
 
 <b>Returns:</b>
 
@@ -135,9 +135,9 @@ The cached or newly created [FirebaseSql](./sql.firebasesql.md#firebasesql_class
 
 #### Exceptions
 
-[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown when `app` is not an object with an `options` property (note that passing `undefined` as `app` falls back to the default app via `getApp()`<!-- -->, which throws `FirebaseError` `app/no-app` if no default app exists), `app.options.projectId` is missing/empty, `settings`<!-- -->, `serviceId`<!-- -->, or `location` is missing/empty, `port` is not an integer in `1..65535`<!-- -->, or `headers` includes a protected header name.
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown when `app` is not an object with an `options` property (note that passing `undefined` as `app` falls back to the default app via `getApp()`<!-- -->, which throws `FirebaseError` `app/no-app` if no default app exists), `app.options.projectId` is missing/empty, `serviceConfig` is null or not an object, `serviceId` or `location` is missing/empty, or `port` is not an integer in `1..65535`<!-- -->.
 
-`TypeError` Thrown synchronously when `settings.host` is rejected by the WHATWG `URL` parser (such as `''`<!-- -->) or, when creating a new client, when `settings.headers` contains an invalid HTTP header name or value (for example, spaces in a header name, CR/LF, or non-Latin-1 characters; cached clients return before `Headers` construction).
+`TypeError` Thrown synchronously (before cache lookup) when `serviceConfig.host` cannot be parsed as a valid URL host by `new URL(...)` (such as `''`<!-- -->). Note that a scheme or path in `serviceConfig.host` is not rejected by `URL` and silently produces a wrong endpoint.
 
 ### Example 1
 
@@ -178,72 +178,80 @@ const analyticsSql = getSql(app, {
 
 ```
 
-## function(settings, ...)
+## function(serviceConfig, ...)
 
-### copySqlServiceSettings(settings) {:#copysqlservicesettings_e89ea77}
+### copyServiceConfig(serviceConfig) {:#copyserviceconfig_b956f3d}
 
-Creates a mutable deep copy of a [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) object, cloning nested `headers` if present.
+Creates a mutable shallow copy of a [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) object (`Object.assign({}, serviceConfig)`<!-- -->).
 
-When to use: cloning a frozen `sql.settings` object (returned by [FirebaseSql.settings](./sql.firebasesql.md#firebasesqlsettings)<!-- -->) to derive configuration for another [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instance (such as targeting a different `schemaName` or `serviceId`<!-- -->).
+When to use: deriving a modified configuration (for example, targeting another `schemaName` or `serviceId`<!-- -->) from an existing or frozen [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) object without mutating the original.
 
-Behavior and side effects: pure synchronous clone with no network I/O or validation. Unlike `sql.settings`<!-- -->, the returned object and its `headers` map are unfrozen and safe to mutate before passing to [getSql()](./sql.md#getsql_e89ea77)<!-- -->.
+Behavior and side effects: pure synchronous shallow copy with no network I/O or validation. The returned object is unfrozen and safe to mutate before passing to [getSql()](./sql.md#getsql_b956f3d)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function copySqlServiceSettings(settings: SqlServiceSettings): SqlServiceSettings;
+export declare function copyServiceConfig(serviceConfig: ServiceConfig): ServiceConfig;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  settings | [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Source [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) object to clone. |
+|  serviceConfig | [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) | Source [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) object to copy. |
 
 <b>Returns:</b>
 
-[SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface)
+[ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface)
 
-A new mutable [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) object with an independent copy of `headers`<!-- -->.
+A new mutable shallow copy of `serviceConfig`<!-- -->.
 
 ### Example
 
-Derive a secondary schema client from existing settings:
+Derive a secondary schema client from an existing ServiceConfig object:
 
 ```ts
-import { copySqlServiceSettings, getSql } from 'firebase/sql';
+import {
+  copyServiceConfig,
+  getSql,
+  type ServiceConfig
+} from 'firebase/sql';
 
-const sql = getSql({ serviceId: 'events-db', location: 'us-central1' });
-const analyticsSettings = copySqlServiceSettings(sql.settings);
-analyticsSettings.schemaName = 'analytics';
+const baseServiceConfig: ServiceConfig = {
+  serviceId: 'events-db',
+  location: 'us-central1'
+};
+const sql = getSql(baseServiceConfig);
 
-const analyticsSql = getSql(sql.app, analyticsSettings);
+const analyticsServiceConfig = copyServiceConfig(baseServiceConfig);
+analyticsServiceConfig.schemaName = 'analytics';
+const analyticsSql = getSql(analyticsServiceConfig);
 
 ```
 
-### getSql(settings) {:#getsql_e89ea77}
+### getSql(serviceConfig) {:#getsql_b956f3d}
 
-Returns the cached or newly initialized [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client bound to the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) and the specified [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface)<!-- -->.
+Returns the cached or newly initialized [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client bound to the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) and the specified [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface)<!-- -->.
 
 When to use: standard single-app setups where `initializeApp({ projectId, ... })` has already been called for the default Firebase app.
 
-Do not use in multi-app environments targeting a named secondary `FirebaseApp` (pass `app` explicitly via [getSql(app, settings)](./sql.md#getsql_94d2423)<!-- -->) or when varying `settings.headers` on the same `(serviceId, location, schemaName)` expecting separate clients (cached instances ignore subsequent `settings.headers`<!-- -->; use [Builder.setHeader()](./sql.builder.md#buildersetheader) for per-request headers or call [terminate()](./sql.md#terminate_bc2cb94) first).
+Do not use in multi-app environments targeting a named secondary `FirebaseApp` (pass `app` explicitly via [getSql(app, serviceConfig)](./sql.md#getsql_38182ec)<!-- -->).
 
 Preconditions: the default `FirebaseApp` must be initialized via `initializeApp(...)` with a non-empty `options.projectId`<!-- -->.
 
-Behavior and side effects: synchronous, performs no network I/O, deep-clones and freezes `settings`<!-- -->, and caches the resulting [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instance on the default app keyed by `(resolvedEndpointUrl, schemaName)`<!-- -->. Note that if `settings.host` contains a scheme or path (such as `'http://example.com'`<!-- -->), it does not throw—it resolves to the unintended hostname `'http'` and overwrites the path, so always pass a bare hostname.
+Behavior and side effects: synchronous, performs no network I/O, copies and freezes `serviceConfig`<!-- -->, and caches the resulting [FirebaseSql](./sql.firebasesql.md#firebasesql_class) instance on the default app keyed by `(restUrl, schemaName)`<!-- -->. Repeated calls with the same resolved endpoint and `schemaName` return the shared cached instance, including its [FirebaseSql.isMutable](./sql.firebasesql.md#firebasesqlismutable) and [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) state—if the cached instance has already been used, `isMutable` is `false`<!-- -->; use [Builder.setHeader()](./sql.builder.md#buildersetheader) for per-request headers or call [terminate()](./sql.md#terminate_bc2cb94) first to obtain a fresh mutable client. Note that if `serviceConfig.host` contains a scheme or path (such as `'http://example.com'`<!-- -->), it does not throw—it resolves to the unintended hostname `'http'` and overwrites the path, so always pass a bare hostname.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function getSql(settings: SqlServiceSettings): FirebaseSql;
+export declare function getSql(serviceConfig: ServiceConfig): FirebaseSql;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  settings | [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface) | Required service connection settings (<code>serviceId</code> and <code>location</code> are mandatory). See [SqlServiceSettings](./sql.sqlservicesettings.md#sqlservicesettings_interface)<!-- -->. |
+|  serviceConfig | [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) | Required service connection configuration (<code>serviceId</code> and <code>location</code> are mandatory). See [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface)<!-- -->. |
 
 <b>Returns:</b>
 
@@ -253,11 +261,11 @@ The cached or newly created [FirebaseSql](./sql.firebasesql.md#firebasesql_class
 
 #### Exceptions
 
-`FirebaseError` (`app/no-app`<!-- -->) Thrown when no default `FirebaseApp` has been initialized. Call `initializeApp({ projectId: '...' })` before calling `getSql(settings)`<!-- -->.
+`FirebaseError` (`app/no-app`<!-- -->) Thrown when no default `FirebaseApp` has been initialized. Call `initializeApp({ projectId: '...' })` before calling `getSql(serviceConfig)`<!-- -->.
 
-[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown when `settings` is missing, `serviceId` or `location` is empty, `port` is outside `1..65535` or non-integer, `headers` contains a protected header key, or `app.options.projectId` is missing/empty. Supply non-empty `projectId`<!-- -->, `serviceId`<!-- -->, and `location`<!-- -->, an integer `port` in `1..65535`<!-- -->, and remove disallowed auth/telemetry headers.
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`invalid-argument`<!-- -->, category `'sql-client'`<!-- -->) Thrown when `serviceConfig` is missing or not an object, `serviceId` or `location` is empty, `port` is outside `1..65535` or non-integer, or `app.options.projectId` is missing/empty. Supply non-empty `projectId`<!-- -->, `serviceId`<!-- -->, and `location`<!-- -->, and an integer `port` in `1..65535`<!-- -->.
 
-`TypeError` Thrown synchronously when `settings.host` is rejected by the WHATWG `URL` parser (such as `''`<!-- -->) or, when creating a new client, when `settings.headers` contains an invalid HTTP header name or value (for example, spaces in a header name, CR/LF, or non-Latin-1 characters; cached clients return before `Headers` construction). Note that a scheme or path in `settings.host` is not rejected by `URL` and silently produces a wrong endpoint.
+`TypeError` Thrown synchronously (before cache lookup) when `serviceConfig.host` cannot be parsed as a valid URL host by `new URL(...)` (such as `''`<!-- -->). Note that a scheme or path in `serviceConfig.host` is not rejected by `URL` and silently produces a wrong endpoint.
 
 ### Example 1
 
@@ -301,11 +309,11 @@ const analyticsSql = getSql({
 
 Terminates a [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client, aborts any in-flight HTTP requests, cancels pending Auth and App Check initialization subscriptions, and evicts the instance from its `FirebaseApp` component cache.
 
-When to use: tearing down a client during test cleanup, user session isolation, or before re-initializing a client with updated `headers` for the same `(app, serviceId, location, schemaName)` via [getSql()](./sql.md#getsql_e89ea77)<!-- -->.
+When to use: tearing down a client during test cleanup, user session isolation, or evicting a used client so a subsequent [getSql()](./sql.md#getsql_b956f3d) call creates a fresh client with [FirebaseSql.isMutable](./sql.firebasesql.md#firebasesqlismutable) equal to `true` (for example, to call [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) again after queries have started).
 
-Behavior and side effects: idempotent—calling `terminate(sql)` repeatedly on an already-terminated instance resolves immediately without side effects and will not evict a newer client created afterward via [getSql()](./sql.md#getsql_e89ea77)<!-- -->.
+Behavior and side effects: idempotent—calling `terminate(sql)` repeatedly on an already-terminated instance resolves immediately without side effects and will not evict a newer client created afterward via [getSql()](./sql.md#getsql_b956f3d)<!-- -->.
 
-After termination, calling `sql.from()` or `sql.rpc()` throws [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->) synchronously. Pre-existing builders created before `terminate(sql)` continue chaining synchronously without throwing, but awaiting them (or any request already in flight) settles with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->).
+After termination, calling [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom)<!-- -->, [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->, or [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) (after header syntax and protected-header validation) throws [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->) synchronously. Pre-existing builders created before `terminate(sql)` continue chaining synchronously without throwing, but awaiting them (or any request already in flight) settles with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) (`not-initialized`<!-- -->, category `'sql-client'`<!-- -->).
 
 <b>Signature:</b>
 
@@ -365,9 +373,9 @@ Frozen map of canonical client and platform error code constants.
 
 Compare against `error.code` when handling `'sql-client'` and `'sql-platform'` errors.
 
-`Code.INVALID_ARGUMENT` (`'invalid-argument'`<!-- -->): missing `projectId`<!-- -->, `serviceId`<!-- -->, or `location`<!-- -->, invalid `port`<!-- -->, dot-segment resource name (`'.'` or `'..'`<!-- -->), disallowed HTTP header, or HTTP 400 non-PostgREST gateway rejection.
+`Code.INVALID_ARGUMENT` (`'invalid-argument'`<!-- -->): missing `projectId`<!-- -->, `serviceId`<!-- -->, or `location` (in [getSql()](./sql.md#getsql_b956f3d)<!-- -->), invalid `port`<!-- -->, dot-segment resource name (`'.'` or `'..'`<!-- -->, in [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->), disallowed HTTP header (in [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) or [Builder.setHeader()](./sql.builder.md#buildersetheader)<!-- -->), or HTTP 400 non-PostgREST gateway rejection.
 
-`Code.NOT_INITIALIZED` (`'not-initialized'`<!-- -->): operation called or settled after [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->.
+`Code.NOT_INITIALIZED` (`'not-initialized'`<!-- -->): client method ([FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders)<!-- -->, [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom)<!-- -->, [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->) or builder operation called or settled after [terminate()](./sql.md#terminate_bc2cb94) or `deleteApp()`<!-- -->.
 
 `Code.NOT_SUPPORTED` (`'not-supported'`<!-- -->): global `fetch` unavailable in runtime (`'sql-client'`<!-- -->), or HTTP 501 / `UNIMPLEMENTED` gateway rejection (`'sql-platform'`<!-- -->).
 
@@ -375,7 +383,9 @@ Compare against `error.code` when handling `'sql-client'` and `'sql-platform'` e
 
 `Code.OTHER` (`'other'`<!-- -->): network failure, aborted request, circular JSON request body, client-side Auth token retrieval failure (`res.status === 0`<!-- -->, `'sql-client'`<!-- -->), or unmapped `'sql-platform'` response (such as HTTP 502/504 or unparseable 2xx body).
 
-`Code.ALREADY_INITIALIZED` (`'already-initialized'`<!-- -->) and `Code.PARTIAL_ERROR` (`'partial-error'`<!-- -->): reserved error codes.
+`Code.ALREADY_INITIALIZED` (`'already-initialized'`<!-- -->): thrown synchronously by [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) (`category: 'sql-client'`<!-- -->) when called after the client has transitioned to [FirebaseSql.isMutable](./sql.firebasesql.md#firebasesqlismutable) === false (i.e., after the first [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom) or [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc) call).
+
+`Code.PARTIAL_ERROR` (`'partial-error'`<!-- -->): reserved error code.
 
 <b>Signature:</b>
 
@@ -603,7 +613,7 @@ Origin tier discriminator identifying which layer produced a [FirebaseSqlError](
 
 [FirebaseSqlError.category](./sql.firebasesqlerror.md#firebasesqlerrorcategory) is typed as `string` at compile time, while SDK-generated errors emit one of three values.
 
-`'sql-client'`<!-- -->: local SDK validation, missing `fetch`<!-- -->, network drop, `AbortSignal` cancellation, circular JSON body, Auth `getToken()` rejection, or terminated client (`error.status` is `undefined`<!-- -->, while [OperationFailure.status](./sql.operationbase.md#operationbasestatus) is `0`<!-- -->).
+`'sql-client'`<!-- -->: local SDK validation or client-state errors (in [getSql()](./sql.md#getsql_b956f3d)<!-- -->, [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders)<!-- -->, [FirebaseSql.from()](./sql.firebasesql.md#firebasesqlfrom)<!-- -->, [FirebaseSql.rpc()](./sql.firebasesql.md#firebasesqlrpc)<!-- -->, or [Builder.setHeader()](./sql.builder.md#buildersetheader)<!-- -->), missing `fetch`<!-- -->, network drop, `AbortSignal` cancellation, circular JSON body, Auth `getToken()` rejection, or terminated client (`error.status` is `undefined`<!-- -->, while [OperationFailure.status](./sql.operationbase.md#operationbasestatus) is `0`<!-- -->).
 
 `'sql-platform'`<!-- -->: any HTTP failure response whose body is not a PostgREST error envelope—typically a Google Cloud gateway, IAM, or App Check rejection, but also proxy or gateway errors (such as HTTP 502 or 504), body-less `HEAD` failures, or `2xx` responses with unparseable JSON bodies. Do not assume the request had no effect on the server.
 

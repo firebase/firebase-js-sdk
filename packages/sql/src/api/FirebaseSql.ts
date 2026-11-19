@@ -26,17 +26,14 @@ import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import { PostgrestClient } from '@supabase/postgrest-js';
 
+import type { FirebaseSqlContext } from '../core/context';
 import {
   Code,
   FirebaseSqlError,
   FirebaseSqlErrorCategory
 } from '../core/error';
 import { mapPostgrestFailureToFirebaseSqlError } from '../core/errorMapper';
-import {
-  SqlServiceSettings,
-  validateSqlServiceSettings
-} from '../core/settings';
-import type { SqlClientState } from '../core/state';
+import { ServiceConfig, validateServiceConfig } from '../core/serviceConfig';
 import { AppCheckProvider } from '../core/tokenProviders/AppCheckTokenProvider';
 import { FirebaseAuthProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
 import type {
@@ -45,6 +42,7 @@ import type {
   UntypedSchema
 } from '../core/untypedSchema';
 import { logDebug } from '../logger';
+import { validateHeaders } from '../network/headers';
 import { createBuilderFetch } from '../network/transport';
 import { FIREBASE_SQL_COMPONENT_NAME } from '../util/constants';
 import { resolvePostgrestUrl } from '../util/url';
@@ -130,11 +128,17 @@ export interface FirebaseSqlRpcOptions {
  *
  * @remarks
  * Do not instantiate directly: obtain instances via {@link (getSql:1) | getSql()}, which validates
- * settings and deduplicates clients per `(app, resolvedEndpoint, schemaName)`. `FirebaseSql` does
- * not expose a `.schema(name)` method—configure `schemaName` in {@link SqlServiceSettings} when
- * calling {@link (getSql:1) | getSql()} (or clone `sql.settings` via {@link copySqlServiceSettings}
- * to create a client for another schema). See {@link terminate} for shutting down a client and
- * evicting it from the app registry.
+ * the `ServiceConfig` and deduplicates clients per `(app, restUrl, schemaName)`.
+ * Configure the target PostgreSQL schema via `schemaName` in {@link ServiceConfig} when calling
+ * {@link (getSql:1) | getSql()} (you can also derive a modified `ServiceConfig` from an existing
+ * {@link ServiceConfig} object via {@link copyServiceConfig}; `FirebaseSql` does not
+ * expose a `.schema(name)` method).
+ *
+ * Read {@link FirebaseSql.restUrl} and {@link FirebaseSql.schemaName} to inspect the resolved
+ * endpoint URL and active schema. Client-wide static HTTP headers can be configured via
+ * {@link FirebaseSql.setHeaders} while {@link FirebaseSql.isMutable} is `true` (before the first call
+ * to {@link FirebaseSql.from} or {@link FirebaseSql.rpc}). See {@link terminate} for shutting down
+ * a client and evicting it from the app registry.
  *
  * Automatically attaches Firebase Authentication ID tokens (`x-firebase-auth-token`, with a single
  * automatic token refresh and retry on HTTP 401 when the authenticated UID is unchanged) and
@@ -170,96 +174,303 @@ export interface FirebaseSqlRpcOptions {
  * @public
  */
 export class FirebaseSql {
-  /** @internal */
-  readonly _postgrestUrl: string;
+  /**
+   * The bound {@link @firebase/app#FirebaseApp} instance.
+   *
+   * @remarks
+   * Supplies `options.projectId` for endpoint construction as well as optional `appId`, Firebase
+   * Authentication, and Firebase App Check providers.
+   *
+   * @public
+   */
+  readonly app: FirebaseApp;
+
+  /**
+   * The resolved PostgREST base URL used to communicate with the backend Firebase SQL server.
+   *
+   * @remarks
+   * Formatted as `{http|https}://{host}[:{port}]/v1/projects/{projectId}/locations/{location}/services/{serviceId}/postgrest`,
+   * defaulting to `https` (unless `sslEnabled === false`) and
+   * `'firebasedataconnect.googleapis.com'` (when `host` is omitted). The `projectId`,
+   * `location`, and `serviceId` path segments are percent-encoded with `encodeURIComponent`.
+   *
+   * @public
+   */
+  readonly restUrl: string;
+
+  /**
+   * The PostgreSQL schema name sent over the wire for queries and RPC calls, or `undefined` to use
+   * the server's default exposed schema.
+   *
+   * @remarks
+   * Equals `serviceConfig.schemaName` passed to {@link (getSql:1) | getSql()}. When defined, sends
+   * `Accept-Profile: <schemaName>` on `GET` and `HEAD` requests and `Content-Profile: <schemaName>`
+   * on `POST`, `PATCH`, and `DELETE` mutations; when `undefined`, profile headers are omitted so
+   * PostgREST uses the server's default schema. Included in the {@link (getSql:1) | getSql()}
+   * instance cache key.
+   *
+   * @public
+   */
+  readonly schemaName: string | undefined;
+
+  /**
+   * Whether this client is still in the mutable configuration state where mutator methods such as
+   * {@link FirebaseSql.setHeaders} are allowed.
+   *
+   * @remarks
+   * Starts as `true` on newly created `FirebaseSql` instances and permanently transitions to `false`
+   * on the first call to {@link FirebaseSql.from} or {@link FirebaseSql.rpc}, or when terminated via
+   * {@link terminate} or `deleteApp()`.
+   *
+   * Because {@link (getSql:1) | getSql()} returns cached instances shared per
+   * `(app, restUrl, schemaName)`, `isMutable` will already be `false` on a returned
+   * instance if it was previously used.
+   *
+   * @public
+   */
+  get isMutable(): boolean {
+    return this._state.name === 'mutable';
+  }
 
   /** @internal */
-  private readonly _state: SqlClientState;
-
-  private readonly _terminationController = new AbortController();
-
-  private readonly _postgrestClient: PostgrestClient<
-    UntypedDatabase,
-    UntypedClientOptions,
-    string,
-    UntypedSchema
-  >;
+  private _state: FirebaseSqlState;
 
   /**
    * Should only be called by {@link (getSql:1) | getSql()}, after validating inputs.
    * @internal
    */
-  constructor(
-    /** The bound {@link @firebase/app#FirebaseApp} instance. */
-    readonly app: FirebaseApp,
-    /** Deeply frozen copy of the validated {@link SqlServiceSettings} used by this client. */
-    readonly settings: SqlServiceSettings,
-    /** @internal */
-    readonly _instanceIdentifier: string,
-    /** @internal */
-    authInternalProvider: Provider<FirebaseAuthInternalName>,
-    /** @internal */
-    appCheckInternalProvider: Provider<AppCheckInternalComponentName>
-  ) {
-    this._postgrestUrl = resolvePostgrestUrl(
-      this.settings,
-      app.options.projectId!
-    );
+  constructor(parameters: {
+    app: FirebaseApp;
+    serviceConfig: ServiceConfig;
+    instanceIdentifier: string;
+    authProvider: Provider<FirebaseAuthInternalName>;
+    appCheckProvider: Provider<AppCheckInternalComponentName>;
+  }) {
+    const {
+      app,
+      serviceConfig,
+      instanceIdentifier,
+      authProvider,
+      appCheckProvider
+    } = parameters;
+
+    this.app = app;
+    this.schemaName = serviceConfig.schemaName;
+    this.restUrl = resolvePostgrestUrl(serviceConfig, app.options.projectId!);
 
     this._state = {
-      active: {
-        appId: app.options.appId,
-        authTokenProvider: new FirebaseAuthProvider(app, authInternalProvider),
-        appCheckTokenProvider: new AppCheckProvider(
-          app,
-          appCheckInternalProvider
-        )
-      },
-      terminationSignal: this._terminationController.signal
+      name: 'mutable',
+      instanceIdentifier,
+      headers: new Headers(),
+      authProvider,
+      appCheckProvider
     };
+  }
+
+  /**
+   * Called by `@firebase/app` when the bound `FirebaseApp` is deleted.
+   * @internal
+   */
+  _delete(): Promise<void> {
+    if (this._state.name === 'terminated') {
+      return Promise.resolve();
+    }
+    if (this._state.name === 'mutable') {
+      const { instanceIdentifier } = this._state;
+      this._state = { name: 'terminated' };
+      _removeServiceInstance(
+        this.app,
+        FIREBASE_SQL_COMPONENT_NAME,
+        instanceIdentifier
+      );
+      return Promise.resolve();
+    }
+
+    const { context, instanceIdentifier, abortController } = this._state;
+    this._state = { name: 'terminated' };
+    const { resources } = context;
+    context.resources = null;
+
+    abortController.abort(
+      new FirebaseSqlError(
+        Code.NOT_INITIALIZED,
+        'The Firebase SQL client has been terminated.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      )
+    );
+    if (resources !== null) {
+      resources.appCheckTokenProvider.terminate();
+      resources.authTokenProvider.terminate();
+    }
+    _removeServiceInstance(
+      this.app,
+      FIREBASE_SQL_COMPONENT_NAME,
+      instanceIdentifier
+    );
+
+    return Promise.resolve();
+  }
+
+  /**
+   * Sets the client-wide static HTTP headers included on every outgoing request from this client,
+   * overwriting any headers set by an earlier `setHeaders()` call.
+   *
+   * @remarks
+   * When to use: configuring shared custom HTTP headers (such as tenant, locale, or correlation
+   * headers) while {@link FirebaseSql.isMutable} is `true`, before calling {@link FirebaseSql.from}
+   * or {@link FirebaseSql.rpc}. Use {@link Builder.setHeader} to attach or override a header for a
+   * single request; a same-named header passed to `Builder.setHeader()` overrides the client-level
+   * header for that request.
+   *
+   * Behavior and side effects: accepts any `HeadersInit` (`Record<string, string>`,
+   * `[string, string][]`, or `Headers`), defensively copies it into a new `Headers` instance (so
+   * mutating the caller's object, array, or `Headers` afterward has no effect), and replaces—rather
+   * than merges with—any previously set client headers.
+   *
+   * Validation and error precedence: `headers` is parsed (`new Headers(headers)`) and checked for
+   * protected header names synchronously before checking client lifecycle state (`mutable` or
+   * terminated). A failing call leaves {@link FirebaseSql.isMutable} and any previously set headers
+   * unchanged.
+   *
+   * Disallowed headers: do not pass authentication, App Check, or reserved Firebase telemetry and
+   * routing headers (`Authorization`, `x-firebase-auth-token`, `x-firebase-appcheck`,
+   * `x-goog-api-client`, `x-client-version`, `x-firebase-gmpid`, `x-firebase-client`,
+   * `x-firebase-client-log-type`, `x-goog-request-params`, `x-firebase-sqlconnect-affinity`),
+   * matched trimmed and case-insensitively. Firebase Auth and App Check tokens are attached
+   * automatically when configured on {@link FirebaseSql.app}.
+   *
+   * @param headers - Static HTTP headers (`Record<string, string>`, `[string, string][]`, or `Headers`) to include on every outgoing request.
+   *
+   * @throws `TypeError`
+   * Thrown synchronously if `headers` is a malformed `HeadersInit` or contains invalid HTTP header
+   * names or values rejected by the Fetch `Headers` constructor (for example, spaces in header
+   * names, CR/LF, or non-Latin-1 characters). Evaluated before lifecycle state checks.
+   * @throws {@link FirebaseSqlError} (`invalid-argument`, category `'sql-client'`)
+   * Thrown synchronously if any header name (trimmed, case-insensitive) matches a protected auth,
+   * App Check, or Firebase telemetry/routing header (`Authorization`, `x-firebase-auth-token`,
+   * `x-firebase-appcheck`, `x-goog-api-client`, `x-client-version`, `x-firebase-gmpid`,
+   * `x-firebase-client`, `x-firebase-client-log-type`, `x-goog-request-params`,
+   * `x-firebase-sqlconnect-affinity`). Evaluated before lifecycle state checks.
+   * @throws {@link FirebaseSqlError} (`already-initialized`, category `'sql-client'`)
+   * Thrown synchronously if {@link FirebaseSql.isMutable} is `false` because {@link FirebaseSql.from}
+   * or {@link FirebaseSql.rpc} has already been called on this client.
+   * @throws {@link FirebaseSqlError} (`not-initialized`, category `'sql-client'`)
+   * Thrown synchronously if this client has been terminated via {@link terminate} or `deleteApp()`.
+   *
+   * @example
+   * Configure client-wide headers before executing queries, overriding per-request as needed:
+   * ```ts
+   * import { getSql } from 'firebase/sql';
+   *
+   * const sql = getSql({
+   *   serviceId: 'events-db',
+   *   location: 'us-central1'
+   * });
+   *
+   * if (sql.isMutable) {
+   *   sql.setHeaders({
+   *     'x-app-locale': 'en-US',
+   *     'x-client-session': 'sess-42'
+   *   });
+   * }
+   *
+   * // Overwrites previous client headers with only 'x-app-locale'
+   * sql.setHeaders([['x-app-locale', 'fr-FR']]);
+   *
+   * // First from() call locks setHeaders() (sql.isMutable becomes false)
+   * const res = await sql
+   *   .from('events')
+   *   .select('id, title')
+   *   .setHeader('x-app-locale', 'de-DE'); // Overrides for this request only
+   * ```
+   *
+   * @public
+   */
+  setHeaders(headers: HeadersInit): void {
+    const headersCopy = new Headers(headers);
+    validateHeaders(headersCopy);
+
+    if (this._state.name === 'immutable') {
+      throw new FirebaseSqlError(
+        Code.ALREADY_INITIALIZED,
+        'The Firebase SQL client is no longer mutable; ' +
+          'therefore, the headers may not be changed.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+    }
+    if (this._state.name === 'terminated') {
+      throw new FirebaseSqlError(
+        Code.NOT_INITIALIZED,
+        'The Firebase SQL client has been terminated; ' +
+          'therefore, the headers may not be changed.',
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+    }
+
+    this._state.headers = headersCopy;
+  }
+
+  private _assertNotTerminated(): void {
+    if (this._state.name === 'terminated') {
+      this._throwTerminatedError();
+    }
+  }
+
+  private _throwTerminatedError(): never {
+    throw new FirebaseSqlError(
+      Code.NOT_INITIALIZED,
+      'The Firebase SQL client has been terminated.',
+      FirebaseSqlErrorCategory.SQL_CLIENT
+    );
+  }
+
+  private _ensureImmutableStateOrThrow(): FirebaseSqlStateImmutable {
+    if (this._state.name === 'terminated') {
+      this._throwTerminatedError();
+    }
+
+    if (this._state.name === 'immutable') {
+      return this._state;
+    }
+
+    const { instanceIdentifier, headers, authProvider, appCheckProvider } =
+      this._state;
 
     // PostgrestClient is deliberately instantiated without a static `fetch` option.
     // Instead, `createBuilderFetch` is passed down to query/filter builders, which
     // bind an execution-isolated `fetch` dynamically on each query execution to ensure
     // concurrent executions of the same builder instance do not share a single
     // `BuilderExecutionTracker` closure.
-    this._postgrestClient = new PostgrestClient(this._postgrestUrl, {
-      headers: this.settings.headers,
-      schema: this.settings.schemaName
+    const postgrestClient = new PostgrestClient(this.restUrl, {
+      headers,
+      schema: this.schemaName
     });
-  }
 
-  /** @internal */
-  _delete(): Promise<void> {
-    if (this._state.active !== null) {
-      const active = this._state.active;
-      this._state.active = null;
-      this._terminationController.abort(
-        new FirebaseSqlError(
-          Code.NOT_INITIALIZED,
-          'The Firebase SQL client has been terminated.',
-          FirebaseSqlErrorCategory.SQL_CLIENT
-        )
-      );
-      active.appCheckTokenProvider.terminate();
-      active.authTokenProvider.terminate();
-      _removeServiceInstance(
-        this.app,
-        FIREBASE_SQL_COMPONENT_NAME,
-        this._instanceIdentifier
-      );
-    }
-    return Promise.resolve();
+    const abortController = new AbortController();
+    const context: FirebaseSqlContext = {
+      resources: {
+        appId: this.app.options.appId,
+        authTokenProvider: new FirebaseAuthProvider(this.app, authProvider),
+        appCheckTokenProvider: new AppCheckProvider(this.app, appCheckProvider)
+      },
+      abortSignal: abortController.signal
+    };
+
+    this._state = {
+      name: 'immutable',
+      instanceIdentifier,
+      abortController,
+      postgrestClient,
+      context
+    };
+
+    return this._state;
   }
 
   // Encode table and RPC names so `/`, `?`, `#`, and dot-segments cannot traverse out of
   // `/postgrest` or inject query parameters on the shared `firebasedataconnect.googleapis.com`
-  // origin (deviating from `PostgrestClient`'s raw URL interpolation while leaving blank
-  // `from('')` inputs untouched so `@supabase/postgrest-js`'s raw `Error` still propagates).
-  private _encodeResourceSegment(
-    segment: string,
-    preserveBlank: boolean
-  ): string {
+  // origin (deviating from `PostgrestClient`'s raw URL interpolation).
+  private _encodePathSegment(segment: string): string {
     if (segment === '.' || segment === '..') {
       throw new FirebaseSqlError(
         Code.INVALID_ARGUMENT,
@@ -267,14 +478,23 @@ export class FirebaseSql {
         FirebaseSqlErrorCategory.SQL_CLIENT
       );
     }
-    if (
-      typeof segment !== 'string' ||
-      segment.length === 0 ||
-      (preserveBlank && segment.trim() === '')
-    ) {
+    if (typeof segment !== 'string' || segment.length === 0) {
       return segment;
     }
     return encodeURIComponent(segment);
+  }
+
+  private _encodeTableName(table: string): string {
+    if (!table || typeof table !== 'string' || table.trim() === '') {
+      throw new Error(
+        'Invalid relation name: relation must be a non-empty string.'
+      );
+    }
+    return this._encodePathSegment(table);
+  }
+
+  private _encodeFunctionName(fn: string): string {
+    return this._encodePathSegment(fn);
   }
 
   /**
@@ -282,8 +502,8 @@ export class FirebaseSql {
    *
    * @remarks
    * When to use: starting any `SELECT`, `INSERT`, `UPSERT`, `UPDATE`, or `DELETE` chain against a
-   * relation in the client's configured PostgreSQL schema (`settings.schemaName`, or the server
-   * default schema). See {@link QueryBuilder} for available SQL verbs.
+   * relation in the client's configured PostgreSQL schema ({@link FirebaseSql.schemaName}, or the
+   * server default schema when `undefined`). See {@link QueryBuilder} for available SQL verbs.
    *
    * Do not use for calling stored functions or procedures (use {@link FirebaseSql.rpc} instead),
    * passing `<Row>` type generics (`sql.from<EventRow>('events')` is not supported; apply
@@ -294,18 +514,23 @@ export class FirebaseSql {
    * Preconditions: this `FirebaseSql` instance must not have been terminated via {@link terminate}
    * or `deleteApp()`.
    *
-   * Behavior and side effects: synchronous and performs no network I/O. The returned
+   * Behavior and side effects: synchronous and performs no network I/O. On the first successful
+   * call to `from()` or {@link FirebaseSql.rpc}, this client permanently transitions
+   * {@link FirebaseSql.isMutable} to `false` (locking {@link FirebaseSql.setHeaders}) and lazily
+   * initializes the underlying PostgREST client along with Firebase Authentication and App Check
+   * token listeners. Terminated state (`not-initialized`) is checked before validating `table`,
+   * and a throwing call leaves {@link FirebaseSql.isMutable} unchanged. The returned
    * {@link QueryBuilder} clones URL and header state on each verb call (`select`, `insert`, etc.),
    * so a single `sql.from('events')` reference can be safely stored and reused across concurrent
-   * queries. Special URI characters (`/`, `?`, `#`) in `table` are percent-encoded to prevent path
-   * traversal.
+   * queries. Special URI characters (`/`, `?`, `#`) in `table` are percent-encoded to prevent
+   * path traversal.
    *
    * @param table - Non-empty PostgreSQL table or view name (must not be `'.'`, `'..'`, or blank/whitespace).
    * @returns A stateless {@link QueryBuilder} for starting SQL verb chains on `table`.
    *
    * @throws {@link FirebaseSqlError} (`not-initialized`, category `'sql-client'`)
-   * Thrown synchronously when called after {@link terminate} or `deleteApp()`. Obtain a fresh
-   * client via {@link (getSql:1) | getSql()}.
+   * Thrown synchronously when called after {@link terminate} or `deleteApp()` (evaluated before
+   * argument validation). Obtain a fresh client via {@link (getSql:1) | getSql()}.
    * @throws {@link FirebaseSqlError} (`invalid-argument`, category `'sql-client'`)
    * Thrown synchronously when `table` is `'.'` or `'..'`. Pass a valid PostgreSQL relation identifier.
    * @throws `Error`
@@ -355,19 +580,13 @@ export class FirebaseSql {
    * @public
    */
   from(table: string): QueryBuilder {
-    if (this._state.active === null) {
-      throw new FirebaseSqlError(
-        Code.NOT_INITIALIZED,
-        'FirebaseSql instance has been terminated.',
-        FirebaseSqlErrorCategory.SQL_CLIENT
-      );
-    }
-    const delegate = this._postgrestClient.from(
-      this._encodeResourceSegment(table, true)
-    );
+    this._assertNotTerminated();
+    const encodedTable = this._encodeTableName(table);
+    const { context, postgrestClient } = this._ensureImmutableStateOrThrow();
+    const postgrestQueryBuilder = postgrestClient.from(encodedTable);
     return new QueryBuilderImpl(
-      delegate,
-      this._state,
+      postgrestQueryBuilder,
+      context,
       createBuilderFetch,
       mapPostgrestFailureToFirebaseSqlError
     );
@@ -390,10 +609,15 @@ export class FirebaseSql {
    * wrap array parameters inside an object key, such as `{ target_tags: ['firebase', 'ai'] }`).
    *
    * Behavior and side effects: builder progression is `FirebaseSql -> FilterBuilder<unknown, 'RPC', false>`.
-   * No HTTP request is sent until the returned builder is `await`ed or `.then()` is invoked. Each
-   * `await` or `.then()` call sends a new HTTP request (results are not cached); awaiting the same
-   * `rpc()` builder twice executes the function twice and duplicates side effects for write
-   * functions, so await each mutation RPC builder at most once.
+   * On the first successful call to `rpc()` or {@link FirebaseSql.from}, this client permanently
+   * transitions {@link FirebaseSql.isMutable} to `false` (locking {@link FirebaseSql.setHeaders})
+   * and lazily initializes the underlying PostgREST client along with Firebase Authentication and
+   * App Check token listeners. Terminated state (`not-initialized`) is checked before validating
+   * `fn`, and a throwing call leaves {@link FirebaseSql.isMutable} unchanged. No HTTP request is
+   * sent until the returned builder is `await`ed or `.then()` is invoked. Each `await` or
+   * `.then()` call sends a new HTTP request (results are not cached); awaiting the same `rpc()`
+   * builder twice executes the function twice and duplicates side effects for write functions, so
+   * await each mutation RPC builder at most once.
    *
    * Defaults to `POST /rpc/{fn}` with JSON body `params ?? {}` (omit `params` for zero-argument
    * functions: `sql.rpc('fn')`). Set `options.get: true` in {@link FirebaseSqlRpcOptions} for
@@ -416,14 +640,14 @@ export class FirebaseSql {
    * {@link Builder.throwOnError} to reject with {@link FirebaseSqlError} instead.
    *
    * @typeParam Args - Non-iterable object mapping PostgreSQL function parameter names to values.
-   * @param fn - PostgreSQL function name in the active schema (must not be `'.'` or `'..'`; special URI characters are percent-encoded).
+   * @param fn - PostgreSQL function name in the active schema ({@link FirebaseSql.schemaName}, or the server default schema when `undefined`; must not be `'.'` or `'..'`; special URI characters are percent-encoded).
    * @param params - Named arguments object passed to the PostgreSQL function. In `POST` mode, serialized with `JSON.stringify` (`bigint` values serialize via `.toString()`, `undefined` properties and functions are omitted, `NaN`/`Infinity` serialize as `null`, `Date` serializes to ISO-8601, and circular references resolve at `await` time as `res.status === 0`, `res.error.category === 'sql-client'`, `res.error.code === 'other'`).
    * @param options - HTTP verb (`get`, `head`) and `count` configuration. See {@link FirebaseSqlRpcOptions}.
    * @returns A lazy {@link FilterBuilder} with untyped result `unknown` and method tag `'RPC'`.
    *
    * @throws {@link FirebaseSqlError} (`not-initialized`, category `'sql-client'`)
-   * Thrown synchronously when called after {@link terminate} or `deleteApp()`. Re-initialize a
-   * client with {@link (getSql:1) | getSql()}.
+   * Thrown synchronously when called after {@link terminate} or `deleteApp()` (evaluated before
+   * argument validation). Re-initialize a client with {@link (getSql:1) | getSql()}.
    * @throws {@link FirebaseSqlError} (`invalid-argument`, category `'sql-client'`)
    * Thrown synchronously when `fn` is `'.'` or `'..'`. Pass a valid PostgreSQL function name.
    *
@@ -512,21 +736,17 @@ export class FirebaseSql {
     params?: Args | undefined,
     options?: Readonly<FirebaseSqlRpcOptions> | undefined
   ): FilterBuilder<unknown, 'RPC'> {
-    if (this._state.active === null) {
-      throw new FirebaseSqlError(
-        Code.NOT_INITIALIZED,
-        'FirebaseSql instance has been terminated.',
-        FirebaseSqlErrorCategory.SQL_CLIENT
-      );
-    }
-    const delegate = this._postgrestClient.rpc(
-      this._encodeResourceSegment(fn, false),
-      params as Record<string, unknown> | undefined,
+    this._assertNotTerminated();
+    const encodedFn = this._encodeFunctionName(fn);
+    const { context, postgrestClient } = this._ensureImmutableStateOrThrow();
+    const postgrestFilterBuilder = postgrestClient.rpc(
+      encodedFn,
+      params,
       options
     );
     return new FilterBuilderImpl<unknown, 'RPC'>(
-      delegate,
-      this._state,
+      postgrestFilterBuilder,
+      context,
       createBuilderFetch,
       mapPostgrestFailureToFirebaseSqlError
     );
@@ -535,43 +755,41 @@ export class FirebaseSql {
 
 /**
  * Returns the cached or newly initialized {@link FirebaseSql} client bound to the default
- * {@link @firebase/app#FirebaseApp} and the specified {@link SqlServiceSettings}.
+ * {@link @firebase/app#FirebaseApp} and the specified {@link ServiceConfig}.
  *
  * @remarks
  * When to use: standard single-app setups where `initializeApp({ projectId, ... })` has already
  * been called for the default Firebase app.
  *
  * Do not use in multi-app environments targeting a named secondary `FirebaseApp` (pass `app`
- * explicitly via {@link (getSql:2) | getSql(app, settings)}) or when varying `settings.headers` on
- * the same `(serviceId, location, schemaName)` expecting separate clients (cached instances ignore
- * subsequent `settings.headers`; use {@link Builder.setHeader} for per-request headers or call
- * {@link terminate} first).
+ * explicitly via {@link (getSql:2) | getSql(app, serviceConfig)}).
  *
  * Preconditions: the default `FirebaseApp` must be initialized via `initializeApp(...)` with a
  * non-empty `options.projectId`.
  *
- * Behavior and side effects: synchronous, performs no network I/O, deep-clones and freezes
- * `settings`, and caches the resulting {@link FirebaseSql} instance on the default app keyed by
- * `(resolvedEndpointUrl, schemaName)`. Note that if `settings.host` contains a scheme or path (such
+ * Behavior and side effects: synchronous, performs no network I/O, copies and freezes
+ * `serviceConfig`, and caches the resulting {@link FirebaseSql} instance on the default app keyed by
+ * `(restUrl, schemaName)`. Repeated calls with the same resolved endpoint and
+ * `schemaName` return the shared cached instance, including its {@link FirebaseSql.isMutable} and
+ * {@link FirebaseSql.setHeaders} state—if the cached instance has already been used, `isMutable` is
+ * `false`; use {@link Builder.setHeader} for per-request headers or call {@link terminate} first
+ * to obtain a fresh mutable client. Note that if `serviceConfig.host` contains a scheme or path (such
  * as `'http://example.com'`), it does not throw—it resolves to the unintended hostname `'http'` and
  * overwrites the path, so always pass a bare hostname.
  *
- * @param settings - Required service connection settings (`serviceId` and `location` are mandatory). See {@link SqlServiceSettings}.
+ * @param serviceConfig - Required service connection configuration (`serviceId` and `location` are mandatory). See {@link ServiceConfig}.
  * @returns The cached or newly created {@link FirebaseSql} client instance.
  *
  * @throws `FirebaseError` (`app/no-app`)
  * Thrown when no default `FirebaseApp` has been initialized. Call `initializeApp({ projectId: '...' })`
- * before calling `getSql(settings)`.
+ * before calling `getSql(serviceConfig)`.
  * @throws {@link FirebaseSqlError} (`invalid-argument`, category `'sql-client'`)
- * Thrown when `settings` is missing, `serviceId` or `location` is empty, `port` is outside
- * `1..65535` or non-integer, `headers` contains a protected header key, or `app.options.projectId`
- * is missing/empty. Supply non-empty `projectId`, `serviceId`, and `location`, an integer `port` in
- * `1..65535`, and remove disallowed auth/telemetry headers.
+ * Thrown when `serviceConfig` is missing or not an object, `serviceId` or `location` is empty, `port`
+ * is outside `1..65535` or non-integer, or `app.options.projectId` is missing/empty. Supply
+ * non-empty `projectId`, `serviceId`, and `location`, and an integer `port` in `1..65535`.
  * @throws `TypeError`
- * Thrown synchronously when `settings.host` is rejected by the WHATWG `URL` parser (such as `''`)
- * or, when creating a new client, when `settings.headers` contains an invalid HTTP header name or
- * value (for example, spaces in a header name, CR/LF, or non-Latin-1 characters; cached clients
- * return before `Headers` construction). Note that a scheme or path in `settings.host` is not
+ * Thrown synchronously (before cache lookup) when `serviceConfig.host` cannot be parsed as a valid URL
+ * host by `new URL(...)` (such as `''`). Note that a scheme or path in `serviceConfig.host` is not
  * rejected by `URL` and silently produces a wrong endpoint.
  *
  * @example
@@ -606,11 +824,11 @@ export class FirebaseSql {
  *
  * @public
  */
-export function getSql(settings: SqlServiceSettings): FirebaseSql;
+export function getSql(serviceConfig: ServiceConfig): FirebaseSql;
 
 /**
  * Returns the cached or newly initialized {@link FirebaseSql} client bound to the given
- * {@link @firebase/app#FirebaseApp} and {@link SqlServiceSettings}.
+ * {@link @firebase/app#FirebaseApp} and {@link ServiceConfig}.
  *
  * @remarks
  * When to use: binding to a specific `FirebaseApp` instance (including named secondary apps or
@@ -619,28 +837,29 @@ export function getSql(settings: SqlServiceSettings): FirebaseSql;
  *
  * Preconditions: `app.options.projectId` must be a non-empty string.
  *
- * Behavior and side effects: synchronous, performs no network I/O, deep-clones and freezes
- * `settings`, and caches the {@link FirebaseSql} instance on `app` keyed by
- * `(resolvedEndpointUrl, schemaName)` (`settings.headers` is excluded from the cache key; use
- * {@link Builder.setHeader} for per-operation headers, or {@link terminate} to evict the cached
- * instance). Note that passing a scheme or path in `settings.host` does not throw and silently
- * produces a wrong endpoint (for example, `'http://example.com'` resolves to hostname `'http'`).
+ * Behavior and side effects: synchronous, performs no network I/O, copies and freezes
+ * `serviceConfig`, and caches the {@link FirebaseSql} instance on `app` keyed by
+ * `(restUrl, schemaName)`. Repeated calls with the same resolved endpoint and
+ * `schemaName` return the shared cached instance, sharing its {@link FirebaseSql.isMutable} and
+ * {@link FirebaseSql.setHeaders} state—if the cached instance has already been used, `isMutable` is
+ * `false`; use {@link Builder.setHeader} for per-operation headers, or call {@link terminate} to
+ * evict the cached instance and obtain a fresh mutable client. Note that passing a scheme or path
+ * in `serviceConfig.host` does not throw and silently produces a wrong endpoint (for example,
+ * `'http://example.com'` resolves to hostname `'http'`).
  *
  * @param app - The {@link @firebase/app#FirebaseApp} instance whose `projectId`, Auth, and App Check providers will be used.
- * @param settings - Required service connection settings (`serviceId` and `location` are mandatory). See {@link SqlServiceSettings}.
+ * @param serviceConfig - Required service connection configuration (`serviceId` and `location` are mandatory). See {@link ServiceConfig}.
  * @returns The cached or newly created {@link FirebaseSql} client instance for `app`.
  *
  * @throws {@link FirebaseSqlError} (`invalid-argument`, category `'sql-client'`)
  * Thrown when `app` is not an object with an `options` property (note that passing `undefined` as
  * `app` falls back to the default app via `getApp()`, which throws `FirebaseError` `app/no-app` if
- * no default app exists), `app.options.projectId` is missing/empty, `settings`, `serviceId`, or
- * `location` is missing/empty, `port` is not an integer in `1..65535`, or `headers` includes a
- * protected header name.
+ * no default app exists), `app.options.projectId` is missing/empty, `serviceConfig` is null or not an
+ * object, `serviceId` or `location` is missing/empty, or `port` is not an integer in `1..65535`.
  * @throws `TypeError`
- * Thrown synchronously when `settings.host` is rejected by the WHATWG `URL` parser (such as `''`)
- * or, when creating a new client, when `settings.headers` contains an invalid HTTP header name or
- * value (for example, spaces in a header name, CR/LF, or non-Latin-1 characters; cached clients
- * return before `Headers` construction).
+ * Thrown synchronously (before cache lookup) when `serviceConfig.host` cannot be parsed as a valid URL
+ * host by `new URL(...)` (such as `''`). Note that a scheme or path in `serviceConfig.host` is not
+ * rejected by `URL` and silently produces a wrong endpoint.
  *
  * @example
  * Initialize Firebase SQL with an explicit `FirebaseApp` using the default schema:
@@ -679,39 +898,39 @@ export function getSql(settings: SqlServiceSettings): FirebaseSql;
  */
 export function getSql(
   app: FirebaseApp,
-  settings: SqlServiceSettings
+  serviceConfig: ServiceConfig
 ): FirebaseSql;
 
 export function getSql(
-  appOrSettings: FirebaseApp | SqlServiceSettings,
-  settingsArg?: SqlServiceSettings
+  appOrServiceConfig: FirebaseApp | ServiceConfig,
+  serviceConfig?: ServiceConfig
 ): FirebaseSql {
   let app: FirebaseApp;
-  let rawSettings: SqlServiceSettings;
+  let rawServiceConfig: ServiceConfig;
 
-  if (settingsArg === undefined) {
+  if (serviceConfig === undefined) {
     app = getApp();
-    rawSettings = appOrSettings as SqlServiceSettings;
+    rawServiceConfig = appOrServiceConfig as ServiceConfig;
   } else {
-    if (appOrSettings === undefined) {
+    if (appOrServiceConfig === undefined) {
       app = getApp();
     } else if (
-      !appOrSettings ||
-      typeof appOrSettings !== 'object' ||
-      !('options' in appOrSettings)
+      !appOrServiceConfig ||
+      typeof appOrServiceConfig !== 'object' ||
+      !('options' in appOrServiceConfig)
     ) {
       throw new FirebaseSqlError(
         Code.INVALID_ARGUMENT,
-        'First argument passed to getSql() must be a FirebaseApp or SqlServiceSettings instance.',
+        'First argument passed to getSql() must be a FirebaseApp or ServiceConfig instance.',
         FirebaseSqlErrorCategory.SQL_CLIENT
       );
     } else {
-      app = appOrSettings;
+      app = appOrServiceConfig;
     }
-    rawSettings = settingsArg;
+    rawServiceConfig = serviceConfig;
   }
 
-  const validatedSettings = validateSqlServiceSettings(rawSettings);
+  const validatedServiceConfig = validateServiceConfig(rawServiceConfig);
 
   if (
     typeof app.options?.projectId !== 'string' ||
@@ -725,22 +944,20 @@ export function getSql(
   }
 
   const instanceIdentifier = getInstanceIdentifier(
-    validatedSettings,
+    validatedServiceConfig,
     app.options.projectId
   );
   const provider = _getProvider(app, FIREBASE_SQL_COMPONENT_NAME);
 
   if (provider.isInitialized(instanceIdentifier)) {
-    logDebug(
-      'Re-using cached instance (NOTE: custom headers set on the original FSQL client are RE-USED when that client is re-used from the instance cache. Creating multiple FSQL clients with the same settings and app, but different headers, is NOT supported. Instead, use .setHeaders() while building an operation chain to set custom headers for that specific operation.)'
-    );
+    logDebug('Re-using cached Firebase SQL instance');
     return provider.getImmediate({ identifier: instanceIdentifier });
   }
 
   logDebug('Creating new Firebase SQL instance');
   return provider.initialize({
     instanceIdentifier,
-    options: validatedSettings
+    options: validatedServiceConfig
   });
 }
 
@@ -750,18 +967,21 @@ export function getSql(
  * component cache.
  *
  * @remarks
- * When to use: tearing down a client during test cleanup, user session isolation, or before
- * re-initializing a client with updated `headers` for the same `(app, serviceId, location, schemaName)`
- * via {@link (getSql:1) | getSql()}.
+ * When to use: tearing down a client during test cleanup, user session isolation, or evicting a
+ * used client so a subsequent {@link (getSql:1) | getSql()} call creates a fresh client with
+ * {@link FirebaseSql.isMutable} equal to `true` (for example, to call {@link FirebaseSql.setHeaders}
+ * again after queries have started).
  *
  * Behavior and side effects: idempotent—calling `terminate(sql)` repeatedly on an
  * already-terminated instance resolves immediately without side effects and will not evict a newer
  * client created afterward via {@link (getSql:1) | getSql()}.
  *
- * After termination, calling `sql.from()` or `sql.rpc()` throws {@link FirebaseSqlError}
- * (`not-initialized`) synchronously. Pre-existing builders created before `terminate(sql)` continue
- * chaining synchronously without throwing, but awaiting them (or any request already in flight)
- * settles with {@link FirebaseSqlError} (`not-initialized`, category `'sql-client'`).
+ * After termination, calling {@link FirebaseSql.from}, {@link FirebaseSql.rpc}, or
+ * {@link FirebaseSql.setHeaders} (after header syntax and protected-header validation) throws
+ * {@link FirebaseSqlError} (`not-initialized`, category `'sql-client'`) synchronously. Pre-existing
+ * builders created before `terminate(sql)` continue chaining synchronously without throwing, but
+ * awaiting them (or any request already in flight) settles with {@link FirebaseSqlError}
+ * (`not-initialized`, category `'sql-client'`).
  *
  * @param sql - The {@link FirebaseSql} client instance to terminate.
  * @returns A `Promise` that resolves immediately after the instance is marked terminated, pending initialization subscriptions are cancelled, and the instance is removed from the registry.
@@ -802,16 +1022,46 @@ export function terminate(sql: FirebaseSql): Promise<void> {
 
 /**
  * Computes a deterministic JSON instance identifier string.
- * Assumes settings have been validated!
+ * Assumes `serviceConfig` has been validated!
  * @internal
  */
 export function getInstanceIdentifier(
-  settings: SqlServiceSettings,
+  serviceConfig: ServiceConfig,
   projectId: string
 ): string {
-  const resolvedUrl = resolvePostgrestUrl(settings, projectId);
+  const resolvedUrl = resolvePostgrestUrl(serviceConfig, projectId);
   return JSON.stringify({
     resolvedUrl,
-    schemaName: settings.schemaName
+    schemaName: serviceConfig.schemaName
   });
+}
+
+type FirebaseSqlState =
+  | FirebaseSqlStateMutable
+  | FirebaseSqlStateImmutable
+  | FirebaseSqlStateTerminated;
+
+interface FirebaseSqlStateMutable {
+  name: 'mutable';
+  instanceIdentifier: string;
+  headers: Headers;
+  authProvider: Provider<FirebaseAuthInternalName>;
+  appCheckProvider: Provider<AppCheckInternalComponentName>;
+}
+
+interface FirebaseSqlStateImmutable {
+  name: 'immutable';
+  instanceIdentifier: string;
+  abortController: AbortController;
+  postgrestClient: PostgrestClient<
+    UntypedDatabase,
+    UntypedClientOptions,
+    string,
+    UntypedSchema
+  >;
+  context: FirebaseSqlContext;
+}
+
+interface FirebaseSqlStateTerminated {
+  name: 'terminated';
 }

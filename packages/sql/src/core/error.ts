@@ -70,12 +70,15 @@ export type Code = FirebaseSqlErrorCode;
  * @remarks
  * Compare against `error.code` when handling `'sql-client'` and `'sql-platform'` errors.
  *
- * `Code.INVALID_ARGUMENT` (`'invalid-argument'`): missing `projectId`, `serviceId`, or `location`,
- * invalid `port`, dot-segment resource name (`'.'` or `'..'`), disallowed HTTP header, or HTTP 400
- * non-PostgREST gateway rejection.
+ * `Code.INVALID_ARGUMENT` (`'invalid-argument'`): missing `projectId`, `serviceId`, or `location`
+ * (in {@link (getSql:1) | getSql()}), invalid `port`, dot-segment resource name (`'.'` or `'..'`,
+ * in {@link FirebaseSql.from} or {@link FirebaseSql.rpc}), disallowed HTTP header (in
+ * {@link FirebaseSql.setHeaders} or {@link Builder.setHeader}), or HTTP 400 non-PostgREST gateway
+ * rejection.
  *
- * `Code.NOT_INITIALIZED` (`'not-initialized'`): operation called or settled after {@link terminate}
- * or `deleteApp()`.
+ * `Code.NOT_INITIALIZED` (`'not-initialized'`): client method ({@link FirebaseSql.setHeaders},
+ * {@link FirebaseSql.from}, {@link FirebaseSql.rpc}) or builder operation called or settled after
+ * {@link terminate} or `deleteApp()`.
  *
  * `Code.NOT_SUPPORTED` (`'not-supported'`): global `fetch` unavailable in runtime (`'sql-client'`),
  * or HTTP 501 / `UNIMPLEMENTED` gateway rejection (`'sql-platform'`).
@@ -89,8 +92,12 @@ export type Code = FirebaseSqlErrorCode;
  * client-side Auth token retrieval failure (`res.status === 0`, `'sql-client'`), or unmapped
  * `'sql-platform'` response (such as HTTP 502/504 or unparseable 2xx body).
  *
- * `Code.ALREADY_INITIALIZED` (`'already-initialized'`) and `Code.PARTIAL_ERROR` (`'partial-error'`):
- * reserved error codes.
+ * `Code.ALREADY_INITIALIZED` (`'already-initialized'`): thrown synchronously by
+ * {@link FirebaseSql.setHeaders} (`category: 'sql-client'`) when called after the client has
+ * transitioned to {@link FirebaseSql.isMutable} === false (i.e., after the first
+ * {@link FirebaseSql.from} or {@link FirebaseSql.rpc} call).
+ *
+ * `Code.PARTIAL_ERROR` (`'partial-error'`): reserved error code.
  *
  * @example
  * Branch on client and platform error codes:
@@ -123,7 +130,9 @@ export const Code = Object.freeze({
  * {@link FirebaseSqlError.category} is typed as `string` at compile time, while SDK-generated
  * errors emit one of three values.
  *
- * `'sql-client'`: local SDK validation, missing `fetch`, network drop, `AbortSignal` cancellation,
+ * `'sql-client'`: local SDK validation or client-state errors (in {@link (getSql:1) | getSql()},
+ * {@link FirebaseSql.setHeaders}, {@link FirebaseSql.from}, {@link FirebaseSql.rpc}, or
+ * {@link Builder.setHeader}), missing `fetch`, network drop, `AbortSignal` cancellation,
  * circular JSON body, Auth `getToken()` rejection, or terminated client (`error.status` is
  * `undefined`, while {@link OperationBase.status | OperationFailure.status} is `0`).
  *

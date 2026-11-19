@@ -17,9 +17,45 @@
 
 import { expect, describe, it, beforeEach, afterEach } from 'vitest';
 
+import {
+  Code,
+  FirebaseSqlError,
+  FirebaseSqlErrorCategory
+} from '../core/error';
 import { SDK_VERSION, setSDKVersion } from '../core/version';
 
-import { FirebaseHeaders, resolveRequestHeaders } from './headers';
+import {
+  FirebaseHeaders,
+  LOWERCASE_DISALLOWED_HEADER_KEYS,
+  resolveRequestHeaders,
+  validateHeaders
+} from './headers';
+
+describe('validateHeaders()', () => {
+  it('succeeds for allowed headers', () => {
+    expect(() =>
+      validateHeaders(new Headers({ 'X-Custom': '1', 'X-Trace': 'abc' }))
+    ).not.toThrow();
+  });
+
+  it('throws FirebaseSqlError(INVALID_ARGUMENT, SQL_CLIENT) for every disallowed header key', () => {
+    for (const key of LOWERCASE_DISALLOWED_HEADER_KEYS) {
+      let caughtError: unknown;
+      try {
+        validateHeaders(new Headers({ [key.toUpperCase()]: 'val' }));
+      } catch (err) {
+        caughtError = err;
+      }
+      expect(caughtError).toBeInstanceOf(FirebaseSqlError);
+      expect((caughtError as FirebaseSqlError).code).toBe(
+        Code.INVALID_ARGUMENT
+      );
+      expect((caughtError as FirebaseSqlError).category).toBe(
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+    }
+  });
+});
 
 describe('resolveRequestHeaders()', () => {
   const originalVersion = SDK_VERSION;

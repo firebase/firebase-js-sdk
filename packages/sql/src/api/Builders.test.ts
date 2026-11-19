@@ -22,18 +22,18 @@ import {
 } from '@supabase/postgrest-js';
 import { expect, vi } from 'vitest';
 
+import type {
+  BuilderExecutionTracker,
+  CreateBuilderFetch,
+  FirebaseSqlContext,
+  MapPostgrestError
+} from '../core/context';
 import {
   Code,
   FirebaseSqlError,
   FirebaseSqlErrorCategory
 } from '../core/error';
 import { mapPostgrestFailureToFirebaseSqlError } from '../core/errorMapper';
-import type {
-  BuilderExecutionTracker,
-  CreateBuilderFetch,
-  MapPostgrestError,
-  SqlClientState
-} from '../core/state';
 import type {
   UntypedClientOptions,
   UntypedDatabase,
@@ -62,7 +62,7 @@ interface CapturedRequest {
 }
 
 interface TestHarness {
-  state: SqlClientState;
+  context: FirebaseSqlContext;
   requests: CapturedRequest[];
   mapErrorCalls: Array<{
     rawError: unknown;
@@ -85,9 +85,9 @@ interface TestHarness {
   rpcBuilder: (fnName?: string) => FilterBuilder<unknown, 'RPC'>;
 }
 
-function createActiveState(): SqlClientState {
+function createActiveContext(): FirebaseSqlContext {
   return {
-    active: {
+    resources: {
       appId: '1:123:web:abc',
       authTokenProvider: {
         getToken: () => Promise.resolve(null),
@@ -102,7 +102,8 @@ function createActiveState(): SqlClientState {
         removeTokenChangeListener: () => {},
         terminate: () => {}
       }
-    }
+    },
+    abortSignal: new AbortController().signal
   };
 }
 
@@ -118,7 +119,7 @@ function jsonResponse(
 }
 
 function createHarness(): TestHarness {
-  const state = createActiveState();
+  const context = createActiveContext();
   const requests: CapturedRequest[] = [];
   const mapErrorCalls: Array<{
     rawError: unknown;
@@ -132,9 +133,9 @@ function createHarness(): TestHarness {
   ) => Promise<Response> | Response = () => jsonResponse([]);
 
   const createFetch: CreateBuilderFetch =
-    (state, tracker) =>
+    (ctx, tracker) =>
     async (input, init): Promise<Response> => {
-      if (state.active === null) {
+      if (ctx.resources === null) {
         tracker.clientError = new FirebaseSqlError(
           Code.NOT_INITIALIZED,
           'FirebaseSql instance has been terminated.',
@@ -188,7 +189,7 @@ function createHarness(): TestHarness {
   };
 
   return {
-    state,
+    context,
     requests,
     mapErrorCalls,
     setResponder: fn => {
@@ -204,7 +205,7 @@ function createHarness(): TestHarness {
         headers: options.headers ?? {},
         schema: options.schema
       });
-      return new QueryBuilderImpl(delegate, state, createFetch, mapError);
+      return new QueryBuilderImpl(delegate, context, createFetch, mapError);
     },
     rpcBuilder: (fnName = 'compute_stats') => {
       const delegate = new PostgrestFilterBuilder<
@@ -224,7 +225,7 @@ function createHarness(): TestHarness {
       });
       return new FilterBuilderImpl<unknown, 'RPC'>(
         delegate,
-        state,
+        context,
         createFetch,
         mapError
       );
@@ -1022,7 +1023,7 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
           UntypedTable,
           string
         >(new URL('https://sql.example.test/v1/users'), { headers: {} }),
-        h.state,
+        h.context,
         createBuilderFetch,
         mapPostgrestFailureToFirebaseSqlError
       );
@@ -1048,14 +1049,14 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('allows chaining on active builders after state.active = null and fails at execution in default and throwOnError() modes', async () => {
+    it('allows chaining on active builders after context.resources = null and fails at execution in default and throwOnError() modes', async () => {
       const h = createHarness();
       const qb = h.queryBuilder('users');
       const activeSelect = qb.select('id, name');
       const activeThrowing = qb.select('id').throwOnError();
 
-      // Terminate client state after builders were created
-      h.state.active = null;
+      // Terminate client context after builders were created
+      h.context.resources = null;
 
       // Chaining methods must continue functioning normally without throwing synchronously
       const chainedDefault = activeSelect
@@ -1094,7 +1095,7 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
       expect(h.requests).toHaveLength(0);
     });
 
-    it('fails with NOT_INITIALIZED when state.active becomes null mid-flight and resets tracker.clientError on re-execution', async () => {
+    it('fails with NOT_INITIALIZED when context.resources becomes null mid-flight and resets tracker.clientError on re-execution', async () => {
       const h = createHarness();
       const qb = h.queryBuilder('users');
 
@@ -1130,7 +1131,7 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
 
       // Mid-flight termination while request is in progress
       h.setResponder(() => {
-        h.state.active = null;
+        h.context.resources = null;
         return jsonResponse([{ id: 100 }]);
       });
       const inFlightDefault = await qb.select();
@@ -1140,7 +1141,7 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
         expect(inFlightDefault.status).toBe(0);
       }
 
-      h.state.active = createActiveState().active;
+      h.context.resources = createActiveContext().resources;
       await expect(qb.select().throwOnError()).rejects.toMatchObject({
         code: Code.NOT_INITIALIZED,
         category: FirebaseSqlErrorCategory.SQL_CLIENT
@@ -1251,7 +1252,7 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
 
       let fetchDuringInFlight: typeof fetch | undefined = globalThis.fetch;
       const createFetch: CreateBuilderFetch =
-        (_state, _tracker) => async () => {
+        (_context, _tracker) => async () => {
           await Promise.resolve();
           fetchDuringInFlight = delegateRef.fetch;
           return jsonResponse([{ id: 1 }]);
@@ -1260,7 +1261,12 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
       const builder = new FilterBuilderImpl<
         Array<Record<string, unknown>>,
         'GET'
-      >(delegate, h.state, createFetch, mapPostgrestFailureToFirebaseSqlError);
+      >(
+        delegate,
+        h.context,
+        createFetch,
+        mapPostgrestFailureToFirebaseSqlError
+      );
 
       let fetchSeenInsideThen: typeof fetch | undefined;
       const originalThen = delegate.then.bind(delegate);
@@ -1318,7 +1324,7 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
         }
       );
 
-      const syncCreateFetch: CreateBuilderFetch = (_state, _tracker) => {
+      const syncCreateFetch: CreateBuilderFetch = (_context, _tracker) => {
         events.push('createFetch');
         return async () => {
           events.push('fetch');
@@ -1331,7 +1337,7 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
         'GET'
       >(
         delegate,
-        h.state,
+        h.context,
         syncCreateFetch,
         mapPostgrestFailureToFirebaseSqlError
       );
@@ -1354,7 +1360,7 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
 
       // 3. Pre-flight terminated builder with throwOnError().then(undefined, onRejected) routes to onRejected asynchronously
       const terminatedBuilder = h.queryBuilder('users').select();
-      h.state.active = null;
+      h.context.resources = null;
 
       const onRejected = vi.fn((reason: unknown) => reason);
       const handledPromise = terminatedBuilder
@@ -1392,7 +1398,7 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
       });
 
       const createFetch: CreateBuilderFetch =
-        (_state, tracker) => async (input, init) => {
+        (_context, tracker) => async (input, init) => {
           const rawUrl =
             typeof input === 'string'
               ? input
@@ -1414,7 +1420,7 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
 
       const qb = new QueryBuilderImpl(
         client.from('users'),
-        h.state,
+        h.context,
         createFetch,
         mapPostgrestFailureToFirebaseSqlError
       );
@@ -1426,7 +1432,7 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
 
       const rpc = new FilterBuilderImpl<unknown, 'RPC'>(
         client.rpc('ping', { echo: 1 }),
-        h.state,
+        h.context,
         createFetch,
         mapPostgrestFailureToFirebaseSqlError
       );

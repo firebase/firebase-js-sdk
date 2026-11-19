@@ -670,7 +670,7 @@ function renderHubView(): string {
 
 function renderRunnerView(): string {
   const categories: ExampleCategory[] = [
-    'Client & Settings',
+    'Client & ServiceConfig',
     'QueryBuilder Verbs',
     'FilterBuilder Operators',
     'TransformBuilder Modifiers',

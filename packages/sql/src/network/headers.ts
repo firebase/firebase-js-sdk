@@ -105,15 +105,10 @@ export function validateHeaderName(name: string): string {
  * header keys.
  * @internal
  */
-export function validateHeaders(
-  headers?: Record<string, string> | undefined
-): void {
-  if (!headers) {
-    return;
-  }
-  for (const key of Object.keys(headers)) {
+export function validateHeaders(headers: Headers): void {
+  headers.forEach((_, key) => {
     validateHeaderName(key);
-  }
+  });
 }
 
 /**

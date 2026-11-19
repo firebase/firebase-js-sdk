@@ -18,17 +18,17 @@
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { decode, isCloudWorkstation } from '@firebase/util';
 
+import type {
+  BuilderExecutionTracker,
+  CreateBuilderFetch,
+  FirebaseSqlContext
+} from '../core/context';
 import {
   Code,
   FirebaseSqlError,
   FirebaseSqlErrorCategory
 } from '../core/error';
-import { SqlServiceSettings } from '../core/settings';
-import type {
-  BuilderExecutionTracker,
-  CreateBuilderFetch,
-  SqlClientState
-} from '../core/state';
+import { ServiceConfig } from '../core/serviceConfig';
 import { AppCheckTokenProvider } from '../core/tokenProviders/AppCheckTokenProvider';
 import { FirebaseAuthTokenProvider } from '../core/tokenProviders/FirebaseAuthTokenProvider';
 
@@ -137,7 +137,7 @@ export function composeSignals(
  * @internal
  */
 export interface FirebaseSqlTransportInterface {
-  readonly settings?: SqlServiceSettings;
+  readonly serviceConfig?: ServiceConfig;
 
   /**
    * Constructs and executes an FSQL HTTP request, and returns the response.
@@ -160,12 +160,12 @@ export interface FirebaseSqlTransportInterface {
  * @internal
  */
 export interface FirebaseSqlTransportOptions {
-  settings?: SqlServiceSettings;
+  serviceConfig?: ServiceConfig;
   appId?: string | undefined;
   authTokenProvider?: FirebaseAuthTokenProvider | undefined;
   appCheckTokenProvider?: AppCheckTokenProvider | undefined;
   terminationSignal?: AbortSignal | undefined;
-  state?: SqlClientState | undefined;
+  context?: Readonly<FirebaseSqlContext> | undefined;
 }
 
 /**
@@ -173,22 +173,22 @@ export interface FirebaseSqlTransportOptions {
  * @internal
  */
 export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
-  readonly settings?: SqlServiceSettings;
+  readonly serviceConfig?: ServiceConfig;
   protected _appId?: string;
   // TODO: Update _isUsingEmulator if we add emulator support in the future.
   protected _isUsingEmulator = false;
   protected authProvider?: FirebaseAuthTokenProvider;
   protected appCheckProvider?: AppCheckTokenProvider;
   protected _terminationSignal?: AbortSignal;
-  protected _state?: SqlClientState;
+  protected readonly _context?: Readonly<FirebaseSqlContext>;
 
   constructor(options: FirebaseSqlTransportOptions = {}) {
-    this.settings = options.settings;
+    this.serviceConfig = options.serviceConfig;
     this._appId = options.appId;
     this.authProvider = options.authTokenProvider;
     this.appCheckProvider = options.appCheckTokenProvider;
     this._terminationSignal = options.terminationSignal;
-    this._state = options.state;
+    this._context = options.context;
   }
 
   /**
@@ -198,7 +198,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
     input: RequestInfo | URL,
     init?: RequestInit
   ): Promise<Response> {
-    if (this._state && this._state.active === null) {
+    if (this._context && this._context.resources === null) {
       throw new FirebaseSqlError(
         Code.NOT_INITIALIZED,
         'The Firebase SQL client has been terminated.',
@@ -214,12 +214,12 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
           : input.url;
 
     const authProvider =
-      this._state?.active?.authTokenProvider ?? this.authProvider;
+      this._context?.resources?.authTokenProvider ?? this.authProvider;
     const appCheckProvider =
-      this._state?.active?.appCheckTokenProvider ?? this.appCheckProvider;
-    const appId = this._state?.active?.appId ?? this._appId;
+      this._context?.resources?.appCheckTokenProvider ?? this.appCheckProvider;
+    const appId = this._context?.resources?.appId ?? this._appId;
     const terminationSignal =
-      this._state?.terminationSignal ?? this._terminationSignal;
+      this._context?.abortSignal ?? this._terminationSignal;
 
     if (terminationSignal?.aborted) {
       throw toAbortError(terminationSignal);
@@ -289,7 +289,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
         authToken = authData;
         appCheckToken = appCheckData;
       } catch (err) {
-        if (this._state && this._state.active === null) {
+        if (this._context && this._context.resources === null) {
           throw new FirebaseSqlError(
             Code.NOT_INITIALIZED,
             'The Firebase SQL client has been terminated.',
@@ -302,7 +302,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
         throw err;
       }
 
-      if (this._state && this._state.active === null) {
+      if (this._context && this._context.resources === null) {
         throw new FirebaseSqlError(
           Code.NOT_INITIALIZED,
           'The Firebase SQL client has been terminated.',
@@ -334,7 +334,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
 
       return await fetchImpl(url, requestInit)
         .then(async response => {
-          if (this._state && this._state.active === null) {
+          if (this._context && this._context.resources === null) {
             if (typeof response.body?.cancel === 'function') {
               await response.body.cancel().catch(() => {});
             }
@@ -364,7 +364,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
           return response;
         })
         .catch(async err => {
-          if (this._state && this._state.active === null) {
+          if (this._context && this._context.resources === null) {
             throw new FirebaseSqlError(
               Code.NOT_INITIALIZED,
               'The Firebase SQL client has been terminated.',
@@ -435,7 +435,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
       throw toAbortError(signal);
     }
 
-    if (this._state && this._state.active === null) {
+    if (this._context && this._context.resources === null) {
       if (typeof originalResponse.body?.cancel === 'function') {
         await originalResponse.body.cancel().catch(() => {});
       }
@@ -462,7 +462,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
         throw toAbortError(signal);
       }
 
-      if (this._state && this._state.active === null) {
+      if (this._context && this._context.resources === null) {
         if (typeof originalResponse.body?.cancel === 'function') {
           await originalResponse.body.cancel().catch(() => {});
         }
@@ -486,7 +486,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
       if (typeof originalResponse.body?.cancel === 'function') {
         await originalResponse.body.cancel().catch(() => {});
       }
-      if (this._state && this._state.active === null) {
+      if (this._context && this._context.resources === null) {
         throw new FirebaseSqlError(
           Code.NOT_INITIALIZED,
           'The Firebase SQL client has been terminated.',
@@ -506,7 +506,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
       throw toAbortError(signal);
     }
 
-    if (this._state && this._state.active === null) {
+    if (this._context && this._context.resources === null) {
       if (typeof originalResponse.body?.cancel === 'function') {
         await originalResponse.body.cancel().catch(() => {});
       }
@@ -555,7 +555,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
         return await this.invokePostgrestOperation(input, init);
       } catch (err) {
         const errorToTrack =
-          this._state && this._state.active === null
+          this._context && this._context.resources === null
             ? new FirebaseSqlError(
                 Code.NOT_INITIALIZED,
                 'The Firebase SQL client has been terminated.',
@@ -578,7 +578,7 @@ export class FirebaseSqlTransport implements FirebaseSqlTransportInterface {
 }
 
 /** @internal */
-export const createBuilderFetch: CreateBuilderFetch = (state, tracker) => {
-  const transport = new FirebaseSqlTransport({ state });
+export const createBuilderFetch: CreateBuilderFetch = (context, tracker) => {
+  const transport = new FirebaseSqlTransport({ context });
   return transport.toFetch(tracker);
 };

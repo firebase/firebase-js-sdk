@@ -8,9 +8,9 @@ Interactive browser application demonstrating the `firebase/sql` (`@firebase/sql
    - Full-text search (`textSearch` with `'websearch'`), status/city/tag/featured filtering (`eq`, `in`, `overlaps`, `match`), sorting (`order`), relational embedding (`venue:venues(...)`, `registrations(...)`), and pagination (`range`).
    - Create events (`insert().select().single()`), update prices/statuses with row-count safety (`update().eq().maxAffected(1)`), delete events (`delete().eq().maxAffected(1)`), manage attendee registrations via idempotent `upsert()` (`onConflict: 'event_id,attendee_email'`), toggle check-ins, export CSV (`.csv()`), inspect PostGIS GeoJSON (`.geojson()`), and compute live remaining capacity (`rpc('remaining_seats')`).
    - Live **SDK Query Inspector** showing the exact `firebase/sql` code snippet, HTTP status, latency, and JSON result for every UI interaction.
-2. **Comprehensive Docs Examples Suite (34 Live Scenarios):**
+2. **Comprehensive Docs Examples Suite (35 Live Scenarios):**
    - Executes end-to-end verification of all public `firebase/sql` APIs documented in TSDoc:
-     - Client initialization, `copySqlServiceSettings`, and `terminate()` lifecycle (`Code.NOT_INITIALIZED`)
+     - Client initialization (`getSql`, `FirebaseSql.restUrl`, `FirebaseSql.schemaName`), `copyServiceConfig`, `FirebaseSql.setHeaders()` / `FirebaseSql.isMutable` (`Code.ALREADY_INITIALIZED`), and `terminate()` lifecycle (`Code.NOT_INITIALIZED`)
      - `QueryBuilder` verbs (`select`, `insert`, `upsert`, `update`, `delete`)
      - All `FilterBuilder` operator families (`eq`/`neq`/`gt`/`gte`/`lt`/`lte`, `like`/`ilike`/`likeAllOf`/`likeAnyOf`/`regexMatch`/`regexIMatch`, `is`/`isDistinct`, `in`/`notIn`, `contains`/`containedBy`, `rangeGt`/`rangeGte`/`rangeLt`/`rangeLte`/`rangeAdjacent`, `overlaps`, `textSearch`, `match`, `not`, `or`, `filter`)
      - All `TransformBuilder` modifiers (`order`, `limit`, `range`, `abortSignal`, `single`, `maybeSingle`, `csv`, `geojson`, `explain`, `maxAffected`)

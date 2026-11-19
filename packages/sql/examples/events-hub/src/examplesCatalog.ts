@@ -19,19 +19,20 @@ import {
   Code,
   FirebaseSqlError,
   FirebaseSqlErrorCategory,
-  copySqlServiceSettings,
+  copyServiceConfig,
   getSql,
   terminate,
   type FilterOrOptions,
   type FilterTextSearchOptions,
   type FirebaseSqlRpcOptions,
   type QuerySelectOptions,
+  type ServiceConfig,
   type TransformLimitOptions,
   type TransformOrderOptions,
   type TransformRangeOptions
 } from 'firebase/sql';
 
-import { getActiveSql, getFirebaseApp } from './firebase';
+import { getActiveConnection, getActiveSql, getFirebaseApp } from './firebase';
 import type {
   DocExampleScenario,
   EventRow,
@@ -44,15 +45,22 @@ const MOSCONE_VENUE_ID = '8f14e45f-ceea-467a-9538-1536b58f2b01';
 
 export const DOC_EXAMPLES_CATALOG: DocExampleScenario[] = [
   // =========================================================================
-  // 1. Client & Settings
+  // 1. Client & ServiceConfig
   // =========================================================================
   {
     id: 'client-getsql-cache',
-    category: 'Client & Settings',
+    category: 'Client & ServiceConfig',
     title: '1. getSql() Default Schema & Instance Deduplication',
-    apiSymbols: ['getSql', 'FirebaseSql', 'SqlServiceSettings'],
+    apiSymbols: [
+      'getSql',
+      'FirebaseSql',
+      'FirebaseSql.restUrl',
+      'FirebaseSql.schemaName',
+      'FirebaseSql.isMutable',
+      'ServiceConfig'
+    ],
     description:
-      'Obtains the FirebaseSql client for (serviceId, location) using the default schema and verifies instance caching.',
+      'Obtains the FirebaseSql client for (serviceId, location) using the default schema, inspects restUrl/schemaName/isMutable, and verifies instance caching.',
     code: `const sql = getSql(app, {
   serviceId: 'YOUR_SERVICE_ID',
   location: 'us-central1'
@@ -61,13 +69,14 @@ const cached = getSql(app, {
   serviceId: 'YOUR_SERVICE_ID',
   location: 'us-central1'
 });
-// sql === cached`,
+// sql === cached
+const res = await sql.from('venues').select('id, slug, name, city');
+// sql.restUrl, sql.schemaName, sql.isMutable === false`,
     run: async () => {
       const sql = getActiveSql();
-      const same = getSql(sql.app, {
-        serviceId: sql.settings.serviceId,
-        location: sql.settings.location
-      });
+      const { serviceId, location } = getActiveConnection();
+      const cached = getSql(sql.app, { serviceId, location });
+      const sameInstance = sql === cached;
       const res = await sql
         .from('venues')
         .select('id, slug, name, city')
@@ -81,54 +90,101 @@ const cached = getSql(app, {
         };
       }
       return {
-        passed: sql === same && res.data.length > 0,
+        passed:
+          sameInstance &&
+          typeof sql.restUrl === 'string' &&
+          !sql.isMutable &&
+          res.data.length > 0,
         status: res.status,
-        summary: `Deduplicated instance (${sql === same}); fetched ${res.data.length} venues`,
-        payload: { cachedInstanceReused: sql === same, venues: res.data }
+        summary: `Deduplicated instance (${sameInstance}); schema=${sql.schemaName ?? '(default)'}; fetched ${res.data.length} venues`,
+        payload: {
+          sameInstance,
+          restUrl: sql.restUrl,
+          schemaName: sql.schemaName ?? '(default)',
+          isMutable: sql.isMutable,
+          venues: res.data
+        }
       };
     }
   },
   {
-    id: 'client-copy-settings-schema',
-    category: 'Client & Settings',
-    title: '2. copySqlServiceSettings() & Secondary Schema (PGRST106)',
-    apiSymbols: ['copySqlServiceSettings', 'SqlServiceSettings.schemaName'],
+    id: 'client-copy-serviceconfig-schema',
+    category: 'Client & ServiceConfig',
+    title: '2. copyServiceConfig() & Explicit schemaName',
+    apiSymbols: [
+      'copyServiceConfig',
+      'ServiceConfig',
+      'ServiceConfig.schemaName',
+      'FirebaseSql.schemaName',
+      'FirebaseSql.restUrl'
+    ],
     description:
-      'Clones frozen sql.settings into a mutable copy targeting schemaName: "analytics" and inspects PGRST106 when unexposed.',
-    code: `const nextSettings = copySqlServiceSettings(sql.settings);
-nextSettings.schemaName = 'analytics';
+      'Clones a ServiceConfig object with copyServiceConfig(), sets schemaName: "public", inspects restUrl and schemaName on the distinct client, and terminates it.',
+    code: `const baseServiceConfig: ServiceConfig = {
+  serviceId: 'YOUR_SERVICE_ID',
+  location: 'us-central1'
+};
+const nextServiceConfig = copyServiceConfig(baseServiceConfig);
+nextServiceConfig.schemaName = 'public';
 
-const analyticsSql = getSql(sql.app, nextSettings);
-const res = await analyticsSql.from('venue_utilization').select('*');
-await terminate(analyticsSql);`,
+const publicSql = getSql(sql.app, nextServiceConfig);
+// publicSql !== sql (explicit 'public' vs. undefined default)
+// publicSql.schemaName === 'public', publicSql.restUrl
+try {
+  const res = await publicSql.from('venues').select('id, slug, name').limit(3);
+} finally {
+  if (publicSql !== sql) {
+    await terminate(publicSql);
+  }
+}`,
     run: async () => {
       const sql = getActiveSql();
-      const nextSettings = copySqlServiceSettings(sql.settings);
-      nextSettings.schemaName = 'analytics';
-      const analyticsSql = getSql(getFirebaseApp(), nextSettings);
-      const res = await analyticsSql.from('venue_utilization').select('*');
-      await terminate(analyticsSql);
-      if (res.success) {
+      const { serviceId, location } = getActiveConnection();
+      const baseServiceConfig: ServiceConfig = { serviceId, location };
+      const nextServiceConfig = copyServiceConfig(baseServiceConfig);
+      nextServiceConfig.schemaName = 'public';
+
+      const publicSql = getSql(sql.app, nextServiceConfig);
+      const distinctFromDefault = publicSql !== sql;
+      try {
+        const res = await publicSql
+          .from('venues')
+          .select('id, slug, name')
+          .limit(3)
+          .returns<Array<Pick<Venue, 'id' | 'slug' | 'name'>>>();
+        if (!res.success) {
+          return {
+            passed: false,
+            status: res.status,
+            summary: res.error.message,
+            payload: res.error.toJSON()
+          };
+        }
         return {
-          passed: true,
+          passed:
+            distinctFromDefault &&
+            publicSql.schemaName === 'public' &&
+            typeof publicSql.restUrl === 'string' &&
+            res.data.length > 0,
           status: res.status,
-          summary: `Fetched ${res.data.length} analytics rows`,
-          payload: res.data
+          summary: `Cloned ServiceConfig for schema "${publicSql.schemaName}" (distinct=${distinctFromDefault}); fetched ${res.data.length} venues`,
+          payload: {
+            distinctFromDefault,
+            restUrl: publicSql.restUrl,
+            schemaName: publicSql.schemaName,
+            venues: res.data
+          }
         };
+      } finally {
+        if (publicSql !== sql) {
+          await terminate(publicSql);
+        }
       }
-      return {
-        passed:
-          res.error.category === FirebaseSqlErrorCategory.SQL_POSTGREST &&
-          res.error.code === 'PGRST106',
-        status: res.status,
-        summary: `Verified PostgREST ${res.error.code}: ${res.error.message}`,
-        payload: res.error.toJSON()
-      };
     }
   },
   {
     id: 'client-terminate-lifecycle',
-    category: 'Client & Settings',
+    category: 'Client & ServiceConfig',
     title: '3. terminate() & Code.NOT_INITIALIZED Lifecycle',
     apiSymbols: ['terminate', 'Code.NOT_INITIALIZED'],
     description:
@@ -144,36 +200,154 @@ await terminate(tempSql);
 const res = await pendingQuery;
 // res.success === false && res.error.code === Code.NOT_INITIALIZED`,
     run: async () => {
-      const base = getActiveSql();
-      const tempSql = getSql(base.app, {
-        serviceId: base.settings.serviceId,
-        location: base.settings.location,
+      const app = getFirebaseApp();
+      const { serviceId, location } = getActiveConnection();
+      const tempSql = getSql(app, {
+        serviceId,
+        location,
         schemaName: 'ephemeral_session'
       });
-      const pendingQuery = tempSql.from('events').select('id, title');
-      await terminate(tempSql);
-      const res = await pendingQuery;
-      let syncThrowCode: string | null = null;
       try {
-        tempSql.from('events');
-      } catch (err) {
-        if (err instanceof FirebaseSqlError) {
-          syncThrowCode = err.code;
+        const pendingQuery = tempSql.from('events').select('id, title');
+        await terminate(tempSql);
+        const res = await pendingQuery;
+        let syncThrowCode: string | null = null;
+        try {
+          tempSql.from('events');
+        } catch (err) {
+          if (err instanceof FirebaseSqlError) {
+            syncThrowCode = err.code;
+          }
         }
+        const passed =
+          !res.success &&
+          res.error.code === Code.NOT_INITIALIZED &&
+          syncThrowCode === Code.NOT_INITIALIZED;
+        return {
+          passed,
+          status: res.status,
+          summary: `Pending builder settled with ${!res.success ? res.error.code : 'success'}; sync from() threw ${syncThrowCode}`,
+          payload: {
+            pendingBuilderError: !res.success ? res.error.toJSON() : null,
+            syncFromThrowCode: syncThrowCode
+          }
+        };
+      } finally {
+        await terminate(tempSql);
       }
-      const passed =
-        !res.success &&
-        res.error.code === Code.NOT_INITIALIZED &&
-        syncThrowCode === Code.NOT_INITIALIZED;
-      return {
-        passed,
-        status: res.status,
-        summary: `Pending builder settled with ${!res.success ? res.error.code : 'success'}; sync from() threw ${syncThrowCode}`,
-        payload: {
-          pendingBuilderError: !res.success ? res.error.toJSON() : null,
-          syncFromThrowCode: syncThrowCode
-        }
+    }
+  },
+  {
+    id: 'client-setheaders-mutability',
+    category: 'Client & ServiceConfig',
+    title: '4. setHeaders(), isMutable, restUrl, & Code.ALREADY_INITIALIZED',
+    apiSymbols: [
+      'FirebaseSql.setHeaders',
+      'FirebaseSql.isMutable',
+      'FirebaseSql.restUrl',
+      'FirebaseSql.schemaName',
+      'Code.ALREADY_INITIALIZED'
+    ],
+    description:
+      'Inspects restUrl, schemaName, and isMutable === true on a fresh client, configures default headers via setHeaders(), runs a query (transitioning isMutable to false), and verifies late setHeaders() throws Code.ALREADY_INITIALIZED.',
+    code: `const scopedSql = getSql(app, {
+  serviceId: 'YOUR_SERVICE_ID',
+  location: 'us-central1',
+  schemaName: 'public'
+});
+// scopedSql.isMutable === true, scopedSql.restUrl, scopedSql.schemaName === 'public'
+scopedSql.setHeaders({ 'x-Verify-Client': 'events-hub' });
+
+const query = scopedSql.from('venues').select('id, slug, name').limit(2);
+// scopedSql.isMutable === false once from() or rpc() is called
+const res = await query;
+
+try {
+  scopedSql.setHeaders({ 'x-Verify-Client': 'late-update' });
+} catch (err) {
+  // err instanceof FirebaseSqlError && err.code === Code.ALREADY_INITIALIZED
+} finally {
+  await terminate(scopedSql);
+}`,
+    run: async () => {
+      const app = getFirebaseApp();
+      const { serviceId, location } = getActiveConnection();
+      const serviceConfig: ServiceConfig = {
+        serviceId,
+        location,
+        schemaName: 'public'
       };
+      const prior = getSql(app, serviceConfig);
+      if (!prior.isMutable) {
+        await terminate(prior);
+      }
+      const scopedSql = getSql(app, serviceConfig);
+
+      try {
+        const initialRestUrl = scopedSql.restUrl;
+        const initialSchemaName = scopedSql.schemaName;
+        const initialIsMutable = scopedSql.isMutable;
+
+        scopedSql.setHeaders({ 'x-Verify-Client': 'events-hub' });
+
+        const query = scopedSql
+          .from('venues')
+          .select('id, slug, name')
+          .limit(2)
+          .returns<Array<Pick<Venue, 'id' | 'slug' | 'name'>>>();
+        const isMutableAfterFrom = scopedSql.isMutable;
+        const res = await query;
+
+        let alreadyInitializedCode: string | null = null;
+        try {
+          scopedSql.setHeaders({ 'x-Verify-Client': 'late-update' });
+        } catch (err) {
+          if (err instanceof FirebaseSqlError) {
+            alreadyInitializedCode = err.code;
+          }
+        }
+
+        if (!res.success) {
+          return {
+            passed: false,
+            status: res.status,
+            summary: res.error.message,
+            payload: {
+              restUrl: initialRestUrl,
+              schemaName: initialSchemaName,
+              initialIsMutable,
+              isMutableAfterFrom,
+              alreadyInitializedCode,
+              error: res.error.toJSON()
+            }
+          };
+        }
+
+        const passed =
+          typeof initialRestUrl === 'string' &&
+          initialRestUrl.includes('/postgrest') &&
+          initialSchemaName === 'public' &&
+          initialIsMutable === true &&
+          isMutableAfterFrom === false &&
+          alreadyInitializedCode === Code.ALREADY_INITIALIZED &&
+          res.data.length > 0;
+
+        return {
+          passed,
+          status: res.status,
+          summary: `isMutable: ${initialIsMutable} -> ${isMutableAfterFrom}; setHeaders() after from() threw ${alreadyInitializedCode}; fetched ${res.data.length} venues`,
+          payload: {
+            restUrl: initialRestUrl,
+            schemaName: initialSchemaName,
+            initialIsMutable,
+            isMutableAfterFrom,
+            alreadyInitializedCode,
+            venues: res.data
+          }
+        };
+      } finally {
+        await terminate(scopedSql);
+      }
     }
   },
 
@@ -183,7 +357,7 @@ const res = await pendingQuery;
   {
     id: 'qb-select-embed-count',
     category: 'QueryBuilder Verbs',
-    title: '4. select() with Relational Embedding & Exact Count',
+    title: '5. select() with Relational Embedding & Exact Count',
     apiSymbols: ['QueryBuilder.select', 'QuerySelectOptions'],
     description:
       'Reads published events with embedded parent venue and exact total row count.',
@@ -223,7 +397,7 @@ const res = await sql
   {
     id: 'qb-select-json-paths',
     category: 'QueryBuilder Verbs',
-    title: '5. select() Column Aliasing & JSONB Path Extraction',
+    title: '6. select() Column Aliasing & JSONB Path Extraction',
     apiSymbols: ['QueryBuilder.select', 'TransformBuilder.returns'],
     description:
       'Extracts JSONB properties metadata->>track (text) and metadata->level (JSON number) with column aliases.',
@@ -270,7 +444,7 @@ const res = await sql
   {
     id: 'qb-select-head-count',
     category: 'QueryBuilder Verbs',
-    title: '6. select() Count-Only HEAD Request (head: true)',
+    title: '7. select() Count-Only HEAD Request (head: true)',
     apiSymbols: ['QueryBuilder.select', 'QuerySelectOptions.head'],
     description:
       'Fetches the exact registration count via HTTP HEAD without transferring row JSON (data is null).',
@@ -303,7 +477,7 @@ const res = await sql
   {
     id: 'qb-crud-lifecycle',
     category: 'QueryBuilder Verbs',
-    title: '7. insert(), update(), and delete() Full Write Lifecycle',
+    title: '8. insert(), update(), and delete() Full Write Lifecycle',
     apiSymbols: [
       'QueryBuilder.insert',
       'QueryBuilder.update',
@@ -395,7 +569,7 @@ const deleted = await sql
   {
     id: 'qb-upsert-conflict-modes',
     category: 'QueryBuilder Verbs',
-    title: '8. upsert() Merge vs. ignoreDuplicates + maybeSingle()',
+    title: '9. upsert() Merge vs. ignoreDuplicates + maybeSingle()',
     apiSymbols: [
       'QueryBuilder.upsert',
       'QueryUpsertOptions.onConflict',
@@ -456,7 +630,7 @@ const deleted = await sql
   {
     id: 'fb-scalar-comparisons',
     category: 'FilterBuilder Operators',
-    title: '9. Scalar Comparisons: eq(), neq(), gt(), gte(), lt(), lte()',
+    title: '10. Scalar Comparisons: eq(), neq(), gt(), gte(), lt(), lte()',
     apiSymbols: [
       'FilterBuilder.eq',
       'FilterBuilder.neq',
@@ -506,7 +680,7 @@ const midVenues = await sql
     id: 'fb-like-ilike-quantified',
     category: 'FilterBuilder Operators',
     title:
-      '10. Pattern Filters: like(), ilike(), likeAllOf(), likeAnyOf(), ilikeAllOf(), ilikeAnyOf()',
+      '11. Pattern Filters: like(), ilike(), likeAllOf(), likeAnyOf(), ilikeAllOf(), ilikeAnyOf()',
     apiSymbols: [
       'FilterBuilder.like',
       'FilterBuilder.ilike',
@@ -569,7 +743,7 @@ const byEmailDomain = await sql
   {
     id: 'fb-posix-regex',
     category: 'FilterBuilder Operators',
-    title: '11. POSIX Regular Expressions: regexMatch() & regexIMatch()',
+    title: '12. POSIX Regular Expressions: regexMatch() & regexIMatch()',
     apiSymbols: ['FilterBuilder.regexMatch', 'FilterBuilder.regexIMatch'],
     description:
       'Filters event codes with case-sensitive POSIX ~ and titles with case-insensitive ~*.',
@@ -598,7 +772,7 @@ const byEmailDomain = await sql
     id: 'fb-null-and-distinct',
     category: 'FilterBuilder Operators',
     title:
-      '12. NULL & Distinct Checks: is(), isDistinct(), and not("col", "is", null)',
+      '13. NULL & Distinct Checks: is(), isDistinct(), and not("col", "is", null)',
     apiSymbols: [
       'FilterBuilder.is',
       'FilterBuilder.isDistinct',
@@ -657,7 +831,7 @@ const inPersonEvents = await sql
   {
     id: 'fb-in-notin',
     category: 'FilterBuilder Operators',
-    title: '13. Set Membership: in() and notIn()',
+    title: '14. Set Membership: in() and notIn()',
     apiSymbols: ['FilterBuilder.in', 'FilterBuilder.notIn'],
     description:
       'Filters venues with in() and excludes terminal event statuses with notIn().',
@@ -698,7 +872,7 @@ const activeEvents = await sql
     id: 'fb-array-jsonb-containment',
     category: 'FilterBuilder Operators',
     title:
-      '14. Array & JSONB Containment: contains(), containedBy(), overlaps()',
+      '15. Array & JSONB Containment: contains(), containedBy(), overlaps()',
     apiSymbols: [
       'FilterBuilder.contains',
       'FilterBuilder.containedBy',
@@ -760,7 +934,7 @@ const morningOverlap = await sql
     id: 'fb-range-operators',
     category: 'FilterBuilder Operators',
     title:
-      '15. PostgreSQL Range Operators: rangeGt(), rangeGte(), rangeLt(), rangeLte(), rangeAdjacent()',
+      '16. PostgreSQL Range Operators: rangeGt(), rangeGte(), rangeLt(), rangeLte(), rangeAdjacent()',
     apiSymbols: [
       'FilterBuilder.rangeGt',
       'FilterBuilder.rangeGte',
@@ -824,7 +998,7 @@ const beforeEvening = await sql
   {
     id: 'fb-full-text-search',
     category: 'FilterBuilder Operators',
-    title: '16. Full-Text Search: textSearch() with websearch Mode',
+    title: '17. Full-Text Search: textSearch() with websearch Mode',
     apiSymbols: [
       'FilterBuilder.textSearch',
       'FilterTextSearchOptions',
@@ -867,7 +1041,7 @@ const res = await sql
     id: 'fb-match-or-filter',
     category: 'FilterBuilder Operators',
     title:
-      '17. Compound Filters: match(), or() with referencedTable, and filter()',
+      '18. Compound Filters: match(), or() with referencedTable, and filter()',
     apiSymbols: [
       'FilterBuilder.match',
       'FilterBuilder.or',
@@ -931,7 +1105,7 @@ const rawFilter = await sql
   {
     id: 'tb-order-parent-and-embedded',
     category: 'TransformBuilder Modifiers',
-    title: '18. order() by Foreign Table Column & Embedded Child Array',
+    title: '19. order() by Foreign Table Column & Embedded Child Array',
     apiSymbols: ['TransformBuilder.order', 'TransformOrderOptions'],
     description:
       'Sorts parent events by many-to-one venues(name), and sorts nested registrations with nullsFirst: false.',
@@ -984,7 +1158,7 @@ const nestedSorted = await sql
   {
     id: 'tb-limit-and-range-pagination',
     category: 'TransformBuilder Modifiers',
-    title: '19. limit() and range() Pagination (Parent & Embedded)',
+    title: '20. limit() and range() Pagination (Parent & Embedded)',
     apiSymbols: [
       'TransformBuilder.limit',
       'TransformLimitOptions',
@@ -1052,7 +1226,7 @@ const capped = await sql
   {
     id: 'tb-single-vs-maybesingle',
     category: 'TransformBuilder Modifiers',
-    title: '20. single() (PGRST116 on 0 Rows) vs. maybeSingle() (data: null)',
+    title: '21. single() (PGRST116 on 0 Rows) vs. maybeSingle() (data: null)',
     apiSymbols: ['TransformBuilder.single', 'TransformBuilder.maybeSingle'],
     description:
       'Compares single() (which fails with HTTP 406 PGRST116 when 0 rows match) against maybeSingle() (which resolves data: null).',
@@ -1104,7 +1278,7 @@ const maybeMissing = await sql
   {
     id: 'tb-csv-export',
     category: 'TransformBuilder Modifiers',
-    title: '21. csv() Export Serialization',
+    title: '22. csv() Export Serialization',
     apiSymbols: ['TransformBuilder.csv'],
     description:
       'Requests attendee registrations formatted directly as a CSV document (Accept: text/csv).',
@@ -1138,7 +1312,7 @@ const maybeMissing = await sql
   {
     id: 'tb-geojson-postgis',
     category: 'TransformBuilder Modifiers',
-    title: '22. geojson() PostGIS FeatureCollection',
+    title: '23. geojson() PostGIS FeatureCollection',
     apiSymbols: ['TransformBuilder.geojson', 'Builder.returns'],
     description:
       'Serializes San Francisco venues with PostGIS geography(Point, 4326) coordinates as a GeoJSON FeatureCollection.',
@@ -1177,7 +1351,7 @@ const maybeMissing = await sql
   {
     id: 'tb-max-affected-guard',
     category: 'TransformBuilder Modifiers',
-    title: '23. maxAffected() Server-Side Row Cap (PGRST124 Rollback)',
+    title: '24. maxAffected() Server-Side Row Cap (PGRST124 Rollback)',
     apiSymbols: ['TransformBuilder.maxAffected'],
     description:
       'Demonstrates PostgREST v13+ rolling back an overly broad UPDATE with HTTP 400 PGRST124 when affected rows exceed maxAffected(1).',
@@ -1209,7 +1383,7 @@ const maybeMissing = await sql
   {
     id: 'tb-explain-plan',
     category: 'TransformBuilder Modifiers',
-    title: '24. explain() Execution Plan & db-plan-enabled Check',
+    title: '25. explain() Execution Plan & db-plan-enabled Check',
     apiSymbols: ['TransformBuilder.explain', 'TransformExplainOptions'],
     description:
       'Requests EXPLAIN output and gracefully handles HTTP 406 PGRST107 when db-plan-enabled is disabled on managed PostgREST.',
@@ -1244,7 +1418,7 @@ const maybeMissing = await sql
   {
     id: 'tb-abort-signal',
     category: 'TransformBuilder Modifiers',
-    title: '25. abortSignal() Client Deadline & Manual Cancellation',
+    title: '26. abortSignal() Client Deadline & Manual Cancellation',
     apiSymbols: [
       'TransformBuilder.abortSignal',
       'FirebaseSqlErrorCategory.SQL_CLIENT'
@@ -1288,7 +1462,7 @@ const res = await sql
   {
     id: 'rpc-scalar-get',
     category: 'Stored Functions (RPC)',
-    title: '26. rpc() Read-Only Scalar Function (remaining_seats via GET)',
+    title: '27. rpc() Read-Only Scalar Function (remaining_seats via GET)',
     apiSymbols: [
       'FirebaseSql.rpc',
       'FirebaseSqlRpcOptions.get',
@@ -1331,7 +1505,7 @@ const res = await sql
   {
     id: 'rpc-setof-post-select',
     category: 'Stored Functions (RPC)',
-    title: '27. rpc() Table-Returning Function (POST + .select() Projection)',
+    title: '28. rpc() Table-Returning Function (POST + .select() Projection)',
     apiSymbols: ['FirebaseSql.rpc', 'TransformBuilder.select'],
     description:
       'Calls list_events_by_city via POST and projects specific columns using .select("id, code, title").',
@@ -1358,7 +1532,7 @@ const res = await sql
   {
     id: 'rpc-setof-get-filtered',
     category: 'Stored Functions (RPC)',
-    title: '28. rpc() SETOF Function + Chained Filters, Order & Exact Count',
+    title: '29. rpc() SETOF Function + Chained Filters, Order & Exact Count',
     apiSymbols: ['FirebaseSql.rpc', 'FirebaseSqlRpcOptions'],
     description:
       'Chains .eq(), .overlaps(), .order(), and .limit() onto list_events_by_city in read-only GET mode.',
@@ -1392,7 +1566,7 @@ const cityEvents = await sql
   {
     id: 'rpc-head-count',
     category: 'Stored Functions (RPC)',
-    title: '29. rpc() Count-Only HEAD Invocation (head: true)',
+    title: '30. rpc() Count-Only HEAD Invocation (head: true)',
     apiSymbols: ['FirebaseSql.rpc', 'FirebaseSqlRpcOptions.head'],
     description:
       'Counts rows returned by list_events_by_city via HTTP HEAD without transferring row payloads.',
@@ -1425,7 +1599,7 @@ const cityEvents = await sql
   {
     id: 'builder-strip-nulls',
     category: 'Builder & Errors',
-    title: '30. stripNulls() Sparse JSON Objects',
+    title: '31. stripNulls() Sparse JSON Objects',
     apiSymbols: ['Builder.stripNulls', 'Builder.returns'],
     description:
       'Requests Accept: application/vnd.pgrst.object+json;nulls=stripped so null columns (checked_in_at) are omitted from the JSON object.',
@@ -1462,7 +1636,7 @@ const cityEvents = await sql
   {
     id: 'builder-setheader-and-guard',
     category: 'Builder & Errors',
-    title: '31. setHeader() Correlation ID & Protected Header Rejection',
+    title: '32. setHeader() Correlation ID & Protected Header Rejection',
     apiSymbols: ['Builder.setHeader', 'Code.INVALID_ARGUMENT'],
     description:
       'Attaches a custom per-request header and verifies that setting protected Firebase headers throws Code.INVALID_ARGUMENT synchronously.',
@@ -1504,7 +1678,7 @@ const cityEvents = await sql
   {
     id: 'builder-retry-toggle',
     category: 'Builder & Errors',
-    title: '32. retry(false) Fail-Fast Autocomplete Query',
+    title: '33. retry(false) Fail-Fast Autocomplete Query',
     apiSymbols: ['Builder.retry'],
     description:
       'Disables automatic transient backoff retries on an interactive autocomplete query.',
@@ -1534,7 +1708,7 @@ const cityEvents = await sql
   {
     id: 'builder-throw-on-error-catch',
     category: 'Builder & Errors',
-    title: '33. throwOnError() Rejecting with Structured FirebaseSqlError',
+    title: '34. throwOnError() Rejecting with Structured FirebaseSqlError',
     apiSymbols: [
       'Builder.throwOnError',
       'FirebaseSqlError',
@@ -1578,7 +1752,7 @@ const cityEvents = await sql
   {
     id: 'builder-returns-vs-overridetypes',
     category: 'Builder & Errors',
-    title: '34. returns<T>() Full Types vs. overrideTypes<Partial>() Merges',
+    title: '35. returns<T>() Full Types vs. overrideTypes<Partial>() Merges',
     apiSymbols: [
       'TransformBuilder.returns',
       'Builder.returns',

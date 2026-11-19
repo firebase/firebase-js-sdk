@@ -17,17 +17,17 @@
 
 import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 
+import type {
+  BuilderExecutionTracker,
+  CreateBuilderFetch,
+  FirebaseSqlContext,
+  MapPostgrestError
+} from '../../core/context';
 import {
   Code,
   FirebaseSqlError,
   FirebaseSqlErrorCategory
 } from '../../core/error';
-import type {
-  BuilderExecutionTracker,
-  CreateBuilderFetch,
-  MapPostgrestError,
-  SqlClientState
-} from '../../core/state';
 import type {
   UntypedClientOptions,
   UntypedSchema
@@ -80,19 +80,19 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
   false
 > {
   private readonly _delegate: AnyPostgrestFilterBuilder;
-  private readonly _state: Readonly<SqlClientState>;
+  private readonly _context: Readonly<FirebaseSqlContext>;
   private readonly _createFetch: CreateBuilderFetch;
   private readonly _mapError: MapPostgrestError;
   private _shouldThrowOnError = false;
 
   constructor(
     delegate: AnyPostgrestFilterBuilder,
-    state: Readonly<SqlClientState>,
+    context: Readonly<FirebaseSqlContext>,
     createFetch: CreateBuilderFetch,
     mapError: MapPostgrestError
   ) {
     this._delegate = delegate;
-    this._state = state;
+    this._context = context;
     this._createFetch = createFetch;
     this._mapError = mapError;
   }
@@ -528,13 +528,13 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
     Reflect.set(
       this._delegate,
       'fetch',
-      this._createFetch(this._state, tracker)
+      this._createFetch(this._context, tracker)
     );
     try {
       return this._delegate.then(raw => {
-        // Re-check state.active and tracker.clientError after _delegate settles in case terminate()
+        // Re-check context.resources and tracker.clientError after _delegate settles in case terminate()
         // was called in-flight or the transport recorded a pre-flight/token error and aborted fetchWithRetry.
-        if (this._state.active === null) {
+        if (this._context.resources === null) {
           return this._fail(
             new FirebaseSqlError(
               Code.NOT_INITIALIZED,

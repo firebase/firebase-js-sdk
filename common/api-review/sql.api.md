@@ -49,7 +49,7 @@ export const Code: Readonly<{
 export type ContainsNull<T> = unknown extends T ? false : null extends T ? true : false;
 
 // @public
-export function copySqlServiceSettings(settings: SqlServiceSettings): SqlServiceSettings;
+export function copyServiceConfig(serviceConfig: ServiceConfig): ServiceConfig;
 
 // @public
 export type ExplicitKeys<T> = {
@@ -126,26 +126,26 @@ export type FilterTextSearchType = 'plain' | 'phrase' | 'websearch';
 // @public
 export class FirebaseSql {
     // @internal
-    constructor(
-    app: FirebaseApp,
-    settings: SqlServiceSettings,
-    _instanceIdentifier: string,
-    authInternalProvider: Provider<FirebaseAuthInternalName>,
-    appCheckInternalProvider: Provider<AppCheckInternalComponentName>);
+    constructor(parameters: {
+        app: FirebaseApp;
+        serviceConfig: ServiceConfig;
+        instanceIdentifier: string;
+        authProvider: Provider<FirebaseAuthInternalName>;
+        appCheckProvider: Provider<AppCheckInternalComponentName>;
+    });
     readonly app: FirebaseApp;
-    // @internal (undocumented)
+    // @internal
     _delete(): Promise<void>;
     from(table: string): QueryBuilder;
-    // @internal (undocumented)
-    readonly _instanceIdentifier: string;
-    // @internal (undocumented)
-    readonly _postgrestUrl: string;
+    get isMutable(): boolean;
+    readonly restUrl: string;
     rpc<Args extends object & {
         readonly [K in keyof Args]: unknown;
     } & {
         readonly [Symbol.iterator]?: never;
     } = Record<string, unknown>>(fn: string, params?: Args | undefined, options?: Readonly<FirebaseSqlRpcOptions> | undefined): FilterBuilder<unknown, 'RPC'>;
-    readonly settings: SqlServiceSettings;
+    readonly schemaName: string | undefined;
+    setHeaders(headers: HeadersInit): void;
 }
 
 // @public
@@ -184,10 +184,10 @@ export interface FirebaseSqlRpcOptions {
 }
 
 // @public
-export function getSql(settings: SqlServiceSettings): FirebaseSql;
+export function getSql(serviceConfig: ServiceConfig): FirebaseSql;
 
 // @public
-export function getSql(app: FirebaseApp, settings: SqlServiceSettings): FirebaseSql;
+export function getSql(app: FirebaseApp, serviceConfig: ServiceConfig): FirebaseSql;
 
 // @public
 export interface InvalidMethodError<S extends string> {
@@ -318,13 +318,7 @@ export interface SerializedFirebaseSqlError {
 }
 
 // @public
-export type Simplify<T> = T extends object ? {
-    [K in keyof T]: T[K];
-} : T;
-
-// @public
-export interface SqlServiceSettings {
-    headers?: Record<string, string> | undefined;
+export interface ServiceConfig {
     host?: string | undefined;
     location: string;
     port?: number | undefined;
@@ -332,6 +326,11 @@ export interface SqlServiceSettings {
     serviceId: string;
     sslEnabled?: boolean | undefined;
 }
+
+// @public
+export type Simplify<T> = T extends object ? {
+    [K in keyof T]: T[K];
+} : T;
 
 // @public
 export function terminate(sql: FirebaseSql): Promise<void>;

@@ -30,7 +30,7 @@ export interface Builder<T, ThrowOnError extends boolean = false> extends Promis
 |  [overrideTypes()](./sql.builder.md#builderoverridetypes) | Overrides or deep-merges the static TypeScript type of <code>result.data</code> at compile time without performing runtime validation. |
 |  [retry(enabled)](./sql.builder.md#builderretry) | Enables or disables automatic transient-failure retries for <code>GET</code> and <code>HEAD</code> HTTP requests on this builder. |
 |  [returns()](./sql.builder.md#builderreturns) | Replaces the static TypeScript type of <code>result.data</code> with <code>NewResult</code> at compile time without performing runtime validation. |
-|  [setHeader(name, value)](./sql.builder.md#buildersetheader) | Sets a custom HTTP header on this single request, overriding any client-level header of the same name from [SqlServiceSettings.headers](./sql.sqlservicesettings.md#sqlservicesettingsheaders)<!-- -->. |
+|  [setHeader(name, value)](./sql.builder.md#buildersetheader) | Sets a custom HTTP header on this single request, overriding any client-level header of the same name configured via [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders)<!-- -->. |
 |  [stripNulls()](./sql.builder.md#builderstripnulls) | Instructs PostgREST to omit keys whose value is <code>null</code> from returned JSON row objects (<code>Accept: application/vnd.pgrst.array+json;nulls=stripped</code> or <code>application/vnd.pgrst.object+json;nulls=stripped</code>). |
 |  [throwOnError()](./sql.builder.md#builderthrowonerror) | Configures this builder to reject its promise with a [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) on HTTP, PostgREST, platform, or network failures instead of resolving an [OperationFailure](./sql.operationfailure.md#operationfailure_interface)<!-- -->, narrowing the resolved envelope to [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface)<!-- -->. |
 
@@ -226,9 +226,9 @@ const res = await sql
 
 ## Builder.setHeader()
 
-Sets a custom HTTP header on this single request, overriding any client-level header of the same name from [SqlServiceSettings.headers](./sql.sqlservicesettings.md#sqlservicesettingsheaders)<!-- -->.
+Sets a custom HTTP header on this single request, overriding any client-level header of the same name configured via [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders)<!-- -->.
 
-When to use: attaching per-request correlation, tracing, or custom application headers (see [SqlServiceSettings.headers](./sql.sqlservicesettings.md#sqlservicesettingsheaders) for client-wide static headers).
+When to use: attaching per-request correlation, tracing, or custom application headers (see [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) for client-wide static headers).
 
 Do not use for authentication, App Check, or Firebase telemetry headers—passing any protected header name (matched case-insensitively after trimming: `'authorization'`<!-- -->, `'x-firebase-auth-token'`<!-- -->, `'x-firebase-appcheck'`<!-- -->, `'x-goog-api-client'`<!-- -->, `'x-client-version'`<!-- -->, `'x-firebase-gmpid'`<!-- -->, `'x-firebase-client'`<!-- -->, `'x-firebase-client-log-type'`<!-- -->, `'x-goog-request-params'`<!-- -->, `'x-firebase-sqlconnect-affinity'`<!-- -->) synchronously throws a [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class)<!-- -->. Firebase Auth and App Check tokens are injected automatically by the SDK transport.
 
@@ -321,7 +321,7 @@ Configures this builder to reject its promise with a [FirebaseSqlError](./sql.fi
 
 When to use: `try / catch` workflows, helper functions, or data-fetching hooks (such as React Query or SWR) that expect failed promises to reject.
 
-Do not use in code paths that prefer exhaustive discriminated-union checking (`if (!res.success)`<!-- -->) without `try / catch`<!-- -->; omit `throwOnError()` to receive [OperationResult](./sql.md#operationresult)<!-- -->. Note that a `settings.schemaName` containing invalid HTTP header characters always rejects with a `TypeError` when setting the profile header, regardless of `throwOnError()`<!-- -->.
+Do not use in code paths that prefer exhaustive discriminated-union checking (`if (!res.success)`<!-- -->) without `try / catch`<!-- -->; omit `throwOnError()` to receive [OperationResult](./sql.md#operationresult)<!-- -->. Note that a `serviceConfig.schemaName` containing invalid HTTP header characters always rejects with a `TypeError` when setting the profile header, regardless of `throwOnError()`<!-- -->.
 
 Behavior and side effects: even with `throwOnError()`<!-- -->, awaiting the builder resolves to `{ success: true, data: T, count, error: null, status, statusText }` ([OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface)<!-- -->), not raw `T`<!-- -->—always destructure `const { data } = await query.throwOnError()`<!-- -->. Mutates this builder's error-handling flag in place without network I/O. Can be chained at any stage (`FilterBuilder`<!-- -->, `TransformBuilder`<!-- -->, or `Builder`<!-- -->), and `ThrowOnError = true` is preserved across `.select()`<!-- -->, `.single()`<!-- -->, `.maybeSingle()`<!-- -->, `.returns()`<!-- -->, and `.overrideTypes()`<!-- -->.
 
