@@ -405,6 +405,38 @@ describe('Database@exp Tests', () => {
     defaultApp = undefined;
   });
 
+  it('can listen again after get() resolves while an onlyOnce listener on the same query is pending', async () => {
+    const db = getDatabase(defaultApp);
+    const { readerRef, writerRef } = getRWRefs(db);
+    await set(writerRef, { value: 1 });
+    // Connect the reader, without leaving a listener behind
+    await get(readerRef);
+
+    // The get() is sent first, so it resolves while the listen for the onlyOnce listener is
+    // still pending. The listener then fires from the get() data and removes itself, leaving
+    // the get() as the last registration on the view.
+    const [getResult, onceResult] = await Promise.all([
+      get(readerRef),
+      new Promise(resolve =>
+        onValue(readerRef, snapshot => resolve(snapshot.val()), {
+          onlyOnce: true
+        })
+      )
+    ]);
+    expect(getResult.val()).toEqual({ value: 1 });
+    expect(onceResult).toEqual({ value: 1 });
+
+    // Removing the get() registration must stop the listen. Otherwise listening on the same
+    // query again fails with "listen() called twice for same path/queryId".
+    await set(writerRef, { value: 2 });
+    const value = await new Promise(resolve =>
+      onValue(readerRef, snapshot => resolve(snapshot.val()), {
+        onlyOnce: true
+      })
+    );
+    expect(value).toEqual({ value: 2 });
+  });
+
   it('blocks get requests until the database is online', async () => {
     const db = getDatabase(defaultApp);
     const r = ref(db, `${projectPrefix}/foo3`);
