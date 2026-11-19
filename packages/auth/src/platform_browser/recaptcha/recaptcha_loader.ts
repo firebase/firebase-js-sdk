@@ -125,7 +125,12 @@ export class ReCaptchaLoaderImpl implements ReCaptchaLoader {
 }
 
 function isHostLanguageValid(hl: string): boolean {
-  return hl.length <= 6 && /^\s*[a-zA-Z0-9\-]*\s*$/.test(hl);
+  // The character class keeps the value safe to interpolate into the reCAPTCHA
+  // script URL. The length limit is only a sanity bound: RFC 5646 (BCP 47)
+  // section 4.4.1 states that protocols specifying a limited buffer size for
+  // language tags "MUST allow for language tags of at least 35 characters".
+  // https://datatracker.ietf.org/doc/html/rfc5646#section-4.4.1
+  return hl.length <= 35 && /^\s*[a-zA-Z0-9\-]*\s*$/.test(hl);
 }
 
 export class MockReCaptchaLoaderImpl implements ReCaptchaLoader {
