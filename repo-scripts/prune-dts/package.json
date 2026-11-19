@@ -31,12 +31,6 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "nyc": {
-    "extension": [
-      ".ts"
-    ],
-    "reportDir": "./coverage/node"
-  },
   "devDependencies": {
     "@types/eslint": "7.29.0",
     "@types/prettier": "2.7.3",

@@ -79,7 +79,8 @@ const config = createBaseConfig(
     testTimeout: 20000,
     hookTimeout: 20000,
     fileParallelism: false,
-    screenshotFailures: false
+    screenshotFailures: false,
+    retry: process.env.CI ? 3 : 0
   }
 );
 

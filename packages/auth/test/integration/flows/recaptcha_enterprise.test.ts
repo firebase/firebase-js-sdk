@@ -71,22 +71,6 @@ describe.runIf(!getEmulatorUrl())(
           await new Promise<void>(resolve => {
             setTimeout(resolve, 1000 + Math.floor(Math.random() * 2000));
           });
-          if (retryCount >= 2) {
-            const cleanupAuth = getTestInstance();
-            cleanupAuth.settings.appVerificationDisabledForTesting = false;
-            try {
-              const cr = await signInWithPhoneNumber(
-                cleanupAuth,
-                FICTIONAL_PHONE.phoneNumber
-              );
-              const { user } = await cr.confirm(FICTIONAL_PHONE.code);
-              await user.delete();
-            } catch {
-              // Best-effort cleanup of any orphaned account from a crashed run.
-            } finally {
-              await cleanUpTestInstance(cleanupAuth);
-            }
-          }
         }
         auth = getTestInstance();
         // Sets to false to generate the real reCAPTCHA Enterprise token

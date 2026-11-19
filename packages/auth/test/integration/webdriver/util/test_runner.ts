@@ -43,6 +43,7 @@ export function browserDescribe(
         await driver.closeExtraWindows();
         await driver.reset();
         await driver.injectConfigAndInitAuth();
+        await driver.waitForAuthInit();
       }, 30000);
 
       describe(title, { timeout: 60000 }, () => {

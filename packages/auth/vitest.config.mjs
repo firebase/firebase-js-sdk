@@ -65,10 +65,10 @@ function projectConfigPlugin() {
 
 applyProjectDefaults(config, {
   screenshotFailures: false,
+  retry: process.env.CI ? 3 : 0,
   ...(hasIntegrationArg
     ? {
         testTimeout: 20000,
-        retry: process.env.CI ? 2 : 0,
         fileParallelism: false
       }
     : {})

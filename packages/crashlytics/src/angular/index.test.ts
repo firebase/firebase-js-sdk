@@ -22,7 +22,7 @@ import {
   DestroyRef,
   ErrorHandler,
   Injector,
-  provideExperimentalZonelessChangeDetection,
+  provideZonelessChangeDetection,
   runInInjectionContext
 } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
@@ -80,7 +80,7 @@ describe('FirebaseErrorHandler', () => {
           { path: 'dynamic/:id/route', component: MockComponent }
         ])
       ],
-      providers: [provideExperimentalZonelessChangeDetection()]
+      providers: [provideZonelessChangeDetection()]
     });
     const testInjector = TestBed.inject(Injector);
     errorHandler = runInInjectionContext(
@@ -113,7 +113,7 @@ describe('FirebaseErrorHandler', () => {
   it('should lazily resolve Router and fall back to "/" if Router is unavailable', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      providers: [provideExperimentalZonelessChangeDetection()]
+      providers: [provideZonelessChangeDetection()]
     });
 
     const setRoutePathProviderSpy = vi.spyOn(
@@ -150,7 +150,7 @@ describe('getSafeRoutePath', () => {
           { path: 'dynamic/:id/route', component: MockComponent }
         ])
       ],
-      providers: [provideExperimentalZonelessChangeDetection()]
+      providers: [provideZonelessChangeDetection()]
     });
     router = TestBed.inject(Router);
   });
@@ -233,7 +233,7 @@ describe('setupCrashlyticsRoutes', () => {
           { path: 'users/:id', component: MockComponent }
         ])
       ],
-      providers: [provideExperimentalZonelessChangeDetection()]
+      providers: [provideZonelessChangeDetection()]
     });
 
     router = TestBed.inject(Router);
@@ -372,7 +372,7 @@ describe('provideCrashlytics', () => {
     TestBed.configureTestingModule({
       imports: [RouterModule.forRoot([])],
       providers: [
-        provideExperimentalZonelessChangeDetection(),
+        provideZonelessChangeDetection(),
         provideCrashlytics(() => app)
       ]
     });
@@ -394,7 +394,7 @@ describe('provideCrashlytics', () => {
         ])
       ],
       providers: [
-        provideExperimentalZonelessChangeDetection(),
+        provideZonelessChangeDetection(),
         provideCrashlytics(() => app)
       ]
     });
@@ -418,7 +418,7 @@ describe('provideCrashlytics', () => {
     TestBed.configureTestingModule({
       imports: [RouterModule.forRoot([])],
       providers: [
-        provideExperimentalZonelessChangeDetection(),
+        provideZonelessChangeDetection(),
         provideCrashlytics(() => app, options)
       ]
     });

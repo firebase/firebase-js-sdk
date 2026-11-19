@@ -20,6 +20,8 @@ import {
   afterAll,
   beforeEach,
   afterEach,
+  describe,
+  it,
   vi,
   MockInstance
 } from 'vitest';
