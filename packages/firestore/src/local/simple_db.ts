@@ -594,6 +594,25 @@ export class SimpleDbStore<
     keyOrValue: KeyType | ValueType,
     value?: ValueType
   ): PersistencePromise<void> {
+    try {
+      keyOrValue =
+        keyOrValue != null
+          ? JSON.parse(JSON.stringify(keyOrValue))
+          : keyOrValue;
+    } catch {
+      console.warn(
+        'Could not process value before adding into indexedDB: ',
+        keyOrValue
+      );
+    }
+    try {
+      value = value != null ? JSON.parse(JSON.stringify(value)) : value;
+    } catch {
+      console.warn(
+        'Could not process value before adding into indexedDB:  ',
+        value
+      );
+    }
     let request;
     if (value !== undefined) {
       logDebug(LOG_TAG, 'PUT', this.store.name, keyOrValue, value);
