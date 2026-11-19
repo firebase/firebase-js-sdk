@@ -22,6 +22,7 @@ import pkg from './package.json' with { type: 'json' };
 import { resolve } from 'path';
 import { existsSync, readFileSync } from 'fs';
 import resolveModule from '@rollup/plugin-node-resolve';
+import license from 'rollup-plugin-license';
 import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import terser from '@rollup/plugin-terser';
@@ -189,6 +190,44 @@ const cdnPlugins = [
 ];
 
 /**
+ * License notices for third-party code that CDN bundles inline, keyed by
+ * component. The npm packages keep these dependencies external (users install
+ * them with their own license files), but the CDN bundles inline them and
+ * terser strips their license comments, so we add the notice back as a banner
+ * on the affected bundle only.
+ */
+const cdnThirdPartyNotices = {
+  // @opentelemetry/instrumentation vendors shimmer (src/shimmer.ts).
+  crashlytics: `This file includes shimmer, bundled from @opentelemetry/instrumentation.
+
+BSD 2-Clause License
+
+Copyright (c) 2013-2019, Forrest L Norvell
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.`
+};
+
+/**
  * CDN script builds
  */
 const cdnBuilds = [
@@ -227,7 +266,12 @@ const cdnBuilds = [
             mangle: {
               reserved: ['_getProvider', '__PRIVATE_lastReasonableEscapeIndex']
             }
-          })
+          }),
+          // Runs after terser, so the banner isn't stripped with the other
+          // comments.
+          ...(cdnThirdPartyNotices[component]
+            ? [license({ banner: cdnThirdPartyNotices[component] })]
+            : [])
         ],
         external: ['@firebase/app']
       };
