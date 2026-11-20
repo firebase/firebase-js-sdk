@@ -75,6 +75,7 @@ export class Connection {
   private isHealthy_: boolean;
   private log_: (...args: unknown[]) => void;
   private primaryResponsesRequired_: number;
+  private resetCount_ = 0;
   private rx_: Transport;
   private secondaryConn_: Transport;
   private secondaryResponsesRequired_: number;
@@ -102,7 +103,7 @@ export class Connection {
     private authToken_: string | undefined,
     private onMessage_: (a: {}) => void,
     private onReady_: (a: number, b: string) => void,
-    private onDisconnect_: () => void,
+    private onDisconnect_: (httpStatus?: number) => void,
     private onKill_: (a: string) => void,
     public lastSessionId?: string
   ) {
@@ -190,13 +191,13 @@ export class Connection {
     return 'c:' + this.id + ':' + this.connectionCount++;
   }
 
-  private disconnReceiver_(conn) {
-    return everConnected => {
+  private disconnReceiver_(conn: Transport) {
+    return (everConnected?: boolean, httpStatus?: number) => {
       if (conn === this.conn_) {
-        this.onConnectionLost_(everConnected);
+        this.onConnectionLost_(everConnected, httpStatus);
       } else if (conn === this.secondaryConn_) {
         this.log_('Secondary connection lost.');
-        this.onSecondaryConnectionLost_();
+        this.onSecondaryConnectionLost_(httpStatus);
       } else {
         this.log_('closing an old connection');
       }
@@ -444,10 +445,16 @@ export class Connection {
     // We don't currently support resets after the connection has already been established
     if (this.state_ === RealtimeState.CONNECTED) {
       this.close();
-    } else {
+    } else if (this.resetCount_ === 0) {
+      this.resetCount_++;
       // Close whatever connections we have open and start again.
       this.closeConnections_();
       this.start_();
+    } else {
+      this.log_(
+        'Repeated reset packet received while connecting. Closing connection.'
+      );
+      this.close();
     }
   }
 
@@ -481,12 +488,12 @@ export class Connection {
     }
   }
 
-  private onSecondaryConnectionLost_() {
+  private onSecondaryConnectionLost_(httpStatus?: number) {
     const conn = this.secondaryConn_;
     this.secondaryConn_ = null;
     if (this.tx_ === conn || this.rx_ === conn) {
       // we are relying on this connection already in some capacity. Therefore, a failure is real
-      this.close();
+      this.close(httpStatus);
     }
   }
 
@@ -494,7 +501,7 @@ export class Connection {
    * @param everConnected - Whether or not the connection ever reached a server. Used to determine if
    * we should flush the host cache
    */
-  private onConnectionLost_(everConnected: boolean) {
+  private onConnectionLost_(everConnected: boolean, httpStatus?: number) {
     this.conn_ = null;
 
     // NOTE: IF you're seeing a Firefox error for this line, I think it might be because it's getting
@@ -511,7 +518,7 @@ export class Connection {
       this.log_('Realtime connection lost.');
     }
 
-    this.close();
+    this.close(httpStatus);
   }
 
   private onConnectionShutdown_(reason: string) {
@@ -540,7 +547,7 @@ export class Connection {
   /**
    * Cleans up this connection, calling the appropriate callbacks
    */
-  close() {
+  close(httpStatus?: number) {
     if (this.state_ !== RealtimeState.DISCONNECTED) {
       this.log_('Closing realtime connection.');
       this.state_ = RealtimeState.DISCONNECTED;
@@ -548,7 +555,7 @@ export class Connection {
       this.closeConnections_();
 
       if (this.onDisconnect_) {
-        this.onDisconnect_();
+        this.onDisconnect_(httpStatus);
         this.onDisconnect_ = null;
       }
     }

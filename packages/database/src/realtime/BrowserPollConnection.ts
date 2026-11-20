@@ -97,7 +97,7 @@ export class BrowserPollConnection implements Transport {
   private everConnected_ = false;
   private isClosed_: boolean;
   private connectTimeoutTimer_: number | null;
-  private onDisconnect_: ((a?: boolean) => void) | null;
+  private onDisconnect_: ((a?: boolean, httpStatus?: number) => void) | null;
 
   /**
    * @param connId An identifier for this connection, used for logging
@@ -134,7 +134,10 @@ export class BrowserPollConnection implements Transport {
    * @param onMessage - Callback when messages arrive
    * @param onDisconnect - Callback with connection lost.
    */
-  open(onMessage: (msg: {}) => void, onDisconnect: (a?: boolean) => void) {
+  open(
+    onMessage: (msg: {}) => void,
+    onDisconnect: (a?: boolean, httpStatus?: number) => void
+  ) {
     this.curSegmentNum = 0;
     this.onDisconnect_ = onDisconnect;
     this.myPacketOrderer = new PacketReceiver(onMessage);
