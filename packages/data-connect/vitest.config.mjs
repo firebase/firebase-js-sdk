@@ -96,24 +96,25 @@ function stripTypeExportsPlugin() {
   };
 }
 
-const config = createBaseConfig(import.meta.url);
+const config = createBaseConfig(
+  import.meta.url,
+  {},
+  {
+    screenshotFailures: false
+  }
+);
 
-if (config.test?.projects) {
-  for (const project of config.test.projects) {
-    if (project.test.name === 'node') {
-      project.plugins = [...(project.plugins || []), resolveNodeEntryPlugin()];
-    } else if (project.test.name === 'browser') {
-      if (project.test.browser) {
-        project.test.browser.screenshotFailures = false;
-      }
-      project.plugins = [...(project.plugins || []), stripTypeExportsPlugin()];
-      project.define = {
-        ...(project.define || {}),
-        'process.env.DC_EMULATOR_PORT': JSON.stringify(
-          process.env.DC_EMULATOR_PORT ?? ''
-        )
-      };
-    }
+for (const project of config.test.projects) {
+  if (project.test.name === 'node') {
+    project.plugins = [...(project.plugins || []), resolveNodeEntryPlugin()];
+  } else if (project.test.name === 'browser') {
+    project.plugins = [...(project.plugins || []), stripTypeExportsPlugin()];
+    project.define = {
+      ...(project.define || {}),
+      'process.env.DC_EMULATOR_PORT': JSON.stringify(
+        process.env.DC_EMULATOR_PORT ?? ''
+      )
+    };
   }
 }
 

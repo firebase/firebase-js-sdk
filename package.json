@@ -37,6 +37,7 @@
     "ci:coverage": "lcov-result-merger 'packages/**/lcov.info' 'lcov-all.info'",
     "test:changed": "ts-node-script scripts/ci-test/test_changed.ts",
     "test:setup": "node tools/config.js",
+    "type-check": "lerna exec --scope @firebase/* --scope firebase --no-bail -- tsc --noEmit",
     "trusted-type-check": "lerna run --scope @firebase/* trusted-type-check --no-bail",
     "docgen": "ts-node-script scripts/docgen/docgen.ts",
     "docgen:compat": "node scripts/docgen-compat/generate-docs.js --api js",

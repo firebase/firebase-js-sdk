@@ -17,12 +17,6 @@
 
 declare let MozWebSocket: WebSocket;
 
-if (typeof window === 'undefined') {
-  await import('../../src/index.node');
-} else {
-  await import('../../src/index');
-}
-
 import firebase from '@firebase/app-compat';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';

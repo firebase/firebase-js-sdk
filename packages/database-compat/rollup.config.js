@@ -45,7 +45,8 @@ const buildPlugins = [
     abortOnError: false,
     tsconfigOverride: {
       compilerOptions: {
-        rootDir: '..'
+        rootDir: '..',
+        paths: {}
       },
       exclude: [...(tsconfig.exclude || []), 'test/**', '**/*.test.ts']
     }

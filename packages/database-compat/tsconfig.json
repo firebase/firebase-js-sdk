@@ -3,7 +3,11 @@
   "compilerOptions": {
     "outDir": "dist",
     "strict": false,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "types": ["node", "trusted-types", "../../node_modules/vitest/globals"],
+    "paths": {
+      "@firebase/database": ["../database/src/index.ts"]
+    }
   },
-  "exclude": ["dist/**/*"]
+  "exclude": ["dist/**/*", "vitest.config.mjs"]
 }

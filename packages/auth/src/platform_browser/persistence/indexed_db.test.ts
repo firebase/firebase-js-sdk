@@ -45,7 +45,7 @@ import {
   _TRANSACTION_RETRY_COUNT,
   _putObject
 } from './indexed_db';
-import { MockInstance } from 'vitest';
+import { Mock, MockInstance } from 'vitest';
 
 vi.mock('../util/worker', { spy: true });
 
@@ -118,7 +118,7 @@ describe('platform_browser/persistence/indexed_db', () => {
       } as any);
 
       expect(await persistence._isAvailable()).toBe(false);
-      expect((indexedDB.open as MockInstance).mock.calls.length).toBe(
+      expect(vi.mocked(indexedDB.open).mock.calls.length).toBe(
         _TRANSACTION_RETRY_COUNT + 2
       );
     });
@@ -147,7 +147,7 @@ describe('platform_browser/persistence/indexed_db', () => {
       }) as typeof indexedDB.open);
 
       expect(await persistence._isAvailable()).toBe(true);
-      expect((indexedDB.open as MockInstance).mock.calls.length).toBe(3);
+      expect(vi.mocked(indexedDB.open).mock.calls.length).toBe(3);
     });
 
     it('should time out without retrying and close late connection if indexedDB.open hangs', async () => {
@@ -166,7 +166,7 @@ describe('platform_browser/persistence/indexed_db', () => {
 
       expect(await persistence._isAvailable()).toBe(false);
       // Should not retry on timeout
-      expect((indexedDB.open as MockInstance).mock.calls.length).toBe(1);
+      expect(vi.mocked(indexedDB.open).mock.calls.length).toBe(1);
 
       // If the hung open request eventually succeeds after timeout, it must close the leaked connection
       expect(successCallback).toBeDefined();
@@ -245,7 +245,13 @@ describe('platform_browser/persistence/indexed_db', () => {
                 })
               } as any;
             }
-            return originalTransaction.call(this, storeNames, mode);
+            return originalTransaction.call(
+              this,
+              typeof storeNames === 'string'
+                ? storeNames
+                : Array.from(storeNames),
+              mode
+            );
           }
         );
 
@@ -365,7 +371,7 @@ describe('platform_browser/persistence/indexed_db', () => {
   describe('#addEventListener', () => {
     const key = 'my-key';
     const newValue = 'new-value';
-    let callback: MockInstance;
+    let callback: Mock;
     let db: IDBDatabase;
 
     beforeAll(async () => {
@@ -435,7 +441,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     });
 
     describe('with multiple listeners', () => {
-      let otherCallback: MockInstance;
+      let otherCallback: Mock;
 
       beforeEach(() => {
         otherCallback = vi.fn();
@@ -574,7 +580,7 @@ describe('platform_browser/persistence/indexed_db', () => {
       });
 
       it('should send a key changed event when a key is set', async () => {
-        return new Promise(async resolve => {
+        return new Promise<void>(async resolve => {
           await persistence._workerInitializationPromise;
           const handler = (
             _origin: string,
@@ -593,7 +599,7 @@ describe('platform_browser/persistence/indexed_db', () => {
       });
 
       it('should send a key changed event when a key is removed', async () => {
-        return new Promise(async resolve => {
+        return new Promise<void>(async resolve => {
           const handler = async (
             _origin: string,
             data: KeyChangedRequest
@@ -739,7 +745,7 @@ describe('platform_browser/persistence/indexed_db', () => {
   describe('page lifecycle events', () => {
     const key = 'my-key';
     const value = 'my-value';
-    let callback: MockInstance;
+    let callback: Mock;
     let db: IDBDatabase;
 
     beforeAll(async () => {
