@@ -59,7 +59,7 @@ Cloud Firestore
 |  [deleteField()](./firestore.md#deletefield) | Returns a sentinel for use with [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) or [setDoc()](./firestore_lite.md#setdoc_ee215ad) with <code>{merge: true}</code> to mark a field for deletion. |
 |  [documentId()](./firestore.md#documentid) | Returns a special sentinel <code>FieldPath</code> to refer to the ID of a document. It can be used in queries to sort or filter by the document ID. |
 |  [getFirestore()](./firestore.md#getfirestore) | Returns the existing default [Firestore](./firestore.firestore.md#firestore_class) instance that is associated with the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with default settings. |
-|  [memoryEagerGarbageCollector()](./firestore.md#memoryeagergarbagecollector) | Creates an instance of <code>MemoryEagerGarbageCollector</code>. This is also the default garbage collector unless it is explicitly specified otherwise. |
+|  [memoryEagerGarbageCollector()](./firestore.md#memoryeagergarbagecollector) | Creates an instance of <code>MemoryEagerGarbageCollector</code>. |
 |  [persistentMultipleTabManager()](./firestore.md#persistentmultipletabmanager) | Creates an instance of <code>PersistentMultipleTabManager</code>. |
 |  [serverTimestamp()](./firestore.md#servertimestamp) | Returns a sentinel used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) to include a server-generated timestamp in the written data. |
 |  <b>function(databaseId, ...)</b> |
@@ -132,7 +132,7 @@ Cloud Firestore
 |  [updateDoc(reference, field, value, moreFieldsAndValues)](./firestore.md#updatedoc_7c28659) | Updates fields in the document referred to by the specified <code>DocumentReference</code> The update will fail if applied to a document that does not exist.<!-- -->Nested fields can be updated by providing dot-separated field path strings or by providing <code>FieldPath</code> objects.<!-- -->Note that the returned <code>Promise</code> does \_not\_ resolve until the data is successfully written to the remote Firestore backend and, similarly, is not rejected until the remote Firestore backend reports an error saving the given data. So if the client cannot reach the backend (for example, due to being offline) then the returned <code>Promise</code> will not resolve for a potentially-long time (for example, until the client has gone back online). That being said, the given data \_will\_ be immediately saved to the local cache and will be incorporated into future "get" operations as if it had been successfully written to the remote Firestore server, a feature of Firestore called "latency compensation". The data will \_eventually\_ be written to the remote Firestore backend once a connection can be established. Therefore, it is usually undesirable to <code>await</code> the <code>Promise</code> returned from this function because the indefinite amount of time before which the promise resolves or rejects can block application logic unnecessarily. |
 |  <b>function(settings, ...)</b> |
 |  [memoryLocalCache(settings)](./firestore.md#memorylocalcache_05f4bf2) | Creates an instance of <code>MemoryLocalCache</code>. The instance can be set to <code>FirestoreSettings.cache</code> to tell the SDK which cache layer to use. |
-|  [memoryLruGarbageCollector(settings)](./firestore.md#memorylrugarbagecollector_8fd4ae1) | Creates an instance of <code>MemoryLruGarbageCollector</code>.<!-- -->A target size can be specified as part of the setting parameter. The collector will start deleting documents once the cache size exceeds the given size. The default cache size is 40MB (40 \* 1024 \* 1024 bytes). |
+|  [memoryLruGarbageCollector(settings)](./firestore.md#memorylrugarbagecollector_8fd4ae1) | Creates an instance of <code>MemoryLruGarbageCollector</code>. This is also the default garbage collector for <code>MemoryLocalCache</code> unless it is explicitly specified otherwise.<br/> A target size can be specified as part of the setting parameter. The collector will start deleting documents once the cache size exceeds the given size, or can be set to <code>CACHE_SIZE_UNLIMITED</code> to disable garbage collection. The default cache size is 40MB (40 \* 1024 \* 1024 bytes). |
 |  [persistentLocalCache(settings)](./firestore.md#persistentlocalcache_d312f71) | Creates an instance of <code>PersistentLocalCache</code>. The instance can be set to <code>FirestoreSettings.cache</code> to tell the SDK which cache layer to use.<!-- -->Persistent cache cannot be used in a Node.js environment. |
 |  [persistentSingleTabManager(settings)](./firestore.md#persistentsingletabmanager_c99c68d) | Creates an instance of <code>PersistentSingleTabManager</code>. |
 |  <b>function(snapshot, ...)</b> |
@@ -1431,7 +1431,7 @@ The default [Firestore](./firestore.firestore.md#firestore_class) instance of th
 
 ### memoryEagerGarbageCollector() {:#memoryeagergarbagecollector}
 
-Creates an instance of `MemoryEagerGarbageCollector`<!-- -->. This is also the default garbage collector unless it is explicitly specified otherwise.
+Creates an instance of `MemoryEagerGarbageCollector`<!-- -->.
 
 <b>Signature:</b>
 
@@ -3096,9 +3096,7 @@ export declare function memoryLocalCache(
 
 ### memoryLruGarbageCollector(settings) {:#memorylrugarbagecollector_8fd4ae1}
 
-Creates an instance of `MemoryLruGarbageCollector`<!-- -->.
-
-A target size can be specified as part of the setting parameter. The collector will start deleting documents once the cache size exceeds the given size. The default cache size is 40MB (40 \* 1024 \* 1024 bytes).
+Creates an instance of `MemoryLruGarbageCollector`<!-- -->. This is also the default garbage collector for `MemoryLocalCache` unless it is explicitly specified otherwise.<br/> A target size can be specified as part of the setting parameter. The collector will start deleting documents once the cache size exceeds the given size, or can be set to `CACHE_SIZE_UNLIMITED` to disable garbage collection. The default cache size is 40MB (40 \* 1024 \* 1024 bytes).
 
 <b>Signature:</b>
 
