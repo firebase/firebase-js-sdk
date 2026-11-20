@@ -80,7 +80,8 @@ export async function generateContentStream(
         model,
         params,
         singleRequestOptions
-      )
+      ),
+    apiSettings.inferenceMode
   );
   return processStream(
     callResult.response,
@@ -172,7 +173,8 @@ export async function generateContent(
     chromeAdapter,
     () => chromeAdapter!.generateContent(params),
     () =>
-      generateContentOnCloud(apiSettings, model, params, singleRequestOptions)
+      generateContentOnCloud(apiSettings, model, params, singleRequestOptions),
+    apiSettings.inferenceMode
   );
   const generateContentResponse = await processGenerateContentResponse(
     callResult.response,
