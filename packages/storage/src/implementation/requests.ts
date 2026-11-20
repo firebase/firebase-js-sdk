@@ -286,6 +286,9 @@ export function deleteObject(
   function handler(_xhr: Connection<string>, _text: string): void {}
   const requestInfo = new RequestInfo(url, method, handler, timeout);
   requestInfo.successCodes = [200, 204];
+  // If an earlier attempt may already have deleted the object, a 404 on a
+  // retry means the object is gone, which is what the caller asked for.
+  requestInfo.successCodesAfterRetry = [404];
   requestInfo.errorHandler = objectErrorHandler(location);
   return requestInfo;
 }

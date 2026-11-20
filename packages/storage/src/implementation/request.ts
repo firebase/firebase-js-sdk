@@ -66,6 +66,7 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
     private body_: string | Blob | Uint8Array | null,
     private successCodes_: number[],
     private additionalRetryCodes_: number[],
+    private successCodesAfterRetry_: number[],
     private callback_: RequestHandler<I, O>,
     private errorCallback_: ErrorHandler | null,
     private timeout_: number,
@@ -85,6 +86,9 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
    * Actually starts the retry loop.
    */
   private start_(): void {
+    // Set once an attempt fails without telling us whether the server carried
+    // out the request, so a later attempt may see the result of that one.
+    let earlierAttemptOutcomeUnknown = false;
     const doTheRequest: (
       backoffCallback: (success: boolean, ...p2: unknown[]) => void,
       canceled: boolean
@@ -132,13 +136,19 @@ class NetworkRequest<I extends ConnectionType, O> implements Request<O> {
               this.retry)
           ) {
             const wasCanceled = connection.getErrorCode() === ErrorCode.ABORT;
+            if (!hitServer || status >= 500) {
+              earlierAttemptOutcomeUnknown = true;
+            }
             backoffCallback(
               false,
               new RequestEndStatus(false, null, wasCanceled)
             );
             return;
           }
-          const successCode = this.successCodes_.indexOf(status) !== -1;
+          const successCode =
+            this.successCodes_.indexOf(status) !== -1 ||
+            (earlierAttemptOutcomeUnknown &&
+              this.successCodesAfterRetry_.indexOf(status) !== -1);
           backoffCallback(true, new RequestEndStatus(successCode, connection));
         });
     };
@@ -285,6 +295,7 @@ export function makeRequest<I extends ConnectionType, O>(
     requestInfo.body,
     requestInfo.successCodes,
     requestInfo.additionalRetryCodes,
+    requestInfo.successCodesAfterRetry,
     requestInfo.handler,
     requestInfo.errorHandler,
     requestInfo.timeout,

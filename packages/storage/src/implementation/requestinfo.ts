@@ -62,6 +62,13 @@ export class RequestInfo<I extends ConnectionType, O> {
   successCodes: number[] = [200];
   additionalRetryCodes: number[] = [];
 
+  /**
+   * Status codes that also count as success, but only after an earlier attempt
+   * of the same request failed without telling us whether the server carried
+   * it out (a network error or a 5xx response).
+   */
+  successCodesAfterRetry: number[] = [];
+
   constructor(
     public url: string,
     public method: string,
