@@ -87,8 +87,8 @@ export async function _openIframe(
       attributes: IFRAME_ATTRIBUTES,
       dontclear: true
     },
-    (iframe: gapi.iframes.Iframe) =>
-      new Promise(async (resolve, reject) => {
+    (iframe: gapi.iframes.Iframe) => {
+      const iframeReady = new Promise(async (resolve, reject) => {
         await iframe.restyle({
           // Prevent iframe from closing on mouse out.
           setHideOnLeave: false
@@ -113,6 +113,11 @@ export async function _openIframe(
         iframe.ping(clearTimerAndResolve).then(clearTimerAndResolve, () => {
           reject(networkError);
         });
-      })
+      });
+      // Context.open() ignores this promise, so without a handler a failed ping
+      // becomes an unhandled rejection that the app has no way to catch.
+      iframeReady.catch(() => {});
+      return iframeReady;
+    }
   );
 }
