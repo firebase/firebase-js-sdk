@@ -432,6 +432,53 @@ describe('Google AI Mappers', () => {
       expect(loggerWarnStub).not.toHaveBeenCalled();
     });
 
+    it('should not carry safetyRatings over to subsequent candidates', () => {
+      const candidates: GoogleAIGenerateContentCandidate[] = [
+        {
+          index: 0,
+          content: {
+            role: 'model',
+            parts: [{ type: 'text', text: 'Candidate 0' }]
+          },
+          safetyRatings: [
+            {
+              category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+              probability: HarmProbability.MEDIUM,
+              blocked: false
+            } as any
+          ]
+        },
+        {
+          index: 1,
+          content: {
+            role: 'model',
+            parts: [{ type: 'text', text: 'Candidate 1' }]
+          }
+        },
+        {
+          index: 2,
+          content: {
+            role: 'model',
+            parts: [{ type: 'text', text: 'Candidate 2' }]
+          },
+          safetyRatings: []
+        }
+      ];
+      const mapped = mapGenerateContentCandidates(candidates);
+      expect(mapped[0].safetyRatings).to.deep.equal([
+        {
+          category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+          probability: HarmProbability.MEDIUM,
+          blocked: false,
+          severity: HarmSeverity.HARM_SEVERITY_UNSUPPORTED,
+          probabilityScore: 0,
+          severityScore: 0
+        }
+      ]);
+      expect(mapped[1].safetyRatings).to.be.undefined;
+      expect(mapped[2].safetyRatings).to.deep.equal([]);
+    });
+
     it('should handle empty candidate array', () => {
       const candidates: GoogleAIGenerateContentCandidate[] = [];
       const mapped = mapGenerateContentCandidates(candidates);
