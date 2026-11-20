@@ -41,7 +41,7 @@ npm install firebase
 
 ### Step 3: Add Breadcrumbs to your initialization
 
-Breadcrumbs are off by default. To turn them on, pass `features: [breadcrumbs()]` in the `CrashlyticsOptions` when initializing Crashlytics. Follow the guide for your framework:
+Breadcrumbs are off by default. To turn them on, pass `features: [breadcrumbs({ capture: all() })]` in the `CrashlyticsOptions` when initializing Crashlytics. The `capture` option chooses what is recorded automatically, and `all()` selects everything. Follow the guide for your framework:
 
 - 🔺 [Next.js Setup Guide](../src/next/_enable_breadcrumbs.md)
 - ⚛️ [**React Setup Guide**](../src/react/_enable_breadcrumbs.md)
@@ -51,13 +51,45 @@ If you initialize Crashlytics directly without a framework integration, pass the
 
 ```diff
 -import { getCrashlytics } from 'firebase/crashlytics';
-+import { getCrashlytics, breadcrumbs } from 'firebase/crashlytics';
++import { getCrashlytics, breadcrumbs, all } from 'firebase/crashlytics';
 
 -const crashlytics = getCrashlytics(app);
-+const crashlytics = getCrashlytics(app, { features: [breadcrumbs()] });
++const crashlytics = getCrashlytics(app, {
++  features: [breadcrumbs({ capture: all() })]
++});
 ```
 
-**Note:** Crashlytics must be initialized with the same options everywhere in your app. Calling `getCrashlytics()` with different options for the same app throws an error.
+**Note:** Crashlytics must be initialized with the same options everywhere in your app. Calling `getCrashlytics()` with different options for the same app throws an error. The `capture` list is part of the options, and the same functions in a different order count as different options.
+
+#### Choose what to capture
+
+To record only some breadcrumbs, pass the ones you want in `capture` instead of `all()`:
+
+```ts
+import {
+  getCrashlytics,
+  breadcrumbs,
+  userActions,
+  fetchRequests
+} from 'firebase/crashlytics';
+
+const crashlytics = getCrashlytics(app, {
+  features: [breadcrumbs({ capture: [userActions(), fetchRequests()] })]
+});
+```
+
+| Function              | What it records                                            |
+| --------------------- | ---------------------------------------------------------- |
+| `navigationTimings()` | Browser navigation timing for page loads                   |
+| `webVitals()`         | Core Web Vitals                                            |
+| `userActions()`       | Clicks                                                     |
+| `fetchRequests()`     | `fetch` requests                                           |
+| `xhrRequests()`       | `XMLHttpRequest` requests                                  |
+| `documentLoads()`     | Document load timing                                       |
+| `routeChanges()`      | Route navigations. Also needs navigation tracking (Step 5) |
+| `lifecycleEvents()`   | The page moving to the foreground or the background        |
+
+`breadcrumbs()` with no `capture` records none of these. Custom logs (Step 6) are still recorded.
 
 ### Step 4: Verify Logs & Breadcrumbs appear
 
@@ -80,7 +112,7 @@ throw new Error('Testing Breadcrumbs');
 
 ### (Optional) Step 5: Setup Navigation Tracking&nbsp;
 
-By default, you will get activities like network tracing, click tracking, and document load times automatically. To enable navigation tracking, you will need to add framework specific configuration.
+With `capture: all()`, you get activities like network tracing, click tracking, and document load times automatically. Navigation tracking needs two things: `routeChanges()` in your `capture` list (`all()` includes it), and framework specific configuration.
 
 - 🔺 [Next.js Setup Guide](../src/next/_navigation_tracking.md)
 - 🛣️ [**React Router Setup Guide**](../src/react-router/_navigation_tracking.md)
@@ -92,7 +124,7 @@ Repeat Step 3\. You should now see navigation events like
 
 ### (Optional) Step 6: Add custom logs
 
-In addition to automatic breadcrumbs (clicks, route changes, network requests, and page visibility events), you can emit custom diagnostic logs and attach key-value attributes anywhere in your application.
+In addition to the automatic breadcrumbs you chose to capture (such as clicks, route changes, network requests, and page lifecycle events), you can emit custom diagnostic logs and attach key-value attributes anywhere in your application.
 
 ```ts
 import { getCrashlytics, log } from 'firebase/crashlytics';
