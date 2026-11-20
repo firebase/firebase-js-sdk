@@ -22,7 +22,8 @@ import {
   executeQuery,
   getDataConnect,
   mutationRef,
-  queryRef
+  queryRef,
+  subscribe
 } from '../../src';
 import { Code, DataConnectError } from '../../src/core/error';
 import { DataConnectTransportManager } from '../../src/network/manager';
@@ -66,5 +67,31 @@ describe('Query Manager Tests', () => {
     await expect(executeQuery(mutation)).rejects.toThrow(error.message);
     const result = await executeQuery(query);
     expect(result.data).toBe('ok');
+  });
+
+  it('should retry the transport subscription after invokeSubscribe throws', () => {
+    vi.spyOn(
+      DataConnectTransportManager.prototype,
+      'invokeQuery'
+    ).mockResolvedValue({
+      data: 'ok',
+      errors: [],
+      extensions: {}
+    });
+    const invokeSubscribe = vi
+      .spyOn(DataConnectTransportManager.prototype, 'invokeSubscribe')
+      .mockImplementationOnce(() => {
+        throw new DataConnectError(Code.OTHER, 'unable to connect');
+      })
+      .mockImplementation(() => {});
+    const query = queryRef<string>(dc, 'q');
+
+    expect(() => subscribe(query, () => {})).toThrow('unable to connect');
+    expect(invokeSubscribe).toHaveBeenCalledTimes(1);
+
+    // Once the connection recovers, subscribing again must reach the transport.
+    const unsubscribe = subscribe(query, () => {});
+    expect(invokeSubscribe).toHaveBeenCalledTimes(2);
+    unsubscribe();
   });
 });
