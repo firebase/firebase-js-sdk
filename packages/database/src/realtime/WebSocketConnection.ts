@@ -65,7 +65,7 @@ export class WebSocketConnection implements Transport {
   bytesSent = 0;
   bytesReceived = 0;
   connURL: string;
-  onDisconnect: (a?: boolean) => void;
+  onDisconnect: (a?: boolean, httpStatus?: number) => void;
   onMessage: (msg: {}) => void;
   mySock: WebSocket | null;
   private log_: (...a: unknown[]) => void;
@@ -73,6 +73,7 @@ export class WebSocketConnection implements Transport {
   private everConnected_: boolean;
   private isClosed_: boolean;
   private nodeAdmin: boolean;
+  private httpStatusCode_: number | undefined;
 
   /**
    * @param connId identifier for this transport
@@ -151,9 +152,13 @@ export class WebSocketConnection implements Transport {
    * @param onMessage - Callback when messages arrive
    * @param onDisconnect - Callback with connection lost.
    */
-  open(onMessage: (msg: {}) => void, onDisconnect: (a?: boolean) => void) {
+  open(
+    onMessage: (msg: {}) => void,
+    onDisconnect: (a?: boolean, httpStatus?: number) => void
+  ) {
     this.onDisconnect = onDisconnect;
     this.onMessage = onMessage;
+    this.httpStatusCode_ = undefined;
 
     this.log_('Websocket connecting to ' + this.connURL);
 
@@ -212,8 +217,9 @@ export class WebSocketConnection implements Transport {
       this.everConnected_ = true;
     };
 
-    this.mySock.onclose = () => {
+    this.mySock.onclose = e => {
       this.log_('Websocket connection was disconnected.');
+      this.captureHttpStatusCode_(e);
       this.mySock = null;
       this.onClosed_();
     };
@@ -224,6 +230,7 @@ export class WebSocketConnection implements Transport {
 
     this.mySock.onerror = e => {
       this.log_('WebSocket error.  Closing connection.');
+      this.captureHttpStatusCode_(e);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const error = (e as any).message || (e as any).data;
       if (error) {
@@ -381,6 +388,15 @@ export class WebSocketConnection implements Transport {
     }
   }
 
+  private captureHttpStatusCode_(e: unknown): void {
+    const statusCode =
+      (e as { statusCode?: number } | undefined)?.statusCode ??
+      (this.mySock as { statusCode?: number } | null)?.statusCode;
+    if (typeof statusCode === 'number') {
+      this.httpStatusCode_ = statusCode;
+    }
+  }
+
   private shutdown_() {
     this.isClosed_ = true;
     if (this.keepaliveTimer) {
@@ -401,7 +417,7 @@ export class WebSocketConnection implements Transport {
 
       // since this is an internal close, trigger the close listener
       if (this.onDisconnect) {
-        this.onDisconnect(this.everConnected_);
+        this.onDisconnect(this.everConnected_, this.httpStatusCode_);
         this.onDisconnect = null;
       }
     }

@@ -69,7 +69,7 @@ export abstract class Transport {
    */
   abstract open(
     onMessage: (a: {}) => void,
-    onDisconnect: (a?: boolean) => void
+    onDisconnect: (a?: boolean, httpStatus?: number) => void
   ): void;
 
   abstract start(): void;
