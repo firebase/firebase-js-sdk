@@ -311,6 +311,87 @@ describe('Google AI Mappers', () => {
   });
 
   describe('mapGenerateContentCandidates', () => {
+    for (const safetyRatings of [undefined, []]) {
+      it(`should preserve ${safetyRatings === undefined ? 'omitted' : 'empty'} ratings after a rated candidate`, () => {
+        const rating: SafetyRating = {
+          category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+          probability: HarmProbability.MEDIUM,
+          blocked: false,
+          severity: HarmSeverity.HARM_SEVERITY_UNSUPPORTED,
+          probabilityScore: 0,
+          severityScore: 0
+        };
+        const candidates: GoogleAIGenerateContentCandidate[] = [
+          {
+            index: 0,
+            content: {
+              role: 'model',
+              parts: [{ type: 'text', text: 'First candidate' }]
+            },
+            safetyRatings: [rating]
+          },
+          {
+            index: 1,
+            content: {
+              role: 'model',
+              parts: [{ type: 'text', text: 'Second candidate' }]
+            },
+            safetyRatings
+          }
+        ];
+
+        const mapped = mapGenerateContentCandidates(candidates);
+
+        expect(mapped[0].safetyRatings).to.deep.equal([rating]);
+        expect(mapped[1].safetyRatings).to.deep.equal(safetyRatings);
+        expect(candidates[1].safetyRatings).to.equal(safetyRatings);
+      });
+    }
+
+    it('should keep safety ratings independent across multiple candidates', () => {
+      const rating: SafetyRating = {
+        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+        probability: HarmProbability.MEDIUM,
+        blocked: false,
+        severity: HarmSeverity.HARM_SEVERITY_UNSUPPORTED,
+        probabilityScore: 0,
+        severityScore: 0
+      };
+      const otherRating: SafetyRating = {
+        ...rating,
+        category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+        probability: HarmProbability.HIGH,
+        blocked: true
+      };
+      const ratings = [
+        undefined,
+        [rating],
+        undefined,
+        [otherRating],
+        [],
+        undefined
+      ];
+      const candidates: GoogleAIGenerateContentCandidate[] = ratings.map(
+        (safetyRatings, index) => ({
+          index,
+          content: {
+            role: 'model',
+            parts: [{ type: 'text', text: `Candidate ${index}` }]
+          },
+          safetyRatings
+        })
+      );
+
+      const mapped = mapGenerateContentResponse({ candidates });
+
+      expect(
+        mapped.candidates?.map(candidate => candidate.safetyRatings)
+      ).to.deep.equal(ratings);
+      expect(
+        candidates.map(candidate => candidate.safetyRatings)
+      ).to.deep.equal(ratings);
+    });
+
     it('should map citationSources to citationMetadata.citations', () => {
       const candidates: GoogleAIGenerateContentCandidate[] = [
         {
