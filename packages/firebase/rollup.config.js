@@ -21,7 +21,9 @@ import json from '@rollup/plugin-json';
 import pkg from './package.json' with { type: 'json' };
 import { resolve } from 'path';
 import { existsSync, readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 import resolveModule from '@rollup/plugin-node-resolve';
+import license from 'rollup-plugin-license';
 import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import terser from '@rollup/plugin-terser';
@@ -189,6 +191,20 @@ const cdnPlugins = [
 ];
 
 /**
+ * License notices for third-party code that CDN bundles inline, keyed by
+ * component. The npm packages keep these dependencies external (users install
+ * them with their own license files), but the CDN bundles inline them and
+ * terser strips their license comments, so we add the notice back as a banner
+ * on the affected bundle only. The notice texts live in `cdn-licenses/`.
+ */
+const cdnThirdPartyNotices = {
+  // @opentelemetry/instrumentation vendors shimmer (src/shimmer.ts).
+  crashlytics: fileURLToPath(
+    new URL('./cdn-licenses/shimmer.txt', import.meta.url)
+  )
+};
+
+/**
  * CDN script builds
  */
 const cdnBuilds = [
@@ -227,7 +243,21 @@ const cdnBuilds = [
             mangle: {
               reserved: ['_getProvider', '__PRIVATE_lastReasonableEscapeIndex']
             }
-          })
+          }),
+          // Runs after terser, so the banner isn't stripped with the other
+          // comments.
+          ...(cdnThirdPartyNotices[component]
+            ? [
+                license({
+                  banner: {
+                    content: {
+                      file: cdnThirdPartyNotices[component],
+                      encoding: 'utf-8'
+                    }
+                  }
+                })
+              ]
+            : [])
         ],
         external: ['@firebase/app']
       };
