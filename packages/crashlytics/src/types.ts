@@ -46,20 +46,30 @@ export interface NetworkInstrumentationConfig {
 
 /**
  * Internal view of the opaque {@link BreadcrumbInstrumentation} objects. `logger` instrumentations
- * emit logs through the Crashlytics LoggerProvider and create a browser instrumentation, `tracer`
- * instrumentations emit spans through the Crashlytics TracerProvider and create a standard
- * OpenTelemetry instrumentation, and `framework` instrumentations are implemented by the framework
- * integrations (such as route change logging), so they have nothing to create.
+ * emit logs through the Crashlytics LoggerProvider and create a browser instrumentation, and
+ * `tracer` instrumentations emit spans through the Crashlytics TracerProvider and create a standard
+ * OpenTelemetry instrumentation. The other kinds have nothing to create: `framework`
+ * instrumentations are implemented by the framework integrations (such as route change logging),
+ * and `core` instrumentations are implemented by the Crashlytics core (such as visibility logging).
  *
  * @internal
  */
 export interface BreadcrumbInstrumentationInternal extends BreadcrumbInstrumentation {
   readonly name: string;
-  readonly kind: 'logger' | 'tracer' | 'framework';
+  readonly kind: 'logger' | 'tracer' | 'framework' | 'core';
   create?(
     networkInstrumentationConfig?: NetworkInstrumentationConfig
   ): Instrumentation | BrowserInstrumentation;
 }
+
+/**
+ * Names of the marker instrumentations: the `framework` and `core` kinds, which have nothing to
+ * create and only gate logs that are emitted elsewhere. This keeps them apart from the `logger` and
+ * `tracer` instrumentations, which Crashlytics creates and enables itself.
+ *
+ * @internal
+ */
+export type MarkerInstrumentationName = 'routeChanges' | 'lifecycleEvents';
 
 /**
  * Internal interface implemented by Crashlytics feature plugins (such as {@link breadcrumbs}).

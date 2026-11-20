@@ -109,9 +109,8 @@ export interface CrashlyticsOptions {
    *
    * When {@link breadcrumbs} is included, Crashlytics collects the telemetry selected by its
    * `capture` option, which can include OpenTelemetry spans (such as Fetch, XMLHttpRequest, and
-   * Document Load) and breadcrumb logs (such as navigation events, Web Vitals, and user actions),
-   * along with visibility lifecycle events, buffering them in memory and exporting them when an
-   * error occurs.
+   * Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions, and
+   * visibility lifecycle events), buffering them in memory and exporting them when an error occurs.
    *
    * @example
    * ```ts

@@ -131,6 +131,11 @@ class RouteChangesBreadcrumb implements BreadcrumbInstrumentationInternal {
   readonly kind = 'framework';
 }
 
+class LifecycleEventsBreadcrumb implements BreadcrumbInstrumentationInternal {
+  readonly name = 'lifecycleEvents';
+  readonly kind = 'core';
+}
+
 class BreadcrumbsFeatureImpl implements CrashlyticsFeatureInternal {
   readonly name = 'breadcrumbs';
   // TODO: `getCrashlytics()` compares options with `deepEqual`, which compares this list in order.
@@ -249,10 +254,10 @@ class BreadcrumbsFeatureImpl implements CrashlyticsFeatureInternal {
  * <b>(EXPERIMENTAL)</b> Enables Crashlytics breadcrumb and trace telemetry collection when passed in
  * {@link CrashlyticsOptions.features}. The `capture` option selects which instrumentations
  * Crashlytics runs automatically, such as OpenTelemetry spans (Fetch, XMLHttpRequest, and Document
- * Load) and breadcrumb logs (navigation events, Web Vitals, and user actions). Captured telemetry
- * is buffered in memory and exported when an error occurs. If `capture` is omitted, no
- * instrumentations are enabled; pass {@link all | all()} to enable all of them. Only the
- * instrumentations that are imported are included in the application bundle.
+ * Load) and breadcrumb logs (navigation events, Web Vitals, user actions, and visibility lifecycle
+ * events). Captured telemetry is buffered in memory and exported when an error occurs. If `capture`
+ * is omitted, no instrumentations are enabled; pass {@link all | all()} to enable all of them. Only
+ * the instrumentations that are imported are included in the application bundle.
  *
  * @example
  * ```ts
@@ -316,7 +321,8 @@ export function all(): BreadcrumbInstrumentation[] {
     fetchRequests(),
     xhrRequests(),
     documentLoads(),
-    routeChanges()
+    routeChanges(),
+    lifecycleEvents()
   ];
 }
 
@@ -383,4 +389,14 @@ export function documentLoads(): BreadcrumbInstrumentation {
  */
 export function routeChanges(): BreadcrumbInstrumentation {
   return new RouteChangesBreadcrumb();
+}
+
+/**
+ * <b>(EXPERIMENTAL)</b> Captures page lifecycle events (the page moving to the foreground or the
+ * background) as breadcrumb logs.
+ *
+ * @public
+ */
+export function lifecycleEvents(): BreadcrumbInstrumentation {
+  return new LifecycleEventsBreadcrumb();
 }

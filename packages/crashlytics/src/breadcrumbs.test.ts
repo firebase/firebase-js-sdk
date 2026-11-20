@@ -100,7 +100,8 @@ describe('breadcrumbs', () => {
       'fetchRequests',
       'xhrRequests',
       'documentLoads',
-      'routeChanges'
+      'routeChanges',
+      'lifecycleEvents'
     ]);
 
     // Passing the instrumentations in capture is all that is needed to enable them.
@@ -122,8 +123,8 @@ describe('breadcrumbs', () => {
     expect(fetchEnableSpy).toHaveBeenCalled();
     expect(xhrEnableSpy).toHaveBeenCalled();
     expect(documentLoadEnableSpy).toHaveBeenCalled();
-    // routeChanges() is not asserted on: it has no instrumentation to enable and only gates the
-    // route change logs of the framework integrations.
+    // routeChanges() and lifecycleEvents() are not asserted on: they have no instrumentation to
+    // enable and only gate logs that are emitted elsewhere.
   });
 
   it('initializeLoggerInstrumentations() and initializeTracingInstrumentations() enable no instrumentations in Node environments', () => {

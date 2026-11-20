@@ -53,6 +53,9 @@ app?: FirebaseApp,
 options?: CrashlyticsOptions
 ): Crashlytics;
 
+// @public
+export function lifecycleEvents(): BreadcrumbInstrumentation;
+
 // Warning: (ae-incompatible-release-tags) The symbol "log" is marked as @public, but its signature references "Crashlytics" which is marked as @beta
 //
 // @public

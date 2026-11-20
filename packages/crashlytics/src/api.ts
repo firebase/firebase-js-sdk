@@ -24,7 +24,7 @@ import { Attributes, SeverityNumber } from '@opentelemetry/api';
 import { CrashlyticsService } from './service';
 import { deepEqual } from '@firebase/util';
 import { LOG_ATTR_KEY } from './attributes-store';
-import { flush, hasRouteChangesInstrumentation } from './helpers';
+import { flush, hasBreadcrumbInstrumentation } from './helpers';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -197,7 +197,7 @@ export function logViewBoundary(
 ): void {
   const { loggerProvider, attributesStore, options } =
     crashlytics as CrashlyticsInternal;
-  if (!hasRouteChangesInstrumentation(options)) {
+  if (!hasBreadcrumbInstrumentation(options, 'routeChanges')) {
     return;
   }
   const logger = loggerProvider.getLogger('view-boundary-logger');

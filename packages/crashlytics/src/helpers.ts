@@ -20,7 +20,8 @@ import {
   BreadcrumbInstrumentationInternal,
   CrashlyticsFeatureInternal,
   CrashlyticsInternal,
-  ErrorWithSymbol
+  ErrorWithSymbol,
+  MarkerInstrumentationName
 } from './types';
 import { Attributes, SeverityNumber, type TimeInput } from '@opentelemetry/api';
 import { hrTimeToMilliseconds, timeInputToHrTime } from '@opentelemetry/core';
@@ -49,18 +50,19 @@ export function getBreadcrumbsFeature(
 }
 
 /**
- * Returns true if the breadcrumbs feature is enabled and captures route changes.
+ * Returns true if the breadcrumbs feature is enabled and captures the marker instrumentation with
+ * the given name.
  *
  * @internal
  */
-export function hasRouteChangesInstrumentation(
-  options?: CrashlyticsOptions
+export function hasBreadcrumbInstrumentation(
+  options: CrashlyticsOptions | undefined,
+  name: MarkerInstrumentationName
 ): boolean {
   return Boolean(
     getBreadcrumbsFeature(options)?.instrumentations?.some(
       instrumentation =>
-        (instrumentation as BreadcrumbInstrumentationInternal).name ===
-        'routeChanges'
+        (instrumentation as BreadcrumbInstrumentationInternal).name === name
     )
   );
 }
@@ -139,10 +141,11 @@ export function startNewSession(crashlytics: Crashlytics): void {
 export function registerListeners(crashlytics: Crashlytics): () => void {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     const onVisibilityChange = async (): Promise<void> => {
-      // TODO: Visibility lifecycle logs are emitted whenever the breadcrumbs feature is enabled.
-      // They are not yet one of the instrumentations selectable through `breadcrumbs({ capture })`.
       if (
-        getBreadcrumbsFeature((crashlytics as CrashlyticsInternal).options) &&
+        hasBreadcrumbInstrumentation(
+          (crashlytics as CrashlyticsInternal).options,
+          'lifecycleEvents'
+        ) &&
         (document.visibilityState === 'visible' ||
           document.visibilityState === 'hidden')
       ) {

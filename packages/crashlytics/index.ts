@@ -32,6 +32,7 @@ export {
   breadcrumbs,
   documentLoads,
   fetchRequests,
+  lifecycleEvents,
   navigationTimings,
   routeChanges,
   userActions,
