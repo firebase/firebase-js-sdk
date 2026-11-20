@@ -451,10 +451,34 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
         if (!isPinned) {
           count++;
           changeBuffer.removeEntry(key, SnapshotVersion.min());
+          this.orphanedSequenceNumbers.delete(key);
         }
       });
     });
-    return p.next(() => changeBuffer.apply(txn)).next(() => count);
+    const keysToDelete: DocumentKey[] = [];
+    return p
+      .next(() =>
+        PersistencePromise.forEach(
+          this.orphanedSequenceNumbers,
+          (key, sequenceNumber) => {
+            if (sequenceNumber <= upperBound) {
+              return this.isPinned(txn, key, upperBound).next(isPinned => {
+                if (!isPinned) {
+                  keysToDelete.push(key);
+                }
+              });
+            }
+            return PersistencePromise.resolve();
+          }
+        )
+      )
+      .next(() => {
+        for (const key of keysToDelete) {
+          this.orphanedSequenceNumbers.delete(key);
+        }
+        return changeBuffer.apply(txn);
+      })
+      .next(() => count);
   }
 
   markPotentiallyOrphaned(

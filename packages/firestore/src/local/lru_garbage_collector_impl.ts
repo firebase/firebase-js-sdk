@@ -97,13 +97,12 @@ class RollingSequenceNumberBuffer {
   }
 
   get maxValue(): ListenSequenceNumber {
-    // Guaranteed to be non-empty. If we decide we are not collecting any
-    // sequence numbers, nthSequenceNumber below short-circuits. If we have
-    // decided that we are collecting n sequence numbers, it's because n is some
-    // percentage of the existing sequence numbers. That means we should never
-    // be in a situation where we are collecting sequence numbers but don't
-    // actually have any.
-    return this.buffer.last()![0];
+    // Return `ListenSequence.INVALID` defensively if no collectable sequence
+    // numbers were added (for example, if `targetCount` metadata was out of
+    // sync with stored targets).
+    return this.buffer.size > 0
+      ? this.buffer.last()![0]
+      : ListenSequence.INVALID;
   }
 }
 

@@ -22,11 +22,11 @@ export declare interface MemoryCacheSettings
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [garbageCollector](./firestore.memorycachesettings.md#memorycachesettingsgarbagecollector) | [MemoryGarbageCollector](./firestore.md#memorygarbagecollector) | The garbage collector to use, for the memory cache layer. A <code>MemoryEagerGarbageCollector</code> is used when this is undefined. |
+|  [garbageCollector](./firestore.memorycachesettings.md#memorycachesettingsgarbagecollector) | [MemoryGarbageCollector](./firestore.md#memorygarbagecollector) | The garbage collector to use, for the memory cache layer. A <code>MemoryLruGarbageCollector</code> is used when this is undefined. |
 
 ## MemoryCacheSettings.garbageCollector
 
-The garbage collector to use, for the memory cache layer. A `MemoryEagerGarbageCollector` is used when this is undefined.
+The garbage collector to use, for the memory cache layer. A `MemoryLruGarbageCollector` is used when this is undefined.
 
 <b>Signature:</b>
 

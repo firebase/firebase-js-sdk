@@ -15,12 +15,28 @@
  * limitations under the License.
  */
 
+import {
+  CACHE_SIZE_UNLIMITED,
+  ensureFirestoreConfigured,
+  memoryEagerGarbageCollector,
+  memoryLocalCache,
+  memoryLruGarbageCollector
+} from '../../../src';
 import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
+import { LruGcMemoryOfflineComponentProvider } from '../../../src/core/component_provider';
+import { getLocalStore } from '../../../src/core/firestore_client';
 import { ListenSequence } from '../../../src/core/listen_sequence';
 import { queryToTarget } from '../../../src/core/query';
 import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import {
+  localStoreAllocateTarget,
+  localStoreApplyRemoteEventToLocalCache,
+  localStoreNotifyLocalViewChanges,
+  localStoreReleaseTarget
+} from '../../../src/local/local_store_impl';
+import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import {
   ActiveTargets,
   LruDelegate,
@@ -34,7 +50,10 @@ import { PersistenceTransaction } from '../../../src/local/persistence_transacti
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { TargetCache } from '../../../src/local/target_cache';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
-import { documentKeySet } from '../../../src/model/collections';
+import {
+  documentKeySet,
+  mutableDocumentMap
+} from '../../../src/model/collections';
 import { MutableDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import {
@@ -42,11 +61,17 @@ import {
   Precondition,
   SetMutation
 } from '../../../src/model/mutation';
-import { AsyncQueue } from '../../../src/util/async_queue';
-import { newAsyncQueue } from '../../../src/util/async_queue_impl';
+import { RemoteEvent, TargetChange } from '../../../src/remote/remote_event';
+import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
+import {
+  AsyncQueueImpl,
+  newAsyncQueue
+} from '../../../src/util/async_queue_impl';
+import { ByteString } from '../../../src/util/byte_string';
 import { primitiveComparator } from '../../../src/util/misc';
 import { SortedMap } from '../../../src/util/sorted_map';
-import { doc, key, query, wrapObject } from '../../util/helpers';
+import { newTestFirestore } from '../../util/api_helpers';
+import { doc, key, query, version, wrapObject } from '../../util/helpers';
 
 import * as PersistenceTestHelpers from './persistence_test_helpers';
 
@@ -414,6 +439,12 @@ function genericLruGarbageCollectorTests(
     const upperBound = 20 + initialSequenceNumber;
     const removed = await removeTargets(upperBound, activeTargetIds);
     expect(removed).toBe(10);
+    const remainingCount = await persistence.runTransaction(
+      'verify targetCount decremented',
+      'readonly',
+      txn => targetCache.getTargetCount(txn)
+    );
+    expect(remainingCount).toBe(90);
     // Make sure we removed the even targets with targetID <= 20.
     await persistence.runTransaction(
       'verify remaining targets > 20 or odd',
@@ -1043,4 +1074,369 @@ function genericLruGarbageCollectorTests(
     );
     expect(results.sequenceNumbersCollected).toBe(5);
   });
+
+  it('evicts progressively across consecutive GC cycles until below threshold', async () => {
+    const threshold = 3200;
+    await initializeTestResources(LruParams.withCacheSize(threshold));
+
+    const largeValue = 'x'.repeat(80);
+    for (let i = 0; i < 30; i++) {
+      await persistence.runTransaction(
+        'add target and orphaned document',
+        'readwrite-primary',
+        txn => {
+          return addNextTargetInTransaction(txn).next(targetData => {
+            const docKey = nextTestDocumentKey();
+            const mdoc = doc(docKey.toString(), 1000 + i, {
+              payload: largeValue
+            });
+            return saveDocument(txn, mdoc)
+              .next(() =>
+                targetCache.addMatchingKeys(
+                  txn,
+                  documentKeySet(docKey),
+                  targetData.targetId
+                )
+              )
+              .next(() =>
+                persistence.referenceDelegate.addReference(
+                  txn,
+                  targetData.targetId,
+                  docKey
+                )
+              )
+              .next(() =>
+                persistence.referenceDelegate.removeReference(
+                  txn,
+                  targetData.targetId,
+                  docKey
+                )
+              )
+              .next(() => updateTargetInTransaction(txn, targetData));
+          });
+        }
+      );
+    }
+
+    const initialCacheSize = await persistence.runTransaction(
+      'getCacheSize',
+      'readonly',
+      txn => garbageCollector.getCacheSize(txn)
+    );
+    expect(initialCacheSize).toBeGreaterThan(threshold);
+
+    const firstPass = await persistence.runTransaction(
+      'collect pass 1',
+      'readwrite-primary',
+      txn => garbageCollector.collect(txn, emptyTargetDataMap())
+    );
+    expect(firstPass.didRun).toBe(true);
+    expect(firstPass.documentsRemoved).toBeGreaterThan(0);
+
+    const secondPass = await persistence.runTransaction(
+      'collect pass 2',
+      'readwrite-primary',
+      txn => garbageCollector.collect(txn, emptyTargetDataMap())
+    );
+    expect(secondPass.didRun).toBe(true);
+    expect(secondPass.documentsRemoved).toBeGreaterThan(0);
+
+    for (let cycle = 0; cycle < 20; cycle++) {
+      const size = await persistence.runTransaction(
+        'getCacheSize',
+        'readonly',
+        txn => garbageCollector.getCacheSize(txn)
+      );
+      if (size < threshold) {
+        break;
+      }
+      await persistence.runTransaction(
+        `collect pass ${cycle + 3}`,
+        'readwrite-primary',
+        txn => garbageCollector.collect(txn, emptyTargetDataMap())
+      );
+    }
+
+    const drainedSize = await persistence.runTransaction(
+      'getCacheSize',
+      'readonly',
+      txn => garbageCollector.getCacheSize(txn)
+    );
+    expect(drainedSize).toBeLessThan(threshold);
+
+    const skippedPass = await persistence.runTransaction(
+      'collect after below threshold',
+      'readwrite-primary',
+      txn => garbageCollector.collect(txn, emptyTargetDataMap())
+    );
+    expect(skippedPass.didRun).toBe(false);
+  });
+
+  it('cleans up sequence numbers for non-existent documents marked potentially orphaned', async () => {
+    for (let i = 0; i < 10; i++) {
+      await markADocumentEligibleForGC();
+    }
+    expect(await calculateTargetCount(100)).toBe(10);
+
+    const upperBound = await persistence.runTransaction(
+      'read current sequence number',
+      'readwrite',
+      txn => PersistencePromise.resolve(txn.currentSequenceNumber)
+    );
+    await removeOrphanedDocuments(upperBound);
+    expect(await calculateTargetCount(100)).toBe(0);
+  });
+
+  it('handles GC safely when targets are evicted and remaining cache is pinned by mutations', async () => {
+    await initializeTestResources(LruParams.withCacheSize(100));
+
+    let pinnedKey!: DocumentKey;
+    await persistence.runTransaction(
+      'cache and pin document via mutation',
+      'readwrite-primary',
+      txn => {
+        pinnedKey = nextTestDocumentKey();
+        const mdoc = doc(pinnedKey.toString(), 1000, {
+          payload: 'p'.repeat(200)
+        });
+        return saveDocument(txn, mdoc).next(() =>
+          mutationQueue.addMutationBatch(
+            txn,
+            Timestamp.fromMillis(2000),
+            /* baseMutations= */ [],
+            [mutation(pinnedKey)]
+          )
+        );
+      }
+    );
+
+    for (let i = 0; i < 10; i++) {
+      await addNextTarget();
+    }
+
+    // With 10% default percentile, pass 1 evicts 1 target, decrementing targetCount to 9.
+    const pass1 = await persistence.runTransaction(
+      'collect cycle 1',
+      'readwrite-primary',
+      txn => garbageCollector.collect(txn, emptyTargetDataMap())
+    );
+    expect(pass1.targetsRemoved).toBe(1);
+
+    const afterPass1Targets = await persistence.runTransaction(
+      'getTargetCount after pass 1',
+      'readonly',
+      txn => targetCache.getTargetCount(txn)
+    );
+    expect(afterPass1Targets).toBe(9);
+
+    // Subsequent passes compute floor(10% * 9) === 0 and short-circuit cleanly.
+    const pass2 = await persistence.runTransaction(
+      'collect cycle 2',
+      'readwrite-primary',
+      txn => garbageCollector.collect(txn, emptyTargetDataMap())
+    );
+    expect(pass2.didRun).toBe(true);
+    expect(pass2.sequenceNumbersCollected).toBe(0);
+    expect(pass2.targetsRemoved).toBe(0);
+    expect(pass2.documentsRemoved).toBe(0);
+
+    // Evict all remaining inactive targets and verify nthSequenceNumber(1) returns INVALID
+    // defensively when zero collectable sequence numbers exist.
+    const finalSeq = await persistence.runTransaction(
+      'read final sequence number',
+      'readwrite',
+      txn => PersistencePromise.resolve(txn.currentSequenceNumber)
+    );
+    await removeTargets(finalSeq, emptyTargetDataMap());
+    const remainingTargets = await persistence.runTransaction(
+      'getTargetCount after full eviction',
+      'readonly',
+      txn => targetCache.getTargetCount(txn)
+    );
+    expect(remainingTargets).toBe(0);
+    expect(await nthSequenceNumber(1)).toBe(ListenSequence.INVALID);
+
+    await persistence.runTransaction('verify pinned doc', 'readonly', txn =>
+      documentCache.getEntry(txn, pinnedKey).next(entry => {
+        expect(entry.isValidDocument()).toBe(true);
+      })
+    );
+  });
 }
+
+describe('LruGcMemoryOfflineComponentProvider', () => {
+  it('starts LruScheduler by default and stops it on _delete()', async () => {
+    const dbDefault = newTestFirestore('lru-default-proj');
+    const dbMemDefault = newTestFirestore('lru-mem-default-proj');
+    dbMemDefault._setSettings({ localCache: memoryLocalCache() });
+    const dbMemLru = newTestFirestore('lru-mem-explicit-proj');
+    dbMemLru._setSettings({
+      localCache: memoryLocalCache({
+        garbageCollector: memoryLruGarbageCollector({
+          cacheSizeBytes: 1024 * 1024
+        })
+      })
+    });
+
+    for (const db of [dbDefault, dbMemDefault, dbMemLru]) {
+      const client = ensureFirestoreConfigured(db);
+      const queue = client.asyncQueue as AsyncQueueImpl;
+      await queue.enqueue(async () => {
+        await getLocalStore(client);
+      });
+
+      expect(client._offlineComponents).toBeInstanceOf(
+        LruGcMemoryOfflineComponentProvider
+      );
+      expect(client._offlineComponents!.gcScheduler).not.toBeNull();
+      expect(client._offlineComponents!.gcScheduler!.started).toBe(true);
+      expect(queue.containsDelayedOperation(TimerId.LruGarbageCollection)).toBe(
+        true
+      );
+
+      await db._delete();
+      expect(client._offlineComponents!.gcScheduler!.started).toBe(false);
+      expect(queue.containsDelayedOperation(TimerId.LruGarbageCollection)).toBe(
+        false
+      );
+    }
+  });
+
+  it('does not schedule GC when CACHE_SIZE_UNLIMITED or memoryEagerGarbageCollector() is used', async () => {
+    const dbUnlimited = newTestFirestore('lru-unlimited-proj');
+    dbUnlimited._setSettings({
+      localCache: memoryLocalCache({
+        garbageCollector: memoryLruGarbageCollector({
+          cacheSizeBytes: CACHE_SIZE_UNLIMITED
+        })
+      })
+    });
+
+    const clientUnlimited = ensureFirestoreConfigured(dbUnlimited);
+    const queueUnlimited = clientUnlimited.asyncQueue as AsyncQueueImpl;
+    await queueUnlimited.enqueue(async () => {
+      await getLocalStore(clientUnlimited);
+    });
+    expect(clientUnlimited._offlineComponents!.gcScheduler!.started).toBe(
+      false
+    );
+    expect(
+      queueUnlimited.containsDelayedOperation(TimerId.LruGarbageCollection)
+    ).toBe(false);
+    await dbUnlimited._delete();
+
+    const dbEager = newTestFirestore('mem-eager-proj');
+    dbEager._setSettings({
+      localCache: memoryLocalCache({
+        garbageCollector: memoryEagerGarbageCollector()
+      })
+    });
+    const clientEager = ensureFirestoreConfigured(dbEager);
+    const queueEager = clientEager.asyncQueue as AsyncQueueImpl;
+    await queueEager.enqueue(async () => {
+      await getLocalStore(clientEager);
+    });
+    expect(clientEager._offlineComponents!.gcScheduler).toBeNull();
+    expect(
+      queueEager.containsDelayedOperation(TimerId.LruGarbageCollection)
+    ).toBe(false);
+    await dbEager._delete();
+  });
+
+  it('evicts unpinned documents across scheduled TimerId.LruGarbageCollection runs', async () => {
+    const thresholdBytes = 1024 * 1024;
+    const db = newTestFirestore('lru-scheduled-eviction-proj');
+    db._setSettings({
+      localCache: memoryLocalCache({
+        garbageCollector: memoryLruGarbageCollector({
+          cacheSizeBytes: thresholdBytes
+        })
+      })
+    });
+
+    const client = ensureFirestoreConfigured(db);
+    const queue = client.asyncQueue as AsyncQueueImpl;
+    let localStore!: Awaited<ReturnType<typeof getLocalStore>>;
+    await queue.enqueue(async () => {
+      localStore = await getLocalStore(client);
+    });
+
+    await queue.enqueue(async () => {
+      const payload = 'a'.repeat(30_000);
+      for (let qIdx = 0; qIdx < 25; qIdx++) {
+        const col = `col_${qIdx}`;
+        const targetData = await localStoreAllocateTarget(
+          localStore,
+          queryToTarget(query(col))
+        );
+        const docPath = `${col}/doc_0`;
+        const docKey = key(docPath);
+        const mdoc = doc(docPath, 1000 + qIdx, { payload, qIdx });
+        mdoc.setReadTime(version(1000 + qIdx));
+        const addedKeys = documentKeySet(docKey);
+        const docUpdates = mutableDocumentMap().insert(docKey, mdoc);
+        const targetChanges = new Map<number, TargetChange>();
+        targetChanges.set(
+          targetData.targetId,
+          new TargetChange(
+            ByteString.fromUint8Array(new Uint8Array([1])),
+            true,
+            addedKeys,
+            documentKeySet(),
+            documentKeySet()
+          )
+        );
+        await localStoreApplyRemoteEventToLocalCache(
+          localStore,
+          new RemoteEvent(
+            version(1000 + qIdx),
+            targetChanges,
+            new SortedMap<number, TargetPurpose>(primitiveComparator),
+            docUpdates,
+            mutableDocumentMap(),
+            documentKeySet()
+          )
+        );
+        await localStoreNotifyLocalViewChanges(localStore, [
+          new LocalViewChanges(
+            targetData.targetId,
+            false,
+            addedKeys,
+            documentKeySet()
+          )
+        ]);
+        await localStoreNotifyLocalViewChanges(localStore, [
+          new LocalViewChanges(
+            targetData.targetId,
+            false,
+            documentKeySet(),
+            addedKeys
+          )
+        ]);
+        await localStoreReleaseTarget(localStore, targetData.targetId, false);
+      }
+    });
+
+    const persistence = client._offlineComponents!.persistence;
+    const preGcSize = await persistence.runTransaction(
+      'pre-GC size',
+      'readonly',
+      txn => persistence.getRemoteDocumentCache().getSize(txn)
+    );
+    expect(preGcSize).toBeGreaterThan(thresholdBytes);
+
+    for (let cycle = 0; cycle < 8; cycle++) {
+      await queue.runAllDelayedOperationsUntil(TimerId.LruGarbageCollection);
+    }
+
+    const postGcSize = await persistence.runTransaction(
+      'post-GC size',
+      'readonly',
+      txn => persistence.getRemoteDocumentCache().getSize(txn)
+    );
+    expect(postGcSize).toBeLessThan(thresholdBytes);
+    expect(queue.failure).toBeNull();
+
+    await db._delete();
+  });
+});
