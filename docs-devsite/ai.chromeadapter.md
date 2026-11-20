@@ -26,7 +26,7 @@ export interface ChromeAdapter
 |  --- | --- |
 |  [generateContent(request)](./ai.chromeadapter.md#chromeadaptergeneratecontent) | Generates content using on-device inference. |
 |  [generateContentStream(request)](./ai.chromeadapter.md#chromeadaptergeneratecontentstream) | Generates a content stream using on-device inference. |
-|  [isAvailable(request)](./ai.chromeadapter.md#chromeadapterisavailable) | Checks if the on-device model is capable of handling a given request. |
+|  [isAvailable(request)](./ai.chromeadapter.md#chromeadapterisavailable) | Checks if the on-device model is ready to handle a given request. |
 
 ## ChromeAdapter.generateContent()
 
@@ -74,7 +74,7 @@ Promise&lt;Response&gt;
 
 ## ChromeAdapter.isAvailable()
 
-Checks if the on-device model is capable of handling a given request.
+Checks if the on-device model is ready to handle a given request.
 
 <b>Signature:</b>
 

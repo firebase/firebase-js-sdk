@@ -171,57 +171,31 @@ describe('ChromeAdapter', () => {
     });
   });
   describe('isAvailable', () => {
-    it('returns false if mode is only cloud', async () => {
-      const adapter = new ChromeAdapterImpl(
-        {} as LanguageModel,
-        InferenceMode.ONLY_IN_CLOUD
-      );
-      expect(
-        await adapter.isAvailable({
-          contents: []
-        })
-      ).toBe(false);
-    });
-    it('returns true if mode is only on device and is available', async () => {
+    it('ignores the inference mode', async () => {
       const adapter = new ChromeAdapterImpl(
         {
           availability: async () => Availability.AVAILABLE
         } as LanguageModel,
-        InferenceMode.ONLY_ON_DEVICE
+        InferenceMode.ONLY_IN_CLOUD
       );
       expect(
         await adapter.isAvailable({
-          contents: []
+          contents: [{ role: 'user', parts: [{ type: 'text', text: 'hi' }] }]
         })
       ).toBe(true);
     });
-    it('throws if mode is only on device and is unavailable', async () => {
+    it('returns false, does not throw, if unavailable in ONLY_ON_DEVICE mode', async () => {
       const adapter = new ChromeAdapterImpl(
         {
           availability: async () => Availability.UNAVAILABLE
         } as LanguageModel,
         InferenceMode.ONLY_ON_DEVICE
       );
-      await expect(
-        adapter.isAvailable({
-          contents: []
-        })
-      ).rejects.toThrow();
-    });
-    it('returns true after waiting for download if mode is only on device', async () => {
-      const adapter = new ChromeAdapterImpl(
-        {
-          availability: async () => Availability.DOWNLOADING,
-          create: ({}: LanguageModelCreateOptions) =>
-            Promise.resolve({} as LanguageModel)
-        } as LanguageModel,
-        InferenceMode.ONLY_ON_DEVICE
-      );
       expect(
         await adapter.isAvailable({
-          contents: []
+          contents: [{ role: 'user', parts: [{ type: 'text', text: 'hi' }] }]
         })
-      ).toBe(true);
+      ).toBe(false);
     });
     it('returns false if LanguageModel API is undefined', async () => {
       const adapter = new ChromeAdapterImpl(
@@ -438,6 +412,130 @@ describe('ChromeAdapter', () => {
           contents: [{ role: 'user', parts: [{ type: 'text', text: 'hi' }] }]
         })
       ).toBe(false);
+    });
+  });
+  describe('getOnDeviceStatus', () => {
+    const textRequest: GenerateContentRequest = {
+      contents: [{ role: 'user', parts: [{ type: 'text', text: 'hi' }] }]
+    };
+    it('returns available if the model is available and the request is supported', async () => {
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: async () => Availability.AVAILABLE
+        } as LanguageModel,
+        InferenceMode.ONLY_ON_DEVICE
+      );
+      expect(await adapter.getOnDeviceStatus(textRequest)).toBe('available');
+    });
+    it('returns request-not-supported if the model is available but the request is not supported', async () => {
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: async () => Availability.AVAILABLE
+        } as LanguageModel,
+        InferenceMode.ONLY_ON_DEVICE
+      );
+      expect(await adapter.getOnDeviceStatus({ contents: [] })).toBe(
+        'request-not-supported'
+      );
+    });
+    it('returns unavailable if availability is UNAVAILABLE', async () => {
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: async () => Availability.UNAVAILABLE
+        } as LanguageModel,
+        InferenceMode.ONLY_ON_DEVICE
+      );
+      expect(await adapter.getOnDeviceStatus(textRequest)).toBe('unavailable');
+    });
+    it('returns unavailable if the LanguageModel API is undefined', async () => {
+      const adapter = new ChromeAdapterImpl(
+        // @ts-expect-error
+        undefined,
+        InferenceMode.ONLY_ON_DEVICE
+      );
+      expect(await adapter.getOnDeviceStatus(textRequest)).toBe('unavailable');
+    });
+    for (const availability of [
+      Availability.DOWNLOADABLE,
+      Availability.DOWNLOADING
+    ]) {
+      it(`returns not-initialized if ${availability} and initializeDeviceModel() was not called`, async () => {
+        const create = vi.fn();
+        const adapter = new ChromeAdapterImpl(
+          {
+            availability: async () => availability,
+            create
+          } as unknown as LanguageModel,
+          InferenceMode.ONLY_ON_DEVICE
+        );
+        expect(
+          await adapter.getOnDeviceStatus(textRequest, {
+            waitForDownload: true
+          })
+        ).toBe('not-initialized');
+        // Must not start a download as a side effect.
+        expect(create).not.toHaveBeenCalled();
+      });
+    }
+    it('returns download-in-progress without waiting by default', async () => {
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: async () => Availability.DOWNLOADING,
+          create: () =>
+            new Promise<LanguageModel>(() => {
+              /* never resolves */
+            })
+        } as unknown as LanguageModel,
+        InferenceMode.ONLY_ON_DEVICE
+      );
+      await adapter.downloadIfAvailable();
+      expect(await adapter.getOnDeviceStatus(textRequest)).toBe(
+        'download-in-progress'
+      );
+    });
+    it('waits for an in-progress download if waitForDownload is true', async () => {
+      let resolveDownload: (value: LanguageModel) => void;
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: async () => Availability.DOWNLOADING,
+          create: () =>
+            new Promise<LanguageModel>(resolve => {
+              resolveDownload = resolve;
+            })
+        } as unknown as LanguageModel,
+        InferenceMode.ONLY_ON_DEVICE
+      );
+      await adapter.downloadIfAvailable();
+      const statusPromise = adapter.getOnDeviceStatus(textRequest, {
+        waitForDownload: true
+      });
+      resolveDownload!({} as LanguageModel);
+      expect(await statusPromise).toBe('available');
+    });
+    it('throws ERROR if the download fails while waiting, then requires initializing again', async () => {
+      let rejectDownload: (reason: Error) => void;
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: async () => Availability.DOWNLOADABLE,
+          create: () =>
+            new Promise<LanguageModel>((_, reject) => {
+              rejectDownload = reject;
+            })
+        } as unknown as LanguageModel,
+        InferenceMode.ONLY_ON_DEVICE
+      );
+      await adapter.downloadIfAvailable();
+      const statusPromise = adapter.getOnDeviceStatus(textRequest, {
+        waitForDownload: true
+      });
+      rejectDownload!(new Error('download failed'));
+      await expect(statusPromise).rejects.toMatchObject({
+        code: AIErrorCode.ERROR,
+        message: expect.stringContaining('download failed')
+      });
+      expect(await adapter.getOnDeviceStatus(textRequest)).toBe(
+        'not-initialized'
+      );
     });
   });
   describe('downloadIfAvailable', () => {

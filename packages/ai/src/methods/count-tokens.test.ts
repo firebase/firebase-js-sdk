@@ -28,7 +28,6 @@ import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
 import { mapCountTokensRequest } from '../googleai-mappers';
 import { GoogleAIBackend, AgentPlatformBackend } from '../backend';
-import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 import { cleanCountTokensRequestForWire } from '../requests/request-helpers';
 
 const fakeApiSettings: ApiSettings = {
@@ -64,8 +63,7 @@ describe('countTokens()', () => {
     const result = await countTokens(
       fakeApiSettings,
       'model',
-      fakeRequestParams,
-      fakeChromeAdapter
+      fakeRequestParams
     );
     expect(result.totalTokens).to.equal(6);
     expect(makeRequestStub).toHaveBeenCalledWith(
@@ -90,8 +88,7 @@ describe('countTokens()', () => {
     const result = await countTokens(
       fakeApiSettings,
       'model',
-      fakeRequestParams,
-      fakeChromeAdapter
+      fakeRequestParams
     );
     expect(result.totalTokens).to.equal(1837);
     expect(result.promptTokensDetails?.[0].modality).to.equal('IMAGE');
@@ -118,8 +115,7 @@ describe('countTokens()', () => {
     const result = await countTokens(
       fakeApiSettings,
       'model',
-      fakeRequestParams,
-      fakeChromeAdapter
+      fakeRequestParams
     );
     expect(result.totalTokens).to.equal(258);
     expect(makeRequestStub).toHaveBeenCalledWith(
@@ -144,12 +140,7 @@ describe('countTokens()', () => {
       json: mockResponse.json
     } as Response);
     await expect(
-      countTokens(
-        fakeApiSettings,
-        'model',
-        fakeRequestParams,
-        fakeChromeAdapter
-      )
+      countTokens(fakeApiSettings, 'model', fakeRequestParams)
     ).rejects.toThrow(/404.*not found/);
     expect(mockFetch).toHaveBeenCalled();
   });
@@ -170,12 +161,7 @@ describe('countTokens()', () => {
         json: () => {}
       } as Response); // Unused
 
-      await countTokens(
-        fakeGoogleAIApiSettings,
-        'model',
-        fakeRequestParams,
-        fakeChromeAdapter
-      );
+      await countTokens(fakeGoogleAIApiSettings, 'model', fakeRequestParams);
 
       expect(makeRequestStub).toHaveBeenCalledWith(
         {
@@ -199,13 +185,15 @@ describe('countTokens()', () => {
       );
     });
   });
-  it('throws if mode is ONLY_ON_DEVICE', async () => {
-    const chromeAdapter = {
-      ...fakeChromeAdapter,
-      mode: InferenceMode.ONLY_ON_DEVICE
-    };
+  it('throws without a cloud request if mode is ONLY_ON_DEVICE', async () => {
+    const makeRequestStub = vi.spyOn(mockRequest, 'makeRequest');
     await expect(
-      countTokens(fakeApiSettings, 'model', fakeRequestParams, chromeAdapter)
+      countTokens(
+        { ...fakeApiSettings, inferenceMode: InferenceMode.ONLY_ON_DEVICE },
+        'model',
+        fakeRequestParams
+      )
     ).rejects.toThrow(/countTokens\(\) is not supported for on-device models/);
+    expect(makeRequestStub).not.toHaveBeenCalled();
   });
 });

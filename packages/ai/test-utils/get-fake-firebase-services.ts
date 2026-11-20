@@ -79,6 +79,7 @@ export const fakeChromeAdapter: ChromeAdapter = {
   mode: InferenceMode.PREFER_ON_DEVICE,
   // Individual tests may stub this to resolve true as needed.
   isAvailable: () => Promise.resolve(false),
+  getOnDeviceStatus: () => Promise.resolve('unavailable'),
   generateContent: () => Promise.resolve({} as Response),
   generateContentStream: () => Promise.resolve({} as Response),
   countTokens: () => Promise.resolve({} as Response)

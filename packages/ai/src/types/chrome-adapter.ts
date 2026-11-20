@@ -19,6 +19,28 @@ import { InferenceMode } from './enums';
 import { CountTokensRequest, GenerateContentRequest } from './requests';
 
 /**
+ * Whether the on-device model can handle a request, without taking the
+ * inference mode into account.
+ *
+ * - `available`: the model is ready and supports the request.
+ * - `request-not-supported`: the model is ready, but the request has content
+ *   it doesn't support (for example, an unsupported image type).
+ * - `download-in-progress`: a download started by `initializeDeviceModel()`
+ *   hasn't finished yet.
+ * - `not-initialized`: the model needs to be downloaded, and
+ *   `initializeDeviceModel()` hasn't been called to start the download.
+ * - `unavailable`: the on-device model can't be used in this environment.
+ *
+ * @internal
+ */
+export type OnDeviceStatus =
+  | 'available'
+  | 'request-not-supported'
+  | 'download-in-progress'
+  | 'not-initialized'
+  | 'unavailable';
+
+/**
  * Defines an inference "backend" that uses Chrome's on-device model,
  * and encapsulates logic for detecting when on-device inference is
  * possible.
@@ -33,11 +55,23 @@ export interface ChromeAdapter {
    */
   mode: InferenceMode;
   /**
-   * Checks if the on-device model is capable of handling a given
+   * Checks if the on-device model is ready to handle a given
    * request.
    * @param request - A potential request to be passed to the model.
    */
   isAvailable(request: GenerateContentRequest): Promise<boolean>;
+
+  /**
+   * Reports whether the on-device model can handle a request. If
+   * `waitForDownload` is true and a download started by
+   * `initializeDeviceModel()` is in progress, waits for it to finish.
+   *
+   * @internal
+   */
+  getOnDeviceStatus(
+    request: GenerateContentRequest,
+    options?: { waitForDownload?: boolean }
+  ): Promise<OnDeviceStatus>;
 
   /**
    * Generates content using on-device inference.

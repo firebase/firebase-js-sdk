@@ -29,7 +29,6 @@ import { cleanCountTokensRequestForWire } from '../requests/request-helpers';
 import { ApiSettings } from '../types/internal';
 import * as GoogleAIMapper from '../googleai-mappers';
 import { BackendType } from '../public-types';
-import { ChromeAdapter } from '../types/chrome-adapter';
 
 export async function countTokensOnCloud(
   apiSettings: ApiSettings,
@@ -62,10 +61,9 @@ export async function countTokens(
   apiSettings: ApiSettings,
   model: string,
   params: CountTokensRequest,
-  chromeAdapter?: ChromeAdapter,
   requestOptions?: RequestOptions
 ): Promise<CountTokensResponse> {
-  if (chromeAdapter?.mode === InferenceMode.ONLY_ON_DEVICE) {
+  if (apiSettings.inferenceMode === InferenceMode.ONLY_ON_DEVICE) {
     throw new AIError(
       AIErrorCode.UNSUPPORTED,
       'countTokens() is not supported for on-device models.'
