@@ -51,6 +51,10 @@ if (typeof MozWebSocket !== 'undefined') {
   WebSocketImpl = WebSocket;
 }
 
+export function getWebSocketImpl() {
+  return WebSocketImpl;
+}
+
 export function setWebSocketImpl(impl) {
   WebSocketImpl = impl;
 }
