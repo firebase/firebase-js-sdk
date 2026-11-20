@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # CrashlyticsFeature interface
-<b>(EXPERIMENTAL)</b> An opaque feature plugin object returned by Crashlytics feature factory functions such as [breadcrumbs()](./crashlytics.md#breadcrumbs)<!-- -->.
+<b>(EXPERIMENTAL)</b> An opaque feature plugin object returned by Crashlytics feature factory functions such as [breadcrumbs()](./crashlytics.md#breadcrumbs_611f350)<!-- -->.
 
 <b>Signature:</b>
 

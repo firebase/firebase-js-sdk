@@ -24,7 +24,7 @@ import { Attributes, SeverityNumber } from '@opentelemetry/api';
 import { CrashlyticsService } from './service';
 import { deepEqual } from '@firebase/util';
 import { LOG_ATTR_KEY } from './attributes-store';
-import { flush, getBreadcrumbsFeature } from './helpers';
+import { flush, hasRouteChangesInstrumentation } from './helpers';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -181,7 +181,8 @@ export function log(
 }
 
 /**
- * Creates a log for view boundary on navigation event
+ * Creates a log for view boundary on navigation event. Does nothing unless the breadcrumbs feature
+ * captures `routeChanges()`.
  *
  * @internal
  *
@@ -196,7 +197,7 @@ export function logViewBoundary(
 ): void {
   const { loggerProvider, attributesStore, options } =
     crashlytics as CrashlyticsInternal;
-  if (!getBreadcrumbsFeature(options)) {
+  if (!hasRouteChangesInstrumentation(options)) {
     return;
   }
   const logger = loggerProvider.getLogger('view-boundary-logger');

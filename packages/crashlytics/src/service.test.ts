@@ -19,14 +19,17 @@ import { FirebaseApp } from '@firebase/app';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { TracerProvider } from '@opentelemetry/api';
 import { AttributesStore } from './attributes-store';
+import { breadcrumbs } from './breadcrumbs';
 import { CrashlyticsService } from './service';
 import { TelemetryStore } from './telemetry-store';
+import { CrashlyticsFeatureInternal } from './types';
 
 describe('CrashlyticsService', () => {
   const fakeApp = {} as FirebaseApp;
 
   const fakeAttributesStore = {
-    updateAppVersion: (): void => {}
+    updateAppVersion: (): void => {},
+    updateOptions: (): void => {}
   } as unknown as AttributesStore;
 
   const fakeTelemetryStore = {} as unknown as TelemetryStore;
@@ -40,6 +43,11 @@ describe('CrashlyticsService', () => {
       const unsubscribeSpy = vi.fn();
       const loggerShutdownStub = vi.fn().mockResolvedValue(undefined);
       const tracingShutdownStub = vi.fn().mockResolvedValue(undefined);
+      const feature = breadcrumbs() as CrashlyticsFeatureInternal;
+      const unregisterInstrumentationsSpy = vi.spyOn(
+        feature,
+        'unregisterInstrumentations'
+      );
 
       const fakeLoggerProvider = {
         shutdown: loggerShutdownStub
@@ -58,10 +66,12 @@ describe('CrashlyticsService', () => {
       );
 
       service.unsubscribeListeners(unsubscribeSpy);
+      service.options = { features: [feature] };
 
       await service._delete();
 
       expect(unsubscribeSpy).toHaveBeenCalled();
+      expect(unregisterInstrumentationsSpy).toHaveBeenCalled();
       expect(loggerShutdownStub).toHaveBeenCalled();
       expect(tracingShutdownStub).toHaveBeenCalled();
     });

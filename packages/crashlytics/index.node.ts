@@ -35,7 +35,14 @@ registerCrashlytics();
 
 export * from './src/api';
 export {
+  all,
   breadcrumbs,
-  unregisterLoggerInstrumentations
+  documentLoads,
+  fetchRequests,
+  navigationTimings,
+  routeChanges,
+  userActions,
+  webVitals,
+  xhrRequests
 } from './src/breadcrumbs';
 export * from './src/public-types';

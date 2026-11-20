@@ -21,7 +21,10 @@ import type {
   LogRecordExporter
 } from '@opentelemetry/sdk-logs';
 import type { TracerProvider } from '@opentelemetry/api';
+import type { Instrumentation } from '@opentelemetry/instrumentation';
+import type { Instrumentation as BrowserInstrumentation } from '@opentelemetry/browser-api';
 import {
+  BreadcrumbInstrumentation,
   Crashlytics,
   CrashlyticsFeature,
   CrashlyticsOptions
@@ -33,18 +36,48 @@ import type { OnErrorLogRecordProcessor } from './logging/on-error-log-record-pr
 import type { TelemetryStore } from './telemetry-store';
 
 /**
+ * Configuration that Crashlytics applies to network (Fetch and XMLHttpRequest) instrumentations.
+ *
+ * @internal
+ */
+export interface NetworkInstrumentationConfig {
+  ignoreUrls: RegExp[];
+}
+
+/**
+ * Internal view of the opaque {@link BreadcrumbInstrumentation} objects. `logger` instrumentations
+ * emit logs through the Crashlytics LoggerProvider and create a browser instrumentation, `tracer`
+ * instrumentations emit spans through the Crashlytics TracerProvider and create a standard
+ * OpenTelemetry instrumentation, and `framework` instrumentations are implemented by the framework
+ * integrations (such as route change logging), so they have nothing to create.
+ *
+ * @internal
+ */
+export interface BreadcrumbInstrumentationInternal extends BreadcrumbInstrumentation {
+  readonly name: string;
+  readonly kind: 'logger' | 'tracer' | 'framework';
+  create?(
+    networkInstrumentationConfig?: NetworkInstrumentationConfig
+  ): Instrumentation | BrowserInstrumentation;
+}
+
+/**
  * Internal interface implemented by Crashlytics feature plugins (such as {@link breadcrumbs}).
  *
  * @internal
  */
 export interface CrashlyticsFeatureInternal extends CrashlyticsFeature {
   readonly name: string;
+  readonly instrumentations: BreadcrumbInstrumentation[];
   createTelemetryStore(): TelemetryStore;
   createLogRecordProcessor(
     exporter: LogRecordExporter,
     telemetryStore: TelemetryStore
   ): OnErrorLogRecordProcessor;
   initializeLoggerInstrumentations(loggerProvider: LoggerProvider): void;
+  initializeTracingInstrumentations(
+    networkInstrumentationConfig: NetworkInstrumentationConfig
+  ): void;
   createTracingProvider(
     app: FirebaseApp,
     crashlyticsOptions: CrashlyticsOptions,

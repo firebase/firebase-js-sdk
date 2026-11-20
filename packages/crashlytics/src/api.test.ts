@@ -62,7 +62,7 @@ import {
 import { TelemetryStore } from './telemetry-store';
 import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
 import { FirebaseAttributesLogProcessor } from './logging/attributes-log-processor';
-import { breadcrumbs } from './breadcrumbs';
+import { breadcrumbs, routeChanges, webVitals } from './breadcrumbs';
 import type { MockInstance } from 'vitest';
 
 const PROJECT_ID = 'my-project';
@@ -253,6 +253,30 @@ describe('Top level API', () => {
       expect(() => {
         getCrashlytics(app, {
           features: []
+        });
+      }).toThrow('getCrashlytics() cannot be called with different options');
+    });
+
+    it('works when called multiple times with the same breadcrumbs capture list', () => {
+      const app = getFakeApp();
+      expect(
+        getCrashlytics(app, {
+          features: [breadcrumbs({ capture: [webVitals(), routeChanges()] })]
+        })
+      ).toBe(
+        getCrashlytics(app, {
+          features: [breadcrumbs({ capture: [webVitals(), routeChanges()] })]
+        })
+      );
+      expect(() => {
+        getCrashlytics(app, {
+          features: [breadcrumbs({ capture: [webVitals()] })]
+        });
+      }).toThrow('getCrashlytics() cannot be called with different options');
+      // The capture list is compared in order.
+      expect(() => {
+        getCrashlytics(app, {
+          features: [breadcrumbs({ capture: [routeChanges(), webVitals()] })]
         });
       }).toThrow('getCrashlytics() cannot be called with different options');
     });
@@ -453,11 +477,11 @@ describe('Top level API', () => {
   });
 
   describe('logViewBoundary()', () => {
-    it("should emit a log record with the severity number of SeverityNumber.INFO, the body of 'Navigation event', and the attribute of 'app.screen.id' as the path of navigation when breadcrumbs() is enabled", () => {
+    it("should emit a log record with the severity number of SeverityNumber.INFO, the body of 'Navigation event', and the attribute of 'app.screen.id' as the path of navigation when routeChanges() is captured", () => {
       const urlTemplate = '/users/:id';
       const crashlyticsWithTracing: CrashlyticsInternal = {
         ...fakeCrashlytics,
-        options: { features: [breadcrumbs()] }
+        options: { features: [breadcrumbs({ capture: [routeChanges()] })] }
       };
       logViewBoundary(crashlyticsWithTracing, urlTemplate);
 
@@ -468,12 +492,12 @@ describe('Top level API', () => {
       expect(log.attributes![SPAN_ATTR_KEY.APP_SCREEN_ID]).toBe(urlTemplate);
     });
 
-    it('should emit a log record with additional attributes if available when breadcrumbs() is enabled', () => {
+    it('should emit a log record with additional attributes if available when routeChanges() is captured', () => {
       const urlTemplate = '/users/:id';
       const additionalAttributes = { 'custom.attr': 'value' };
       const crashlyticsWithTracing: CrashlyticsInternal = {
         ...fakeCrashlytics,
-        options: { features: [breadcrumbs()] }
+        options: { features: [breadcrumbs({ capture: [routeChanges()] })] }
       };
       logViewBoundary(
         crashlyticsWithTracing,
@@ -495,6 +519,22 @@ describe('Top level API', () => {
       };
       logViewBoundary(fakeCrashlytics, urlTemplate);
       logViewBoundary(crashlyticsWithoutTracing, urlTemplate);
+
+      expect(emittedLogs.length).toBe(0);
+    });
+
+    it('should not emit a log record when breadcrumbs() does not capture routeChanges()', () => {
+      const urlTemplate = '/users/:id';
+      const crashlyticsWithoutCapture: CrashlyticsInternal = {
+        ...fakeCrashlytics,
+        options: { features: [breadcrumbs()] }
+      };
+      const crashlyticsWithOtherCapture: CrashlyticsInternal = {
+        ...fakeCrashlytics,
+        options: { features: [breadcrumbs({ capture: [webVitals()] })] }
+      };
+      logViewBoundary(crashlyticsWithoutCapture, urlTemplate);
+      logViewBoundary(crashlyticsWithOtherCapture, urlTemplate);
 
       expect(emittedLogs.length).toBe(0);
     });

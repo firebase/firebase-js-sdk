@@ -160,6 +160,7 @@
     "@firebase/installations": "0.6.24",
     "@firebase/util": "1.15.3",
     "@opentelemetry/api": "^1.10.0",
+    "@opentelemetry/browser-api": "^0.1.0",
     "@opentelemetry/browser-instrumentation": "^0.11.0",
     "@opentelemetry/core": "^3.1.1",
     "@opentelemetry/exporter-logs-otlp-http": "^0.301.2",

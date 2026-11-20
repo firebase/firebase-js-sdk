@@ -29,7 +29,7 @@ export interface CrashlyticsOptions
 |  [captureUnhandledErrors](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptionscaptureunhandlederrors) | boolean | <b><i>(Public Preview)</i></b> Automatically capture uncaught browser exceptions ('error' and 'unhandledrejection' window events).<!-- -->Defaults to <code>true</code>. |
 |  [customAttributes](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptionscustomattributes) | Attributes | <b><i>(Public Preview)</i></b> Base set of custom attributes to send with automatic error collection. Key-value pairs defined here will be sent with all error logs. If custom attributes are also specified in <code>recordError()</code> or <code>log()</code>, those values will take precedence over the base set defined here. |
 |  [endpointUrl](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptionsendpointurl) | string | <b><i>(Public Preview)</i></b> The URL for the endpoint to which Crashlytics data should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase. |
-|  [features](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptionsfeatures) | [CrashlyticsFeature](./crashlytics_react.crashlyticsfeature.md#crashlyticsfeature_interface)<!-- -->\[\] | <b>(EXPERIMENTAL)</b> Optional list of Crashlytics features (such as [breadcrumbs()](./crashlytics.md#breadcrumbs)<!-- -->) to enable.<!-- -->When [breadcrumbs()](./crashlytics.md#breadcrumbs) is included, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions, and visibility lifecycle events), buffering them in memory and exporting them when an error occurs. |
+|  [features](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptionsfeatures) | [CrashlyticsFeature](./crashlytics_react.crashlyticsfeature.md#crashlyticsfeature_interface)<!-- -->\[\] | <b>(EXPERIMENTAL)</b> Optional list of Crashlytics features (such as [breadcrumbs()](./crashlytics.md#breadcrumbs_611f350)<!-- -->) to enable.<!-- -->When [breadcrumbs()](./crashlytics.md#breadcrumbs_611f350) is included, Crashlytics collects the telemetry selected by its <code>capture</code> option, which can include OpenTelemetry spans (such as Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals, and user actions), along with visibility lifecycle events, buffering them in memory and exporting them when an error occurs. |
 |  [region](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptionsregion) | string | <b><i>(Public Preview)</i></b> The Google Cloud region where the Crashlytics data should be sent.<!-- -->By default, data will be sent to the "global" region.<!-- -->Refer to https://cloud.google.com/logging/docs/regions for the list of available regions. |
 |  [registerGlobalLoggerProvider](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptionsregistergloballoggerprovider) | boolean | <b><i>(Public Preview)</i></b> Whether to register the underlying OpenTelemetry LoggerProvider globally with the OpenTelemetry API (<code>logs.setGlobalLoggerProvider()</code>).<!-- -->When enabled, other OpenTelemetry instrumentations (such as Core Web Vitals, Console, or Fetch) and custom application loggers can automatically route logs through Firebase Crashlytics.<!-- -->Defaults to <code>false</code>. |
 
@@ -89,9 +89,9 @@ endpointUrl?: string;
 
 ## CrashlyticsOptions.features
 
-<b>(EXPERIMENTAL)</b> Optional list of Crashlytics features (such as [breadcrumbs()](./crashlytics.md#breadcrumbs)<!-- -->) to enable.
+<b>(EXPERIMENTAL)</b> Optional list of Crashlytics features (such as [breadcrumbs()](./crashlytics.md#breadcrumbs_611f350)<!-- -->) to enable.
 
-When [breadcrumbs()](./crashlytics.md#breadcrumbs) is included, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions, and visibility lifecycle events), buffering them in memory and exporting them when an error occurs.
+When [breadcrumbs()](./crashlytics.md#breadcrumbs_611f350) is included, Crashlytics collects the telemetry selected by its `capture` option, which can include OpenTelemetry spans (such as Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals, and user actions), along with visibility lifecycle events, buffering them in memory and exporting them when an error occurs.
 
 <b>Signature:</b>
 
@@ -103,10 +103,14 @@ features?: CrashlyticsFeature[];
 
 
 ```ts
-import { getCrashlytics, breadcrumbs } from 'firebase/crashlytics';
+import {
+  getCrashlytics,
+  breadcrumbs,
+  all
+} from 'firebase/crashlytics';
 
 const crashlytics = getCrashlytics(app, {
-  features: [breadcrumbs()]
+  features: [breadcrumbs({ capture: all() })]
 });
 
 ```

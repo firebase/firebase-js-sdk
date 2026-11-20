@@ -17,6 +17,7 @@
 
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import {
+  BreadcrumbInstrumentationInternal,
   CrashlyticsFeatureInternal,
   CrashlyticsInternal,
   ErrorWithSymbol
@@ -44,6 +45,23 @@ export function getBreadcrumbsFeature(
         feature &&
         (feature as CrashlyticsFeatureInternal).name === 'breadcrumbs'
       )
+  );
+}
+
+/**
+ * Returns true if the breadcrumbs feature is enabled and captures route changes.
+ *
+ * @internal
+ */
+export function hasRouteChangesInstrumentation(
+  options?: CrashlyticsOptions
+): boolean {
+  return Boolean(
+    getBreadcrumbsFeature(options)?.instrumentations?.some(
+      instrumentation =>
+        (instrumentation as BreadcrumbInstrumentationInternal).name ===
+        'routeChanges'
+    )
   );
 }
 
@@ -121,6 +139,8 @@ export function startNewSession(crashlytics: Crashlytics): void {
 export function registerListeners(crashlytics: Crashlytics): () => void {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     const onVisibilityChange = async (): Promise<void> => {
+      // TODO: Visibility lifecycle logs are emitted whenever the breadcrumbs feature is enabled.
+      // They are not yet one of the instrumentations selectable through `breadcrumbs({ capture })`.
       if (
         getBreadcrumbsFeature((crashlytics as CrashlyticsInternal).options) &&
         (document.visibilityState === 'visible' ||
