@@ -37,16 +37,18 @@ import { RepoInfo } from './RepoInfo';
 import { ServerActions } from './ServerActions';
 import { OnlineMonitor } from './util/OnlineMonitor';
 import { Path } from './util/Path';
+import {
+  RECONNECT_DELAY_RESET_TIMEOUT,
+  RECONNECT_MAX_DELAY_DEFAULT,
+  RECONNECT_MAX_DELAY_FOR_ADMINS,
+  RECONNECT_MIN_DELAY,
+  RetryHelper
+} from './util/RetryHelper';
 import { error, log, logWrapper, warn, ObjectToUniqueKey } from './util/util';
 import { VisibilityMonitor } from './util/VisibilityMonitor';
 import { SDK_VERSION } from './version';
 import { QueryContext } from './view/EventRegistration';
 
-const RECONNECT_MIN_DELAY = 1000;
-const RECONNECT_MAX_DELAY_DEFAULT = 60 * 5 * 1000; // 5 minutes in milliseconds (Case: 1858)
-const RECONNECT_MAX_DELAY_FOR_ADMINS = 30 * 1000; // 30 seconds for admin clients (likely to be a backend server)
-const RECONNECT_DELAY_MULTIPLIER = 1.3;
-const RECONNECT_DELAY_RESET_TIMEOUT = 30000; // Reset delay back to MIN_DELAY after being connected for 30sec.
 const SERVER_KILL_INTERRUPT_REASON = 'server_kill';
 
 // If auth fails repeatedly, we'll assume something is wrong and log a warning / back off.
@@ -102,8 +104,11 @@ export class PersistentConnection extends ServerActions {
   private outstandingGetCount_ = 0;
   private onDisconnectRequestQueue_: OnDisconnectRequest[] = [];
   private connected_ = false;
-  private reconnectDelay_ = RECONNECT_MIN_DELAY;
-  private maxReconnectDelay_ = RECONNECT_MAX_DELAY_DEFAULT;
+  private retryHelper_ = new RetryHelper({
+    minDelayMs: RECONNECT_MIN_DELAY,
+    maxDelayMs: RECONNECT_MAX_DELAY_DEFAULT,
+    escalatedMaxDelayMs: RECONNECT_MAX_DELAY_DEFAULT
+  });
   private securityDebugCallback_: ((a: object) => void) | null = null;
   lastSessionId: string | null = null;
 
@@ -127,7 +132,6 @@ export class PersistentConnection extends ServerActions {
   private invalidAppCheckTokenCount_ = 0;
 
   private firstConnection_ = true;
-  private lastConnectionAttemptTime_: number | null = null;
   private lastConnectionEstablishedTime_: number | null = null;
 
   private static nextPersistentConnectionId_ = 0;
@@ -354,7 +358,7 @@ export class PersistentConnection extends ServerActions {
       this.log_(
         'Admin auth credential detected.  Reducing max reconnect time.'
       );
-      this.maxReconnectDelay_ = RECONNECT_MAX_DELAY_FOR_ADMINS;
+      this.retryHelper_.setMaxDelay(RECONNECT_MAX_DELAY_FOR_ADMINS);
     }
   }
 
@@ -740,27 +744,23 @@ export class PersistentConnection extends ServerActions {
   }
 
   private onVisible_(visible: boolean) {
-    // NOTE: Tabbing away and back to a window will defeat our reconnect backoff, but I think that's fine.
-    if (
-      visible &&
-      !this.visible_ &&
-      this.reconnectDelay_ === this.maxReconnectDelay_
-    ) {
-      this.log_('Window became visible.  Reducing delay.');
-      this.reconnectDelay_ = RECONNECT_MIN_DELAY;
-
-      if (!this.realtime_) {
+    if (visible && !this.visible_) {
+      this.visible_ = visible;
+      if (!this.realtime_ && this.establishConnectionTimer_ !== null) {
+        this.log_('Window became visible.  Reconnecting immediately.');
+        clearTimeout(this.establishConnectionTimer_);
+        this.establishConnectionTimer_ = null;
         this.scheduleConnect_(0);
       }
+    } else {
+      this.visible_ = visible;
     }
-    this.visible_ = visible;
   }
 
   private onOnline_(online: boolean) {
     if (online) {
       this.log_('Browser went online.');
-      this.reconnectDelay_ = RECONNECT_MIN_DELAY;
-      if (!this.realtime_) {
+      if (!this.realtime_ && this.shouldReconnect_()) {
         this.scheduleConnect_(0);
       }
     } else {
@@ -771,7 +771,7 @@ export class PersistentConnection extends ServerActions {
     }
   }
 
-  private onRealtimeDisconnect_() {
+  private onRealtimeDisconnect_(httpStatus?: number) {
     this.log_('data client disconnected');
     this.connected_ = false;
     this.realtime_ = null;
@@ -783,38 +783,41 @@ export class PersistentConnection extends ServerActions {
     this.requestCBHash_ = {};
 
     if (this.shouldReconnect_()) {
-      if (!this.visible_) {
-        this.log_("Window isn't visible.  Delaying reconnect.");
-        this.reconnectDelay_ = this.maxReconnectDelay_;
-        this.lastConnectionAttemptTime_ = new Date().getTime();
-      } else if (this.lastConnectionEstablishedTime_) {
-        // If we've been connected long enough, reset reconnect delay to minimum.
-        const timeSinceLastConnectSucceeded =
-          new Date().getTime() - this.lastConnectionEstablishedTime_;
-        if (timeSinceLastConnectSucceeded > RECONNECT_DELAY_RESET_TIMEOUT) {
-          this.reconnectDelay_ = RECONNECT_MIN_DELAY;
-        }
+      let reconnectDelay: number;
+      if (httpStatus === 402 || httpStatus === 429) {
         this.lastConnectionEstablishedTime_ = null;
-      }
+        this.log_(
+          'Received HTTP ' + httpStatus + ' on disconnect. Escalating delay.'
+        );
+        if (!this.visible_) {
+          reconnectDelay = this.retryHelper_.getEscalateDelay();
+        } else {
+          this.retryHelper_.escalateToMax();
+          reconnectDelay = this.retryHelper_.nextRetryDelay();
+        }
+      } else {
+        if (this.lastConnectionEstablishedTime_) {
+          // If we've been connected long enough, reset reconnect delay to minimum.
+          const timeSinceLastConnectSucceeded =
+            new Date().getTime() - this.lastConnectionEstablishedTime_;
+          if (timeSinceLastConnectSucceeded > RECONNECT_DELAY_RESET_TIMEOUT) {
+            this.retryHelper_.reset();
+          }
+          this.lastConnectionEstablishedTime_ = null;
+        }
 
-      const timeSinceLastConnectAttempt = Math.max(
-        0,
-        new Date().getTime() - this.lastConnectionAttemptTime_
-      );
-      let reconnectDelay = Math.max(
-        0,
-        this.reconnectDelay_ - timeSinceLastConnectAttempt
-      );
-      reconnectDelay = Math.random() * reconnectDelay;
+        if (!this.visible_) {
+          this.log_("Window isn't visible.  Delaying reconnect.");
+          reconnectDelay = this.retryHelper_.getMaxRetryDelay();
+        } else {
+          reconnectDelay = this.retryHelper_.nextRetryDelay();
+        }
+      }
 
       this.log_('Trying to reconnect in ' + reconnectDelay + 'ms');
       this.scheduleConnect_(reconnectDelay);
-
-      // Adjust reconnect delay for next time.
-      this.reconnectDelay_ = Math.min(
-        this.maxReconnectDelay_,
-        this.reconnectDelay_ * RECONNECT_DELAY_MULTIPLIER
-      );
+    } else {
+      this.lastConnectionEstablishedTime_ = null;
     }
     this.onConnectStatus_(false);
   }
@@ -822,7 +825,6 @@ export class PersistentConnection extends ServerActions {
   private async establishConnection_() {
     if (this.shouldReconnect_()) {
       this.log_('Making a connection attempt');
-      this.lastConnectionAttemptTime_ = new Date().getTime();
       this.lastConnectionEstablishedTime_ = null;
       const onDataMessage = this.onDataMessage_.bind(this);
       const onReady = this.onReady_.bind(this);
@@ -920,7 +922,7 @@ export class PersistentConnection extends ServerActions {
     log('Resuming connection for reason: ' + reason);
     delete this.interruptReasons_[reason];
     if (isEmpty(this.interruptReasons_)) {
-      this.reconnectDelay_ = RECONNECT_MIN_DELAY;
+      this.retryHelper_.reset();
       if (!this.realtime_) {
         this.scheduleConnect_(0);
       }
@@ -986,7 +988,7 @@ export class PersistentConnection extends ServerActions {
     log('Auth token revoked: ' + statusCode + '/' + explanation);
     this.authToken_ = null;
     this.forceTokenRefresh_ = true;
-    this.realtime_.close();
+    let shouldNotifyInvalidToken = false;
     if (statusCode === 'invalid_token' || statusCode === 'permission_denied') {
       // We'll wait a couple times before logging the warning / increasing the
       // retry period since oauth tokens will report as "invalid" if they're
@@ -994,12 +996,17 @@ export class PersistentConnection extends ServerActions {
       this.invalidAuthTokenCount_++;
       if (this.invalidAuthTokenCount_ >= INVALID_TOKEN_THRESHOLD) {
         // Set a long reconnect delay because recovery is unlikely
-        this.reconnectDelay_ = RECONNECT_MAX_DELAY_FOR_ADMINS;
-
-        // Notify the auth token provider that the token is invalid, which will log
-        // a warning
-        this.authTokenProvider_.notifyForInvalidToken();
+        this.retryHelper_.clampCurrentDelayAtLeast(
+          RECONNECT_MAX_DELAY_FOR_ADMINS
+        );
+        shouldNotifyInvalidToken = true;
       }
+    }
+    this.realtime_?.close();
+    if (shouldNotifyInvalidToken) {
+      // Notify the auth token provider that the token is invalid, which will log
+      // a warning
+      this.authTokenProvider_.notifyForInvalidToken();
     }
   }
 
