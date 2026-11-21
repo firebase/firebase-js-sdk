@@ -99,6 +99,46 @@ describe('GrpcConnection', () => {
     ]);
   });
 
+  it('Sets x-goog-is-transaction metadata on the grpc stub', async () => {
+    const request = {
+      database: 'projects/testproject/databases/(default)',
+      writes: []
+    };
+    await connection.invokeRPC(
+      'mockRpc',
+      ResourcePath.emptyPath(),
+      request,
+      null,
+      null
+    );
+    expect(
+      connection.mockStub.lastMetadata?.get('x-goog-is-transaction')
+    ).toEqual(['false']);
+
+    await connection.invokeRPC(
+      'mockRpc',
+      ResourcePath.emptyPath(),
+      request,
+      null,
+      null,
+      true
+    );
+    expect(
+      connection.mockStub.lastMetadata?.get('x-goog-is-transaction')
+    ).toEqual(['true']);
+
+    await connection.invokeRPC(
+      'mockRpc',
+      ResourcePath.emptyPath(),
+      { ...request, transaction: 'tx1' },
+      null,
+      null
+    );
+    expect(
+      connection.mockStub.lastMetadata?.get('x-goog-is-transaction')
+    ).toEqual(['true']);
+  });
+
   describe('stub options', () => {
     it('sets default flow control window size to 256kb if not specified', () => {
       const spyConstructor = vi.fn();
