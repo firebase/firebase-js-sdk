@@ -1,6 +1,7 @@
 {
   "name": "@firebase/firestore-lite",
   "description": "A lite version of the Firestore SDK",
+  "license": "Apache-2.0",
   "main": "../dist/lite/index.node.cjs.js",
   "main-esm": "../dist/lite/index.node.mjs",
   "module": "../dist/lite/index.browser.esm.js",
