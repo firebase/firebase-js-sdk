@@ -17,6 +17,10 @@ Docs][reference-docs].
 
 [reference-docs]: https://firebase.google.com/docs/reference/js/
 
+## Internal Documentation
+
+If you are a contributor or maintainer, please see the [Internal Developer Documentation](./devdocs/overview.md).
+
 ## Contributing
 See [Contributing to the Firebase SDK](../../CONTRIBUTING.md) for general
 information about contributing to the firebase-js-sdk repo and
