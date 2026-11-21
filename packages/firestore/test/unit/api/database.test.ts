@@ -31,6 +31,7 @@ import {
 } from '../../../src';
 import { EmulatorAuthCredentialsProvider } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
+import { LimitType, queryWithLimit } from '../../../src/core/query';
 import {
   collectionReference,
   documentReference,
@@ -769,6 +770,24 @@ describe('QuerySnapshot', () => {
       expect(querySnap).toBeDefined();
       const titles = querySnap.docs.map(d => d.data()['title']);
       expect(titles).toEqual(['A', 'B', 'C']);
+    }
+  });
+
+  it('fromJSON preserves limitToLast queries', () => {
+    if (isNode()) {
+      const q = queryWithLimit(
+        internalQuery('foo', orderBy('sort', 'asc')),
+        2,
+        LimitType.Last
+      );
+      const snapshot = querySnapshotWithQuery(q, {
+        docA: { sort: 3 },
+        docB: { sort: 4 }
+      });
+      const db = firestore();
+      const querySnap = querySnapshotFromJSON(db, snapshot.toJSON());
+      expect(querySnap.docs.map(d => d.id)).toEqual(['docA', 'docB']);
+      expect(queryEqual(querySnap.query, snapshot.query)).toBe(true);
     }
   });
 
