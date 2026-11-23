@@ -18,9 +18,6 @@
 import { createTracingProvider, OTLPTraceExporter } from './tracing-provider';
 import { FirebaseApp } from '@firebase/app';
 import { CrashlyticsOptions } from '../public-types';
-import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
-import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
-import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
 import { context, propagation, trace } from '@opentelemetry/api';
 import { AttributesStore } from '../attributes-store';
 import { resourceFromAttributes } from '@opentelemetry/resources';
@@ -32,6 +29,8 @@ import { OnErrorSpanProcessor } from './on-error-span-processor';
 import { AppCheckProvider } from '../logging/appcheck-provider';
 import { Provider } from '@firebase/component';
 import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
+import { breadcrumbs } from '../breadcrumbs';
+import { CrashlyticsFeatureInternal } from '../types';
 import type { MockInstance } from 'vitest';
 
 describe('createTracingProvider', () => {
@@ -189,103 +188,40 @@ describe('createTracingProvider', () => {
     );
   });
 
-  it('should register FetchInstrumentation with appropriate config', () => {
+  it('should initialize the breadcrumbs tracing instrumentations with a network config that ignores the telemetry endpoint', () => {
     if (typeof window === 'undefined') {
       return;
     }
 
-    const fetchInstrumentationSpy = vi.spyOn(
-      FetchInstrumentation.prototype,
-      'setConfig'
-    );
-
-    const mockCrashlyticsOptions = {
-      endpointUrl: 'https://my-custom-endpoint.url'
-    } as CrashlyticsOptions;
+    const feature = breadcrumbs() as CrashlyticsFeatureInternal;
+    const initializeTracingInstrumentationsSpy = vi
+      .spyOn(feature, 'initializeTracingInstrumentations')
+      .mockImplementation(() => {});
 
     createTracingProvider(
       mockApp,
-      mockCrashlyticsOptions,
+      {
+        endpointUrl: 'https://my-custom-endpoint.url',
+        features: [feature]
+      },
       mockAttributesStore,
       mockTelemetryStore
     );
 
-    expect(fetchInstrumentationSpy).toHaveBeenCalled();
-    const fetchConfig = fetchInstrumentationSpy.mock.calls[
-      fetchInstrumentationSpy.mock.calls.length - 1
-    ][0] as any;
-    expect(Array.isArray(fetchConfig.ignoreUrls)).toBe(true);
-    expect(fetchConfig.ignoreUrls).toHaveLength(1);
+    expect(initializeTracingInstrumentationsSpy).toHaveBeenCalledWith({
+      ignoreUrls: [/^https:\/\/my-custom-endpoint\.url/]
+    });
 
-    const fetchPatterns = fetchConfig.ignoreUrls.map((r: RegExp) => r.source);
-    expect(fetchPatterns).toContain('^https:\\/\\/my-custom-endpoint\\.url');
+    // The regex ignores requests to the telemetry endpoint, but not other requests that only
+    // mention the endpoint somewhere in their URL.
+    const { ignoreUrls } =
+      initializeTracingInstrumentationsSpy.mock.calls[0][0];
+    expect(ignoreUrls[0].test('https://my-custom-endpoint.url/v1/traces')).toBe(
+      true
+    );
     expect(
-      fetchConfig.ignoreUrls[0].test('https://my-custom-endpoint.url/v1/traces')
-    ).toBe(true);
-    expect(
-      fetchConfig.ignoreUrls[0].test(
-        'https://other.com?url=https://my-custom-endpoint.url'
-      )
+      ignoreUrls[0].test('https://other.com?url=https://my-custom-endpoint.url')
     ).toBe(false);
-  });
-
-  it('should register XMLHttpRequestInstrumentation with appropriate config', () => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const xhrInstrumentationSpy = vi.spyOn(
-      XMLHttpRequestInstrumentation.prototype,
-      'setConfig'
-    );
-
-    const mockCrashlyticsOptions = {
-      endpointUrl: 'https://my-custom-endpoint.url'
-    } as CrashlyticsOptions;
-
-    createTracingProvider(
-      mockApp,
-      mockCrashlyticsOptions,
-      mockAttributesStore,
-      mockTelemetryStore
-    );
-
-    expect(xhrInstrumentationSpy).toHaveBeenCalled();
-    const xhrConfig = xhrInstrumentationSpy.mock.calls[
-      xhrInstrumentationSpy.mock.calls.length - 1
-    ][0] as any;
-    expect(Array.isArray(xhrConfig.ignoreUrls)).toBe(true);
-    expect(xhrConfig.ignoreUrls).toHaveLength(1);
-
-    const xhrPatterns = xhrConfig.ignoreUrls.map((r: RegExp) => r.source);
-    expect(xhrPatterns).toContain('^https:\\/\\/my-custom-endpoint\\.url');
-    expect(
-      xhrConfig.ignoreUrls[0].test('https://my-custom-endpoint.url/v1/traces')
-    ).toBe(true);
-    expect(
-      xhrConfig.ignoreUrls[0].test(
-        'https://other.com?url=https://my-custom-endpoint.url'
-      )
-    ).toBe(false);
-  });
-
-  it('should register DocumentLoadInstrumentation with appropriate config', () => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const documentLoadInstrumentationSpy = vi.spyOn(
-      DocumentLoadInstrumentation.prototype,
-      'setConfig'
-    );
-
-    createTracingProvider(mockApp, {}, mockAttributesStore, mockTelemetryStore);
-
-    expect(documentLoadInstrumentationSpy).toHaveBeenCalled();
-    const documentLoadConfig = documentLoadInstrumentationSpy.mock.calls[
-      documentLoadInstrumentationSpy.mock.calls.length - 1
-    ][0] as any;
-    expect(documentLoadConfig).toEqual({});
   });
 
   it('should populate resource attributes with gcp.firebase.domain, gcp.project_id, and gcp.firebase.app_id', () => {

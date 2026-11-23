@@ -33,6 +33,15 @@ import type { OnErrorLogRecordProcessor } from './logging/on-error-log-record-pr
 import type { TelemetryStore } from './telemetry-store';
 
 /**
+ * Configuration that Crashlytics applies to network (Fetch and XMLHttpRequest) instrumentations.
+ *
+ * @internal
+ */
+export interface NetworkInstrumentationConfig {
+  ignoreUrls: RegExp[];
+}
+
+/**
  * Internal interface implemented by Crashlytics feature plugins (such as {@link breadcrumbs}).
  *
  * @internal
@@ -45,6 +54,9 @@ export interface CrashlyticsFeatureInternal extends CrashlyticsFeature {
     telemetryStore: TelemetryStore
   ): OnErrorLogRecordProcessor;
   initializeLoggerInstrumentations(loggerProvider: LoggerProvider): void;
+  initializeTracingInstrumentations(
+    networkInstrumentationConfig: NetworkInstrumentationConfig
+  ): void;
   createTracingProvider(
     app: FirebaseApp,
     crashlyticsOptions: CrashlyticsOptions,
