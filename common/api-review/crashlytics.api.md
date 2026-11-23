@@ -8,7 +8,15 @@ import { Attributes } from '@opentelemetry/api';
 import { FirebaseApp } from '@firebase/app';
 
 // @public
-export function breadcrumbs(): CrashlyticsFeature;
+export function all(): BreadcrumbInstrumentation[];
+
+// @public
+export interface BreadcrumbInstrumentation {}
+
+// @public
+export function breadcrumbs(options?: {
+    capture?: BreadcrumbInstrumentation[];
+}): CrashlyticsFeature;
 
 // @beta
 export interface Crashlytics {
@@ -30,6 +38,12 @@ export interface CrashlyticsOptions {
     registerGlobalLoggerProvider?: boolean;
 }
 
+// @public
+export function documentLoads(): BreadcrumbInstrumentation;
+
+// @public
+export function fetchRequests(): BreadcrumbInstrumentation;
+
 // @beta
 export function flush(crashlytics: Crashlytics): Promise<void>;
 
@@ -38,6 +52,9 @@ export function getCrashlytics(
 app?: FirebaseApp,
 options?: CrashlyticsOptions
 ): Crashlytics;
+
+// @public
+export function lifecycleEvents(): BreadcrumbInstrumentation;
 
 // Warning: (ae-incompatible-release-tags) The symbol "log" is marked as @public, but its signature references "Crashlytics" which is marked as @beta
 //
@@ -48,11 +65,26 @@ message: string,
 attributes?: Attributes
 ): void;
 
+// @public
+export function navigationTimings(): BreadcrumbInstrumentation;
+
 // @beta
 export function recordError(
 crashlytics: Crashlytics,
 error: unknown,
 attributes?: Attributes
 ): void;
+
+// @public
+export function routeChanges(): BreadcrumbInstrumentation;
+
+// @public
+export function userActions(): BreadcrumbInstrumentation;
+
+// @public
+export function webVitals(): BreadcrumbInstrumentation;
+
+// @public
+export function xhrRequests(): BreadcrumbInstrumentation;
 
 ```

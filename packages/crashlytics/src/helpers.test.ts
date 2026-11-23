@@ -36,7 +36,7 @@ import {
 } from './attributes-store';
 import { TelemetryStore } from './telemetry-store';
 import { FirebaseAttributesLogProcessor } from './logging/attributes-log-processor';
-import { breadcrumbs } from './breadcrumbs';
+import { breadcrumbs, lifecycleEvents } from './breadcrumbs';
 import type { MockInstance } from 'vitest';
 
 describe('helpers', () => {
@@ -301,8 +301,10 @@ describe('helpers', () => {
         registerListeners(fakeCrashlytics);
       });
     } else {
-      it('should emit a log and flush when the visibility changes to hidden and breadcrumbs() is enabled', async () => {
-        fakeCrashlytics.options = { features: [breadcrumbs()] };
+      it('should emit a log and flush when the visibility changes to hidden and lifecycleEvents() is captured', async () => {
+        fakeCrashlytics.options = {
+          features: [breadcrumbs({ capture: [lifecycleEvents()] })]
+        };
         registerListeners(fakeCrashlytics);
 
         expect(flushed).toBe(false);
@@ -319,8 +321,10 @@ describe('helpers', () => {
         expect(emittedLogs).toHaveLength(1);
       });
 
-      it('should emit a log but not flush when the visibility changes to visible and breadcrumbs() is enabled', async () => {
-        fakeCrashlytics.options = { features: [breadcrumbs()] };
+      it('should emit a log but not flush when the visibility changes to visible and lifecycleEvents() is captured', async () => {
+        fakeCrashlytics.options = {
+          features: [breadcrumbs({ capture: [lifecycleEvents()] })]
+        };
         registerListeners(fakeCrashlytics);
 
         expect(flushed).toBe(false);
@@ -338,6 +342,20 @@ describe('helpers', () => {
       });
 
       it('should not emit a visibility log when breadcrumbs() is not enabled, but still flush on hidden', async () => {
+        registerListeners(fakeCrashlytics);
+
+        Object.defineProperty(document, 'visibilityState', {
+          value: 'hidden',
+          writable: true
+        });
+        await listeners['visibilitychange']();
+
+        expect(flushed).toBe(true);
+        expect(emittedLogs).toHaveLength(0);
+      });
+
+      it('should not emit a visibility log when breadcrumbs() does not capture lifecycleEvents(), but still flush on hidden', async () => {
+        fakeCrashlytics.options = { features: [breadcrumbs()] };
         registerListeners(fakeCrashlytics);
 
         Object.defineProperty(document, 'visibilityState', {

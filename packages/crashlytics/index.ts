@@ -27,5 +27,16 @@ import { registerCrashlytics } from './src/register';
 registerCrashlytics();
 
 export * from './src/api';
-export { breadcrumbs } from './src/breadcrumbs';
+export {
+  all,
+  breadcrumbs,
+  documentLoads,
+  fetchRequests,
+  lifecycleEvents,
+  navigationTimings,
+  routeChanges,
+  userActions,
+  webVitals,
+  xhrRequests
+} from './src/breadcrumbs';
 export * from './src/public-types';

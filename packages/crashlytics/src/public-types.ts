@@ -41,6 +41,15 @@ export interface Crashlytics {
 export interface CrashlyticsFeature {}
 
 /**
+ * <b>(EXPERIMENTAL)</b> An opaque breadcrumb instrumentation object returned by instrumentation
+ * factory functions such as {@link webVitals} or {@link fetchRequests}. Pass these to
+ * {@link breadcrumbs} to choose what Crashlytics captures automatically.
+ *
+ * @public
+ */
+export interface BreadcrumbInstrumentation {}
+
+/**
  * Options for initializing the Crashlytics service using {@link getCrashlytics | getCrashlytics()}.
  *
  * @beta
@@ -98,17 +107,21 @@ export interface CrashlyticsOptions {
   /**
    * <b>(EXPERIMENTAL)</b> Optional list of Crashlytics features (such as {@link breadcrumbs}) to enable.
    *
-   * When {@link breadcrumbs} is included, Crashlytics collects OpenTelemetry spans (such as Fetch,
-   * XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals,
-   * user actions, and visibility lifecycle events), buffering them in memory and exporting them
-   * when an error occurs.
+   * When {@link breadcrumbs} is included, Crashlytics collects the telemetry selected by its
+   * `capture` option, which can include OpenTelemetry spans (such as Fetch, XMLHttpRequest, and
+   * Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions, and
+   * visibility lifecycle events), buffering them in memory and exporting them when an error occurs.
    *
    * @example
    * ```ts
-   * import { getCrashlytics, breadcrumbs } from 'firebase/crashlytics';
+   * import {
+   *   getCrashlytics,
+   *   breadcrumbs,
+   *   all
+   * } from 'firebase/crashlytics';
    *
    * const crashlytics = getCrashlytics(app, {
-   *   features: [breadcrumbs()]
+   *   features: [breadcrumbs({ capture: all() })]
    * });
    * ```
    *

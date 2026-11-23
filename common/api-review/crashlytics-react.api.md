@@ -7,6 +7,9 @@
 import { Attributes } from '@opentelemetry/api';
 import { FirebaseApp } from '@firebase/app';
 
+// @public
+export interface BreadcrumbInstrumentation {}
+
 // @beta
 export interface Crashlytics {
     app: FirebaseApp;

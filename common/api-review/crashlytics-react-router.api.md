@@ -9,6 +9,9 @@ import { default as default_2 } from 'react';
 import { FirebaseApp } from '@firebase/app';
 import { RoutesProps } from 'react-router-dom';
 
+// @public
+export interface BreadcrumbInstrumentation {}
+
 // @beta
 export interface Crashlytics {
     app: FirebaseApp;
