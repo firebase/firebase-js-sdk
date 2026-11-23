@@ -14,8 +14,8 @@ export function all(): BreadcrumbInstrumentation[];
 export interface BreadcrumbInstrumentation {}
 
 // @public
-export function breadcrumbs(options?: {
-    capture?: BreadcrumbInstrumentation[];
+export function breadcrumbs(options: {
+    capture: BreadcrumbInstrumentation[];
 }): CrashlyticsFeature;
 
 // @beta

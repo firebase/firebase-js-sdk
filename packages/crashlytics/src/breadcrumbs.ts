@@ -138,8 +138,6 @@ class LifecycleEventsBreadcrumb implements BreadcrumbInstrumentationInternal {
 
 class BreadcrumbsFeatureImpl implements CrashlyticsFeatureInternal {
   readonly name = 'breadcrumbs';
-  // TODO: `getCrashlytics()` compares options with `deepEqual`, which compares this list in order.
-  // The same instrumentations passed in a different order are treated as different options.
   readonly instrumentations: BreadcrumbInstrumentation[];
   private _unregisterLoggerInstrumentationsFn?: () => void;
 
@@ -255,9 +253,10 @@ class BreadcrumbsFeatureImpl implements CrashlyticsFeatureInternal {
  * {@link CrashlyticsOptions.features}. The `capture` option selects which instrumentations
  * Crashlytics runs automatically, such as OpenTelemetry spans (Fetch, XMLHttpRequest, and Document
  * Load) and breadcrumb logs (navigation events, Web Vitals, user actions, and visibility lifecycle
- * events). Captured telemetry is buffered in memory and exported when an error occurs. If `capture`
- * is omitted, no instrumentations are enabled; pass {@link all | all()} to enable all of them. Only
- * the instrumentations that are imported are included in the application bundle.
+ * events). Captured telemetry is buffered in memory and exported when an error occurs. Pass
+ * {@link all | all()} to enable all instrumentations, or `[]` to buffer only custom logs without
+ * automatic instrumentations. Only the instrumentations that are imported are included in the
+ * application bundle.
  *
  * @example
  * ```ts
@@ -273,24 +272,48 @@ class BreadcrumbsFeatureImpl implements CrashlyticsFeatureInternal {
  * });
  * ```
  *
- * @param options - Optional. `capture` is the list of instrumentations to enable.
+ * @param options - Configuration for the breadcrumbs feature. `capture` is the list of
+ * instrumentations to enable.
  *
  * @public
  */
-export function breadcrumbs(options?: {
-  capture?: BreadcrumbInstrumentation[];
+export function breadcrumbs(options: {
+  capture: BreadcrumbInstrumentation[];
 }): CrashlyticsFeature {
-  // Keep only the first instrumentation of each name. Enabling the same instrumentation twice
-  // would record its telemetry twice.
+  if (!options || !Array.isArray(options.capture)) {
+    throw new Error(
+      'breadcrumbs() requires a `capture` array (e.g. breadcrumbs({ capture: all() }))'
+    );
+  }
+  // Ignore falsy or invalid entries and keep only the first instrumentation of each name
+  // (enabling the same instrumentation twice would record its telemetry twice). Sort by name so
+  // `deepEqual` in `getCrashlytics()` treats the same capture set as equal regardless of order.
   const seen = new Set<string>();
-  const instrumentations = (options?.capture ?? []).filter(instrumentation => {
-    const { name } = instrumentation as BreadcrumbInstrumentationInternal;
-    if (seen.has(name)) {
-      return false;
-    }
-    seen.add(name);
-    return true;
-  });
+  const instrumentations = options.capture
+    .filter(instrumentation => {
+      if (!instrumentation || typeof instrumentation !== 'object') {
+        return false;
+      }
+      const name = (
+        instrumentation as Partial<BreadcrumbInstrumentationInternal>
+      ).name;
+      if (!name || seen.has(name)) {
+        return false;
+      }
+      seen.add(name);
+      return true;
+    })
+    .sort((a, b) => {
+      const nameA = (a as BreadcrumbInstrumentationInternal).name;
+      const nameB = (b as BreadcrumbInstrumentationInternal).name;
+      if (nameA < nameB) {
+        return -1;
+      }
+      if (nameA > nameB) {
+        return 1;
+      }
+      return 0;
+    });
   return new BreadcrumbsFeatureImpl(instrumentations);
 }
 

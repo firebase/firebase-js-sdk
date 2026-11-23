@@ -355,7 +355,7 @@ describe('helpers', () => {
       });
 
       it('should not emit a visibility log when breadcrumbs() does not capture lifecycleEvents(), but still flush on hidden', async () => {
-        fakeCrashlytics.options = { features: [breadcrumbs()] };
+        fakeCrashlytics.options = { features: [breadcrumbs({ capture: [] })] };
         registerListeners(fakeCrashlytics);
 
         Object.defineProperty(document, 'visibilityState', {

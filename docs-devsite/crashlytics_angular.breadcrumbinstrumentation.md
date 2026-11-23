@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # BreadcrumbInstrumentation interface
-<b>(EXPERIMENTAL)</b> An opaque breadcrumb instrumentation object returned by instrumentation factory functions such as [webVitals()](./crashlytics.md#webvitals) or [fetchRequests()](./crashlytics.md#fetchrequests)<!-- -->. Pass these to [breadcrumbs()](./crashlytics.md#breadcrumbs_611f350) to choose what Crashlytics captures automatically.
+<b>(EXPERIMENTAL)</b> An opaque breadcrumb instrumentation object returned by instrumentation factory functions such as [webVitals()](./crashlytics.md#webvitals) or [fetchRequests()](./crashlytics.md#fetchrequests)<!-- -->. Pass these to [breadcrumbs()](./crashlytics.md#breadcrumbs_74cad04) to choose what Crashlytics captures automatically.
 
 <b>Signature:</b>
 

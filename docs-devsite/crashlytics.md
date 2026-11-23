@@ -19,7 +19,7 @@ The Firebase Crashlytics Web SDK. This product is currently in public preview.
 |  <b>function(app, ...)</b> |
 |  [getCrashlytics(app, options)](./crashlytics.md#getcrashlytics_a9d22a1) | <b><i>(Public Preview)</i></b> Returns the default [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
 |  <b>function()</b> |
-|  [all()](./crashlytics.md#all) | <b>(EXPERIMENTAL)</b> Returns every available breadcrumb instrumentation, for use as the <code>capture</code> option of [breadcrumbs()](./crashlytics.md#breadcrumbs_611f350)<!-- -->. Using this includes all instrumentations in the application bundle. |
+|  [all()](./crashlytics.md#all) | <b>(EXPERIMENTAL)</b> Returns every available breadcrumb instrumentation, for use as the <code>capture</code> option of [breadcrumbs()](./crashlytics.md#breadcrumbs_74cad04)<!-- -->. Using this includes all instrumentations in the application bundle. |
 |  [documentLoads()](./crashlytics.md#documentloads) | <b>(EXPERIMENTAL)</b> Captures document load timing as spans. |
 |  [fetchRequests()](./crashlytics.md#fetchrequests) | <b>(EXPERIMENTAL)</b> Captures <code>fetch</code> requests as spans. |
 |  [lifecycleEvents()](./crashlytics.md#lifecycleevents) | <b>(EXPERIMENTAL)</b> Captures page lifecycle events (the page moving to the foreground or the background) as breadcrumb logs. |
@@ -33,15 +33,15 @@ The Firebase Crashlytics Web SDK. This product is currently in public preview.
 |  [log(crashlytics, message, attributes)](./crashlytics.md#log_5ba066c) | <b>(EXPERIMENTAL)</b> Queues a log message to be uploaded to the Firebase Crashlytics API. |
 |  [recordError(crashlytics, error, attributes)](./crashlytics.md#recorderror_71ca165) | <b><i>(Public Preview)</i></b> Queues an error to be uploaded to the Firebase Crashlytics API. |
 |  <b>function(options, ...)</b> |
-|  [breadcrumbs(options)](./crashlytics.md#breadcrumbs_611f350) | <b>(EXPERIMENTAL)</b> Enables Crashlytics breadcrumb and trace telemetry collection when passed in [CrashlyticsOptions.features](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsfeatures)<!-- -->. The <code>capture</code> option selects which instrumentations Crashlytics runs automatically, such as OpenTelemetry spans (Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (navigation events, Web Vitals, user actions, and visibility lifecycle events). Captured telemetry is buffered in memory and exported when an error occurs. If <code>capture</code> is omitted, no instrumentations are enabled; pass [all()](./crashlytics.md#all) to enable all of them. Only the instrumentations that are imported are included in the application bundle. |
+|  [breadcrumbs(options)](./crashlytics.md#breadcrumbs_74cad04) | <b>(EXPERIMENTAL)</b> Enables Crashlytics breadcrumb and trace telemetry collection when passed in [CrashlyticsOptions.features](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsfeatures)<!-- -->. The <code>capture</code> option selects which instrumentations Crashlytics runs automatically, such as OpenTelemetry spans (Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (navigation events, Web Vitals, user actions, and visibility lifecycle events). Captured telemetry is buffered in memory and exported when an error occurs. Pass [all()](./crashlytics.md#all) to enable all instrumentations, or <code>[]</code> to buffer only custom logs without automatic instrumentations. Only the instrumentations that are imported are included in the application bundle. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [BreadcrumbInstrumentation](./crashlytics.breadcrumbinstrumentation.md#breadcrumbinstrumentation_interface) | <b>(EXPERIMENTAL)</b> An opaque breadcrumb instrumentation object returned by instrumentation factory functions such as [webVitals()](./crashlytics.md#webvitals) or [fetchRequests()](./crashlytics.md#fetchrequests)<!-- -->. Pass these to [breadcrumbs()](./crashlytics.md#breadcrumbs_611f350) to choose what Crashlytics captures automatically. |
+|  [BreadcrumbInstrumentation](./crashlytics.breadcrumbinstrumentation.md#breadcrumbinstrumentation_interface) | <b>(EXPERIMENTAL)</b> An opaque breadcrumb instrumentation object returned by instrumentation factory functions such as [webVitals()](./crashlytics.md#webvitals) or [fetchRequests()](./crashlytics.md#fetchrequests)<!-- -->. Pass these to [breadcrumbs()](./crashlytics.md#breadcrumbs_74cad04) to choose what Crashlytics captures automatically. |
 |  [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) | <b><i>(Public Preview)</i></b> An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
-|  [CrashlyticsFeature](./crashlytics.crashlyticsfeature.md#crashlyticsfeature_interface) | <b>(EXPERIMENTAL)</b> An opaque feature plugin object returned by Crashlytics feature factory functions such as [breadcrumbs()](./crashlytics.md#breadcrumbs_611f350)<!-- -->. |
+|  [CrashlyticsFeature](./crashlytics.crashlyticsfeature.md#crashlyticsfeature_interface) | <b>(EXPERIMENTAL)</b> An opaque feature plugin object returned by Crashlytics feature factory functions such as [breadcrumbs()](./crashlytics.md#breadcrumbs_74cad04)<!-- -->. |
 |  [CrashlyticsOptions](./crashlytics.crashlyticsoptions.md#crashlyticsoptions_interface) | <b><i>(Public Preview)</i></b> Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
 
 ## function(app, ...)
@@ -84,7 +84,7 @@ const crashlytics = getCrashlytics(app);
 
 ### all() {:#all}
 
-<b>(EXPERIMENTAL)</b> Returns every available breadcrumb instrumentation, for use as the `capture` option of [breadcrumbs()](./crashlytics.md#breadcrumbs_611f350)<!-- -->. Using this includes all instrumentations in the application bundle.
+<b>(EXPERIMENTAL)</b> Returns every available breadcrumb instrumentation, for use as the `capture` option of [breadcrumbs()](./crashlytics.md#breadcrumbs_74cad04)<!-- -->. Using this includes all instrumentations in the application bundle.
 
 <b>Signature:</b>
 
@@ -291,15 +291,15 @@ void
 
 ## function(options, ...)
 
-### breadcrumbs(options) {:#breadcrumbs_611f350}
+### breadcrumbs(options) {:#breadcrumbs_74cad04}
 
-<b>(EXPERIMENTAL)</b> Enables Crashlytics breadcrumb and trace telemetry collection when passed in [CrashlyticsOptions.features](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsfeatures)<!-- -->. The `capture` option selects which instrumentations Crashlytics runs automatically, such as OpenTelemetry spans (Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (navigation events, Web Vitals, user actions, and visibility lifecycle events). Captured telemetry is buffered in memory and exported when an error occurs. If `capture` is omitted, no instrumentations are enabled; pass [all()](./crashlytics.md#all) to enable all of them. Only the instrumentations that are imported are included in the application bundle.
+<b>(EXPERIMENTAL)</b> Enables Crashlytics breadcrumb and trace telemetry collection when passed in [CrashlyticsOptions.features](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsfeatures)<!-- -->. The `capture` option selects which instrumentations Crashlytics runs automatically, such as OpenTelemetry spans (Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (navigation events, Web Vitals, user actions, and visibility lifecycle events). Captured telemetry is buffered in memory and exported when an error occurs. Pass [all()](./crashlytics.md#all) to enable all instrumentations, or `[]` to buffer only custom logs without automatic instrumentations. Only the instrumentations that are imported are included in the application bundle.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function breadcrumbs(options?: {
-    capture?: BreadcrumbInstrumentation[];
+export declare function breadcrumbs(options: {
+    capture: BreadcrumbInstrumentation[];
 }): CrashlyticsFeature;
 ```
 
@@ -307,7 +307,7 @@ export declare function breadcrumbs(options?: {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | { capture?: [BreadcrumbInstrumentation](./crashlytics.breadcrumbinstrumentation.md#breadcrumbinstrumentation_interface)<!-- -->\[\]; } | Optional. <code>capture</code> is the list of instrumentations to enable. |
+|  options | { capture: [BreadcrumbInstrumentation](./crashlytics.breadcrumbinstrumentation.md#breadcrumbinstrumentation_interface)<!-- -->\[\]; } | Configuration for the breadcrumbs feature. <code>capture</code> is the list of instrumentations to enable. |
 
 <b>Returns:</b>
 

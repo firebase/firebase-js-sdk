@@ -42,7 +42,7 @@ describe('breadcrumbs', () => {
    * Creates a breadcrumbs feature that is unregistered after the test, even if the test fails.
    */
   function createFeature(
-    options?: Parameters<typeof breadcrumbs>[0]
+    options: Parameters<typeof breadcrumbs>[0]
   ): CrashlyticsFeatureInternal {
     const feature = breadcrumbs(options) as CrashlyticsFeatureInternal;
     features.push(feature);
@@ -169,7 +169,7 @@ describe('breadcrumbs', () => {
     expect(documentLoadSetConfigSpy).not.toHaveBeenCalled();
   });
 
-  it('enables no instrumentations when capture is omitted', () => {
+  it('enables no instrumentations when capture is empty', () => {
     if (typeof window === 'undefined') {
       return;
     }
@@ -199,7 +199,7 @@ describe('breadcrumbs', () => {
       'setConfig'
     );
 
-    const feature = createFeature();
+    const feature = createFeature({ capture: [] });
     feature.initializeLoggerInstrumentations(mockLoggerProvider);
     feature.initializeTracingInstrumentations({ ignoreUrls: [] });
 
@@ -212,13 +212,57 @@ describe('breadcrumbs', () => {
     expect(documentLoadSetConfigSpy).not.toHaveBeenCalled();
   });
 
-  it('breadcrumbs() ignores instrumentations that are repeated in capture', () => {
+  it('breadcrumbs() deduplicates and sorts instrumentations by name', () => {
     const feature = createFeature({
       capture: [...all(), webVitals(), fetchRequests()]
     });
 
     // Enabling the same instrumentation twice would record its telemetry twice.
-    expect(feature.instrumentations).toEqual(all());
+    // Sorting keeps option equality order-independent in getCrashlytics().
+    expect(feature.instrumentations).toEqual(
+      createFeature({ capture: all() }).instrumentations
+    );
+    expect(
+      (feature.instrumentations as BreadcrumbInstrumentationInternal[]).map(
+        instrumentation => instrumentation.name
+      )
+    ).toEqual([
+      'documentLoads',
+      'fetchRequests',
+      'lifecycleEvents',
+      'navigationTimings',
+      'routeChanges',
+      'userActions',
+      'webVitals',
+      'xhrRequests'
+    ]);
+  });
+
+  it('breadcrumbs() ignores falsy or invalid entries in capture', () => {
+    const feature = createFeature({
+      capture: [
+        false,
+        null,
+        undefined,
+        {},
+        webVitals,
+        webVitals(),
+        fetchRequests()
+      ] as unknown as BreadcrumbInstrumentationInternal[]
+    });
+
+    expect(feature.instrumentations).toEqual([fetchRequests(), webVitals()]);
+  });
+
+  it('breadcrumbs() throws when options or capture array is missing', () => {
+    expect(() => (breadcrumbs as unknown as () => unknown)()).toThrow(
+      'breadcrumbs() requires a `capture` array (e.g. breadcrumbs({ capture: all() }))'
+    );
+    expect(() =>
+      (breadcrumbs as unknown as (opts: unknown) => unknown)({})
+    ).toThrow(
+      'breadcrumbs() requires a `capture` array (e.g. breadcrumbs({ capture: all() }))'
+    );
   });
 
   it('initializeLoggerInstrumentations() enables only the logger instrumentations passed in capture', () => {

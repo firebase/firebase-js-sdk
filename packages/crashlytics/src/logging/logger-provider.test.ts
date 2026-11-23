@@ -84,7 +84,7 @@ describe('createLoggerProvider', () => {
     const { loggerProvider: provider, onErrorLogRecordProcessor } =
       createLoggerProvider(
         app,
-        { features: [breadcrumbs()] },
+        { features: [breadcrumbs({ capture: [] })] },
         attributesStore,
         telemetryStore,
         []
@@ -117,7 +117,7 @@ describe('createLoggerProvider', () => {
       return;
     }
 
-    const feature = breadcrumbs() as CrashlyticsFeatureInternal;
+    const feature = breadcrumbs({ capture: [] }) as CrashlyticsFeatureInternal;
     const initializeLoggerInstrumentationsSpy = vi.spyOn(
       feature,
       'initializeLoggerInstrumentations'
@@ -363,7 +363,7 @@ describe('createLoggerProvider', () => {
         try {
           createLoggerProvider(
             app,
-            { features: [breadcrumbs()] },
+            { features: [breadcrumbs({ capture: [] })] },
             attributesStore,
             telemetryStore,
             []
@@ -392,7 +392,7 @@ describe('createLoggerProvider', () => {
         try {
           createLoggerProvider(
             app,
-            { features: [breadcrumbs()] },
+            { features: [breadcrumbs({ capture: [] })] },
             attributesStore,
             telemetryStore,
             []

@@ -243,11 +243,11 @@ describe('Top level API', () => {
       const app = getFakeApp();
       expect(
         getCrashlytics(app, {
-          features: [breadcrumbs()]
+          features: [breadcrumbs({ capture: [] })]
         })
       ).toBe(
         getCrashlytics(app, {
-          features: [breadcrumbs()]
+          features: [breadcrumbs({ capture: [] })]
         })
       );
       expect(() => {
@@ -257,26 +257,25 @@ describe('Top level API', () => {
       }).toThrow('getCrashlytics() cannot be called with different options');
     });
 
-    it('works when called multiple times with the same breadcrumbs capture list', () => {
+    it('works when called multiple times with the same breadcrumbs capture list regardless of order', () => {
       const app = getFakeApp();
+      const instance = getCrashlytics(app, {
+        features: [breadcrumbs({ capture: [webVitals(), routeChanges()] })]
+      });
       expect(
         getCrashlytics(app, {
           features: [breadcrumbs({ capture: [webVitals(), routeChanges()] })]
         })
-      ).toBe(
+      ).toBe(instance);
+      // Order of instrumentations in capture does not affect option equality.
+      expect(
         getCrashlytics(app, {
-          features: [breadcrumbs({ capture: [webVitals(), routeChanges()] })]
+          features: [breadcrumbs({ capture: [routeChanges(), webVitals()] })]
         })
-      );
+      ).toBe(instance);
       expect(() => {
         getCrashlytics(app, {
           features: [breadcrumbs({ capture: [webVitals()] })]
-        });
-      }).toThrow('getCrashlytics() cannot be called with different options');
-      // The capture list is compared in order.
-      expect(() => {
-        getCrashlytics(app, {
-          features: [breadcrumbs({ capture: [routeChanges(), webVitals()] })]
         });
       }).toThrow('getCrashlytics() cannot be called with different options');
     });
@@ -332,7 +331,7 @@ describe('Top level API', () => {
 
     it('should initialize tracing when breadcrumbs() is passed in features', () => {
       const crashlytics = getCrashlytics(getFakeApp(), {
-        features: [breadcrumbs()]
+        features: [breadcrumbs({ capture: [] })]
       }) as CrashlyticsInternal;
 
       expect(crashlytics.tracingProvider).not.toBeNull();
@@ -527,7 +526,7 @@ describe('Top level API', () => {
       const urlTemplate = '/users/:id';
       const crashlyticsWithoutCapture: CrashlyticsInternal = {
         ...fakeCrashlytics,
-        options: { features: [breadcrumbs()] }
+        options: { features: [breadcrumbs({ capture: [] })] }
       };
       const crashlyticsWithOtherCapture: CrashlyticsInternal = {
         ...fakeCrashlytics,
