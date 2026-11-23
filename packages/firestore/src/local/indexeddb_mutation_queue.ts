@@ -167,6 +167,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
       const dbBatch = toDbMutationBatch(this.serializer, this.userId, batch);
 
       const promises: Array<PersistencePromise<void>> = [];
+      // The batch record is written once per batch, not once per mutation.
+      promises.push(mutationStore.put(dbBatch));
       let collectionParents = new SortedSet<ResourcePath>((l, r) =>
         primitiveComparator(l.canonicalString(), r.canonicalString())
       );
@@ -177,7 +179,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
           batchId
         );
         collectionParents = collectionParents.add(mutation.key.path.popLast());
-        promises.push(mutationStore.put(dbBatch));
         promises.push(
           documentStore.put(indexKey, DbDocumentMutationPlaceholder)
         );
