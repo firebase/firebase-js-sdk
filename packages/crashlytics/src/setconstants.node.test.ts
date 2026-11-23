@@ -158,5 +158,19 @@ describe('setconstants.js', () => {
       expect(child.stderr).toContain('Vite dev pre-bundling');
       expect(child.stderr).toContain('CRASHLYTICS_APP_VERSION');
     });
+
+    it('warns about build caches when run in an Angular workspace', () => {
+      const angularWorkspace = path.join(tmpDir, 'angular-app');
+      fs.mkdirSync(angularWorkspace, { recursive: true });
+      fs.writeFileSync(path.join(angularWorkspace, 'angular.json'), '{}');
+      const child = spawnSync(
+        process.execPath,
+        [copiedScriptPath, '--appVersion=1.0.0'],
+        { cwd: angularWorkspace, encoding: 'utf8' }
+      );
+      expect(child.status).toBe(0);
+      expect(child.stderr).toContain('Angular build caches (.angular/cache)');
+      expect(child.stderr).toContain('ng build --define');
+    });
   });
 });

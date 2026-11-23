@@ -164,6 +164,8 @@ function warnIfBundlerCacheLikely(cwd) {
     'vite.config.cts'
   ]);
 
+  const isAngular = hasAnyFile(cwd, ['.angular', 'angular.json']);
+
   if (isNext) {
     console.warn(
       '[firebase/crashlytics] Warning: crashlytics-setconstants mutates files inside node_modules, ' +
@@ -177,6 +179,13 @@ function warnIfBundlerCacheLikely(cwd) {
         'which Vite dev pre-bundling (node_modules/.vite) ignores across restarts. ' +
         'Define process.env.CRASHLYTICS_APP_VERSION in vite.config.* or pass appVersion ' +
         'directly to getCrashlytics() instead.'
+    );
+  } else if (isAngular) {
+    console.warn(
+      '[firebase/crashlytics] Warning: crashlytics-setconstants mutates files inside node_modules, ' +
+        'which Angular build caches (.angular/cache) can ignore across rebuilds. ' +
+        'For Angular 17+, configure process.env.CRASHLYTICS_APP_VERSION via `define` in angular.json ' +
+        'or `ng build --define`, or pass appVersion directly to provideCrashlytics() instead.'
     );
   }
 }

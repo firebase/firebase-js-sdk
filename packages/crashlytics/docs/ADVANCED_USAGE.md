@@ -154,9 +154,32 @@ module.exports = {
 
 **Rollup (`rollup.config.js`)**: Pass `{ preventAssignment: true, values: { 'process.env.CRASHLYTICS_APP_VERSION': appVersion } }` to `@rollup/plugin-replace`.
 
+### Angular
+
+For Angular 17+ workspaces using the `application` builder (`@angular/build:application` or `@angular-devkit/build-angular:application`), pass `'process.env.CRASHLYTICS_APP_VERSION'` dynamically via `ng build --define`:
+
+```bash
+ng build --define process.env.CRASHLYTICS_APP_VERSION="\"$(git rev-parse HEAD 2>/dev/null || echo unknown)\""
+```
+
+String values passed to Angular's `define` option are substituted as expressions, so preserve the inner escaped quotes around the version string. To run this from `package.json`:
+
+```json
+{
+  "scripts": {
+    "build": "ng build --define process.env.CRASHLYTICS_APP_VERSION='\"'$(git rev-parse HEAD 2>/dev/null || echo unknown)'\"'"
+  }
+}
+```
+
+> [!NOTE]
+> `ng serve` does not support the `--define` CLI flag. If you need an app version during local `ng serve`, set `options.define` in `angular.json` (for example, `"process.env.CRASHLYTICS_APP_VERSION": "\"dev\""`) or pass `appVersion` to `provideCrashlytics(() => app, { appVersion })`.
+>
+> Configuring `define` requires Angular 17+ (`@angular/build:application` or `@angular-devkit/build-angular:application`) and is **not supported** for legacy Angular versions (such as `@angular-devkit/build-angular:browser`). For legacy Angular versions, pass `appVersion` explicitly to `provideCrashlytics(() => app, { appVersion })`.
+
 ### `crashlytics-setconstants` CLI (uncached builds)
 
-For Angular or other uncached single-app builds, Crashlytics provides the `crashlytics-setconstants` CLI helper, which resolves a version in precedence order (`--appVersion=<version>`, current Git commit hash, or `package.json` version):
+For legacy setups or other uncached single-app builds, Crashlytics provides the `crashlytics-setconstants` CLI helper, which resolves a version in precedence order (`--appVersion=<version>`, current Git commit hash, or `package.json` version):
 
 ```json
 "dev": "npm run firebase-set-constants && <existing command>",
@@ -166,4 +189,4 @@ For Angular or other uncached single-app builds, Crashlytics provides the `crash
 ```
 
 > [!NOTE]
-> `crashlytics-setconstants` writes directly into `node_modules/@firebase/crashlytics/dist/`, which persistent bundler caches (such as Next.js `.next/cache` and Vite `node_modules/.vite`) and shared/immutable package stores (`pnpm`, Yarn PnP) ignore or reject across rebuilds. Use the configuration options above or pass `appVersion` directly to `getCrashlytics()` / `provideCrashlytics()` in those environments.
+> `crashlytics-setconstants` writes directly into `node_modules/@firebase/crashlytics/dist/`, which persistent build caches (such as Next.js `.next/cache`, Vite `node_modules/.vite`, and Angular `.angular/cache`) and shared/immutable package stores (`pnpm`, Yarn PnP) ignore or reject across rebuilds. Use the configuration options above or pass `appVersion` directly to `getCrashlytics()` / `provideCrashlytics()` in those environments.
