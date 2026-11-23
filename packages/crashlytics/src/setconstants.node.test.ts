@@ -115,40 +115,48 @@ describe('setconstants.js', () => {
     }
   });
 
-  it('warns about bundler caches when run in a Next.js or Vite workspace', () => {
-    const pkgDir = path.join(tmpDir, 'pkg');
-    const distDir = path.join(pkgDir, 'dist');
-    fs.mkdirSync(distDir, { recursive: true });
-    const copiedScriptPath = path.join(pkgDir, 'setconstants.js');
-    fs.copyFileSync(originalScriptPath, copiedScriptPath);
-    fs.writeFileSync(
-      path.join(distDir, 'auto-constants.js'),
-      "'use strict';\nexports.AUTO_CONSTANTS = {};\n",
-      'utf8'
-    );
+  describe('bundler cache warnings', () => {
+    let copiedScriptPath: string;
 
-    const nextWorkspace = path.join(tmpDir, 'next-app');
-    fs.mkdirSync(path.join(nextWorkspace, '.next'), { recursive: true });
-    const nextChild = spawnSync(
-      process.execPath,
-      [copiedScriptPath, '--appVersion=1.0.0'],
-      { cwd: nextWorkspace, encoding: 'utf8' }
-    );
-    expect(nextChild.status).toBe(0);
-    expect(nextChild.stderr).toContain('Next.js webpack (.next/cache) ignores');
-    expect(nextChild.stderr).toContain('NEXT_PUBLIC_CRASHLYTICS_APP_VERSION');
-
-    const viteWorkspace = path.join(tmpDir, 'vite-app');
-    fs.mkdirSync(path.join(viteWorkspace, 'node_modules/.vite'), {
-      recursive: true
+    beforeEach(() => {
+      const pkgDir = path.join(tmpDir, 'pkg');
+      const distDir = path.join(pkgDir, 'dist');
+      fs.mkdirSync(distDir, { recursive: true });
+      copiedScriptPath = path.join(pkgDir, 'setconstants.js');
+      fs.copyFileSync(originalScriptPath, copiedScriptPath);
+      fs.writeFileSync(
+        path.join(distDir, 'auto-constants.js'),
+        "'use strict';\nexports.AUTO_CONSTANTS = {};\n",
+        'utf8'
+      );
     });
-    const viteChild = spawnSync(
-      process.execPath,
-      [copiedScriptPath, '--appVersion=1.0.0'],
-      { cwd: viteWorkspace, encoding: 'utf8' }
-    );
-    expect(viteChild.status).toBe(0);
-    expect(viteChild.stderr).toContain('Vite dev pre-bundling');
-    expect(viteChild.stderr).toContain('CRASHLYTICS_APP_VERSION');
+
+    it('warns about bundler caches when run in a Next.js workspace', () => {
+      const nextWorkspace = path.join(tmpDir, 'next-app');
+      fs.mkdirSync(path.join(nextWorkspace, '.next'), { recursive: true });
+      const child = spawnSync(
+        process.execPath,
+        [copiedScriptPath, '--appVersion=1.0.0'],
+        { cwd: nextWorkspace, encoding: 'utf8' }
+      );
+      expect(child.status).toBe(0);
+      expect(child.stderr).toContain('Next.js webpack (.next/cache) ignores');
+      expect(child.stderr).toContain('NEXT_PUBLIC_CRASHLYTICS_APP_VERSION');
+    });
+
+    it('warns about bundler caches when run in a Vite workspace', () => {
+      const viteWorkspace = path.join(tmpDir, 'vite-app');
+      fs.mkdirSync(path.join(viteWorkspace, 'node_modules/.vite'), {
+        recursive: true
+      });
+      const child = spawnSync(
+        process.execPath,
+        [copiedScriptPath, '--appVersion=1.0.0'],
+        { cwd: viteWorkspace, encoding: 'utf8' }
+      );
+      expect(child.status).toBe(0);
+      expect(child.stderr).toContain('Vite dev pre-bundling');
+      expect(child.stderr).toContain('CRASHLYTICS_APP_VERSION');
+    });
   });
 });
