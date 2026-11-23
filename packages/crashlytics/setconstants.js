@@ -160,7 +160,8 @@ function warnIfBundlerCacheLikely(cwd) {
     'vite.config.mjs',
     'vite.config.ts',
     'vite.config.cjs',
-    'vite.config.mts'
+    'vite.config.mts',
+    'vite.config.cts'
   ]);
 
   if (isNext) {
