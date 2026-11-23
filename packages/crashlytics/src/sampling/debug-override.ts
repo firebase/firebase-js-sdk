@@ -22,59 +22,105 @@ import {
 } from '../constants';
 
 /**
- * Returns whether the telemetry debug override is active, forcing 100% telemetry collection
- * (stamped with `session.sampling.rate = 1.0` and `session.sampling.forced = true`) for this
- * browser session regardless of the configured sampling rate, including `0.0`. The override doesn't
- * apply when telemetry collection is disabled.
+ * Returns whether the in-memory `FIREBASE_TELEMETRY_DEBUG` flag is active.
  *
- * The override is enabled by any of:
- * - `self.FIREBASE_TELEMETRY_DEBUG = true` (set by a developer in code or the dev console),
- * - a `?firebase_telemetry_debug=true` query parameter on the page URL, which is then persisted
- *   in `sessionStorage` so it stays active for the lifetime of the browser session,
- * - the persisted `sessionStorage` marker from a previous page load in the same session.
- * @param search - The page's query string. Defaults to `location.search`; exposed for tests.
+ * This does not read `sessionStorage` or parse `location.search`, so it can be called on every
+ * sampling decision without synchronous storage or URL parsing overhead.
  *
  * @internal
  */
-export function isTelemetryDebugEnabled(
-  search: string | undefined = typeof location !== 'undefined'
-    ? location.search
-    : undefined
-): boolean {
+export function isTelemetryDebugEnabled(): boolean {
   const globalFlag = (globalThis as unknown as Record<string, unknown>)[
     TELEMETRY_DEBUG_GLOBAL_FLAG
   ];
-  if (globalFlag === true || globalFlag === 'true') {
-    return true;
-  }
+  return globalFlag === true || globalFlag === 'true';
+}
 
-  if (typeof sessionStorage === 'undefined') {
-    return false;
+/**
+ * Restores a persisted `sessionStorage` debug marker into `FIREBASE_TELEMETRY_DEBUG` once at
+ * startup so `?firebase_telemetry_debug=true` survives full-page reloads before an export occurs
+ * or while telemetry is disabled.
+ */
+function restoreDebugFlagFromStorage(): void {
+  if (isTelemetryDebugEnabled() || typeof sessionStorage === 'undefined') {
+    return;
   }
-
   try {
     if (sessionStorage.getItem(SESSION_STORAGE_DEBUG_KEY) === 'true') {
-      return true;
+      (globalThis as unknown as Record<string, unknown>)[
+        TELEMETRY_DEBUG_GLOBAL_FLAG
+      ] = true;
     }
   } catch (e) {
     // Ignore errors accessing sessionStorage (e.g. security restrictions)
   }
+}
 
+/**
+ * Syncs the `?firebase_telemetry_debug=true|false` URL query parameter with
+ * `FIREBASE_TELEMETRY_DEBUG` and `sessionStorage`:
+ * - `?firebase_telemetry_debug=true` sets `FIREBASE_TELEMETRY_DEBUG = true` and persists it in
+ *   `sessionStorage` so it survives full-page reloads/navigations before an export occurs or while
+ *   telemetry is disabled.
+ * - `?firebase_telemetry_debug=false` clears `FIREBASE_TELEMETRY_DEBUG` and removes the
+ *   `sessionStorage` marker (an already-forced session stays forced per session-stickiness rules).
+ * - Absent or unrecognized values leave any existing debug state unchanged.
+ */
+function checkQueryParam(): void {
   try {
+    const search =
+      typeof location !== 'undefined' ? location.search : undefined;
     if (search) {
-      const params = new URLSearchParams(search);
-      if (params.get(TELEMETRY_DEBUG_QUERY_PARAM) === 'true') {
+      const debugParam = new URLSearchParams(search).get(
+        TELEMETRY_DEBUG_QUERY_PARAM
+      );
+      if (debugParam === 'true') {
         try {
           sessionStorage.setItem(SESSION_STORAGE_DEBUG_KEY, 'true');
         } catch (e) {
           // Ignore errors accessing sessionStorage (e.g. security restrictions)
         }
-        return true;
+        (globalThis as unknown as Record<string, unknown>)[
+          TELEMETRY_DEBUG_GLOBAL_FLAG
+        ] = true;
+        return;
+      }
+      if (debugParam === 'false') {
+        try {
+          sessionStorage.removeItem(SESSION_STORAGE_DEBUG_KEY);
+        } catch (e) {
+          // Ignore errors accessing sessionStorage (e.g. security restrictions)
+        }
+        delete (globalThis as unknown as Record<string, unknown>)[
+          TELEMETRY_DEBUG_GLOBAL_FLAG
+        ];
+        return;
       }
     }
   } catch (e) {
     // Ignore malformed URLs or restricted `location` access.
   }
+}
 
-  return false;
+/**
+ * Initializes the telemetry debug override: restores any persisted `sessionStorage` marker,
+ * checks `?firebase_telemetry_debug=true|false` in `location.search`, and listens for browser
+ * history navigation (`popstate`). Should only be called once per initialization lifecycle;
+ * returns an unsubscribe function.
+ *
+ * @internal
+ */
+export function initTelemetryDebugOverride(): () => void {
+  restoreDebugFlagFromStorage();
+  checkQueryParam();
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
+  const onUrlChange = (): void => {
+    checkQueryParam();
+  };
+  window.addEventListener('popstate', onUrlChange);
+  return () => {
+    window.removeEventListener('popstate', onUrlChange);
+  };
 }
