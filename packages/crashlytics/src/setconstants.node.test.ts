@@ -19,7 +19,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 
 describe('setconstants.js', () => {
   const originalScriptPath = path.resolve(__dirname, '../setconstants.js');
@@ -113,5 +113,42 @@ describe('setconstants.js', () => {
         'Error setting Firebase constants. Directory does not exist:'
       );
     }
+  });
+
+  it('warns about bundler caches when run in a Next.js or Vite workspace', () => {
+    const pkgDir = path.join(tmpDir, 'pkg');
+    const distDir = path.join(pkgDir, 'dist');
+    fs.mkdirSync(distDir, { recursive: true });
+    const copiedScriptPath = path.join(pkgDir, 'setconstants.js');
+    fs.copyFileSync(originalScriptPath, copiedScriptPath);
+    fs.writeFileSync(
+      path.join(distDir, 'auto-constants.js'),
+      "'use strict';\nexports.AUTO_CONSTANTS = {};\n",
+      'utf8'
+    );
+
+    const nextWorkspace = path.join(tmpDir, 'next-app');
+    fs.mkdirSync(path.join(nextWorkspace, '.next'), { recursive: true });
+    const nextChild = spawnSync(
+      process.execPath,
+      [copiedScriptPath, '--appVersion=1.0.0'],
+      { cwd: nextWorkspace, encoding: 'utf8' }
+    );
+    expect(nextChild.status).toBe(0);
+    expect(nextChild.stderr).toContain('Next.js webpack (.next/cache) ignores');
+    expect(nextChild.stderr).toContain('NEXT_PUBLIC_CRASHLYTICS_APP_VERSION');
+
+    const viteWorkspace = path.join(tmpDir, 'vite-app');
+    fs.mkdirSync(path.join(viteWorkspace, 'node_modules/.vite'), {
+      recursive: true
+    });
+    const viteChild = spawnSync(
+      process.execPath,
+      [copiedScriptPath, '--appVersion=1.0.0'],
+      { cwd: viteWorkspace, encoding: 'utf8' }
+    );
+    expect(viteChild.status).toBe(0);
+    expect(viteChild.stderr).toContain('Vite dev pre-bundling');
+    expect(viteChild.stderr).toContain('CRASHLYTICS_APP_VERSION');
   });
 });

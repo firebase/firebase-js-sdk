@@ -325,27 +325,105 @@ describe('AttributesStore', () => {
 
   describe('updateOptions', () => {
     let originalAutoConstantsVersion: any;
+    let originalNextPublicVersion: string | undefined;
+    let originalCrashlyticsVersion: string | undefined;
+    const hasProcess = typeof process !== 'undefined';
 
     beforeEach(() => {
       originalAutoConstantsVersion = AUTO_CONSTANTS.appVersion;
+      if (hasProcess) {
+        originalNextPublicVersion =
+          process.env.NEXT_PUBLIC_CRASHLYTICS_APP_VERSION;
+        originalCrashlyticsVersion = process.env.CRASHLYTICS_APP_VERSION;
+        delete process.env.NEXT_PUBLIC_CRASHLYTICS_APP_VERSION;
+        delete process.env.CRASHLYTICS_APP_VERSION;
+      }
     });
 
     afterEach(() => {
       AUTO_CONSTANTS.appVersion = originalAutoConstantsVersion;
+      vi.unstubAllGlobals();
+      if (hasProcess) {
+        if (originalNextPublicVersion === undefined) {
+          delete process.env.NEXT_PUBLIC_CRASHLYTICS_APP_VERSION;
+        } else {
+          process.env.NEXT_PUBLIC_CRASHLYTICS_APP_VERSION =
+            originalNextPublicVersion;
+        }
+        if (originalCrashlyticsVersion === undefined) {
+          delete process.env.CRASHLYTICS_APP_VERSION;
+        } else {
+          process.env.CRASHLYTICS_APP_VERSION = originalCrashlyticsVersion;
+        }
+      }
     });
 
+    function setStubEnv(env: Record<string, string | undefined>): void {
+      if (hasProcess) {
+        for (const [key, value] of Object.entries(env)) {
+          if (value === undefined) {
+            delete process.env[key];
+          } else {
+            process.env[key] = value;
+          }
+        }
+      } else {
+        vi.stubGlobal('process', { env });
+      }
+    }
+
     it('should use appVersion from options if provided', () => {
+      setStubEnv({
+        NEXT_PUBLIC_CRASHLYTICS_APP_VERSION: 'env-next',
+        CRASHLYTICS_APP_VERSION: 'env-generic'
+      });
+      AUTO_CONSTANTS.appVersion = 'auto-constants';
       const store = new AttributesStore({} as any, { appVersion: '1.2.3' });
       expect(store.getLogAttributes()).toHaveProperty('app.build_id', '1.2.3');
     });
 
-    it('should fall back to AUTO_CONSTANTS appVersion if not in options', () => {
+    it('should prefer NEXT_PUBLIC_CRASHLYTICS_APP_VERSION over CRASHLYTICS_APP_VERSION', () => {
+      setStubEnv({
+        NEXT_PUBLIC_CRASHLYTICS_APP_VERSION: 'next-public-1.0.0',
+        CRASHLYTICS_APP_VERSION: 'generic-2.0.0'
+      });
       AUTO_CONSTANTS.appVersion = '2.3.4';
       const store = new AttributesStore({} as any, {});
+      expect(store.getLogAttributes()).toHaveProperty(
+        'app.build_id',
+        'next-public-1.0.0'
+      );
+      expect(store.getSpanAttributes()).toHaveProperty(
+        'service.version',
+        'next-public-1.0.0'
+      );
+    });
+
+    it('should prefer CRASHLYTICS_APP_VERSION over AUTO_CONSTANTS', () => {
+      setStubEnv({
+        CRASHLYTICS_APP_VERSION: 'generic-2.0.0'
+      });
+      AUTO_CONSTANTS.appVersion = '2.3.4';
+      const store = new AttributesStore({} as any, {});
+      expect(store.getLogAttributes()).toHaveProperty(
+        'app.build_id',
+        'generic-2.0.0'
+      );
+    });
+
+    it('should fall back to AUTO_CONSTANTS appVersion', () => {
+      AUTO_CONSTANTS.appVersion = '2.3.4';
+      let store: AttributesStore;
+      vi.stubGlobal('process', undefined);
+      try {
+        store = new AttributesStore({} as any, {});
+      } finally {
+        vi.unstubAllGlobals();
+      }
       expect(store.getLogAttributes()).toHaveProperty('app.build_id', '2.3.4');
     });
 
-    it('should use "unset" if neither options nor AUTO_CONSTANTS appVersion are set', () => {
+    it('should use "unset" if app version not found', () => {
       AUTO_CONSTANTS.appVersion = undefined;
       const store = new AttributesStore({} as any, {});
       expect(store.getLogAttributes()).toHaveProperty('app.build_id', 'unset');

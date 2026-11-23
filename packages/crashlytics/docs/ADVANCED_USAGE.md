@@ -61,7 +61,77 @@ async function handleApplicationCrash(error: Error) {
 
 ## App Versioning
 
-Adding a version to your app is recommended, but not required. The Crashlytics SDK provides a `crashlytics-setconstants` CLI helper (backed by `setconstants.js`) that determines a version for your app in precedence order (`--appVersion=<version>`, current Git commit hash, or `package.json` version). Update the build scripts in your `package.json` as follows:
+Adding a version to your app is recommended, but not required. Crashlytics resolves an application version in precedence order:
+
+1. Explicit `appVersion` passed to `getCrashlytics(app, { appVersion })` (or `provideCrashlytics(() => app, { appVersion })` in Angular)
+2. Build-time environment variables (`NEXT_PUBLIC_CRASHLYTICS_APP_VERSION` or `CRASHLYTICS_APP_VERSION`)
+3. `crashlytics-setconstants` in the Firebase CLI
+
+### Next.js
+
+Set `NEXT_PUBLIC_CRASHLYTICS_APP_VERSION` at build time (for example via `env` in `next.config.ts` or your CI environment) so cached Webpack and Turbopack rebuilds pick up new versions without clearing `.next/cache`:
+
+```typescript
+// next.config.ts
+import { execSync } from 'node:child_process';
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_CRASHLYTICS_APP_VERSION:
+      execSync('git rev-parse HEAD').toString().trim(),
+  },
+};
+
+export default nextConfig;
+```
+
+### Vite, Webpack, and Rollup
+
+Configure your bundler to replace `'process.env.CRASHLYTICS_APP_VERSION'` with a `JSON.stringify(...)` string literal at build time:
+
+**Vite (`vite.config.ts`)**:
+
+```typescript
+// vite.config.ts
+import { execSync } from 'node:child_process';
+import { defineConfig } from 'vite';
+
+const appVersion = execSync('git rev-parse HEAD').toString().trim();
+
+export default defineConfig({
+  define: {
+    'process.env.CRASHLYTICS_APP_VERSION': JSON.stringify(appVersion),
+  },
+});
+```
+
+> [!NOTE]
+> `vite dev` pre-bundles dependencies into `node_modules/.vite/deps` and does not re-run `define` across restarts unless `vite --force` is used. For dev-server version updates, pass `appVersion` to `getCrashlytics(app, { appVersion })` or run `vite --force`.
+
+**Webpack (`webpack.config.js`)**:
+
+```javascript
+// webpack.config.js
+const { execSync } = require('node:child_process');
+const webpack = require('webpack');
+
+const appVersion = execSync('git rev-parse HEAD').toString().trim();
+
+module.exports = {
+  plugins: [
+    new webpack.DefinePlugin({
+      'process.env.CRASHLYTICS_APP_VERSION': JSON.stringify(appVersion),
+    }),
+  ],
+};
+```
+
+**Rollup (`rollup.config.js`)**: Pass `{ preventAssignment: true, values: { 'process.env.CRASHLYTICS_APP_VERSION': JSON.stringify(appVersion) } }` to `@rollup/plugin-replace`.
+
+### `crashlytics-setconstants` CLI (uncached builds)
+
+For Angular or other uncached single-app builds, Crashlytics provides the `crashlytics-setconstants` CLI helper, which resolves a version in precedence order (`--appVersion=<version>`, current Git commit hash, or `package.json` version):
 
 ```json
 "dev": "npm run firebase-set-constants && <existing command>",
@@ -69,3 +139,6 @@ Adding a version to your app is recommended, but not required. The Crashlytics S
 "start": "npm run firebase-set-constants && <existing command>",
 "firebase-set-constants": "crashlytics-setconstants"
 ```
+
+> [!NOTE]
+> `crashlytics-setconstants` writes directly into `node_modules/@firebase/crashlytics/dist/`, which persistent bundler caches (such as Next.js `.next/cache` and Vite `node_modules/.vite`) and shared/immutable package stores (`pnpm`, Yarn PnP) ignore or reject across rebuilds. Use the configuration options above or pass `appVersion` directly to `getCrashlytics()` / `provideCrashlytics()` in those environments.
