@@ -76,10 +76,19 @@ Set `NEXT_PUBLIC_CRASHLYTICS_APP_VERSION` at build time (for example via `env` i
 import { execSync } from 'node:child_process';
 import type { NextConfig } from 'next';
 
+const getAppVersion = () => {
+  try {
+    // Replace with your app version logic
+    return execSync('git rev-parse HEAD').toString().trim();
+  } catch {
+    // Version may not be available in some build environments
+    return 'unknown';
+  }
+};
+
 const nextConfig: NextConfig = {
   env: {
-    NEXT_PUBLIC_CRASHLYTICS_APP_VERSION:
-      execSync('git rev-parse HEAD').toString().trim(),
+    NEXT_PUBLIC_CRASHLYTICS_APP_VERSION: getAppVersion(),
   },
 };
 
@@ -97,11 +106,19 @@ Configure your bundler to replace `'process.env.CRASHLYTICS_APP_VERSION'` with a
 import { execSync } from 'node:child_process';
 import { defineConfig } from 'vite';
 
-const appVersion = execSync('git rev-parse HEAD').toString().trim();
+const getAppVersion = () => {
+  try {
+    // Replace with your app version logic
+    return execSync('git rev-parse HEAD').toString().trim();
+  } catch {
+    // Version may not be available in some build environments
+    return 'unknown';
+  }
+};
 
 export default defineConfig({
   define: {
-    'process.env.CRASHLYTICS_APP_VERSION': JSON.stringify(appVersion),
+    'process.env.CRASHLYTICS_APP_VERSION': getAppVersion(),
   },
 });
 ```
@@ -116,18 +133,26 @@ export default defineConfig({
 const { execSync } = require('node:child_process');
 const webpack = require('webpack');
 
-const appVersion = execSync('git rev-parse HEAD').toString().trim();
+const getAppVersion = () => {
+  try {
+    // Replace with your app version logic
+    return execSync('git rev-parse HEAD').toString().trim();
+  } catch {
+    // Version may not be available in some build environments
+    return 'unknown';
+  }
+};
 
 module.exports = {
   plugins: [
     new webpack.DefinePlugin({
-      'process.env.CRASHLYTICS_APP_VERSION': JSON.stringify(appVersion),
+      'process.env.CRASHLYTICS_APP_VERSION': getAppVersion(),
     }),
   ],
 };
 ```
 
-**Rollup (`rollup.config.js`)**: Pass `{ preventAssignment: true, values: { 'process.env.CRASHLYTICS_APP_VERSION': JSON.stringify(appVersion) } }` to `@rollup/plugin-replace`.
+**Rollup (`rollup.config.js`)**: Pass `{ preventAssignment: true, values: { 'process.env.CRASHLYTICS_APP_VERSION': appVersion } }` to `@rollup/plugin-replace`.
 
 ### `crashlytics-setconstants` CLI (uncached builds)
 
