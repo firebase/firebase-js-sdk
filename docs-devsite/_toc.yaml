@@ -435,6 +435,8 @@ toc:
 - title: crashlytics
   path: /docs/reference/js/crashlytics.md
   section:
+  - title: BreadcrumbInstrumentation
+    path: /docs/reference/js/crashlytics.breadcrumbinstrumentation.md
   - title: Crashlytics
     path: /docs/reference/js/crashlytics.crashlytics.md
   - title: CrashlyticsFeature
@@ -444,6 +446,8 @@ toc:
 - title: crashlytics/angular
   path: /docs/reference/js/crashlytics_angular.md
   section:
+  - title: BreadcrumbInstrumentation
+    path: /docs/reference/js/crashlytics_angular.breadcrumbinstrumentation.md
   - title: Crashlytics
     path: /docs/reference/js/crashlytics_angular.crashlytics.md
   - title: CrashlyticsFeature
@@ -453,6 +457,8 @@ toc:
 - title: crashlytics/next-navigation
   path: /docs/reference/js/crashlytics_next-navigation.md
   section:
+  - title: BreadcrumbInstrumentation
+    path: /docs/reference/js/crashlytics_next-navigation.breadcrumbinstrumentation.md
   - title: Crashlytics
     path: /docs/reference/js/crashlytics_next-navigation.crashlytics.md
   - title: CrashlyticsFeature
@@ -462,6 +468,8 @@ toc:
 - title: crashlytics/react
   path: /docs/reference/js/crashlytics_react.md
   section:
+  - title: BreadcrumbInstrumentation
+    path: /docs/reference/js/crashlytics_react.breadcrumbinstrumentation.md
   - title: Crashlytics
     path: /docs/reference/js/crashlytics_react.crashlytics.md
   - title: CrashlyticsFeature
@@ -471,6 +479,8 @@ toc:
 - title: crashlytics/react-router
   path: /docs/reference/js/crashlytics_react-router.md
   section:
+  - title: BreadcrumbInstrumentation
+    path: /docs/reference/js/crashlytics_react-router.breadcrumbinstrumentation.md
   - title: Crashlytics
     path: /docs/reference/js/crashlytics_react-router.crashlytics.md
   - title: CrashlyticsFeature

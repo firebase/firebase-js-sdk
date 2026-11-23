@@ -23,6 +23,7 @@ import {
 import { AttributesStore } from '../attributes-store';
 import { breadcrumbs } from '../breadcrumbs';
 import { TelemetryStore } from '../telemetry-store';
+import { CrashlyticsFeatureInternal } from '../types';
 import { AppCheckProvider } from './appcheck-provider';
 import { FirebaseAttributesLogProcessor } from './attributes-log-processor';
 import { createLoggerProvider } from './logger-provider';
@@ -83,7 +84,7 @@ describe('createLoggerProvider', () => {
     const { loggerProvider: provider, onErrorLogRecordProcessor } =
       createLoggerProvider(
         app,
-        { features: [breadcrumbs()] },
+        { features: [breadcrumbs({ capture: [] })] },
         attributesStore,
         telemetryStore,
         []
@@ -108,6 +109,30 @@ describe('createLoggerProvider', () => {
     expect(batchEmitSpy).not.toHaveBeenCalled();
     expect(attributesEmitSpy.mock.invocationCallOrder[0]).toBeLessThan(
       onErrorEmitSpy.mock.invocationCallOrder[0]
+    );
+  });
+
+  it('should initialize the breadcrumbs logger instrumentations with the logger provider', () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const feature = breadcrumbs({ capture: [] }) as CrashlyticsFeatureInternal;
+    const initializeLoggerInstrumentationsSpy = vi.spyOn(
+      feature,
+      'initializeLoggerInstrumentations'
+    );
+
+    const { loggerProvider } = createLoggerProvider(
+      app,
+      { features: [feature] },
+      attributesStore,
+      telemetryStore,
+      []
+    );
+
+    expect(initializeLoggerInstrumentationsSpy).toHaveBeenCalledWith(
+      loggerProvider
     );
   });
 
@@ -338,7 +363,7 @@ describe('createLoggerProvider', () => {
         try {
           createLoggerProvider(
             app,
-            { features: [breadcrumbs()] },
+            { features: [breadcrumbs({ capture: [] })] },
             attributesStore,
             telemetryStore,
             []
@@ -367,7 +392,7 @@ describe('createLoggerProvider', () => {
         try {
           createLoggerProvider(
             app,
-            { features: [breadcrumbs()] },
+            { features: [breadcrumbs({ capture: [] })] },
             attributesStore,
             telemetryStore,
             []

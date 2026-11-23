@@ -193,7 +193,7 @@ describe('createTracingProvider', () => {
       return;
     }
 
-    const feature = breadcrumbs() as CrashlyticsFeatureInternal;
+    const feature = breadcrumbs({ capture: [] }) as CrashlyticsFeatureInternal;
     const initializeTracingInstrumentationsSpy = vi
       .spyOn(feature, 'initializeTracingInstrumentations')
       .mockImplementation(() => {});

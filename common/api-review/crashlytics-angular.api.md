@@ -8,6 +8,9 @@ import { Attributes } from '@opentelemetry/api';
 import { EnvironmentProviders } from '@angular/core';
 import { FirebaseApp } from '@firebase/app';
 
+// @public
+export interface BreadcrumbInstrumentation {}
+
 // @beta
 export interface Crashlytics {
     app: FirebaseApp;

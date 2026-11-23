@@ -19,18 +19,29 @@ The Firebase Crashlytics Web SDK. This product is currently in public preview.
 |  <b>function(app, ...)</b> |
 |  [getCrashlytics(app, options)](./crashlytics.md#getcrashlytics_a9d22a1) | <b><i>(Public Preview)</i></b> Returns the default [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
 |  <b>function()</b> |
-|  [breadcrumbs()](./crashlytics.md#breadcrumbs) | <b>(EXPERIMENTAL)</b> Enables Crashlytics breadcrumb and trace telemetry collection when passed in [CrashlyticsOptions.features](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsfeatures)<!-- -->.<!-- -->When enabled, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions, and visibility lifecycle events), buffering them in memory and exporting them when an error occurs. |
+|  [all()](./crashlytics.md#all) | <b>(EXPERIMENTAL)</b> Returns every available breadcrumb instrumentation, for use as the <code>capture</code> option of [breadcrumbs()](./crashlytics.md#breadcrumbs_74cad04)<!-- -->. Using this includes all instrumentations in the application bundle. |
+|  [documentLoads()](./crashlytics.md#documentloads) | <b>(EXPERIMENTAL)</b> Captures document load timing as spans. |
+|  [fetchRequests()](./crashlytics.md#fetchrequests) | <b>(EXPERIMENTAL)</b> Captures <code>fetch</code> requests as spans. |
+|  [lifecycleEvents()](./crashlytics.md#lifecycleevents) | <b>(EXPERIMENTAL)</b> Captures page lifecycle events (the page moving to the foreground or the background) as breadcrumb logs. |
+|  [navigationTimings()](./crashlytics.md#navigationtimings) | <b>(EXPERIMENTAL)</b> Captures browser navigation timing for page loads as breadcrumb logs. |
+|  [routeChanges()](./crashlytics.md#routechanges) | <b>(EXPERIMENTAL)</b> Captures route changes (navigation events) as breadcrumb logs. This requires one of the Crashlytics framework integrations (React Router, Next.js, or Angular) to report navigations. |
+|  [userActions()](./crashlytics.md#useractions) | <b>(EXPERIMENTAL)</b> Captures user actions (clicks) as breadcrumb logs. |
+|  [webVitals()](./crashlytics.md#webvitals) | <b>(EXPERIMENTAL)</b> Captures Core Web Vitals as breadcrumb logs. |
+|  [xhrRequests()](./crashlytics.md#xhrrequests) | <b>(EXPERIMENTAL)</b> Captures <code>XMLHttpRequest</code> requests as spans. |
 |  <b>function(crashlytics, ...)</b> |
 |  [flush(crashlytics)](./crashlytics.md#flush_16fdf66) | <b><i>(Public Preview)</i></b> Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching. |
 |  [log(crashlytics, message, attributes)](./crashlytics.md#log_5ba066c) | <b>(EXPERIMENTAL)</b> Queues a log message to be uploaded to the Firebase Crashlytics API. |
 |  [recordError(crashlytics, error, attributes)](./crashlytics.md#recorderror_71ca165) | <b><i>(Public Preview)</i></b> Queues an error to be uploaded to the Firebase Crashlytics API. |
+|  <b>function(options, ...)</b> |
+|  [breadcrumbs(options)](./crashlytics.md#breadcrumbs_74cad04) | <b>(EXPERIMENTAL)</b> Enables Crashlytics breadcrumb and trace telemetry collection when passed in [CrashlyticsOptions.features](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsfeatures)<!-- -->. The <code>capture</code> option selects which instrumentations Crashlytics runs automatically, such as OpenTelemetry spans (Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (navigation events, Web Vitals, user actions, and visibility lifecycle events). Captured telemetry is buffered in memory and exported when an error occurs. Pass [all()](./crashlytics.md#all) to enable all instrumentations, or <code>[]</code> to buffer only custom logs without automatic instrumentations. Only the instrumentations that are imported are included in the application bundle. |
 
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
+|  [BreadcrumbInstrumentation](./crashlytics.breadcrumbinstrumentation.md#breadcrumbinstrumentation_interface) | <b>(EXPERIMENTAL)</b> An opaque breadcrumb instrumentation object returned by instrumentation factory functions such as [webVitals()](./crashlytics.md#webvitals) or [fetchRequests()](./crashlytics.md#fetchrequests)<!-- -->. Pass these to [breadcrumbs()](./crashlytics.md#breadcrumbs_74cad04) to choose what Crashlytics captures automatically. |
 |  [Crashlytics](./crashlytics.crashlytics.md#crashlytics_interface) | <b><i>(Public Preview)</i></b> An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
-|  [CrashlyticsFeature](./crashlytics.crashlyticsfeature.md#crashlyticsfeature_interface) | <b>(EXPERIMENTAL)</b> An opaque feature plugin object returned by Crashlytics feature factory functions such as [breadcrumbs()](./crashlytics.md#breadcrumbs)<!-- -->. |
+|  [CrashlyticsFeature](./crashlytics.crashlyticsfeature.md#crashlyticsfeature_interface) | <b>(EXPERIMENTAL)</b> An opaque feature plugin object returned by Crashlytics feature factory functions such as [breadcrumbs()](./crashlytics.md#breadcrumbs_74cad04)<!-- -->. |
 |  [CrashlyticsOptions](./crashlytics.crashlyticsoptions.md#crashlyticsoptions_interface) | <b><i>(Public Preview)</i></b> Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
 
 ## function(app, ...)
@@ -71,32 +82,138 @@ const crashlytics = getCrashlytics(app);
 
 ## function()
 
-### breadcrumbs() {:#breadcrumbs}
+### all() {:#all}
 
-<b>(EXPERIMENTAL)</b> Enables Crashlytics breadcrumb and trace telemetry collection when passed in [CrashlyticsOptions.features](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsfeatures)<!-- -->.
-
-When enabled, Crashlytics collects OpenTelemetry spans (such as Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (such as navigation events, Web Vitals, user actions, and visibility lifecycle events), buffering them in memory and exporting them when an error occurs.
+<b>(EXPERIMENTAL)</b> Returns every available breadcrumb instrumentation, for use as the `capture` option of [breadcrumbs()](./crashlytics.md#breadcrumbs_74cad04)<!-- -->. Using this includes all instrumentations in the application bundle.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function breadcrumbs(): CrashlyticsFeature;
+export declare function all(): BreadcrumbInstrumentation[];
 ```
 <b>Returns:</b>
 
-[CrashlyticsFeature](./crashlytics.crashlyticsfeature.md#crashlyticsfeature_interface)
+[BreadcrumbInstrumentation](./crashlytics.breadcrumbinstrumentation.md#breadcrumbinstrumentation_interface)<!-- -->\[\]
 
 ### Example
 
 
 ```ts
-import { getCrashlytics, breadcrumbs } from 'firebase/crashlytics';
+import {
+  getCrashlytics,
+  breadcrumbs,
+  all
+} from 'firebase/crashlytics';
 
 const crashlytics = getCrashlytics(app, {
-  features: [breadcrumbs()]
+  features: [breadcrumbs({ capture: all() })]
 });
 
 ```
+
+### documentLoads() {:#documentloads}
+
+<b>(EXPERIMENTAL)</b> Captures document load timing as spans.
+
+<b>Signature:</b>
+
+```typescript
+export declare function documentLoads(): BreadcrumbInstrumentation;
+```
+<b>Returns:</b>
+
+[BreadcrumbInstrumentation](./crashlytics.breadcrumbinstrumentation.md#breadcrumbinstrumentation_interface)
+
+### fetchRequests() {:#fetchrequests}
+
+<b>(EXPERIMENTAL)</b> Captures `fetch` requests as spans.
+
+<b>Signature:</b>
+
+```typescript
+export declare function fetchRequests(): BreadcrumbInstrumentation;
+```
+<b>Returns:</b>
+
+[BreadcrumbInstrumentation](./crashlytics.breadcrumbinstrumentation.md#breadcrumbinstrumentation_interface)
+
+### lifecycleEvents() {:#lifecycleevents}
+
+<b>(EXPERIMENTAL)</b> Captures page lifecycle events (the page moving to the foreground or the background) as breadcrumb logs.
+
+<b>Signature:</b>
+
+```typescript
+export declare function lifecycleEvents(): BreadcrumbInstrumentation;
+```
+<b>Returns:</b>
+
+[BreadcrumbInstrumentation](./crashlytics.breadcrumbinstrumentation.md#breadcrumbinstrumentation_interface)
+
+### navigationTimings() {:#navigationtimings}
+
+<b>(EXPERIMENTAL)</b> Captures browser navigation timing for page loads as breadcrumb logs.
+
+<b>Signature:</b>
+
+```typescript
+export declare function navigationTimings(): BreadcrumbInstrumentation;
+```
+<b>Returns:</b>
+
+[BreadcrumbInstrumentation](./crashlytics.breadcrumbinstrumentation.md#breadcrumbinstrumentation_interface)
+
+### routeChanges() {:#routechanges}
+
+<b>(EXPERIMENTAL)</b> Captures route changes (navigation events) as breadcrumb logs. This requires one of the Crashlytics framework integrations (React Router, Next.js, or Angular) to report navigations.
+
+<b>Signature:</b>
+
+```typescript
+export declare function routeChanges(): BreadcrumbInstrumentation;
+```
+<b>Returns:</b>
+
+[BreadcrumbInstrumentation](./crashlytics.breadcrumbinstrumentation.md#breadcrumbinstrumentation_interface)
+
+### userActions() {:#useractions}
+
+<b>(EXPERIMENTAL)</b> Captures user actions (clicks) as breadcrumb logs.
+
+<b>Signature:</b>
+
+```typescript
+export declare function userActions(): BreadcrumbInstrumentation;
+```
+<b>Returns:</b>
+
+[BreadcrumbInstrumentation](./crashlytics.breadcrumbinstrumentation.md#breadcrumbinstrumentation_interface)
+
+### webVitals() {:#webvitals}
+
+<b>(EXPERIMENTAL)</b> Captures Core Web Vitals as breadcrumb logs.
+
+<b>Signature:</b>
+
+```typescript
+export declare function webVitals(): BreadcrumbInstrumentation;
+```
+<b>Returns:</b>
+
+[BreadcrumbInstrumentation](./crashlytics.breadcrumbinstrumentation.md#breadcrumbinstrumentation_interface)
+
+### xhrRequests() {:#xhrrequests}
+
+<b>(EXPERIMENTAL)</b> Captures `XMLHttpRequest` requests as spans.
+
+<b>Signature:</b>
+
+```typescript
+export declare function xhrRequests(): BreadcrumbInstrumentation;
+```
+<b>Returns:</b>
+
+[BreadcrumbInstrumentation](./crashlytics.breadcrumbinstrumentation.md#breadcrumbinstrumentation_interface)
 
 ## function(crashlytics, ...)
 
@@ -171,4 +288,45 @@ export declare function recordError(crashlytics: Crashlytics, error: unknown, at
 <b>Returns:</b>
 
 void
+
+## function(options, ...)
+
+### breadcrumbs(options) {:#breadcrumbs_74cad04}
+
+<b>(EXPERIMENTAL)</b> Enables Crashlytics breadcrumb and trace telemetry collection when passed in [CrashlyticsOptions.features](./crashlytics.crashlyticsoptions.md#crashlyticsoptionsfeatures)<!-- -->. The `capture` option selects which instrumentations Crashlytics runs automatically, such as OpenTelemetry spans (Fetch, XMLHttpRequest, and Document Load) and breadcrumb logs (navigation events, Web Vitals, user actions, and visibility lifecycle events). Captured telemetry is buffered in memory and exported when an error occurs. Pass [all()](./crashlytics.md#all) to enable all instrumentations, or `[]` to buffer only custom logs without automatic instrumentations. Only the instrumentations that are imported are included in the application bundle.
+
+<b>Signature:</b>
+
+```typescript
+export declare function breadcrumbs(options: {
+    capture: BreadcrumbInstrumentation[];
+}): CrashlyticsFeature;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | { capture: [BreadcrumbInstrumentation](./crashlytics.breadcrumbinstrumentation.md#breadcrumbinstrumentation_interface)<!-- -->\[\]; } | Configuration for the breadcrumbs feature. <code>capture</code> is the list of instrumentations to enable. |
+
+<b>Returns:</b>
+
+[CrashlyticsFeature](./crashlytics.crashlyticsfeature.md#crashlyticsfeature_interface)
+
+### Example
+
+
+```ts
+import {
+  getCrashlytics,
+  breadcrumbs,
+  webVitals,
+  fetchRequests
+} from 'firebase/crashlytics';
+
+const crashlytics = getCrashlytics(app, {
+  features: [breadcrumbs({ capture: [webVitals(), fetchRequests()] })]
+});
+
+```
 

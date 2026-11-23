@@ -43,7 +43,9 @@ describe('CrashlyticsService', () => {
       const unsubscribeSpy = vi.fn();
       const loggerShutdownStub = vi.fn().mockResolvedValue(undefined);
       const tracingShutdownStub = vi.fn().mockResolvedValue(undefined);
-      const feature = breadcrumbs() as CrashlyticsFeatureInternal;
+      const feature = breadcrumbs({
+        capture: []
+      }) as CrashlyticsFeatureInternal;
       const unregisterInstrumentationsSpy = vi.spyOn(
         feature,
         'unregisterInstrumentations'

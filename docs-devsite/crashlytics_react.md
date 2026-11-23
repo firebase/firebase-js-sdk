@@ -21,8 +21,9 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Interface | Description |
 |  --- | --- |
+|  [BreadcrumbInstrumentation](./crashlytics_react.breadcrumbinstrumentation.md#breadcrumbinstrumentation_interface) | <b>(EXPERIMENTAL)</b> An opaque breadcrumb instrumentation object returned by instrumentation factory functions such as [webVitals()](./crashlytics.md#webvitals) or [fetchRequests()](./crashlytics.md#fetchrequests)<!-- -->. Pass these to [breadcrumbs()](./crashlytics.md#breadcrumbs_74cad04) to choose what Crashlytics captures automatically. |
 |  [Crashlytics](./crashlytics_react.crashlytics.md#crashlytics_interface) | <b><i>(Public Preview)</i></b> An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
-|  [CrashlyticsFeature](./crashlytics_react.crashlyticsfeature.md#crashlyticsfeature_interface) | <b>(EXPERIMENTAL)</b> An opaque feature plugin object returned by Crashlytics feature factory functions such as [breadcrumbs()](./crashlytics.md#breadcrumbs)<!-- -->. |
+|  [CrashlyticsFeature](./crashlytics_react.crashlyticsfeature.md#crashlyticsfeature_interface) | <b>(EXPERIMENTAL)</b> An opaque feature plugin object returned by Crashlytics feature factory functions such as [breadcrumbs()](./crashlytics.md#breadcrumbs_74cad04)<!-- -->. |
 |  [CrashlyticsOptions](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptions_interface) | <b><i>(Public Preview)</i></b> Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics.md#getcrashlytics_a9d22a1)<!-- -->. |
 
 ## function({ firebaseApp, crashlyticsOptions }, ...)
