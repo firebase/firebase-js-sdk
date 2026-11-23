@@ -11,17 +11,17 @@ import { FirebaseError } from '@firebase/util';
 import { Provider } from '@firebase/component';
 
 // @public
-export interface Builder<T, ThrowOnError extends boolean = false> extends PromiseLike<ThrowOnError extends true ? OperationSuccess<T> : OperationResult<T>> {
+export interface Builder<T, out Method = unknown, ThrowOnError extends boolean = false> extends PromiseLike<ThrowOnError extends true ? OperationSuccess<T> : OperationResult<T>> {
     overrideTypes<NewResult, Options extends {
         merge?: boolean | undefined;
     } = {
         merge: true;
-    }>(): Builder<IsValidResultOverride<T, NewResult, false, false> extends true ? ContainsNull<T> extends true ? MergePartialResult<NewResult, NonNullable<T>, Options> | null : MergePartialResult<NewResult, T, Options> : CheckMatchingArrayTypes<T, NewResult>, ThrowOnError>;
+    }>(): Builder<IsValidResultOverride<T, NewResult, false, false> extends true ? ContainsNull<T> extends true ? MergePartialResult<NewResult, NonNullable<T>, Options> | null : MergePartialResult<NewResult, T, Options> : CheckMatchingArrayTypes<T, NewResult>, Method, ThrowOnError>;
     retry(enabled: boolean): this;
-    returns<NewResult>(): Builder<CheckMatchingArrayTypes<T, NewResult>, ThrowOnError>;
+    returns<NewResult>(): Builder<CheckMatchingArrayTypes<T, NewResult>, Method, ThrowOnError>;
     setHeader(name: string, value: string): this;
     stripNulls(): this;
-    throwOnError(): Builder<T, true>;
+    throwOnError(): Builder<T, Method, true>;
 }
 
 // @public
@@ -336,20 +336,20 @@ export type Simplify<T> = T extends object ? {
 export function terminate(sql: FirebaseSql): Promise<void>;
 
 // @public
-export interface TransformBuilder<Result$1, Method = unknown, ThrowOnError extends boolean = false> extends Builder<Result$1, ThrowOnError> {
+export interface TransformBuilder<Result$1, Method = unknown, ThrowOnError extends boolean = false> extends Builder<Result$1, Method, ThrowOnError> {
     abortSignal(signal: AbortSignal): this;
-    csv(): Builder<string, ThrowOnError>;
-    explain(options?: Readonly<TransformExplainOptions> | undefined): Builder<Array<Record<string, unknown>>, ThrowOnError> | Builder<string, ThrowOnError>;
-    geojson(): Builder<Record<string, unknown>, ThrowOnError>;
+    csv(): Builder<string, Method, ThrowOnError>;
+    explain(options?: Readonly<TransformExplainOptions> | undefined): Builder<Array<Record<string, unknown>>, Method, ThrowOnError> | Builder<string, Method, ThrowOnError>;
+    geojson(): Builder<Record<string, unknown>, Method, ThrowOnError>;
     limit(rows: number, options?: Readonly<TransformLimitOptions> | undefined): this;
     maxAffected(rows: number): Method extends 'PATCH' | 'DELETE' | 'RPC' ? this : InvalidMethodError<'maxAffected method only available on update or delete'>;
-    maybeSingle<ResultOne = unknown extends Result$1 ? Record<string, unknown> : Result$1 extends ReadonlyArray<infer R> ? R : never>(): Builder<ResultOne | null, ThrowOnError>;
+    maybeSingle<ResultOne = unknown extends Result$1 ? Record<string, unknown> : Result$1 extends ReadonlyArray<infer R> ? R : never>(): Builder<ResultOne | null, Method, ThrowOnError>;
     order(column: string, options?: Readonly<TransformOrderOptions> | undefined): this;
     range(from: number, to: number, options?: Readonly<TransformRangeOptions> | undefined): this;
     returns<NewResult>(): TransformBuilder<CheckMatchingArrayTypes<Result$1, NewResult>, Method, ThrowOnError>;
     rollback(): this;
     select(columns?: string | undefined): FilterBuilder<Method extends 'RPC' ? unknown extends Result$1 ? Result$1 : Result$1 extends readonly unknown[] ? Array<Record<string, unknown>> : Record<string, unknown> : Array<Record<string, unknown>>, Method, ThrowOnError>;
-    single<ResultOne = unknown extends Result$1 ? Record<string, unknown> : Result$1 extends ReadonlyArray<infer R> ? R : never>(): Builder<ResultOne, ThrowOnError>;
+    single<ResultOne = unknown extends Result$1 ? Record<string, unknown> : Result$1 extends ReadonlyArray<infer R> ? R : never>(): Builder<ResultOne, Method, ThrowOnError>;
     throwOnError(): TransformBuilder<Result$1, Method, true>;
 }
 

@@ -500,6 +500,7 @@ export type MergePartialResult<NewResult, Result$1, Options> = Options extends {
  * transform methods are no longer available—only `Builder` methods and `await` remain.
  *
  * @typeParam T - Expected resolved `data` payload type.
+ * @typeParam Method - HTTP/RPC operation discriminator (`'GET'`, `'POST'`, `'PATCH'`, `'DELETE'`, `'RPC'`). Defaults to `unknown`.
  * @typeParam ThrowOnError - When `false` (default), resolves to {@link OperationResult}; when `true`, resolves to {@link OperationSuccess} or rejects with {@link FirebaseSqlError}.
  *
  * @example
@@ -529,6 +530,7 @@ export type MergePartialResult<NewResult, Result$1, Options> = Options extends {
  */
 export interface Builder<
   T,
+  out Method = unknown,
   ThrowOnError extends boolean = false
 > extends PromiseLike<
   ThrowOnError extends true ? OperationSuccess<T> : OperationResult<T>
@@ -580,7 +582,7 @@ export interface Builder<
    *
    * @public
    */
-  throwOnError(): Builder<T, true>;
+  throwOnError(): Builder<T, Method, true>;
 
   /**
    * Instructs PostgREST to omit keys whose value is `null` from returned JSON row objects (`Accept: application/vnd.pgrst.array+json;nulls=stripped` or `application/vnd.pgrst.object+json;nulls=stripped`).
@@ -730,7 +732,7 @@ export interface Builder<
    * When called after `.maybeSingle()`, `| null` is preserved automatically (`MyRow | null`).
    *
    * Behavior and side effects: compile-time type cast only; performs no network I/O or runtime
-   * schema parsing, and preserves `ThrowOnError`.
+   * schema parsing, and preserves `Method` and `ThrowOnError`.
    *
    * @typeParam NewResult - Full replacement TypeScript type matching the array/object cardinality of `T` (pass `MyRow` without `| null` after `.maybeSingle()`).
    * @returns This {@link Builder} with `data` statically typed as `CheckMatchingArrayTypes<T, NewResult>`.
@@ -774,6 +776,7 @@ export interface Builder<
    */
   returns<NewResult>(): Builder<
     CheckMatchingArrayTypes<T, NewResult>,
+    Method,
     ThrowOnError
   >;
 
@@ -814,7 +817,7 @@ export interface Builder<
    * direct {@link FirebaseSql.rpc | sql.rpc()} chains where `T` is `unknown`, `{ merge: true }`
    * short-circuits directly to `NewResult`.
    *
-   * Behavior and side effects: compile-time type cast only; performs no network I/O or runtime schema parsing.
+   * Behavior and side effects: compile-time type cast only; performs no network I/O or runtime schema parsing, and preserves `Method` and `ThrowOnError`.
    *
    * @typeParam NewResult - Partial field override type (with default `{ merge: true }`) or full target type (with `{ merge: false }`).
    * @typeParam Options - `{ merge?: boolean }` controlling whether `NewResult` is deep-merged with `T` (`{ merge: true }`, default when `Options` is omitted) or replaces `T` (any other type, such as `{ merge: false }`).
@@ -878,6 +881,7 @@ export interface Builder<
         ? MergePartialResult<NewResult, NonNullable<T>, Options> | null
         : MergePartialResult<NewResult, T, Options>
       : CheckMatchingArrayTypes<T, NewResult>,
+    Method,
     ThrowOnError
   >;
 }

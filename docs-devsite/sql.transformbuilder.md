@@ -19,9 +19,9 @@ Note that `limit()` and `range()` both set the `limit` URL parameter on the targ
 <b>Signature:</b>
 
 ```typescript
-export interface TransformBuilder<Result$1, Method = unknown, ThrowOnError extends boolean = false> extends Builder<Result$1, ThrowOnError> 
+export interface TransformBuilder<Result$1, Method = unknown, ThrowOnError extends boolean = false> extends Builder<Result$1, Method, ThrowOnError> 
 ```
-<b>Extends:</b> [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;Result$1, ThrowOnError&gt;
+<b>Extends:</b> [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;Result$1, Method, ThrowOnError&gt;
 
 ## Methods
 
@@ -90,16 +90,16 @@ When to use: exporting `select()` results (or write results when `.select(...)` 
 
 Do not use with [.stripNulls()](./sql.builder.md#builderstripnulls)<!-- -->—calling `.csv().stripNulls()` throws a synchronous `Error('stripNulls() cannot be used with csv()')`<!-- -->.
 
-Behavior and side effects: builder progression is `TransformBuilder -> Builder<string, ThrowOnError>`<!-- -->. Terminal format modifier—chain all filters, `order()`<!-- -->, `limit()`<!-- -->, and (for writes) `.select(...)` before `.csv()`<!-- -->. On writes without `.select(...)` before `.csv()`<!-- -->, PostgREST returns an empty body and `res.data` resolves to `null` at runtime despite the `string` type.
+Behavior and side effects: builder progression is `TransformBuilder -> Builder<string, Method, ThrowOnError>`<!-- -->. Terminal format modifier—chain all filters, `order()`<!-- -->, `limit()`<!-- -->, and (for writes) `.select(...)` before `.csv()`<!-- -->. On writes without `.select(...)` before `.csv()`<!-- -->, PostgREST returns an empty body and `res.data` resolves to `null` at runtime despite the `string` type.
 
 <b>Signature:</b>
 
 ```typescript
-csv(): Builder<string, ThrowOnError>;
+csv(): Builder<string, Method, ThrowOnError>;
 ```
 <b>Returns:</b>
 
-[Builder](./sql.builder.md#builder_interface)<!-- -->&lt;string, ThrowOnError&gt;
+[Builder](./sql.builder.md#builder_interface)<!-- -->&lt;string, Method, ThrowOnError&gt;
 
 A [Builder](./sql.builder.md#builder_interface) whose `data` resolves to a `string` containing the CSV document (or `null` at runtime if the response body is empty).
 
@@ -127,12 +127,12 @@ Requests the PostgreSQL `EXPLAIN` execution plan for this query instead of row d
 
 Preconditions: PostgREST's `db-plan-enabled` server configuration must be enabled; otherwise the server rejects the `application/vnd.pgrst.plan+*` media type with HTTP `406`<!-- -->. Passing `{ analyze: true }` executes the underlying SQL statement—chaining [.rollback()](./sql.transformbuilder.md#transformbuilderrollback) before `.explain({ analyze: true })` rolls back `insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, or `delete` statements only if the backend's PostgREST `db-tx-end` configuration permits `Prefer: tx=rollback` overrides (otherwise the write commits).
 
-Behavior and side effects: builder progression is `TransformBuilder -> Builder<Array<Record<string, unknown>>, ThrowOnError> | Builder<string, ThrowOnError>`<!-- -->. Terminal format modifier—place at the end of your filter/transform chain. Do not chain `.overrideTypes()` or `.returns()` after `.explain()`<!-- -->: because `explain()` returns a union of array and `string` builders, any array or non-array type override fails compile-time cardinality checking on the opposite union branch. `await` `.explain(...)` directly and narrow `res.data` at runtime with `typeof res.data === 'string'` (`'text'` format) or `Array.isArray(res.data)` (`'json'` format).
+Behavior and side effects: builder progression is `TransformBuilder -> Builder<Array<Record<string, unknown>>, Method, ThrowOnError> | Builder<string, Method, ThrowOnError>`<!-- -->. Terminal format modifier—place at the end of your filter/transform chain. Do not chain `.overrideTypes()` or `.returns()` after `.explain()`<!-- -->: because `explain()` returns a union of array and `string` builders, any array or non-array type override fails compile-time cardinality checking on the opposite union branch. `await` `.explain(...)` directly and narrow `res.data` at runtime with `typeof res.data === 'string'` (`'text'` format) or `Array.isArray(res.data)` (`'json'` format).
 
 <b>Signature:</b>
 
 ```typescript
-explain(options?: Readonly<TransformExplainOptions> | undefined): Builder<Array<Record<string, unknown>>, ThrowOnError> | Builder<string, ThrowOnError>;
+explain(options?: Readonly<TransformExplainOptions> | undefined): Builder<Array<Record<string, unknown>>, Method, ThrowOnError> | Builder<string, Method, ThrowOnError>;
 ```
 
 #### Parameters
@@ -143,7 +143,7 @@ explain(options?: Readonly<TransformExplainOptions> | undefined): Builder<Array<
 
 <b>Returns:</b>
 
-[Builder](./sql.builder.md#builder_interface)<!-- -->&lt;Array&lt;Record&lt;string, unknown&gt;&gt;, ThrowOnError&gt; \| [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;string, ThrowOnError&gt;
+[Builder](./sql.builder.md#builder_interface)<!-- -->&lt;Array&lt;Record&lt;string, unknown&gt;&gt;, Method, ThrowOnError&gt; \| [Builder](./sql.builder.md#builder_interface)<!-- -->&lt;string, Method, ThrowOnError&gt;
 
 A [Builder](./sql.builder.md#builder_interface) union resolving `data` to plan text (`string`<!-- -->) or JSON plan nodes (`Array<Record<string, unknown>>`<!-- -->).
 
@@ -170,16 +170,16 @@ Requests the response payload formatted as a GeoJSON `FeatureCollection` object 
 
 Preconditions: requires PostGIS on the PostgreSQL database and at least one `geometry` or `geography` column (such as `venues.coords`<!-- -->) in the selected output columns; otherwise PostgREST returns an error.
 
-Behavior and side effects: builder progression is `TransformBuilder -> Builder<Record<string, unknown>, ThrowOnError>`<!-- -->. Terminal format modifier—apply all filters, `order()`<!-- -->, `limit()`<!-- -->, and (for writes) `.select(...)` before `.geojson()` (writes without `.select(...)` return an empty body where `res.data` is `null` at runtime). Follow with `.returns<MyFeatureCollection>()` if you have a typed GeoJSON interface.
+Behavior and side effects: builder progression is `TransformBuilder -> Builder<Record<string, unknown>, Method, ThrowOnError>`<!-- -->. Terminal format modifier—apply all filters, `order()`<!-- -->, `limit()`<!-- -->, and (for writes) `.select(...)` before `.geojson()` (writes without `.select(...)` return an empty body where `res.data` is `null` at runtime). Follow with `.returns<MyFeatureCollection>()` if you have a typed GeoJSON interface.
 
 <b>Signature:</b>
 
 ```typescript
-geojson(): Builder<Record<string, unknown>, ThrowOnError>;
+geojson(): Builder<Record<string, unknown>, Method, ThrowOnError>;
 ```
 <b>Returns:</b>
 
-[Builder](./sql.builder.md#builder_interface)<!-- -->&lt;Record&lt;string, unknown&gt;, ThrowOnError&gt;
+[Builder](./sql.builder.md#builder_interface)<!-- -->&lt;Record&lt;string, unknown&gt;, Method, ThrowOnError&gt;
 
 A [Builder](./sql.builder.md#builder_interface) resolving `data` to a GeoJSON `Record<string, unknown>` object (or `null` at runtime if the response body is empty).
 
@@ -295,18 +295,18 @@ When to use: read-only `select()` lookups by unique key where `0` matching rows 
 
 Do not use to guard writes (`insert`<!-- -->, `upsert`<!-- -->, `update`<!-- -->, `delete`<!-- -->): `maybeSingle()` sets no `Accept` header and no row `limit`<!-- -->, and runs its cardinality check client-side after the server has already returned `2xx` and committed changes to every matched row. Use [.maxAffected(1)](./sql.transformbuilder.md#transformbuildermaxaffected) (for `update()` and `delete()` on PostgREST v13+) or [TransformBuilder.single()](./sql.transformbuilder.md#transformbuildersingle) to enforce single-row writes on the server.
 
-Behavior and side effects: builder progression is `TransformBuilder<R[]> -> Builder<R | null, ThrowOnError>`<!-- -->. Terminal cardinality modifier—apply all filters and `.select()` before `.maybeSingle()`<!-- -->. Follow with `.returns<MyRow>()` (pass `MyRow` without `| null` or `[]`<!-- -->; `returns` automatically preserves `| null` on `result.data`<!-- -->). Sends no `limit`<!-- -->, so all matching rows are transferred and parsed before checking `data.length > 1`<!-- -->; chain `.limit(2)` before `.maybeSingle()` on read queries to bound network transfer while still detecting duplicates.
+Behavior and side effects: builder progression is `TransformBuilder<R[], Method, ThrowOnError> -> Builder<R | null, Method, ThrowOnError>`<!-- -->. Terminal cardinality modifier—apply all filters and `.select()` before `.maybeSingle()`<!-- -->. Follow with `.returns<MyRow>()` (pass `MyRow` without `| null` or `[]`<!-- -->; `returns` automatically preserves `| null` on `result.data`<!-- -->). Sends no `limit`<!-- -->, so all matching rows are transferred and parsed before checking `data.length > 1`<!-- -->; chain `.limit(2)` before `.maybeSingle()` on read queries to bound network transfer while still detecting duplicates.
 
 Error handling: matching `2` or more rows triggers a client-side check after the server responded `2xx`<!-- -->, resolving to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) with `res.status === 406`<!-- -->, `res.error.category === 'sql-postgrest'`<!-- -->, and `res.error.code === 'PGRST116'`<!-- -->. Filter on a `UNIQUE` column or add `.limit(2)` to bound transfer while keeping duplicate detection (adding `.limit(1)` disables duplicate detection and returns an arbitrary row).
 
 <b>Signature:</b>
 
 ```typescript
-maybeSingle<ResultOne = unknown extends Result$1 ? Record<string, unknown> : Result$1 extends ReadonlyArray<infer R> ? R : never>(): Builder<ResultOne | null, ThrowOnError>;
+maybeSingle<ResultOne = unknown extends Result$1 ? Record<string, unknown> : Result$1 extends ReadonlyArray<infer R> ? R : never>(): Builder<ResultOne | null, Method, ThrowOnError>;
 ```
 <b>Returns:</b>
 
-[Builder](./sql.builder.md#builder_interface)<!-- -->&lt;ResultOne \| null, ThrowOnError&gt;
+[Builder](./sql.builder.md#builder_interface)<!-- -->&lt;ResultOne \| null, Method, ThrowOnError&gt;
 
 A [Builder](./sql.builder.md#builder_interface) resolving `data` as `ResultOne | null`<!-- -->.
 
@@ -567,18 +567,18 @@ When to use: primary-key or unique-key lookups (`eq('id', id)`<!-- -->) or singl
 
 Do not use on optional read lookups that may legitimately match `0` rows—use [TransformBuilder.maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle) instead so `0` rows resolves to `data: null` rather than HTTP `406` `'PGRST116'`<!-- -->.
 
-Behavior and side effects: builder progression is `TransformBuilder<R[]> -> Builder<R, ThrowOnError>`<!-- -->. Terminal cardinality modifier—apply all filters, `.select()`<!-- -->, and `.order()` before `.single()`<!-- -->. Follow with `.returns<MyRow>()` (passing a single object type `MyRow`<!-- -->, not `MyRow[]`<!-- -->) to assign a full row type, or `.overrideTypes<PartialRow>()` to partially refine fields on an already-typed row.
+Behavior and side effects: builder progression is `TransformBuilder<R[], Method, ThrowOnError> -> Builder<R, Method, ThrowOnError>`<!-- -->. Terminal cardinality modifier—apply all filters, `.select()`<!-- -->, and `.order()` before `.single()`<!-- -->. Follow with `.returns<MyRow>()` (passing a single object type `MyRow`<!-- -->, not `MyRow[]`<!-- -->) to assign a full row type, or `.overrideTypes<PartialRow>()` to partially refine fields on an already-typed row.
 
 Error handling: `0` rows or more than `1` row resolves to [OperationFailure](./sql.operationfailure.md#operationfailure_interface) with `res.status === 406`<!-- -->, `res.error.category === 'sql-postgrest'`<!-- -->, and `res.error.code === 'PGRST116'`<!-- -->. Switch to [TransformBuilder.maybeSingle()](./sql.transformbuilder.md#transformbuildermaybesingle) on reads if `0` rows is expected, or add a unique-key filter if multiple rows matched (do not add `.limit(1)` if duplicates should be detected as errors, because `.limit(1)` suppresses duplicate detection and returns an arbitrary row).
 
 <b>Signature:</b>
 
 ```typescript
-single<ResultOne = unknown extends Result$1 ? Record<string, unknown> : Result$1 extends ReadonlyArray<infer R> ? R : never>(): Builder<ResultOne, ThrowOnError>;
+single<ResultOne = unknown extends Result$1 ? Record<string, unknown> : Result$1 extends ReadonlyArray<infer R> ? R : never>(): Builder<ResultOne, Method, ThrowOnError>;
 ```
 <b>Returns:</b>
 
-[Builder](./sql.builder.md#builder_interface)<!-- -->&lt;ResultOne, ThrowOnError&gt;
+[Builder](./sql.builder.md#builder_interface)<!-- -->&lt;ResultOne, Method, ThrowOnError&gt;
 
 A [Builder](./sql.builder.md#builder_interface) resolving `data` as a single object `ResultOne`<!-- -->.
 

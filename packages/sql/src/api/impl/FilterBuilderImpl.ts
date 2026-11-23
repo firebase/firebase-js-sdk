@@ -151,6 +151,7 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
         ? MergePartialResult<NewResult, NonNullable<T>, Options> | null
         : MergePartialResult<NewResult, T, Options>
       : CheckMatchingArrayTypes<T, NewResult>,
+    Method,
     false
   > {
     void this._delegate.overrideTypes();
@@ -160,6 +161,7 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
           ? MergePartialResult<NewResult, NonNullable<T>, Options> | null
           : MergePartialResult<NewResult, T, Options>
         : CheckMatchingArrayTypes<T, NewResult>,
+      Method,
       false
     >;
   }
@@ -227,9 +229,9 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
       : T extends ReadonlyArray<infer R>
         ? R
         : never
-  >(): Builder<ResultOne, false> {
+  >(): Builder<ResultOne, Method, false> {
     void this._delegate.single();
-    return this as unknown as Builder<ResultOne, false>;
+    return this as unknown as Builder<ResultOne, Method, false>;
   }
 
   maybeSingle<
@@ -238,27 +240,30 @@ export class FilterBuilderImpl<T, Method = unknown> implements FilterBuilder<
       : T extends ReadonlyArray<infer R>
         ? R
         : never
-  >(): Builder<ResultOne | null, false> {
+  >(): Builder<ResultOne | null, Method, false> {
     void this._delegate.maybeSingle();
-    return this as unknown as Builder<ResultOne | null, false>;
+    return this as unknown as Builder<ResultOne | null, Method, false>;
   }
 
-  csv(): Builder<string, false> {
+  csv(): Builder<string, Method, false> {
     void this._delegate.csv();
-    return this as unknown as Builder<string, false>;
+    return this as unknown as Builder<string, Method, false>;
   }
 
-  geojson(): Builder<Record<string, unknown>, false> {
+  geojson(): Builder<Record<string, unknown>, Method, false> {
     void this._delegate.geojson();
-    return this as unknown as Builder<Record<string, unknown>, false>;
+    return this as unknown as Builder<Record<string, unknown>, Method, false>;
   }
 
   explain(
     options?: Readonly<TransformExplainOptions> | undefined
-  ): Builder<Array<Record<string, unknown>>, false> | Builder<string, false> {
+  ):
+    | Builder<Array<Record<string, unknown>>, Method, false>
+    | Builder<string, Method, false> {
     void this._delegate.explain(options);
     return this as unknown as
-      Builder<Array<Record<string, unknown>>, false> | Builder<string, false>;
+      | Builder<Array<Record<string, unknown>>, Method, false>
+      | Builder<string, Method, false>;
   }
 
   rollback(): this {

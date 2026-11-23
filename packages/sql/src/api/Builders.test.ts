@@ -808,6 +808,7 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
 
       const partialOverrideBuilder: Builder<
         Array<{ id: number; email: string; metadata: { role: string } }>,
+        'GET',
         false
       > = qb
         .select()
@@ -819,14 +820,12 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
         expect(partialRes.data[0].metadata.role).toBe('admin');
       }
 
-      const maybeSingleReturnsBuilder: Builder<UserRow | null, false> = qb
-        .select()
-        .maybeSingle()
-        .returns<UserRow>();
+      const maybeSingleReturnsBuilder: Builder<UserRow | null, 'GET', false> =
+        qb.select().maybeSingle().returns<UserRow>();
       const maybeSingleRes = await maybeSingleReturnsBuilder;
       expect(maybeSingleRes.success).toBe(true);
 
-      const rpcTypedBuilder: Builder<UserRow[], false> = h
+      const rpcTypedBuilder: Builder<UserRow[], 'RPC', false> = h
         .rpcBuilder('list_users')
         .returns<UserRow[]>();
       const rpcRes = await rpcTypedBuilder;
@@ -837,11 +836,107 @@ describe('QueryBuilderImpl and FilterBuilderImpl', () => {
         expect(rowsFromRpc[0].id).toBe(1);
       }
 
-      const replacedBuilder: Builder<UserRow[], false> = qb
+      const replacedBuilder: Builder<UserRow[], 'GET', false> = qb
         .select()
         .overrideTypes<UserRow[], { merge: false }>();
       const replacedRes = await replacedBuilder;
       expect(replacedRes.success).toBe(true);
+    });
+
+    it('preserves the Method type parameter on Builder across terminal transforms', () => {
+      const h = createHarness();
+      const qb = h.queryBuilder('users');
+
+      // Method propagates through every TransformBuilder -> Builder and Builder -> Builder transition
+      const getSingle: Builder<Record<string, unknown>, 'GET'> = qb
+        .select()
+        .single();
+      const getSingleThrow: Builder<Record<string, unknown>, 'GET', true> = qb
+        .select()
+        .single()
+        .throwOnError();
+      const getSingleReturns: Builder<{ id: number }, 'GET'> = qb
+        .select()
+        .single()
+        .returns<{ id: number }>();
+      const getMaybeSingle: Builder<Record<string, unknown> | null, 'GET'> = qb
+        .select()
+        .maybeSingle();
+      const getCsv: Builder<string, 'GET'> = qb.select().csv();
+      const getGeojson: Builder<Record<string, unknown>, 'GET'> = qb
+        .select()
+        .geojson();
+      const getExplain:
+        | Builder<Array<Record<string, unknown>>, 'GET'>
+        | Builder<string, 'GET'> = qb.select().explain();
+      const postSingle: Builder<Record<string, unknown>, 'POST'> = qb
+        .insert({ name: 'Ada' })
+        .select()
+        .single();
+      const upsertOverride: Builder<Array<{ id: number }>, 'POST'> = qb
+        .upsert({ name: 'Ada' })
+        .select()
+        .overrideTypes<Array<{ id: number }>, { merge: false }>();
+      const patchSingle: Builder<Record<string, unknown>, 'PATCH'> = qb
+        .update({ name: 'Ada' })
+        .select()
+        .single();
+      const deleteSingle: Builder<Record<string, unknown>, 'DELETE'> = qb
+        .delete()
+        .select()
+        .single();
+      const rpcSingle: Builder<Record<string, unknown>, 'RPC'> = h
+        .rpcBuilder('get_user')
+        .single();
+
+      // Default Method = unknown covariantly accepts any specific HTTP/RPC method
+      const acceptsAnyMethod = <T>(_builder: Builder<T>): void => {};
+      acceptsAnyMethod(getSingle);
+      acceptsAnyMethod(postSingle);
+      acceptsAnyMethod(patchSingle);
+      acceptsAnyMethod(deleteSingle);
+      acceptsAnyMethod(rpcSingle);
+
+      // Union Method constrains callers to matching verbs while rejecting mismatched or unknown verbs
+      const acceptsReadOnly = <T, ThrowOnError extends boolean = false>(
+        _builder: Builder<T, 'GET' | 'RPC', ThrowOnError>
+      ): void => {};
+      acceptsReadOnly(getSingle);
+      acceptsReadOnly(getSingleThrow);
+      acceptsReadOnly(getMaybeSingle);
+      acceptsReadOnly(getCsv);
+      acceptsReadOnly(getGeojson);
+      acceptsReadOnly(getSingleReturns);
+      acceptsReadOnly(rpcSingle);
+
+      // @ts-expect-error POST builder is not assignable to GET | RPC
+      acceptsReadOnly(postSingle);
+      // @ts-expect-error POST throwOnError builder is not assignable to GET | RPC
+      acceptsReadOnly(postSingle.throwOnError());
+      // @ts-expect-error POST builder after overrideTypes is not assignable to GET | RPC
+      acceptsReadOnly(upsertOverride);
+      // @ts-expect-error PATCH builder is not assignable to GET | RPC
+      acceptsReadOnly(patchSingle);
+      // @ts-expect-error DELETE builder is not assignable to GET | RPC
+      acceptsReadOnly(deleteSingle);
+      const untypedMethodBuilder: Builder<Record<string, unknown>> = getSingle;
+      // @ts-expect-error default unknown Method is not assignable to GET | RPC
+      acceptsReadOnly(untypedMethodBuilder);
+
+      expect([
+        getSingle,
+        getSingleThrow,
+        getSingleReturns,
+        getMaybeSingle,
+        getCsv,
+        getGeojson,
+        getExplain,
+        postSingle,
+        upsertOverride,
+        patchSingle,
+        deleteSingle,
+        rpcSingle
+      ]).toHaveLength(12);
     });
 
     it('preserves PostgREST 404 semantics (empty -> 204, [] -> 200, JSON error -> mapped failure)', async () => {

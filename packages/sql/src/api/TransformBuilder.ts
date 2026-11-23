@@ -277,7 +277,7 @@ export interface TransformBuilder<
   Result$1,
   Method = unknown,
   ThrowOnError extends boolean = false
-> extends Builder<Result$1, ThrowOnError> {
+> extends Builder<Result$1, Method, ThrowOnError> {
   /**
    * Switches this builder into throwing mode so awaiting it rejects with {@link FirebaseSqlError}
    * on failure while preserving {@link TransformBuilder} chaining. See {@link Builder.throwOnError}.
@@ -519,7 +519,7 @@ export interface TransformBuilder<
    * HTTP `406` `'PGRST116'`.
    *
    * Behavior and side effects: builder progression is
-   * `TransformBuilder<R[]> -> Builder<R, ThrowOnError>`. Terminal cardinality modifier—apply all
+   * `TransformBuilder<R[], Method, ThrowOnError> -> Builder<R, Method, ThrowOnError>`. Terminal cardinality modifier—apply all
    * filters, `.select()`, and `.order()` before `.single()`. Follow with `.returns<MyRow>()`
    * (passing a single object type `MyRow`, not `MyRow[]`) to assign a full row type, or
    * `.overrideTypes<PartialRow>()` to partially refine fields on an already-typed row.
@@ -560,7 +560,7 @@ export interface TransformBuilder<
       : Result$1 extends ReadonlyArray<infer R>
         ? R
         : never
-  >(): Builder<ResultOne, ThrowOnError>;
+  >(): Builder<ResultOne, Method, ThrowOnError>;
 
   /**
    * Unwraps a `0`-or-`1` row array result client-side into `ResultOne | null`, failing client-side if `2` or more rows are returned.
@@ -577,7 +577,7 @@ export interface TransformBuilder<
    * PostgREST v13+) or {@link TransformBuilder.single} to enforce single-row writes on the server.
    *
    * Behavior and side effects: builder progression is
-   * `TransformBuilder<R[]> -> Builder<R | null, ThrowOnError>`. Terminal cardinality modifier—apply
+   * `TransformBuilder<R[], Method, ThrowOnError> -> Builder<R | null, Method, ThrowOnError>`. Terminal cardinality modifier—apply
    * all filters and `.select()` before `.maybeSingle()`. Follow with `.returns<MyRow>()` (pass
    * `MyRow` without `| null` or `[]`; `returns` automatically preserves `| null` on `result.data`).
    * Sends no `limit`, so all
@@ -625,7 +625,7 @@ export interface TransformBuilder<
       : Result$1 extends ReadonlyArray<infer R>
         ? R
         : never
-  >(): Builder<ResultOne | null, ThrowOnError>;
+  >(): Builder<ResultOne | null, Method, ThrowOnError>;
 
   /**
    * Requests the response payload serialized as a raw CSV string (`Accept: text/csv`), including a header row.
@@ -638,7 +638,7 @@ export interface TransformBuilder<
    * a synchronous `Error('stripNulls() cannot be used with csv()')`.
    *
    * Behavior and side effects: builder progression is
-   * `TransformBuilder -> Builder<string, ThrowOnError>`. Terminal format modifier—chain all
+   * `TransformBuilder -> Builder<string, Method, ThrowOnError>`. Terminal format modifier—chain all
    * filters, `order()`, `limit()`, and (for writes) `.select(...)` before `.csv()`. On writes
    * without `.select(...)` before `.csv()`, PostgREST returns an empty body and `res.data` resolves
    * to `null` at runtime despite the `string` type.
@@ -662,7 +662,7 @@ export interface TransformBuilder<
    *
    * @public
    */
-  csv(): Builder<string, ThrowOnError>;
+  csv(): Builder<string, Method, ThrowOnError>;
 
   /**
    * Requests the response payload formatted as a GeoJSON `FeatureCollection` object (`Accept: application/geo+json`).
@@ -673,7 +673,7 @@ export interface TransformBuilder<
    * PostgREST returns an error.
    *
    * Behavior and side effects: builder progression is
-   * `TransformBuilder -> Builder<Record<string, unknown>, ThrowOnError>`. Terminal format
+   * `TransformBuilder -> Builder<Record<string, unknown>, Method, ThrowOnError>`. Terminal format
    * modifier—apply all filters, `order()`, `limit()`, and (for writes) `.select(...)` before
    * `.geojson()` (writes without `.select(...)` return an empty body where `res.data` is `null` at
    * runtime). Follow with `.returns<MyFeatureCollection>()` if you have a
@@ -693,7 +693,7 @@ export interface TransformBuilder<
    *
    * @public
    */
-  geojson(): Builder<Record<string, unknown>, ThrowOnError>;
+  geojson(): Builder<Record<string, unknown>, Method, ThrowOnError>;
 
   /**
    * Requests the PostgreSQL `EXPLAIN` execution plan for this query instead of row data (`Accept: application/vnd.pgrst.plan+<format>; ...`).
@@ -707,7 +707,7 @@ export interface TransformBuilder<
    * `db-tx-end` configuration permits `Prefer: tx=rollback` overrides (otherwise the write commits).
    *
    * Behavior and side effects: builder progression is
-   * `TransformBuilder -> Builder<Array<Record<string, unknown>>, ThrowOnError> | Builder<string, ThrowOnError>`.
+   * `TransformBuilder -> Builder<Array<Record<string, unknown>>, Method, ThrowOnError> | Builder<string, Method, ThrowOnError>`.
    * Terminal format modifier—place at the end of your filter/transform chain. Do not chain
    * `.overrideTypes()` or `.returns()` after `.explain()`: because `explain()` returns a union of
    * array and `string` builders, any array or non-array type override fails compile-time
@@ -737,8 +737,8 @@ export interface TransformBuilder<
   explain(
     options?: Readonly<TransformExplainOptions> | undefined
   ):
-    | Builder<Array<Record<string, unknown>>, ThrowOnError>
-    | Builder<string, ThrowOnError>;
+    | Builder<Array<Record<string, unknown>>, Method, ThrowOnError>
+    | Builder<string, Method, ThrowOnError>;
 
   /**
    * Requests (`Prefer: tx=rollback`) that PostgREST roll back this request's transaction instead of committing it.

@@ -19,7 +19,7 @@ Builder progression: `Builder` is the base interface of [TransformBuilder](./sql
 <b>Signature:</b>
 
 ```typescript
-export interface Builder<T, ThrowOnError extends boolean = false> extends PromiseLike<ThrowOnError extends true ? OperationSuccess<T> : OperationResult<T>> 
+export interface Builder<T, out Method = unknown, ThrowOnError extends boolean = false> extends PromiseLike<ThrowOnError extends true ? OperationSuccess<T> : OperationResult<T>> 
 ```
 <b>Extends:</b> PromiseLike&lt;ThrowOnError extends true ? [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface)<!-- -->&lt;T&gt; : [OperationResult](./sql.md#operationresult)<!-- -->&lt;T&gt;&gt;
 
@@ -48,7 +48,7 @@ Match array cardinality: pass `Array<PartialRow>` for list queries and `PartialR
 
 Choosing `Options` (default `{ merge: true }` vs. `{ merge: false }`<!-- -->): by default (`{ merge: true }`<!-- -->), [MergeDeep](./sql.md#mergedeep) deep-merges `NewResult` onto `T` while preserving existing properties and any `[K: string]` index signature on `T`<!-- -->. On an untyped table query (`T = Array<Record<string, unknown>>`<!-- -->), `{ merge: true }` therefore retains `[K: string]: unknown` alongside your overridden fields (and if `NewResult` itself carries a `[key: string]` index signature, [ExplicitKeys](./sql.md#explicitkeys) collapses merged explicit keys). Pass `{ merge: false }` to discard `T` completely instead of merging, or use [.returns()](./sql.builder.md#builderreturns) for full-type replacement with a single type parameter. On direct [sql.rpc()](./sql.firebasesql.md#firebasesqlrpc) chains where `T` is `unknown`<!-- -->, `{ merge: true }` short-circuits directly to `NewResult`<!-- -->.
 
-Behavior and side effects: compile-time type cast only; performs no network I/O or runtime schema parsing.
+Behavior and side effects: compile-time type cast only; performs no network I/O or runtime schema parsing, and preserves `Method` and `ThrowOnError`<!-- -->.
 
 <b>Signature:</b>
 
@@ -57,11 +57,11 @@ overrideTypes<NewResult, Options extends {
         merge?: boolean | undefined;
     } = {
         merge: true;
-    }>(): Builder<IsValidResultOverride<T, NewResult, false, false> extends true ? ContainsNull<T> extends true ? MergePartialResult<NewResult, NonNullable<T>, Options> | null : MergePartialResult<NewResult, T, Options> : CheckMatchingArrayTypes<T, NewResult>, ThrowOnError>;
+    }>(): Builder<IsValidResultOverride<T, NewResult, false, false> extends true ? ContainsNull<T> extends true ? MergePartialResult<NewResult, NonNullable<T>, Options> | null : MergePartialResult<NewResult, T, Options> : CheckMatchingArrayTypes<T, NewResult>, Method, ThrowOnError>;
 ```
 <b>Returns:</b>
 
-[Builder](./sql.builder.md#builder_interface)<!-- -->&lt;[IsValidResultOverride](./sql.md#isvalidresultoverride)<!-- -->&lt;T, NewResult, false, false&gt; extends true ? [ContainsNull](./sql.md#containsnull)<!-- -->&lt;T&gt; extends true ? [MergePartialResult](./sql.md#mergepartialresult)<!-- -->&lt;NewResult, NonNullable&lt;T&gt;, Options&gt; \| null : [MergePartialResult](./sql.md#mergepartialresult)<!-- -->&lt;NewResult, T, Options&gt; : [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->&lt;T, NewResult&gt;, ThrowOnError&gt;
+[Builder](./sql.builder.md#builder_interface)<!-- -->&lt;[IsValidResultOverride](./sql.md#isvalidresultoverride)<!-- -->&lt;T, NewResult, false, false&gt; extends true ? [ContainsNull](./sql.md#containsnull)<!-- -->&lt;T&gt; extends true ? [MergePartialResult](./sql.md#mergepartialresult)<!-- -->&lt;NewResult, NonNullable&lt;T&gt;, Options&gt; \| null : [MergePartialResult](./sql.md#mergepartialresult)<!-- -->&lt;NewResult, T, Options&gt; : [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->&lt;T, NewResult&gt;, Method, ThrowOnError&gt;
 
 This [Builder](./sql.builder.md#builder_interface) with `data` statically typed according to `NewResult` and `Options`<!-- -->.
 
@@ -170,16 +170,16 @@ Do not chain after [.explain()](./sql.transformbuilder.md#transformbuilderexplai
 
 Match array cardinality: pass `MyRow[]` for array results and `MyRow` (non-array) after `.single()` or `.maybeSingle()` (enforced at compile time via [CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->). When called after `.maybeSingle()`<!-- -->, `| null` is preserved automatically (`MyRow | null`<!-- -->).
 
-Behavior and side effects: compile-time type cast only; performs no network I/O or runtime schema parsing, and preserves `ThrowOnError`<!-- -->.
+Behavior and side effects: compile-time type cast only; performs no network I/O or runtime schema parsing, and preserves `Method` and `ThrowOnError`<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-returns<NewResult>(): Builder<CheckMatchingArrayTypes<T, NewResult>, ThrowOnError>;
+returns<NewResult>(): Builder<CheckMatchingArrayTypes<T, NewResult>, Method, ThrowOnError>;
 ```
 <b>Returns:</b>
 
-[Builder](./sql.builder.md#builder_interface)<!-- -->&lt;[CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->&lt;T, NewResult&gt;, ThrowOnError&gt;
+[Builder](./sql.builder.md#builder_interface)<!-- -->&lt;[CheckMatchingArrayTypes](./sql.md#checkmatchingarraytypes)<!-- -->&lt;T, NewResult&gt;, Method, ThrowOnError&gt;
 
 This [Builder](./sql.builder.md#builder_interface) with `data` statically typed as `CheckMatchingArrayTypes<T, NewResult>`<!-- -->.
 
@@ -328,11 +328,11 @@ Behavior and side effects: even with `throwOnError()`<!-- -->, awaiting the buil
 <b>Signature:</b>
 
 ```typescript
-throwOnError(): Builder<T, true>;
+throwOnError(): Builder<T, Method, true>;
 ```
 <b>Returns:</b>
 
-[Builder](./sql.builder.md#builder_interface)<!-- -->&lt;T, true&gt;
+[Builder](./sql.builder.md#builder_interface)<!-- -->&lt;T, Method, true&gt;
 
 This builder narrowed to `ThrowOnError = true` (resolving to [OperationSuccess](./sql.operationsuccess.md#operationsuccess_interface) or rejecting with [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class)<!-- -->).
 
