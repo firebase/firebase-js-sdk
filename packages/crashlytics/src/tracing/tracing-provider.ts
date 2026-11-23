@@ -33,10 +33,6 @@ import {
   StackContextManager,
   TracerProvider as SdkTracerProvider
 } from '@opentelemetry/sdk-trace';
-import { registerInstrumentations } from '@opentelemetry/instrumentation';
-import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
-import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
-import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
 import { OTLPTraceExporter as OTLPStandardTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import {
   ExporterMetrics,
@@ -44,7 +40,7 @@ import {
   OTLPExporterConfigBase,
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
-import { DynamicHeaderProvider } from '../types';
+import { DynamicHeaderProvider, NetworkInstrumentationConfig } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { AttributesStore } from '../attributes-store';
 import { TelemetryStore } from '../telemetry-store';
@@ -61,9 +57,7 @@ import {
   RESOURCE_ATTRIBUTE_KEYS
 } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
-import { getTelemetryEndpointUrl } from '../helpers';
-
-let unregisterInstrumentations: (() => void) | undefined;
+import { getBreadcrumbsFeature, getTelemetryEndpointUrl } from '../helpers';
 
 /**
  * Result returned by {@link createTracingProvider}.
@@ -167,21 +161,13 @@ export function createTracingProvider(
     '\\$&'
   )}`;
 
-  const networkInstrumentationConfig = {
+  const networkInstrumentationConfig: NetworkInstrumentationConfig = {
     ignoreUrls: [new RegExp(cleanedRegexEndpointUrl)]
   };
 
-  if (unregisterInstrumentations) {
-    unregisterInstrumentations();
-  }
-
-  unregisterInstrumentations = registerInstrumentations({
-    instrumentations: [
-      new FetchInstrumentation(networkInstrumentationConfig),
-      new XMLHttpRequestInstrumentation(networkInstrumentationConfig),
-      new DocumentLoadInstrumentation()
-    ]
-  });
+  getBreadcrumbsFeature(crashlyticsOptions)?.initializeTracingInstrumentations(
+    networkInstrumentationConfig
+  );
 
   return { tracingProvider, onErrorSpanProcessor };
 }
@@ -237,13 +223,5 @@ export class OTLPTraceExporter
       });
     }
     super.export(spans, resultCallback);
-  }
-}
-
-/** @internal */
-export function unregisterTracingInstrumentations(): void {
-  if (unregisterInstrumentations) {
-    unregisterInstrumentations();
-    unregisterInstrumentations = undefined;
   }
 }

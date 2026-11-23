@@ -20,28 +20,39 @@ import type {
   LoggerProvider,
   LogRecordExporter
 } from '@opentelemetry/sdk-logs';
+import { registerInstrumentations } from '@opentelemetry/instrumentation';
+import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
+import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
+import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 import { NavigationTimingInstrumentation } from '@opentelemetry/browser-instrumentation/experimental/navigation-timing';
 import { UserActionInstrumentation } from '@opentelemetry/browser-instrumentation/experimental/user-action';
 import { WebVitalsInstrumentation } from '@opentelemetry/browser-instrumentation/experimental/web-vitals';
 import { CrashlyticsFeature, CrashlyticsOptions } from './public-types';
-import { CrashlyticsFeatureInternal, DynamicHeaderProvider } from './types';
+import {
+  CrashlyticsFeatureInternal,
+  DynamicHeaderProvider,
+  NetworkInstrumentationConfig
+} from './types';
 import { AttributesStore } from './attributes-store';
 import { TelemetryStore } from './telemetry-store';
 import { OnErrorLogRecordProcessor } from './logging/on-error-log-record-processor';
 import {
   createTracingProvider,
-  TracingProviderResult,
-  unregisterTracingInstrumentations
+  TracingProviderResult
 } from './tracing/tracing-provider';
 
-const activeUnregisterFns = new Set<() => void>();
+/*
+ * Tracing instrumentations patch globals (such as fetch and XMLHttpRequest) and report to the
+ * global TracerProvider, so they are tracked at module level and only one set is kept registered
+ * at a time. Registering a new set unregisters the previous one first.
+ */
+let activeTracingUnregisterFn: (() => void) | undefined;
 
-/** @internal */
-export function unregisterLoggerInstrumentations(): void {
-  for (const unregister of activeUnregisterFns) {
-    unregister();
+function unregisterTracingInstrumentations(): void {
+  if (activeTracingUnregisterFn) {
+    activeTracingUnregisterFn();
+    activeTracingUnregisterFn = undefined;
   }
-  activeUnregisterFns.clear();
 }
 
 class BreadcrumbsFeatureImpl implements CrashlyticsFeatureInternal {
@@ -80,7 +91,6 @@ class BreadcrumbsFeatureImpl implements CrashlyticsFeatureInternal {
 
     if (this._unregisterLoggerInstrumentationsFn) {
       this._unregisterLoggerInstrumentationsFn();
-      activeUnregisterFns.delete(this._unregisterLoggerInstrumentationsFn);
     }
 
     const instrumentations = [navigationTiming, webVitals, userAction];
@@ -102,7 +112,24 @@ class BreadcrumbsFeatureImpl implements CrashlyticsFeatureInternal {
       configurable: true,
       enumerable: false
     });
-    activeUnregisterFns.add(unregister);
+  }
+
+  initializeTracingInstrumentations(
+    networkInstrumentationConfig: NetworkInstrumentationConfig
+  ): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    unregisterTracingInstrumentations();
+
+    activeTracingUnregisterFn = registerInstrumentations({
+      instrumentations: [
+        new FetchInstrumentation(networkInstrumentationConfig),
+        new XMLHttpRequestInstrumentation(networkInstrumentationConfig),
+        new DocumentLoadInstrumentation()
+      ]
+    });
   }
 
   createTracingProvider(
@@ -124,7 +151,6 @@ class BreadcrumbsFeatureImpl implements CrashlyticsFeatureInternal {
   unregisterInstrumentations(): void {
     if (this._unregisterLoggerInstrumentationsFn) {
       this._unregisterLoggerInstrumentationsFn();
-      activeUnregisterFns.delete(this._unregisterLoggerInstrumentationsFn);
       this._unregisterLoggerInstrumentationsFn = undefined;
     }
     unregisterTracingInstrumentations();
