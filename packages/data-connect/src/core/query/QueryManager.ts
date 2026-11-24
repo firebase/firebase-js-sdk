@@ -202,11 +202,19 @@ export class QueryManager {
       ]);
 
       // only invoke subscription if we don't already have an active subscription
-      this.transport.invokeSubscribe<Data, Variables>(
-        this.makeSubscribeObserver(queryRef),
-        queryRef.name,
-        queryRef.variables
-      );
+      try {
+        this.transport.invokeSubscribe<Data, Variables>(
+          this.makeSubscribeObserver(queryRef),
+          queryRef.name,
+          queryRef.variables
+        );
+      } catch (e) {
+        // Don't keep a callback registered for a subscription that never
+        // reached the transport; otherwise later subscribers would assume an
+        // active subscription exists and never invoke the transport.
+        this.callbacks.delete(key);
+        throw e;
+      }
     }
 
     return unsubscribe;
