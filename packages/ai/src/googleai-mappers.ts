@@ -147,7 +147,6 @@ export function mapGenerateContentCandidates(
   candidates: GoogleAIGenerateContentCandidate[]
 ): GenerateContentCandidate[] {
   const mappedCandidates: GenerateContentCandidate[] = [];
-  let mappedSafetyRatings: SafetyRating[];
   if (mappedCandidates) {
     candidates.forEach(candidate => {
       // Map citationSources to citations.
@@ -159,6 +158,7 @@ export function mapGenerateContentCandidates(
       }
 
       // Assign missing candidate SafetyRatings properties to their defaults if undefined.
+      let mappedSafetyRatings: SafetyRating[] | undefined;
       if (candidate.safetyRatings) {
         mappedSafetyRatings = candidate.safetyRatings.map(safetyRating => {
           return {
