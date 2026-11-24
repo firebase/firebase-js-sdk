@@ -1823,24 +1823,6 @@
   dependencies:
     "@opentelemetry/semantic-conventions" "1.28.0"
 
-"@opentelemetry/exporter-logs-otlp-http@^0.301.2":
-  version "0.301.2"
-  resolved "https://registry.npmjs.org/@opentelemetry/exporter-logs-otlp-http/-/exporter-logs-otlp-http-0.301.2.tgz#7c85ecbca2279123bc48147b6954659e6550d2d8"
-  integrity sha512-l3K1Fp2qaxAS8wKPyjVm7/QfnvJXZZfPuGXa+AYzNeoOk6qxcZwWZhLe9SYemWxDrtPTl3Mj82diLgVzbz54Hw==
-  dependencies:
-    "@opentelemetry/otlp-exporter-base" "0.301.2"
-    "@opentelemetry/otlp-transformer" "0.301.2"
-    "@opentelemetry/sdk-logs" "3.1.1"
-
-"@opentelemetry/exporter-trace-otlp-proto@^0.301.2":
-  version "0.301.2"
-  resolved "https://registry.npmjs.org/@opentelemetry/exporter-trace-otlp-proto/-/exporter-trace-otlp-proto-0.301.2.tgz#914d6465aa12540dac1385038f1274a8410bd5f1"
-  integrity sha512-3MOk/LZJI/5D5Wq6F1B0+TclRwyLZI4hoqOnAl4PcPBfbaBZND5IplOD4tWLV4QtwobYeCyZwP9DpeKBLPWviw==
-  dependencies:
-    "@opentelemetry/otlp-exporter-base" "0.301.2"
-    "@opentelemetry/otlp-transformer" "0.301.2"
-    "@opentelemetry/sdk-trace" "3.1.1"
-
 "@opentelemetry/instrumentation-document-load@^0.70.0":
   version "0.70.0"
   resolved "https://registry.npmjs.org/@opentelemetry/instrumentation-document-load/-/instrumentation-document-load-0.70.0.tgz#77876f62a3495e44aece9e3aededb084a72bc43d"
@@ -1879,7 +1861,7 @@
     import-in-the-middle "^3.0.0"
     require-in-the-middle "^8.0.0"
 
-"@opentelemetry/otlp-exporter-base@0.301.2", "@opentelemetry/otlp-exporter-base@^0.301.2":
+"@opentelemetry/otlp-exporter-base@^0.301.2":
   version "0.301.2"
   resolved "https://registry.npmjs.org/@opentelemetry/otlp-exporter-base/-/otlp-exporter-base-0.301.2.tgz#991c14f4c026352af12f531b3aad27d8a2126b3b"
   integrity sha512-XlC8Mqeqk5vY9/jXU2No4tAPDO4g7d3QqgxznctJrM1wzF/xKUiBvQwlQguGL98nEBweq2NCkXMGj4QIGSpplg==

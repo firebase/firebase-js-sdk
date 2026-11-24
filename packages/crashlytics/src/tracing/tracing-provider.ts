@@ -33,7 +33,6 @@ import {
   StackContextManager,
   TracerProvider as SdkTracerProvider
 } from '@opentelemetry/sdk-trace';
-import { OTLPTraceExporter as OTLPStandardTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import {
   ExporterMetrics,
   OTLPExporterBase,
@@ -104,28 +103,17 @@ export function createTracingProvider(
   const resource = resourceFromAttributes(resourceAttributes);
 
   const otlpEndpoint = `${endpointUrl}/v1/traces`;
-  let traceExporter;
-  if (endpointUrl === 'http://localhost:4318') {
-    traceExporter = new OTLPStandardTraceExporter({
+  const traceExporter = new OTLPTraceExporter(
+    {
       url: otlpEndpoint,
       headers: {
-        'X-Goog-User-Project': projectId || '',
+        'Content-Type': 'application/json',
         ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
       }
-    });
-  } else {
-    traceExporter = new OTLPTraceExporter(
-      {
-        url: otlpEndpoint,
-        headers: {
-          'Content-Type': 'application/json',
-          ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
-        }
-      },
-      dynamicHeaderProviders,
-      attributesStore
-    );
-  }
+    },
+    dynamicHeaderProviders,
+    attributesStore
+  );
 
   const onErrorSpanProcessor = new OnErrorSpanProcessor(
     traceExporter,
