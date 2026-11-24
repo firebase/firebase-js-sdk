@@ -45,6 +45,34 @@ export const SPAN_ATTR_KEY = {
 type Attribute = Record<string, AnyValue>;
 
 /**
+ * Reads an app version injected at build time (e.g. via Next.js `env`,
+ * Webpack `DefinePlugin`, Vite `define`, or Rollup replace) or from the
+ * Node.js runtime environment. Uses direct static property accesses in separate
+ * `try/catch` blocks so bundlers inline each key independently without throwing
+ * in pure browser environments where `process` is undefined or only one key is
+ * defined.
+ */
+function getEnvAppVersion(): string | undefined {
+  try {
+    const appVersion = process.env.NEXT_PUBLIC_CRASHLYTICS_APP_VERSION;
+    if (appVersion) {
+      return appVersion;
+    }
+  } catch {
+    // Ignore environments where process.env is unavailable.
+  }
+  try {
+    const appVersion = process.env.CRASHLYTICS_APP_VERSION;
+    if (appVersion) {
+      return appVersion;
+    }
+  } catch {
+    // Ignore environments where process.env is unavailable.
+  }
+  return undefined;
+}
+
+/**
  * A store for Crashlytics specific attributes for telemetry data.
  */
 export class AttributesStore {
@@ -89,11 +117,11 @@ export class AttributesStore {
    * Update the options inside the store based on new Crashlytics options.
    */
   updateOptions(options?: CrashlyticsOptions): void {
-    const appVersion = options?.appVersion
-      ? options.appVersion
-      : AUTO_CONSTANTS?.appVersion
-        ? AUTO_CONSTANTS.appVersion
-        : 'unset';
+    const appVersion =
+      options?.appVersion ||
+      getEnvAppVersion() ||
+      AUTO_CONSTANTS?.appVersion ||
+      'unset';
     this._appVersion = appVersion;
     this._customAttributes = options?.customAttributes
       ? { ...options.customAttributes }

@@ -142,6 +142,56 @@ exports.AUTO_CONSTANTS = AUTO_CONSTANTS;
   }
 }
 
+function hasAnyFile(dir, filenames) {
+  return filenames.some(name => fs.existsSync(path.join(dir, name)));
+}
+
+function warnIfBundlerCacheLikely(cwd) {
+  const isNext = hasAnyFile(cwd, [
+    '.next',
+    'next.config.js',
+    'next.config.mjs',
+    'next.config.ts',
+    'next.config.cjs'
+  ]);
+  const isVite = hasAnyFile(cwd, [
+    'node_modules/.vite',
+    'vite.config.js',
+    'vite.config.mjs',
+    'vite.config.ts',
+    'vite.config.cjs',
+    'vite.config.mts',
+    'vite.config.cts'
+  ]);
+
+  const isAngular = hasAnyFile(cwd, ['.angular', 'angular.json']);
+
+  if (isNext) {
+    console.warn(
+      '[firebase/crashlytics] Warning: crashlytics-setconstants mutates files inside node_modules, ' +
+        'which Next.js webpack (.next/cache) ignores across cached rebuilds. ' +
+        'Set NEXT_PUBLIC_CRASHLYTICS_APP_VERSION (for example via next.config.* env) ' +
+        'or pass appVersion directly to getCrashlytics() instead.'
+    );
+  } else if (isVite) {
+    console.warn(
+      '[firebase/crashlytics] Warning: crashlytics-setconstants mutates files inside node_modules, ' +
+        'which Vite dev pre-bundling (node_modules/.vite) ignores across restarts. ' +
+        'Define process.env.CRASHLYTICS_APP_VERSION in vite.config.* or pass appVersion ' +
+        'directly to getCrashlytics() instead.'
+    );
+  } else if (isAngular) {
+    console.warn(
+      '[firebase/crashlytics] Warning: crashlytics-setconstants mutates files inside node_modules, ' +
+        'which Angular build caches (.angular/cache) can ignore across rebuilds. ' +
+        'For Angular 17+, configure process.env.CRASHLYTICS_APP_VERSION via `define` in angular.json ' +
+        'or `ng build --define`, or pass appVersion directly to provideCrashlytics() instead.'
+    );
+  }
+}
+
+warnIfBundlerCacheLikely(process.cwd());
+
 // Update auto-constants.mjs
 if (fs.existsSync(mjsFilePath)) {
   const fileContent = `

@@ -122,3 +122,7 @@ To ensure smooth integration during the private preview, review these essential 
 <!-- #include "../../docs/ADVANCED_USAGE.md#custom-attributes" -->
 > [!NOTE]
 > For logging custom attributes without a `log()` method, see [Advanced Usage: Custom Attributes](../../docs/ADVANCED_USAGE.md#custom-attributes).
+
+<!-- #include "../../docs/ADVANCED_USAGE.md#app-versioning" -->
+> [!NOTE]
+> For setting `appVersion` via `define` in Angular 17+, see [Advanced Usage: Angular App Versioning](../../docs/ADVANCED_USAGE.md#angular).
