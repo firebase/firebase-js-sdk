@@ -278,10 +278,10 @@ export class IndexedDbMutationQueue implements MutationQueue {
   getHighestUnacknowledgedBatchId(
     transaction: PersistenceTransaction
   ): PersistencePromise<BatchId> {
-    const range = IDBKeyRange.upperBound([
-      this.userId,
-      Number.POSITIVE_INFINITY
-    ]);
+    const range = IDBKeyRange.bound(
+      [this.userId, Number.NEGATIVE_INFINITY],
+      [this.userId, Number.POSITIVE_INFINITY]
+    );
 
     let batchId = BATCHID_UNKNOWN;
     return mutationsStore(transaction)

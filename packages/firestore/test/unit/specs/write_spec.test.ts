@@ -1454,6 +1454,23 @@ describeSpec('Writes:', [], () => {
   );
 
   specTest(
+    'Wait for pending writes ignores unacknowledged writes from another user',
+    [],
+    () => {
+      return spec()
+        .changeUser('userA')
+        .userSets('collection/a', { k: 'a' })
+        .changeUser('userB')
+        .waitForPendingWrites()
+        .expectWaitForPendingWritesEvent()
+        .changeUser('userA')
+        .waitForPendingWrites()
+        .writeAcks('collection/a', 1001)
+        .expectWaitForPendingWritesEvent();
+    }
+  );
+
+  specTest(
     'Decimal128 increment loses precision locally and recovers on server ack',
     [],
     () => {

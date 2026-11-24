@@ -21,8 +21,10 @@ import { User } from '../../../src/auth/user';
 import { SimpleDb } from '../../../src/local/simple_db';
 import {
   clearIndexedDbPersistence,
+  collection,
   disableNetwork,
   doc,
+  enableNetwork,
   setDoc,
   waitForPendingWrites
 } from '../util/firebase_export';
@@ -64,6 +66,25 @@ apiDescribe('Database (with internal API)', persistence => {
         await expect(awaitPendingWrite).rejects.toThrow(
           "'waitForPendingWrites' promise is rejected due to a user change."
         );
+      }
+    );
+  });
+
+  it('waitForPendingWrites resolves when another user has unacknowledged writes', async () => {
+    await withMockCredentialProviderTestDb(
+      persistence,
+      async (db, mockCredentialsProvider) => {
+        const testDocs = collection(db, 'test-collection');
+        await disableNetwork(db);
+        mockCredentialsProvider.triggerUserChange(new User('user_a'));
+        void setDoc(doc(testDocs), { user: 'a' });
+
+        mockCredentialsProvider.triggerUserChange(new User('user_b'));
+        await enableNetwork(db);
+        await waitForPendingWrites(db);
+
+        await setDoc(doc(testDocs), { user: 'b' });
+        await waitForPendingWrites(db);
       }
     );
   });

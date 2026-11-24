@@ -87,6 +87,16 @@ export class TestMutationQueue {
     );
   }
 
+  getHighestUnacknowledgedBatchId(): Promise<BatchId> {
+    return this.persistence.runTransaction(
+      'getHighestUnacknowledgedBatchId',
+      'readonly',
+      txn => {
+        return this.queue.getHighestUnacknowledgedBatchId(txn);
+      }
+    );
+  }
+
   getAllMutationBatches(): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatches',
