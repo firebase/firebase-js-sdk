@@ -15,8 +15,14 @@
  * limitations under the License.
  */
 
+import type { MockInstance } from 'vitest';
+
 import { User } from '../../../src/auth/user';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import {
+  DbDocumentMutationStore,
+  DbMutationBatchStore
+} from '../../../src/local/indexeddb_sentinels';
 import { Persistence } from '../../../src/local/persistence';
 import { documentKeySet } from '../../../src/model/collections';
 import { MutationBatch } from '../../../src/model/mutation_batch';
@@ -54,6 +60,31 @@ describe.skipIf(!IndexedDbPersistence.isAvailable())(
     });
 
     genericMutationQueueTests();
+
+    /** Counts the IndexedDB `put` calls the spy saw on the named store. */
+    function countPuts(
+      putSpy: MockInstance<IDBObjectStore['put']>,
+      storeName: string
+    ): number {
+      return putSpy.mock.contexts.filter(
+        store => (store as IDBObjectStore).name === storeName
+      ).length;
+    }
+
+    it('writes a batch to the mutations store once', async () => {
+      const putSpy = vi.spyOn(IDBObjectStore.prototype, 'put');
+
+      const batch = await mutationQueue.addMutationBatch([
+        setMutation('foo/a', { a: 1 }),
+        setMutation('foo/b', { b: 1 }),
+        setMutation('foo/c', { c: 1 })
+      ]);
+
+      expect(countPuts(putSpy, DbMutationBatchStore)).toBe(1);
+      expect(countPuts(putSpy, DbDocumentMutationStore)).toBe(3);
+      const found = await mutationQueue.lookupMutationBatch(batch.batchId);
+      expect(found!.mutations).toHaveLength(3);
+    });
   }
 );
 
