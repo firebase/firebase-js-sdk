@@ -187,9 +187,9 @@ export abstract class ChatSessionBase<
             // history will contain the user message but not the response, causing
             // validation errors on the next request.
             const responseContent: Content = {
-              parts: result.response.candidates?.[0].content.parts || [],
+              parts: result.response.candidates[0].content?.parts || [],
               // Response seems to come back without a role set.
-              role: result.response.candidates?.[0].content.role || 'model'
+              role: result.response.candidates[0].content?.role || 'model'
             };
             tempHistory.push(deepCopy(responseContent));
           } else {

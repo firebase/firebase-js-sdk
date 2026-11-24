@@ -211,8 +211,8 @@ export function getText(
   partFilter: (part: Part) => boolean
 ): string {
   const textStrings = [];
-  if (response.candidates?.[0].content?.parts) {
-    for (const part of response.candidates?.[0].content?.parts) {
+  if (response.candidates?.[0]?.content?.parts) {
+    for (const part of response.candidates?.[0]?.content?.parts) {
       const typedPart = assignPartType(part);
       if (typedPart.type === 'text' && partFilter(typedPart)) {
         textStrings.push(typedPart.text);
@@ -236,8 +236,8 @@ export function getFunctionCalls(
     return undefined;
   }
   const functionCalls: FunctionCall[] = [];
-  if (response.candidates?.[0].content?.parts) {
-    for (const part of response.candidates?.[0].content?.parts) {
+  if (response.candidates?.[0]?.content?.parts) {
+    for (const part of response.candidates?.[0]?.content?.parts) {
       const typedPart = assignPartType(part);
       if (typedPart.type === 'functionCall') {
         functionCalls.push(typedPart.functionCall);
@@ -261,8 +261,8 @@ export function getInlineDataParts(
 ): InlineDataPart[] | undefined {
   const data: InlineDataPart[] = [];
 
-  if (response.candidates?.[0].content?.parts) {
-    for (const part of response.candidates?.[0].content?.parts) {
+  if (response.candidates?.[0]?.content?.parts) {
+    for (const part of response.candidates?.[0]?.content?.parts) {
       const typedPart = assignPartType(part);
       if (typedPart.type === 'inlineData') {
         data.push(typedPart);

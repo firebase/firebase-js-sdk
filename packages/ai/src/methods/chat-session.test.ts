@@ -23,7 +23,9 @@ import * as mockGenerateContent from './generate-content';
 vi.mock('./generate-content', { spy: true });
 
 import {
+  BlockReason,
   Content,
+  FinishReason,
   FunctionCallPart,
   FunctionDeclaration,
   FunctionResponsePart,
@@ -1113,6 +1115,95 @@ describe('ChatSession', () => {
         expect(greetingSpy).not.toHaveBeenCalled();
       });
     });
+  });
+  describe('blocked responses', () => {
+    const blockedResponse = {
+      candidates: [],
+      promptFeedback: { blockReason: BlockReason.SAFETY }
+    };
+    const toolsParams = {
+      tools: [
+        {
+          functionDeclarations: [
+            { name: 'getGreeting', description: 'greeting' }
+          ]
+        }
+      ]
+    };
+    for (const [label, params] of [
+      ['with tools', toolsParams],
+      ['without tools', undefined]
+    ] as const) {
+      it(`sendMessage() resolves and warns ${label}`, async () => {
+        const warnStub = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+        vi.spyOn(mockGenerateContent, 'generateContent').mockResolvedValue({
+          // @ts-ignore
+          response: blockedResponse
+        });
+        const chatSession = new ChatSessionImpl(
+          fakeApiSettings,
+          'a-model',
+          undefined,
+          params
+        );
+        const result = await chatSession.sendMessage('hello');
+        expect(result.response.promptFeedback?.blockReason).to.equal(
+          BlockReason.SAFETY
+        );
+        expect(warnStub).toHaveBeenCalledWith(
+          expect.stringContaining(
+            'sendMessage() was unsuccessful. Response was blocked due to SAFETY'
+          )
+        );
+        const history = await chatSession.getHistory();
+        expect(history.map(content => content.role)).to.deep.equal(['user']);
+      });
+      it(`sendMessageStream() resolves and warns ${label}`, async () => {
+        const warnStub = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+        vi.spyOn(
+          mockGenerateContent,
+          'generateContentStream'
+        ).mockResolvedValue({
+          stream: (async function* () {})(),
+          firstValue: blockedResponse,
+          response: Promise.resolve(blockedResponse)
+        } as unknown as GenerateContentStreamResult);
+        const chatSession = new ChatSessionImpl(
+          fakeApiSettings,
+          'a-model',
+          undefined,
+          params
+        );
+        const result = await chatSession.sendMessageStream('hello');
+        await expect(result.response).resolves.toEqual(blockedResponse);
+        expect(await chatSession.getHistory()).to.deep.equal([]);
+        expect(warnStub).toHaveBeenCalledWith(
+          expect.stringContaining(
+            'sendMessageStream() was unsuccessful. Response was blocked due to SAFETY'
+          )
+        );
+      });
+      it(`sendMessage() resolves when the candidate has no content ${label}`, async () => {
+        const noContentResponse = {
+          candidates: [{ index: 0, finishReason: FinishReason.SAFETY }]
+        };
+        vi.spyOn(mockGenerateContent, 'generateContent').mockResolvedValue({
+          // @ts-ignore
+          response: noContentResponse
+        });
+        const chatSession = new ChatSessionImpl(
+          fakeApiSettings,
+          'a-model',
+          undefined,
+          params
+        );
+        const result = await chatSession.sendMessage('hello');
+        // @ts-ignore
+        expect(result.response).to.equal(noContentResponse);
+        const history = await chatSession.getHistory();
+        expect(history[1]).to.deep.equal({ role: 'model', parts: [] });
+      });
+    }
   });
   describe('_getCallableFunctionCalls()', () => {
     it('returns all functions if they have references', async () => {
