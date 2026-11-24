@@ -20,6 +20,7 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { documentKeySet } from '../../../src/model/collections';
 import { MutationBatch } from '../../../src/model/mutation_batch';
+import { BATCHID_UNKNOWN } from '../../../src/util/types';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   expectEqualArrays,
@@ -203,6 +204,68 @@ function genericMutationQueueTests(): void {
       last.batchId
     );
     expect(notFound).toBeNull();
+  });
+
+  it('can getHighestUnacknowledgedBatchId() isolated by user', async () => {
+    const earlierUser = new User('aaa');
+    const laterUser = new User('zzz');
+    const earlierQueue = new TestMutationQueue(
+      persistence,
+      persistence.getMutationQueue(
+        earlierUser,
+        persistence.getIndexManager(earlierUser)
+      )
+    );
+    const laterQueue = new TestMutationQueue(
+      persistence,
+      persistence.getMutationQueue(
+        laterUser,
+        persistence.getIndexManager(laterUser)
+      )
+    );
+    const unauthenticatedQueue = new TestMutationQueue(
+      persistence,
+      persistence.getMutationQueue(
+        User.UNAUTHENTICATED,
+        persistence.getIndexManager(User.UNAUTHENTICATED)
+      )
+    );
+
+    expect(await mutationQueue.getHighestUnacknowledgedBatchId()).toBe(
+      BATCHID_UNKNOWN
+    );
+
+    await unauthenticatedQueue.addMutationBatch([
+      setMutation('foo/anon', { a: 1 })
+    ]);
+    await earlierQueue.addMutationBatch([setMutation('foo/earlier', { a: 1 })]);
+    await laterQueue.addMutationBatch([setMutation('foo/later', { a: 1 })]);
+
+    // Other users' pending batches (both lexicographically before and after
+    // 'user') must not leak into 'user's highest unacknowledged batch ID.
+    expect(await mutationQueue.getHighestUnacknowledgedBatchId()).toBe(
+      BATCHID_UNKNOWN
+    );
+
+    const batch1 = await addMutationBatch();
+    expect(await mutationQueue.getHighestUnacknowledgedBatchId()).toBe(
+      batch1.batchId
+    );
+
+    const batch2 = await addMutationBatch();
+    expect(await mutationQueue.getHighestUnacknowledgedBatchId()).toBe(
+      batch2.batchId
+    );
+
+    await mutationQueue.removeMutationBatch(batch1);
+    expect(await mutationQueue.getHighestUnacknowledgedBatchId()).toBe(
+      batch2.batchId
+    );
+
+    await mutationQueue.removeMutationBatch(batch2);
+    expect(await mutationQueue.getHighestUnacknowledgedBatchId()).toBe(
+      BATCHID_UNKNOWN
+    );
   });
 
   it('can getAllMutationBatchesAffectingDocumentKey()', async () => {
