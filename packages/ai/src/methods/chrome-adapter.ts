@@ -28,7 +28,7 @@ import {
   Content,
   Role
 } from '../types';
-import { ChromeAdapter } from '../types/chrome-adapter';
+import { ChromeAdapter, OnDeviceStatus } from '../types/chrome-adapter';
 import {
   Availability,
   LanguageModel,
@@ -63,6 +63,9 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   static SUPPORTED_MIME_TYPES = ['image/jpeg', 'image/png'];
   // Promise for on-device model download completion
   downloadPromise: Promise<LanguageModel | void> | null = null;
+  // Whether initializeDeviceModel() has requested a download. Reset if the
+  // download fails, so the developer has to call it again.
+  private downloadRequested = false;
   private oldSession: LanguageModel | undefined;
   onDeviceParams: OnDeviceParams = {
     createOptions: {
@@ -96,75 +99,69 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   }
 
   /**
-   * Checks if a given request can be made on-device.
-   *
-   * Encapsulates a few concerns:
-   *   the mode
-   *   API existence
-   *   prompt formatting
-   *   model availability
-   *
-   *
-   * Pros: callers needn't be concerned with details of on-device availability.</p>
-   * Cons: this method spans a few concerns and splits request validation from usage.
-   * If instance variables weren't already part of the API, we could consider a better
-   * separation of concerns.
+   * Checks if the on-device model is ready to handle a given request right
+   * now. Doesn't wait for downloads or take the inference mode into account.
    */
   async isAvailable(request: GenerateContentRequest): Promise<boolean> {
-    if (!this.mode) {
-      logger.debug(
-        `On-device inference unavailable because mode is undefined.`
-      );
-      return false;
-    }
-    if (this.mode === InferenceMode.ONLY_IN_CLOUD) {
-      logger.debug(
-        `On-device inference unavailable because mode is "only_in_cloud".`
-      );
-      return false;
-    }
+    return (await this.getOnDeviceStatus(request)) === 'available';
+  }
 
+  /**
+   * Reports whether the on-device model can handle a given request.
+   *
+   * This only describes what the device can do. Decisions that depend on the
+   * inference mode (falling back to the cloud, or throwing) are made by the
+   * caller in `callCloudOrDevice()`.
+   *
+   * @param request - A potential request to be passed to the model.
+   * @param options.waitForDownload - If a download started by
+   * `initializeDeviceModel()` is in progress, wait for it to finish instead of
+   * returning `download-in-progress`.
+   */
+  async getOnDeviceStatus(
+    request: GenerateContentRequest,
+    options: { waitForDownload?: boolean } = {}
+  ): Promise<OnDeviceStatus> {
     const availability = await this.languageModelProvider?.availability(
       this.onDeviceParams.createOptions
     );
 
-    if (this.mode === InferenceMode.ONLY_ON_DEVICE) {
-      // If it will never be available due to API inavailability, throw.
-      if (availability === Availability.UNAVAILABLE) {
-        throw new AIError(
-          AIErrorCode.API_NOT_ENABLED,
-          'Local LanguageModel API not available in this environment.'
+    if (
+      availability === Availability.DOWNLOADABLE ||
+      availability === Availability.DOWNLOADING
+    ) {
+      if (!this.downloadRequested) {
+        logger.debug(
+          `On-device model needs to be downloaded, but initializeDeviceModel() has not been called.`
         );
-      } else if (
-        availability === Availability.DOWNLOADABLE ||
-        availability === Availability.DOWNLOADING
-      ) {
+        return 'not-initialized';
+      }
+      if (this.downloadPromise) {
+        if (!options.waitForDownload) {
+          return 'download-in-progress';
+        }
         logger.debug(`Waiting for download of LanguageModel to complete.`);
         try {
           await this.downloadPromise;
         } catch (e) {
           throw new AIError(AIErrorCode.ERROR, (e as Error).message);
         }
-        return true;
       }
-      return true;
-    }
-
-    // Applies prefer_on_device logic.
-    if (availability !== Availability.AVAILABLE) {
+    } else if (availability !== Availability.AVAILABLE) {
       logger.debug(
         `On-device inference unavailable because availability is "${availability}".`
       );
-      return false;
+      return 'unavailable';
     }
+
     if (!ChromeAdapterImpl.isOnDeviceRequest(request)) {
       logger.debug(
         `On-device inference unavailable because request is incompatible.`
       );
-      return false;
+      return 'request-not-supported';
     }
 
-    return true;
+    return 'available';
   }
 
   /**
@@ -302,11 +299,16 @@ export class ChromeAdapterImpl implements ChromeAdapter {
         });
       };
     }
-    this.downloadPromise = this.languageModelProvider
-      ?.create(options)
-      .finally(() => {
+    this.downloadRequested = true;
+    const download = this.languageModelProvider?.create(options);
+    // If the download fails, initializeDeviceModel() has to be called again.
+    download?.catch(() => {
+      this.downloadRequested = false;
+    });
+    this.downloadPromise =
+      download?.finally(() => {
         this.downloadPromise = null;
-      });
+      }) ?? null;
   }
 
   /**

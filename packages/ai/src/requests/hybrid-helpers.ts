@@ -39,78 +39,110 @@ interface CallResult<Response> {
 }
 
 /**
+ * Creates the error thrown in `ONLY_ON_DEVICE` mode when the on-device model
+ * can't be used in this environment.
+ */
+export function createDeviceUnavailableError(): AIError {
+  // TODO: API_NOT_ENABLED normally means the Firebase API isn't enabled in the
+  // Console. Switch to a more accurate code in the next breaking change.
+  return new AIError(
+    AIErrorCode.API_NOT_ENABLED,
+    'Local LanguageModel API not available in this environment.'
+  );
+}
+
+/**
  * Dispatches a request to the appropriate backend (on-device or in-cloud)
  * based on the inference mode.
  *
+ * All inference mode logic lives here. The adapter only reports what the
+ * device can do.
+ *
  * @param request - The request to be sent.
- * @param chromeAdapter - The on-device model adapter.
+ * @param inferenceMode - The inference mode the model was created with.
+ * @param chromeAdapter - The on-device model adapter. Undefined if this
+ * environment has no on-device model API.
  * @param onDeviceCall - The function to call for on-device inference.
  * @param inCloudCall - The function to call for in-cloud inference.
  * @returns The response from the backend.
  */
 export async function callCloudOrDevice<Response>(
   request: GenerateContentRequest,
+  inferenceMode: InferenceMode | undefined,
   chromeAdapter: ChromeAdapter | undefined,
   onDeviceCall: () => Promise<Response>,
   inCloudCall: () => Promise<Response>
 ): Promise<CallResult<Response>> {
-  if (!chromeAdapter) {
-    return {
-      response: await inCloudCall(),
-      inferenceSource: InferenceSource.IN_CLOUD
-    };
-  }
-  switch (chromeAdapter.mode) {
-    case InferenceMode.ONLY_ON_DEVICE:
-      if (await chromeAdapter.isAvailable(request)) {
-        return {
-          response: await onDeviceCall(),
-          inferenceSource: InferenceSource.ON_DEVICE
-        };
-      }
-      throw new AIError(
-        AIErrorCode.UNSUPPORTED,
-        'Inference mode is ONLY_ON_DEVICE, but an on-device model is not available.'
-      );
+  const onDevice = async (): Promise<CallResult<Response>> => ({
+    response: await onDeviceCall(),
+    inferenceSource: InferenceSource.ON_DEVICE
+  });
+  const inCloud = async (): Promise<CallResult<Response>> => ({
+    response: await inCloudCall(),
+    inferenceSource: InferenceSource.IN_CLOUD
+  });
+  const isOnDeviceAvailable = async (): Promise<boolean> =>
+    chromeAdapter ? chromeAdapter.isAvailable(request) : false;
+
+  switch (inferenceMode) {
+    case undefined:
     case InferenceMode.ONLY_IN_CLOUD:
-      return {
-        response: await inCloudCall(),
-        inferenceSource: InferenceSource.IN_CLOUD
-      };
+      return inCloud();
+    case InferenceMode.ONLY_ON_DEVICE: {
+      const status = chromeAdapter
+        ? await chromeAdapter.getOnDeviceStatus(request, {
+            waitForDownload: true
+          })
+        : 'unavailable';
+      switch (status) {
+        case 'available':
+        // Requests with content the on-device model may not support are still
+        // sent to it, since this mode never falls back to the cloud.
+        case 'request-not-supported':
+          return onDevice();
+        case 'not-initialized':
+          throw new AIError(
+            AIErrorCode.DEVICE_MODEL_NOT_INITIALIZED,
+            'The on-device model has not been downloaded. Call ' +
+              'initializeDeviceModel() after a user interaction to start ' +
+              'the download before making on-device requests.'
+          );
+        case 'unavailable':
+          throw createDeviceUnavailableError();
+        case 'download-in-progress':
+          // Unreachable with waitForDownload: true.
+          throw new AIError(
+            AIErrorCode.ERROR,
+            'On-device model download is still in progress.'
+          );
+        default: {
+          const unexpected: never = status;
+          throw new AIError(
+            AIErrorCode.ERROR,
+            `Unexpected on-device status: ${unexpected}`
+          );
+        }
+      }
+    }
+    case InferenceMode.PREFER_ON_DEVICE:
+      return (await isOnDeviceAvailable()) ? onDevice() : inCloud();
     case InferenceMode.PREFER_IN_CLOUD:
       try {
-        return {
-          response: await inCloudCall(),
-          inferenceSource: InferenceSource.IN_CLOUD
-        };
+        return await inCloud();
       } catch (e) {
         if (
           e instanceof AIError &&
           errorsCausingFallback.includes(e.code) &&
-          (await chromeAdapter.isAvailable(request))
+          (await isOnDeviceAvailable())
         ) {
-          return {
-            response: await onDeviceCall(),
-            inferenceSource: InferenceSource.ON_DEVICE
-          };
+          return onDevice();
         }
         throw e;
       }
-    case InferenceMode.PREFER_ON_DEVICE:
-      if (await chromeAdapter.isAvailable(request)) {
-        return {
-          response: await onDeviceCall(),
-          inferenceSource: InferenceSource.ON_DEVICE
-        };
-      }
-      return {
-        response: await inCloudCall(),
-        inferenceSource: InferenceSource.IN_CLOUD
-      };
     default:
       throw new AIError(
         AIErrorCode.ERROR,
-        `Unexpected infererence mode: ${chromeAdapter.mode}`
+        `Unexpected inference mode: ${inferenceMode}`
       );
   }
 }

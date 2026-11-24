@@ -49,6 +49,7 @@ import { AIError } from '../errors';
 import { ChromeAdapterImpl } from '../methods/chrome-adapter';
 import { Availability } from '../types/language-model';
 import { logger } from '../logger';
+import { createDeviceUnavailableError } from '../requests/hybrid-helpers';
 
 /**
  * Class for generative model APIs.
@@ -78,6 +79,9 @@ export class GenerativeModel extends AIModel {
       modelParams.systemInstruction
     );
     this.requestOptions = requestOptions || {};
+    if (chromeAdapter) {
+      this._apiSettings.inferenceMode = chromeAdapter.mode;
+    }
   }
 
   /**
@@ -112,21 +116,23 @@ export class GenerativeModel extends AIModel {
   async initializeDeviceModel(
     onDownloadProgress?: (progressValue: number) => void
   ): Promise<void> {
-    if (
-      !this.chromeAdapter ||
-      this.chromeAdapter.mode === InferenceMode.ONLY_IN_CLOUD
-    ) {
+    const mode = this._apiSettings.inferenceMode;
+    if (!mode || mode === InferenceMode.ONLY_IN_CLOUD) {
+      return;
+    }
+    if (!this.chromeAdapter) {
+      // This environment has no on-device model API.
+      if (mode === InferenceMode.ONLY_ON_DEVICE) {
+        throw createDeviceUnavailableError();
+      }
       return;
     }
     const availability = await (
       this.chromeAdapter as ChromeAdapterImpl
     ).downloadIfAvailable(onDownloadProgress);
     if (availability === Availability.UNAVAILABLE) {
-      const notEnabledError = new AIError(
-        AIErrorCode.API_NOT_ENABLED,
-        'Local LanguageModel API not available in this environment.'
-      );
-      if (this.chromeAdapter.mode === InferenceMode.ONLY_ON_DEVICE) {
+      const notEnabledError = createDeviceUnavailableError();
+      if (mode === InferenceMode.ONLY_ON_DEVICE) {
         throw notEnabledError;
       } else {
         // No reason to throw if not in ONLY_ON_DEVICE mode.
@@ -235,7 +241,6 @@ export class GenerativeModel extends AIModel {
       this._apiSettings,
       this.model,
       formattedParams,
-      this.chromeAdapter,
       // Merge request options
       {
         ...this.requestOptions,

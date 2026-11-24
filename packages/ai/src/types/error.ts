@@ -109,7 +109,15 @@ export const AIErrorCode = {
   PARSE_FAILED: 'parse-failed',
 
   /** An error occurred due an attempt to use an unsupported feature. */
-  UNSUPPORTED: 'unsupported'
+  UNSUPPORTED: 'unsupported',
+
+  /**
+   * An error occurred because an on-device request was made in
+   * `ONLY_ON_DEVICE` mode before the on-device model was downloaded, and
+   * {@link GenerativeModel.initializeDeviceModel | initializeDeviceModel()}
+   * was not called to start the download.
+   */
+  DEVICE_MODEL_NOT_INITIALIZED: 'device-model-not-initialized'
 } as const;
 
 /**

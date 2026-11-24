@@ -72,6 +72,7 @@ export async function generateContentStream(
 > {
   const callResult = await callCloudOrDevice(
     params,
+    apiSettings.inferenceMode,
     chromeAdapter,
     () => chromeAdapter!.generateContentStream(params),
     () =>
@@ -169,6 +170,7 @@ export async function generateContent(
 ): Promise<GenerateContentResult> {
   const callResult = await callCloudOrDevice(
     params,
+    apiSettings.inferenceMode,
     chromeAdapter,
     () => chromeAdapter!.generateContent(params),
     () =>
