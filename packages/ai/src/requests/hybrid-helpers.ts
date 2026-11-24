@@ -46,15 +46,27 @@ interface CallResult<Response> {
  * @param chromeAdapter - The on-device model adapter.
  * @param onDeviceCall - The function to call for on-device inference.
  * @param inCloudCall - The function to call for in-cloud inference.
+ * @param inferenceMode - The mode the model was created with. Needed when
+ * `chromeAdapter` is undefined, which happens when the environment has no
+ * `LanguageModel` API.
  * @returns The response from the backend.
  */
 export async function callCloudOrDevice<Response>(
   request: GenerateContentRequest,
   chromeAdapter: ChromeAdapter | undefined,
   onDeviceCall: () => Promise<Response>,
-  inCloudCall: () => Promise<Response>
+  inCloudCall: () => Promise<Response>,
+  inferenceMode?: InferenceMode
 ): Promise<CallResult<Response>> {
   if (!chromeAdapter) {
+    // No adapter is created when the environment has no LanguageModel API.
+    // ONLY_ON_DEVICE must not fall back to the cloud in that case.
+    if (inferenceMode === InferenceMode.ONLY_ON_DEVICE) {
+      throw new AIError(
+        AIErrorCode.UNSUPPORTED,
+        'Inference mode is ONLY_ON_DEVICE, but an on-device model is not available.'
+      );
+    }
     return {
       response: await inCloudCall(),
       inferenceSource: InferenceSource.IN_CLOUD
