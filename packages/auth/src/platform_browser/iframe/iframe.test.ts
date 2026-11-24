@@ -137,5 +137,26 @@ describe('platform_browser/iframe/iframe', () => {
       await libraryLoadedCallback(iframe);
       expect(clearTimeoutStub).toHaveBeenCalledWith(123);
     });
+
+    it('leaves no unhandled rejection when the ping times out', async () => {
+      const realSetTimeout = window.setTimeout.bind(window);
+      const nextTask = (): Promise<void> =>
+        new Promise(resolve => realSetTimeout(resolve, 10));
+      const tripTimeout = stubSingleTimeout();
+      const onUnhandled = vi.fn((event: PromiseRejectionEvent) =>
+        event.preventDefault()
+      );
+      _window().addEventListener('unhandledrejection', onUnhandled);
+      iframe.ping.mockReturnValue(new Promise(() => {}));
+
+      // gapi's Context.open() ignores the promise the callback returns.
+      void libraryLoadedCallback(iframe);
+      await nextTask();
+      tripTimeout();
+      await nextTask();
+
+      _window().removeEventListener('unhandledrejection', onUnhandled);
+      expect(onUnhandled).not.toHaveBeenCalled();
+    });
   });
 });
