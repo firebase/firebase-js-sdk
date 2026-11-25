@@ -73,10 +73,8 @@ export class RestClient implements RemoteConfigFetchClient {
    * @throws a {@link ErrorCode.FETCH_STATUS} error if the service returns an HTTP error status.
    */
   async fetch(request: FetchRequest): Promise<FetchResponse> {
-    const [installationId, installationToken] = await Promise.all([
-      this.firebaseInstallations.getId(),
-      this.firebaseInstallations.getToken()
-    ]);
+    const installationToken = await this.firebaseInstallations.getToken();
+    const installationId = await this.firebaseInstallations.getId();
 
     const urlBase =
       window.FIREBASE_REMOTE_CONFIG_URL_BASE ||
