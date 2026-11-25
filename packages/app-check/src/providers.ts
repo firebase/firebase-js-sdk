@@ -37,7 +37,7 @@ import {
 } from './recaptcha';
 import { getStateReference } from './state';
 import { AppCheckProvider, AppCheckTokenInternal, ThrottleData } from './types';
-import { getDurationString } from './util';
+import { getDurationString, throwIfGivenUp } from './util';
 
 /**
  * App Check provider that can obtain a reCAPTCHA V3 token and exchange it
@@ -64,22 +64,33 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
    * @internal
    */
   async getToken(
-    isLimitedUse: boolean = false
+    isLimitedUse: boolean = false,
+    signal?: AbortSignal
   ): Promise<AppCheckTokenInternal> {
     throwIfThrottled(this._throttleData);
 
     // Top-level `getToken()` has already checked that App Check is initialized
     // and therefore this._app and this._heartbeatServiceProvider are available.
-    const attestedClaimsToken = await getReCAPTCHAToken(this._app!).catch(
-      _e => {
-        // reCaptcha.execute() throws null which is not very descriptive.
-        throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
-      }
-    );
+    const errorCountBefore = getStateReference(this._app!).reCAPTCHAState
+      ?.errorCount;
+    const attestedClaimsToken = await getReCAPTCHAToken(
+      this._app!,
+      signal
+    ).catch(_e => {
+      // reCaptcha.execute() throws null which is not very descriptive.
+      throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
+    });
     // Check if a failure state was set by the recaptcha "error-callback".
-    if (!getStateReference(this._app!).reCAPTCHAState?.succeeded) {
+    // `succeeded` alone is not enough: the widget's callbacks are shared by
+    // every execution, so a later success callback can overwrite a failure.
+    const reCAPTCHAState = getStateReference(this._app!).reCAPTCHAState;
+    if (
+      !reCAPTCHAState?.succeeded ||
+      reCAPTCHAState.errorCount !== errorCountBefore
+    ) {
       throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
     }
+    throwIfGivenUp(signal);
     let result;
     try {
       const request = getExchangeRecaptchaV3TokenRequest(
@@ -89,9 +100,15 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
       if (isLimitedUse) {
         request.body['limited_use'] = true;
       }
-      result = await exchangeToken(request, this._heartbeatServiceProvider!);
+      result = await exchangeToken(
+        request,
+        this._heartbeatServiceProvider!,
+        signal
+      );
     } catch (e) {
+      // An attempt that was given up on must not change the throttle state.
       if (
+        !signal?.aborted &&
         (e as FirebaseError).code?.includes(AppCheckError.FETCH_STATUS_ERROR)
       ) {
         this._throttleData = setBackoff(
@@ -109,7 +126,9 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
       }
     }
     // If successful, clear throttle data.
-    this._throttleData = null;
+    if (!signal?.aborted) {
+      this._throttleData = null;
+    }
     return result;
   }
 
@@ -161,21 +180,32 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
    * @internal
    */
   async getToken(
-    isLimitedUse: boolean = false
+    isLimitedUse: boolean = false,
+    signal?: AbortSignal
   ): Promise<AppCheckTokenInternal> {
     throwIfThrottled(this._throttleData);
     // Top-level `getToken()` has already checked that App Check is initialized
     // and therefore this._app and this._heartbeatServiceProvider are available.
-    const attestedClaimsToken = await getReCAPTCHAToken(this._app!).catch(
-      _e => {
-        // reCaptcha.execute() throws null which is not very descriptive.
-        throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
-      }
-    );
+    const errorCountBefore = getStateReference(this._app!).reCAPTCHAState
+      ?.errorCount;
+    const attestedClaimsToken = await getReCAPTCHAToken(
+      this._app!,
+      signal
+    ).catch(_e => {
+      // reCaptcha.execute() throws null which is not very descriptive.
+      throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
+    });
     // Check if a failure state was set by the recaptcha "error-callback".
-    if (!getStateReference(this._app!).reCAPTCHAState?.succeeded) {
+    // `succeeded` alone is not enough: the widget's callbacks are shared by
+    // every execution, so a later success callback can overwrite a failure.
+    const reCAPTCHAState = getStateReference(this._app!).reCAPTCHAState;
+    if (
+      !reCAPTCHAState?.succeeded ||
+      reCAPTCHAState.errorCount !== errorCountBefore
+    ) {
       throw ERROR_FACTORY.create(AppCheckError.RECAPTCHA_ERROR);
     }
+    throwIfGivenUp(signal);
     let result;
     try {
       const request = getExchangeRecaptchaEnterpriseTokenRequest(
@@ -185,9 +215,15 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
       if (isLimitedUse) {
         request.body['limited_use'] = true;
       }
-      result = await exchangeToken(request, this._heartbeatServiceProvider!);
+      result = await exchangeToken(
+        request,
+        this._heartbeatServiceProvider!,
+        signal
+      );
     } catch (e) {
+      // An attempt that was given up on must not change the throttle state.
       if (
+        !signal?.aborted &&
         (e as FirebaseError).code?.includes(AppCheckError.FETCH_STATUS_ERROR)
       ) {
         this._throttleData = setBackoff(
@@ -205,7 +241,9 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
       }
     }
     // If successful, clear throttle data.
-    this._throttleData = null;
+    if (!signal?.aborted) {
+      this._throttleData = null;
+    }
     return result;
   }
 

@@ -18,7 +18,12 @@
 import { FirebaseApp, _setTrustedScriptSrc } from '@firebase/app';
 import { getStateReference } from './state';
 import { Deferred } from '@firebase/util';
-import { getRecaptcha, ensureActivated } from './util';
+import {
+  getRecaptcha,
+  ensureActivated,
+  exchangeTimeoutError,
+  throwIfGivenUp
+} from './util';
 
 export const RECAPTCHA_URL = 'https://www.google.com/recaptcha/api.js';
 export const RECAPTCHA_ENTERPRISE_URL =
@@ -111,17 +116,25 @@ function makeDiv(app: FirebaseApp): string {
   return divId;
 }
 
-export async function getToken(app: FirebaseApp): Promise<string> {
+export async function getToken(
+  app: FirebaseApp,
+  signal?: AbortSignal
+): Promise<string> {
   ensureActivated(app);
 
   // ensureActivated() guarantees that reCAPTCHAState is set
   const reCAPTCHAState = getStateReference(app).reCAPTCHAState!;
   const recaptcha = await reCAPTCHAState.initialized.promise;
+  throwIfGivenUp(signal);
 
-  return new Promise((resolve, _reject) => {
+  return new Promise((resolve, reject) => {
     // Updated after initialization is complete.
     const reCAPTCHAState = getStateReference(app).reCAPTCHAState!;
     recaptcha.ready(() => {
+      if (signal?.aborted) {
+        reject(exchangeTimeoutError());
+        return;
+      }
       resolve(
         // widgetId is guaranteed to be available if reCAPTCHAState.initialized.promise resolved.
         recaptcha.execute(reCAPTCHAState.widgetId!, {
@@ -152,7 +165,9 @@ function renderInvisibleWidget(
     },
     // Failure callback - set state
     'error-callback': () => {
-      getStateReference(app).reCAPTCHAState!.succeeded = false;
+      const reCAPTCHAState = getStateReference(app).reCAPTCHAState!;
+      reCAPTCHAState.succeeded = false;
+      reCAPTCHAState.errorCount = (reCAPTCHAState.errorCount ?? 0) + 1;
     }
   });
 

@@ -19,6 +19,8 @@ import { GreCAPTCHA } from './recaptcha';
 import { getStateReference } from './state';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { FirebaseApp } from '@firebase/app';
+import { FirebaseError } from '@firebase/util';
+import { EXCHANGE_TOKEN_TIMEOUT } from './constants';
 
 export function getRecaptcha(
   isEnterprise: boolean = false
@@ -34,6 +36,21 @@ export function ensureActivated(app: FirebaseApp): void {
     throw ERROR_FACTORY.create(AppCheckError.USE_BEFORE_ACTIVATION, {
       appName: app.name
     });
+  }
+}
+
+export function exchangeTimeoutError(): FirebaseError {
+  return ERROR_FACTORY.create(AppCheckError.EXCHANGE_TIMEOUT, {
+    timeoutMillis: EXCHANGE_TOKEN_TIMEOUT
+  });
+}
+
+/**
+ * Throws if App Check has given up on the exchange that `signal` belongs to.
+ */
+export function throwIfGivenUp(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw exchangeTimeoutError();
   }
 }
 

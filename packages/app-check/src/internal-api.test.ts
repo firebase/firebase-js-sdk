@@ -40,11 +40,20 @@ import {
   setInitialState,
   getDebugState
 } from './state';
-import { AppCheckTokenListener } from './public-types';
+import { AppCheckToken, AppCheckTokenListener } from './public-types';
 import { Deferred, FirebaseError } from '@firebase/util';
-import { ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from './providers';
+import {
+  CustomProvider,
+  ReCaptchaEnterpriseProvider,
+  ReCaptchaV3Provider
+} from './providers';
 import { AppCheckService } from './factory';
-import { ListenerType } from './types';
+import {
+  AppCheckTokenInternal,
+  AppCheckTokenResult,
+  ListenerType
+} from './types';
+import { EXCHANGE_TOKEN_TIMEOUT } from './constants';
 import { AppCheckError, ERROR_FACTORY } from './errors';
 
 import * as storage from './storage';
@@ -717,6 +726,423 @@ describe('internal api', () => {
         expect((result.internalError as FirebaseError).code).toBe(
           'appCheck/exchange-timeout'
         );
+      });
+
+      // Waits, with the fake clock frozen, until `condition` holds.
+      async function until(condition: () => boolean): Promise<void> {
+        for (let i = 0; i < 100 && !condition(); i++) {
+          await vi.advanceTimersByTimeAsync(0);
+        }
+        expect(condition()).toBe(true);
+      }
+
+      function makeAppToken(token: string): AppCheckToken {
+        return { token, expireTimeMillis: Date.now() + 10 * 60 * 1000 };
+      }
+
+      // A provider whose attempts are settled by the test. It gets no signal,
+      // so it keeps running after App Check has given up on an attempt.
+      function getControlledProvider(): {
+        provider: CustomProvider;
+        calls: Array<Deferred<AppCheckToken>>;
+      } {
+        const calls: Array<Deferred<AppCheckToken>> = [];
+        const provider = new CustomProvider({
+          getToken: () => {
+            const call = new Deferred<AppCheckToken>();
+            calls.push(call);
+            return call.promise;
+          }
+        });
+        return { provider, calls };
+      }
+
+      function okResponse(token: string): Response {
+        return new Response(JSON.stringify({ token, ttl: '3600s' }), {
+          status: 200
+        });
+      }
+
+      // Replaces fetch with one that answers when the test says so, and that
+      // ignores abort signals.
+      function stubDeferredFetch(): {
+        fetchSpy: MockInstance;
+        responses: Array<Deferred<Response>>;
+      } {
+        const responses: Array<Deferred<Response>> = [];
+        const fetchSpy = vi.spyOn(window, 'fetch').mockImplementation(() => {
+          const response = new Deferred<Response>();
+          responses.push(response);
+          return response.promise;
+        });
+        return { fetchSpy, responses };
+      }
+
+      // Resolves when `promise` has settled, whichever way.
+      function settledOf(promise: Promise<unknown>): Promise<unknown> {
+        return promise.catch(() => {});
+      }
+
+      it('is still waiting just before the deadline and gives up at it', async () => {
+        vi.useFakeTimers({ now: 0 });
+        vi.spyOn(logger, 'error').mockImplementation(() => {});
+        const appCheck = initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        });
+        const { spy, started } = stubLostRecaptchaToken();
+
+        const resultPromise = getToken(appCheck as AppCheckService);
+        await started.promise;
+        const signal = spy.mock.calls[0][1] as AbortSignal;
+        const isSettled = trackSettled(resultPromise);
+
+        await vi.advanceTimersByTimeAsync(EXCHANGE_TOKEN_TIMEOUT - 1);
+        expect(isSettled()).toBe(false);
+        expect(signal.aborted).toBe(false);
+
+        await vi.advanceTimersByTimeAsync(1);
+        expect(isSettled()).toBe(true);
+        expect(signal.aborted).toBe(true);
+      });
+
+      it('gives the client a signal that is aborted at the deadline in debug mode', async () => {
+        vi.useFakeTimers({ now: 0 });
+        vi.spyOn(logger, 'error').mockImplementation(() => {});
+        const debugState = getDebugState();
+        debugState.enabled = true;
+        debugState.token = new Deferred();
+        debugState.token.resolve('my-debug-token');
+        const appCheck = initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        });
+        const started = new Deferred<void>();
+        const exchangeSpy = vi
+          .spyOn(client, 'exchangeToken')
+          .mockImplementation(() => {
+            started.resolve();
+            return new Promise(() => {});
+          });
+
+        const resultPromise = getToken(appCheck as AppCheckService);
+        await started.promise;
+        const signal = exchangeSpy.mock.calls[0][2] as AbortSignal;
+        expect(signal.aborted).toBe(false);
+
+        await vi.advanceTimersByTimeAsync(EXCHANGE_TOKEN_TIMEOUT);
+        expect(signal.aborted).toBe(true);
+        expect(((await resultPromise).error as FirebaseError).code).toBe(
+          'appCheck/exchange-timeout'
+        );
+      });
+
+      it('keeps the exchange in flight when an exchange it gave up on settles', async () => {
+        vi.useFakeTimers({ now: 0 });
+        vi.spyOn(logger, 'error').mockImplementation(() => {});
+        const { provider, calls } = getControlledProvider();
+        const appCheck = initializeAppCheck(app, {
+          provider,
+          isTokenAutoRefreshEnabled: false
+        });
+
+        const first = getToken(appCheck as AppCheckService);
+        await until(() => calls.length === 1);
+        await vi.advanceTimersByTimeAsync(EXCHANGE_TOKEN_TIMEOUT);
+        expect(((await first).error as FirebaseError).code).toBe(
+          'appCheck/exchange-timeout'
+        );
+
+        const second = getToken(appCheck as AppCheckService);
+        await until(() => calls.length === 2);
+        const slot = getStateReference(app).exchangeTokenPromise;
+        expect(slot).toBeInstanceOf(Promise);
+        const joiner = getToken(appCheck as AppCheckService);
+        await vi.advanceTimersByTimeAsync(0);
+
+        calls[0].resolve(makeAppToken('token-a'));
+        await vi.advanceTimersByTimeAsync(0);
+        expect(getStateReference(app).exchangeTokenPromise).toBe(slot);
+
+        calls[1].resolve(makeAppToken('token-b'));
+        expect(await second).toEqual({ token: 'token-b' });
+        expect(await joiner).toEqual({ token: 'token-b' });
+        expect(calls.length).toBe(2);
+        expect(getStateReference(app).exchangeTokenPromise).toBeUndefined();
+      });
+
+      it('does not notify listeners or write a token for an exchange it gave up on', async () => {
+        vi.useFakeTimers({ now: 0 });
+        vi.spyOn(logger, 'error').mockImplementation(() => {});
+        const { provider, calls } = getControlledProvider();
+        const appCheck = initializeAppCheck(app, {
+          provider,
+          isTokenAutoRefreshEnabled: false
+        });
+        const listener = vi.fn();
+        addTokenListener(
+          appCheck as AppCheckService,
+          ListenerType.INTERNAL,
+          listener
+        );
+
+        const first = getToken(appCheck as AppCheckService);
+        await until(() => calls.length === 1);
+        await vi.advanceTimersByTimeAsync(EXCHANGE_TOKEN_TIMEOUT);
+        await first;
+        const second = getToken(appCheck as AppCheckService);
+        await until(() => calls.length === 2);
+        calls[1].resolve(makeAppToken('token-b'));
+        expect(await second).toEqual({ token: 'token-b' });
+
+        expect(listener).toHaveBeenCalledTimes(2);
+        expect((listener.mock.calls[0][0].error as FirebaseError).code).toBe(
+          'appCheck/exchange-timeout'
+        );
+        expect(listener.mock.calls[1][0]).toEqual({ token: 'token-b' });
+        const writesBefore = storageWriteStub.mock.calls.length;
+
+        calls[0].resolve(makeAppToken('token-a'));
+        await vi.advanceTimersByTimeAsync(0);
+
+        expect(listener).toHaveBeenCalledTimes(2);
+        expect(storageWriteStub.mock.calls.length).toBe(writesBefore);
+        expect(getStateReference(app).token?.token).toBe('token-b');
+      });
+
+      it('ignores the late failure of an exchange it gave up on', async () => {
+        vi.useFakeTimers({ now: 0 });
+        vi.spyOn(logger, 'error').mockImplementation(() => {});
+        const { provider, calls } = getControlledProvider();
+        const appCheck = initializeAppCheck(app, {
+          provider,
+          isTokenAutoRefreshEnabled: false
+        });
+        const listener = vi.fn();
+        addTokenListener(
+          appCheck as AppCheckService,
+          ListenerType.INTERNAL,
+          listener
+        );
+
+        const first = getToken(appCheck as AppCheckService);
+        await until(() => calls.length === 1);
+        await vi.advanceTimersByTimeAsync(EXCHANGE_TOKEN_TIMEOUT);
+        await first;
+        expect(listener).toHaveBeenCalledTimes(1);
+        const writesBefore = storageWriteStub.mock.calls.length;
+
+        calls[0].reject(new Error('late failure'));
+        await vi.advanceTimersByTimeAsync(0);
+
+        expect(listener).toHaveBeenCalledTimes(1);
+        expect(storageWriteStub.mock.calls.length).toBe(writesBefore);
+        expect(getStateReference(app).token).toBeUndefined();
+        expect(getStateReference(app).exchangeTokenPromise).toBeUndefined();
+      });
+
+      it('does not throttle the provider when a late 403 arrives for an exchange it gave up on', async () => {
+        vi.useFakeTimers({ now: 0 });
+        vi.spyOn(logger, 'error').mockImplementation(() => {});
+        vi.spyOn(logger, 'warn').mockImplementation(() => {});
+        const provider = new ReCaptchaV3Provider(FAKE_SITE_KEY);
+        const providerSpy = vi.spyOn(provider, 'getToken');
+        const appCheck = initializeAppCheck(app, { provider });
+        stubGetRecaptchaToken();
+        const { fetchSpy, responses } = stubDeferredFetch();
+
+        const first = getToken(appCheck as AppCheckService);
+        await until(() => responses.length === 1);
+        const firstProviderPromise = providerSpy.mock.results[0]
+          .value as Promise<unknown>;
+        const firstProviderCall = settledOf(firstProviderPromise);
+        await vi.advanceTimersByTimeAsync(EXCHANGE_TOKEN_TIMEOUT);
+        expect(((await first).error as FirebaseError).code).toBe(
+          'appCheck/exchange-timeout'
+        );
+
+        const second = getToken(appCheck as AppCheckService);
+        await until(() => responses.length === 2);
+        responses[1].resolve(okResponse('token-b'));
+        expect(await second).toEqual({ token: 'token-b' });
+
+        // The exchange that was given up on is answered with a 403.
+        responses[0].resolve(new Response('', { status: 403 }));
+        await firstProviderCall;
+        const firstError = (await firstProviderPromise.catch(
+          e => e
+        )) as FirebaseError;
+        expect(firstError).toBeInstanceOf(FirebaseError);
+        expect(firstError.code).toBe('appCheck/fetch-status-error');
+        expect(firstError.customData?.httpStatus).toBe(403);
+
+        const third = getToken(appCheck as AppCheckService, true);
+        await until(() => responses.length === 3);
+        responses[2].resolve(okResponse('token-c'));
+        expect(await third).toEqual({ token: 'token-c' });
+
+        const limitedUse = getLimitedUseToken(appCheck as AppCheckService);
+        await until(() => responses.length === 4);
+        responses[3].resolve(okResponse('token-limited'));
+        expect(await limitedUse).toEqual({ token: 'token-limited' });
+        expect(
+          JSON.parse(fetchSpy.mock.calls[3][1].body as string)['limited_use']
+        ).toBe(true);
+      });
+
+      it('keeps the throttle of the provider when an exchange it gave up on succeeds late', async () => {
+        vi.useFakeTimers({ now: 0 });
+        vi.spyOn(logger, 'error').mockImplementation(() => {});
+        vi.spyOn(logger, 'warn').mockImplementation(() => {});
+        const provider = new ReCaptchaV3Provider(FAKE_SITE_KEY);
+        const providerSpy = vi.spyOn(provider, 'getToken');
+        const appCheck = initializeAppCheck(app, { provider });
+        stubGetRecaptchaToken();
+        const { responses } = stubDeferredFetch();
+
+        const first = getToken(appCheck as AppCheckService);
+        await until(() => responses.length === 1);
+        const firstProviderPromise = providerSpy.mock.results[0]
+          .value as Promise<AppCheckTokenInternal>;
+        const firstProviderCall = settledOf(firstProviderPromise);
+        await vi.advanceTimersByTimeAsync(EXCHANGE_TOKEN_TIMEOUT);
+        await first;
+
+        const second = getToken(appCheck as AppCheckService);
+        await until(() => responses.length === 2);
+        responses[1].resolve(new Response('', { status: 403 }));
+        expect(((await second).error as FirebaseError).code).toBe(
+          'appCheck/initial-throttle'
+        );
+
+        // The exchange that was given up on succeeds late.
+        responses[0].resolve(okResponse('token-a'));
+        await firstProviderCall;
+        expect((await firstProviderPromise).token).toBe('token-a');
+
+        const third = await getToken(appCheck as AppCheckService, true);
+        expect((third.error as FirebaseError).code).toBe('appCheck/throttled');
+        expect(responses.length).toBe(2);
+        expect(getStateReference(app).token).toBeUndefined();
+      });
+
+      it('leaves no timer behind once an exchange settles in time', async () => {
+        vi.useFakeTimers({ now: 0 });
+        const { provider, calls } = getControlledProvider();
+        const appCheck = initializeAppCheck(app, {
+          provider,
+          isTokenAutoRefreshEnabled: false
+        });
+        const timersBefore = vi.getTimerCount();
+
+        const resultPromise = getToken(appCheck as AppCheckService);
+        await until(() => calls.length === 1);
+        expect(vi.getTimerCount()).toBe(timersBefore + 1);
+
+        calls[0].resolve(makeAppToken('token-a'));
+        expect(await resultPromise).toEqual({ token: 'token-a' });
+        expect(vi.getTimerCount()).toBe(timersBefore);
+      });
+
+      it('does not affect a limited use token', async () => {
+        vi.useFakeTimers({ now: 0 });
+        vi.spyOn(logger, 'error').mockImplementation(() => {});
+        const appCheck = initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        });
+        getStateReference(app).reCAPTCHAState!.succeeded = true;
+        // Only the first call, the ordinary exchange, never returns.
+        const started = new Deferred<void>();
+        let recaptchaCalls = 0;
+        vi.spyOn(recaptcha, 'getToken').mockImplementation(() => {
+          recaptchaCalls++;
+          if (recaptchaCalls === 1) {
+            started.resolve();
+            return new Promise(() => {});
+          }
+          return Promise.resolve(fakeRecaptchaToken);
+        });
+        const exchangeSpy = vi
+          .spyOn(client, 'exchangeToken')
+          .mockResolvedValue(fakeRecaptchaAppCheckToken);
+
+        const ordinary = getToken(appCheck as AppCheckService);
+        await started.promise;
+
+        // Not blocked by the ordinary exchange that is in flight.
+        expect(await getLimitedUseToken(appCheck as AppCheckService)).toEqual({
+          token: fakeRecaptchaAppCheckToken.token
+        });
+        expect(exchangeSpy).toHaveBeenCalledTimes(1);
+        expect(exchangeSpy.mock.calls[0][0].body['limited_use']).toBe(true);
+        expect(exchangeSpy.mock.calls[0][2]).toBeUndefined();
+
+        // And the ordinary exchange timing out does not change that.
+        await vi.advanceTimersByTimeAsync(EXCHANGE_TOKEN_TIMEOUT);
+        expect(((await ordinary).error as FirebaseError).code).toBe(
+          'appCheck/exchange-timeout'
+        );
+        expect(await getLimitedUseToken(appCheck as AppCheckService)).toEqual({
+          token: fakeRecaptchaAppCheckToken.token
+        });
+      });
+
+      it('joins the exchange in flight when the provider calls getToken() synchronously', async () => {
+        vi.useFakeTimers({ now: 0 });
+        let providerCalls = 0;
+        let reentrant: Promise<AppCheckTokenResult> | undefined;
+        const appCheck: AppCheckService = initializeAppCheck(app, {
+          provider: new CustomProvider({
+            getToken: () => {
+              providerCalls++;
+              if (providerCalls === 1) {
+                reentrant = getToken(appCheck, true);
+              }
+              return Promise.resolve(makeAppToken('token-new'));
+            }
+          })
+        }) as AppCheckService;
+        setInitialState(app, {
+          ...getStateReference(app),
+          token: makeAppToken('token-in-memory') as AppCheckTokenInternal
+        });
+
+        const result = await getToken(appCheck, true);
+
+        expect(result).toEqual({ token: 'token-new' });
+        expect(await reentrant).toEqual({ token: 'token-new' });
+        expect(providerCalls).toBe(1);
+      });
+
+      it('resolves with a dummy token and the error when the provider throws synchronously', async () => {
+        vi.useFakeTimers({ now: 0 });
+        const appCheck = initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider(FAKE_SITE_KEY),
+          isTokenAutoRefreshEnabled: false
+        });
+        const error = new Error('thrown synchronously');
+        const timersBefore = vi.getTimerCount();
+        let slotDuringCall: unknown;
+        let timersDuringCall: number | undefined;
+        vi.spyOn(
+          getStateReference(app).provider!,
+          'getToken'
+        ).mockImplementation(() => {
+          slotDuringCall = getStateReference(app).exchangeTokenPromise;
+          timersDuringCall = vi.getTimerCount();
+          throw error;
+        });
+
+        const result = await getToken(appCheck as AppCheckService);
+
+        // The slot was published and the deadline armed before provider code ran.
+        expect(slotDuringCall).toBeInstanceOf(Promise);
+        expect(timersDuringCall).toBe(timersBefore + 1);
+
+        expect(result).toEqual({
+          token: formatDummyToken(defaultTokenErrorData),
+          error
+        });
+        expect(getStateReference(app).exchangeTokenPromise).toBeUndefined();
+        expect(vi.getTimerCount()).toBe(timersBefore);
       });
     });
 

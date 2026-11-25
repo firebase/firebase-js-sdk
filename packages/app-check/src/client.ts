@@ -25,6 +25,7 @@ import { FirebaseApp } from '@firebase/app';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { Provider } from '@firebase/component';
 import { AppCheckTokenInternal } from './types';
+import { throwIfGivenUp } from './util';
 
 /**
  * Response JSON returned from AppCheck server endpoint.
@@ -42,7 +43,8 @@ interface AppCheckRequest {
 
 export async function exchangeToken(
   { url, body }: AppCheckRequest,
-  heartbeatServiceProvider: Provider<'heartbeat'>
+  heartbeatServiceProvider: Provider<'heartbeat'>,
+  signal?: AbortSignal
 ): Promise<AppCheckTokenInternal> {
   const headers: HeadersInit = {
     'Content-Type': 'application/json'
@@ -60,8 +62,10 @@ export async function exchangeToken(
   const options: RequestInit = {
     method: 'POST',
     body: JSON.stringify(body),
-    headers
+    headers,
+    signal
   };
+  throwIfGivenUp(signal);
   let response;
   try {
     response = await fetch(url, options);

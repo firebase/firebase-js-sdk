@@ -23,7 +23,8 @@ import {
   exchangeToken,
   getExchangeRecaptchaEnterpriseTokenRequest
 } from './client';
-import { FirebaseError } from '@firebase/util';
+import { Provider } from '@firebase/component';
+import { Deferred, FirebaseError } from '@firebase/util';
 import { ERROR_FACTORY, AppCheckError } from './errors';
 import { BASE_ENDPOINT } from './constants';
 
@@ -92,6 +93,45 @@ describe('client', () => {
       expireTimeMillis: 3600,
       issuedAtTimeMillis: 0
     });
+  });
+
+  it('passes the abort signal to fetch', async () => {
+    fetchStub.mockResolvedValue({
+      status: 200,
+      json: async () => ({ token: 'fake-appcheck-token', ttl: '3.600s' })
+    } as Response);
+    const controller = new AbortController();
+
+    await exchangeToken(
+      getExchangeRecaptchaV3TokenRequest(app, 'fake-custom-token'),
+      getFakeHeartbeatServiceProvider(),
+      controller.signal
+    );
+
+    expect(fetchStub.mock.calls[0][1]?.signal).toBe(controller.signal);
+  });
+
+  it('does not call fetch if the signal is aborted while waiting for the heartbeat', async () => {
+    const heartbeatsHeader = new Deferred<string>();
+    const heartbeatServiceProvider = {
+      getImmediate: () => ({
+        getHeartbeatsHeader: () => heartbeatsHeader.promise
+      })
+    } as unknown as Provider<'heartbeat'>;
+    const controller = new AbortController();
+
+    const result = exchangeToken(
+      getExchangeRecaptchaV3TokenRequest(app, 'fake-custom-token'),
+      heartbeatServiceProvider,
+      controller.signal
+    );
+    controller.abort();
+    heartbeatsHeader.resolve('a/1.2.3');
+
+    await expect(result).rejects.toMatchObject({
+      code: 'appCheck/exchange-timeout'
+    });
+    expect(fetchStub).not.toHaveBeenCalled();
   });
 
   it('throws when there is a network error', async () => {

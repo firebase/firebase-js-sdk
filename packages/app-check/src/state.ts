@@ -41,6 +41,9 @@ export interface ReCAPTCHAState {
   widgetId?: string;
   // True if the most recent recaptcha check succeeded.
   succeeded?: boolean;
+  // Number of error callbacks seen so far, to detect a failure during an
+  // execution even if a later success callback overwrote `succeeded`.
+  errorCount?: number;
 }
 
 export interface DebugState {
