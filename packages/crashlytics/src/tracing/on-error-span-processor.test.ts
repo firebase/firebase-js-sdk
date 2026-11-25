@@ -27,7 +27,7 @@ import {
   Span
 } from '@opentelemetry/sdk-trace';
 import { resourceFromAttributes } from '@opentelemetry/resources';
-import { context, TraceFlags } from '@opentelemetry/api';
+import { context, diag, TraceFlags } from '@opentelemetry/api';
 import { OnErrorSpanProcessor } from './on-error-span-processor';
 import { TelemetryStore } from '../telemetry-store';
 
@@ -213,50 +213,89 @@ describe('OnErrorSpanProcessor', () => {
     expect(asyncExporter.shutdown).toHaveBeenCalled();
   });
 
-  it('should continue exporting subsequent spans after an exporter failure or throw', () => {
-    let callCount = 0;
-    const exportedSpans: ReadableSpan[] = [];
-    const flakyExporter: SpanExporter = {
-      export: (spans, resultCallback) => {
-        callCount++;
-        if (callCount === 1) {
+  describe('export error handling', () => {
+    let diagErrorSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      diagErrorSpy = vi.spyOn(diag, 'error').mockImplementation(() => {});
+    });
+
+    it('should log via diag.error and continue exporting after a failed export with an error', () => {
+      const networkError = new Error('network error');
+      vi.spyOn(mockExporter, 'export').mockImplementationOnce(
+        (_spans, resultCallback) => {
           resultCallback({
             code: ExportResultCode.FAILED,
-            error: new Error('network error')
+            error: networkError
           });
-          return;
         }
-        if (callCount === 2) {
-          throw new Error('sync boom');
+      );
+
+      processor.onStart(mockSpan1, context.active());
+      processor.onEnd(mockSpan1);
+      expect(() => processor.onErrorOccurred()).not.toThrow();
+      expect(diagErrorSpy).toHaveBeenCalledWith(
+        'OnErrorSpanProcessor: span export failed',
+        networkError
+      );
+
+      diagErrorSpy.mockClear();
+      telemetryStore.clear();
+
+      processor.onStart(mockSpan2, context.active());
+      processor.onEnd(mockSpan2);
+      processor.onErrorOccurred();
+      expect(mockExporter.exportedSpans).toEqual([mockSpan2]);
+      expect(diagErrorSpy).not.toHaveBeenCalled();
+    });
+
+    it('should log via diag.error and continue exporting after a failed export without an error', () => {
+      vi.spyOn(mockExporter, 'export').mockImplementationOnce(
+        (_spans, resultCallback) => {
+          resultCallback({ code: ExportResultCode.FAILED });
         }
-        exportedSpans.push(...spans);
-        resultCallback({ code: ExportResultCode.SUCCESS });
-      },
-      shutdown: () => Promise.resolve()
-    };
+      );
 
-    const flakyProcessor = new OnErrorSpanProcessor(
-      flakyExporter,
-      telemetryStore
-    );
+      processor.onStart(mockSpan1, context.active());
+      processor.onEnd(mockSpan1);
+      expect(() => processor.onErrorOccurred()).not.toThrow();
+      expect(diagErrorSpy).toHaveBeenCalledWith(
+        'OnErrorSpanProcessor: span export failed'
+      );
 
-    // First error: exporter reports FAILED
-    flakyProcessor.onStart(mockSpan1, context.active());
-    flakyProcessor.onEnd(mockSpan1);
-    expect(() => flakyProcessor.onErrorOccurred()).not.toThrow();
-    telemetryStore.clear();
+      diagErrorSpy.mockClear();
+      telemetryStore.clear();
 
-    // Second error: exporter throws synchronously
-    flakyProcessor.onStart(mockSpan1, context.active());
-    flakyProcessor.onEnd(mockSpan1);
-    expect(() => flakyProcessor.onErrorOccurred()).not.toThrow();
-    telemetryStore.clear();
+      processor.onStart(mockSpan2, context.active());
+      processor.onEnd(mockSpan2);
+      processor.onErrorOccurred();
+      expect(mockExporter.exportedSpans).toEqual([mockSpan2]);
+      expect(diagErrorSpy).not.toHaveBeenCalled();
+    });
 
-    // Third error: processor continues exporting normally
-    flakyProcessor.onStart(mockSpan2, context.active());
-    flakyProcessor.onEnd(mockSpan2);
-    flakyProcessor.onErrorOccurred();
-    expect(exportedSpans).toEqual([mockSpan2]);
+    it('should log via diag.error and continue exporting after a synchronous exporter throw', () => {
+      const syncError = new Error('sync boom');
+      vi.spyOn(mockExporter, 'export').mockImplementationOnce(() => {
+        throw syncError;
+      });
+
+      processor.onStart(mockSpan1, context.active());
+      processor.onEnd(mockSpan1);
+      expect(() => processor.onErrorOccurred()).not.toThrow();
+      expect(diagErrorSpy).toHaveBeenCalledWith(
+        'OnErrorSpanProcessor: span export failed',
+        syncError
+      );
+
+      diagErrorSpy.mockClear();
+      telemetryStore.clear();
+
+      processor.onStart(mockSpan2, context.active());
+      processor.onEnd(mockSpan2);
+      processor.onErrorOccurred();
+      expect(mockExporter.exportedSpans).toEqual([mockSpan2]);
+      expect(diagErrorSpy).not.toHaveBeenCalled();
+    });
   });
 
   it('should forward shutdown calls to exporter and clear buffer', async () => {

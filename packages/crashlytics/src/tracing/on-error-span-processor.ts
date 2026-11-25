@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { context, Context, TraceFlags } from '@opentelemetry/api';
-import { suppressTracing } from '@opentelemetry/core';
+import { context, Context, diag, TraceFlags } from '@opentelemetry/api';
+import { ExportResultCode, suppressTracing } from '@opentelemetry/core';
 import type {
   ReadableSpan,
   Span,
@@ -104,8 +104,21 @@ export class OnErrorSpanProcessor implements SpanProcessor {
     const exportPromise = new Promise<void>(resolve => {
       context.with(suppressTracing(context.active()), () => {
         try {
-          this._exporter.export(spans, () => resolve());
-        } catch {
+          this._exporter.export(spans, result => {
+            if (result.code === ExportResultCode.FAILED) {
+              if (result.error) {
+                diag.error(
+                  'OnErrorSpanProcessor: span export failed',
+                  result.error
+                );
+              } else {
+                diag.error('OnErrorSpanProcessor: span export failed');
+              }
+            }
+            resolve();
+          });
+        } catch (error) {
+          diag.error('OnErrorSpanProcessor: span export failed', error);
           resolve();
         }
       });
