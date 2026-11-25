@@ -152,7 +152,7 @@
     "@firebase/app-compat": "0.5.23",
     "@firebase/auth": "1.13.11",
     "@js-temporal/polyfill": "0.5.1",
-    "@rollup/plugin-alias": "5.1.1",
+    "@rollup/plugin-alias": "6.0.1",
     "@rollup/plugin-json": "6.1.0",
     "json-stable-stringify": "1.2.1",
     "protobufjs": "7.6.6",
