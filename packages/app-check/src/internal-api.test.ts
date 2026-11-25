@@ -41,7 +41,7 @@ import {
   getDebugState
 } from './state';
 import { AppCheckTokenListener } from './public-types';
-import { Deferred } from '@firebase/util';
+import { Deferred, FirebaseError } from '@firebase/util';
 import { ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } from './providers';
 import { AppCheckService } from './factory';
 import { ListenerType } from './types';
@@ -520,6 +520,203 @@ describe('internal api', () => {
 
       expect(await newToken).toEqual({
         token: 'recaptcha-app-check-token-new-1'
+      });
+    });
+
+    describe('an exchange that never settles', () => {
+      // Longer than any deadline the exchange could reasonably use.
+      const LONG_WAIT = 5 * 60 * 1000;
+
+      // Replaces the reCAPTCHA call with one that never returns. The returned
+      // Deferred resolves once the call has started.
+      function stubLostRecaptchaToken(): {
+        spy: MockInstance;
+        started: Deferred<void>;
+      } {
+        const started = new Deferred<void>();
+        const spy = vi.spyOn(recaptcha, 'getToken').mockImplementation(() => {
+          started.resolve();
+          return new Promise(() => {});
+        });
+        return { spy, started };
+      }
+
+      function trackSettled(promise: Promise<unknown>): () => boolean {
+        let settled = false;
+        void promise.then(() => {
+          settled = true;
+        });
+        return () => settled;
+      }
+
+      it('releases the caller with a timeout error', async () => {
+        vi.useFakeTimers({ now: 0 });
+        vi.spyOn(logger, 'error').mockImplementation(() => {});
+        const appCheck = initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        });
+        const { spy, started } = stubLostRecaptchaToken();
+        const exchangeSpy = vi.spyOn(client, 'exchangeToken');
+
+        const resultPromise = getToken(appCheck as AppCheckService);
+        await started.promise;
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        expect(getStateReference(app).exchangeTokenPromise).toBeInstanceOf(
+          Promise
+        );
+
+        const isSettled = trackSettled(resultPromise);
+        await vi.advanceTimersByTimeAsync(LONG_WAIT);
+        expect(isSettled()).toBe(true);
+
+        const result = await resultPromise;
+        expect(result.token).toBe(formatDummyToken(defaultTokenErrorData));
+        expect((result.error as FirebaseError).code).toBe(
+          'appCheck/exchange-timeout'
+        );
+        expect(getStateReference(app).exchangeTokenPromise).toBeUndefined();
+        expect(exchangeSpy).not.toHaveBeenCalled();
+      });
+
+      it('lets the next call start a new exchange', async () => {
+        vi.useFakeTimers({ now: 0 });
+        vi.spyOn(logger, 'error').mockImplementation(() => {});
+        const appCheck = initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        });
+        const { started } = stubLostRecaptchaToken();
+
+        const firstPromise = getToken(appCheck as AppCheckService);
+        await started.promise;
+
+        const isSettled = trackSettled(firstPromise);
+        await vi.advanceTimersByTimeAsync(LONG_WAIT);
+        expect(isSettled()).toBe(true);
+        await firstPromise;
+
+        // The stuck step now answers.
+        const reCAPTCHASpy = stubGetRecaptchaToken();
+        vi.spyOn(client, 'exchangeToken').mockResolvedValue({
+          token: 'new-recaptcha-app-check-token',
+          expireTimeMillis: Date.now() + 60000,
+          issuedAtTimeMillis: 0
+        });
+
+        expect(await getToken(appCheck as AppCheckService)).toEqual({
+          token: 'new-recaptcha-app-check-token'
+        });
+        expect(reCAPTCHASpy).toHaveBeenCalledTimes(2);
+      });
+
+      it('releases every caller waiting on the same exchange', async () => {
+        vi.useFakeTimers({ now: 0 });
+        vi.spyOn(logger, 'error').mockImplementation(() => {});
+        const appCheck = initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        });
+        const { spy, started } = stubLostRecaptchaToken();
+
+        const firstPromise = getToken(appCheck as AppCheckService);
+        await started.promise;
+        // Joins the exchange already in flight.
+        const secondPromise = getToken(appCheck as AppCheckService);
+        await vi.advanceTimersByTimeAsync(0);
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        expect(getStateReference(app).exchangeTokenPromise).toBeInstanceOf(
+          Promise
+        );
+
+        const isFirstSettled = trackSettled(firstPromise);
+        const isSecondSettled = trackSettled(secondPromise);
+        await vi.advanceTimersByTimeAsync(LONG_WAIT);
+        expect(isFirstSettled()).toBe(true);
+        expect(isSecondSettled()).toBe(true);
+
+        const [first, second] = await Promise.all([
+          firstPromise,
+          secondPromise
+        ]);
+        expect((first.error as FirebaseError).code).toBe(
+          'appCheck/exchange-timeout'
+        );
+        expect((second.error as FirebaseError).code).toBe(
+          'appCheck/exchange-timeout'
+        );
+      });
+
+      it('releases the caller in debug mode', async () => {
+        vi.useFakeTimers({ now: 0 });
+        vi.spyOn(logger, 'error').mockImplementation(() => {});
+        const debugState = getDebugState();
+        debugState.enabled = true;
+        debugState.token = new Deferred();
+        debugState.token.resolve('my-debug-token');
+        const appCheck = initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        });
+
+        const started = new Deferred<void>();
+        const exchangeSpy = vi
+          .spyOn(client, 'exchangeToken')
+          .mockImplementation(() => {
+            started.resolve();
+            return new Promise(() => {});
+          });
+
+        const resultPromise = getToken(appCheck as AppCheckService);
+        await started.promise;
+
+        expect(exchangeSpy).toHaveBeenCalledTimes(1);
+        expect(getStateReference(app).exchangeTokenPromise).toBeInstanceOf(
+          Promise
+        );
+
+        const isSettled = trackSettled(resultPromise);
+        await vi.advanceTimersByTimeAsync(LONG_WAIT);
+        expect(isSettled()).toBe(true);
+
+        const result = await resultPromise;
+        expect(result.token).toBe(formatDummyToken(defaultTokenErrorData));
+        expect((result.error as FirebaseError).code).toBe(
+          'appCheck/exchange-timeout'
+        );
+      });
+
+      it('returns the still valid token with an internalError', async () => {
+        vi.useFakeTimers({ now: 0 });
+        vi.spyOn(logger, 'error').mockImplementation(() => {});
+        const appCheck = initializeAppCheck(app, {
+          provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+        });
+        setInitialState(app, {
+          ...getStateReference(app),
+          token: {
+            token: 'still-valid-app-check-token',
+            expireTimeMillis: Date.now() + 2 * LONG_WAIT,
+            issuedAtTimeMillis: 0
+          }
+        });
+        const { spy, started } = stubLostRecaptchaToken();
+
+        const resultPromise = getToken(appCheck as AppCheckService, true);
+        await started.promise;
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        expect(getStateReference(app).exchangeTokenPromise).toBeInstanceOf(
+          Promise
+        );
+
+        const isSettled = trackSettled(resultPromise);
+        await vi.advanceTimersByTimeAsync(LONG_WAIT);
+        expect(isSettled()).toBe(true);
+
+        const result = await resultPromise;
+        expect(result.token).toBe('still-valid-app-check-token');
+        expect((result.internalError as FirebaseError).code).toBe(
+          'appCheck/exchange-timeout'
+        );
       });
     });
 
