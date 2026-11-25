@@ -14,44 +14,106 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Context } from '@opentelemetry/api';
-import {
-  BatchSpanProcessor,
-  SpanExporter,
+import { context, Context, TraceFlags } from '@opentelemetry/api';
+import { suppressTracing } from '@opentelemetry/core';
+import type {
   ReadableSpan,
-  Span
+  Span,
+  SpanExporter,
+  SpanProcessor
 } from '@opentelemetry/sdk-trace';
 import { TelemetryStore } from '../telemetry-store';
 
 /**
- * A BatchSpanProcessor that buffers all spans in memory until an error occurs.
- * Once an error occurs, it releases all buffered spans to the exporter batch processor queue.
+ * A SpanProcessor that buffers all spans in memory via {@link TelemetryStore}
+ * until an error occurs, then exports all buffered sampled spans directly.
  */
-export class OnErrorSpanProcessor extends BatchSpanProcessor {
-  private _store: TelemetryStore;
+export class OnErrorSpanProcessor implements SpanProcessor {
+  static readonly DEFAULT_EXPORT_BATCH_SIZE = 512;
 
-  constructor(exporter: SpanExporter, store: TelemetryStore) {
-    super({ exporter });
+  private readonly _exporter: SpanExporter;
+  private readonly _store: TelemetryStore;
+  private readonly _maxExportBatchSize: number;
+  private readonly _pendingExports = new Set<Promise<void>>();
+  private _isShutdown = false;
+  private _shutdownPromise?: Promise<void>;
+
+  constructor(
+    exporter: SpanExporter,
+    store: TelemetryStore,
+    maxExportBatchSize = OnErrorSpanProcessor.DEFAULT_EXPORT_BATCH_SIZE
+  ) {
+    if (maxExportBatchSize <= 0) {
+      throw new Error('maxExportBatchSize must be greater than 0');
+    }
+    this._exporter = exporter;
     this._store = store;
+    this._maxExportBatchSize = maxExportBatchSize;
   }
 
-  override onStart(span: Span, _parentContext: Context): void {
+  onStart(span: Span, _parentContext: Context): void {
+    if (this._isShutdown) {
+      return;
+    }
     this._store.add(span);
   }
 
-  override onEnd(span: ReadableSpan): void {
+  onEnd(span: ReadableSpan): void {
+    if (this._isShutdown) {
+      return;
+    }
     this._store.update(span);
   }
 
-  override shutdown(): Promise<void> {
+  async forceFlush(): Promise<void> {
+    if (this._shutdownPromise) {
+      return this._shutdownPromise;
+    }
+    await Promise.all(this._pendingExports);
+    await this._exporter.forceFlush?.();
+  }
+
+  shutdown(): Promise<void> {
+    if (this._shutdownPromise) {
+      return this._shutdownPromise;
+    }
+    this._isShutdown = true;
     this._store.clear();
-    return super.shutdown();
+    this._shutdownPromise = Promise.all(this._pendingExports).then(() =>
+      this._exporter.shutdown()
+    );
+    return this._shutdownPromise;
   }
 
   onErrorOccurred(): void {
-    const spans = this._store.getSpansToExport();
-    for (const span of spans) {
-      super.onEnd(span);
+    if (this._isShutdown) {
+      return;
     }
+    const spans = this._store
+      .getSpansToExport()
+      .filter(
+        span => (span.spanContext().traceFlags & TraceFlags.SAMPLED) !== 0
+      );
+
+    for (let i = 0; i < spans.length; i += this._maxExportBatchSize) {
+      this._exportBatch(spans.slice(i, i + this._maxExportBatchSize));
+    }
+  }
+
+  private _exportBatch(spans: ReadableSpan[]): void {
+    const exportPromise = new Promise<void>(resolve => {
+      context.with(suppressTracing(context.active()), () => {
+        try {
+          this._exporter.export(spans, () => resolve());
+        } catch {
+          resolve();
+        }
+      });
+    });
+
+    this._pendingExports.add(exportPromise);
+    void exportPromise.finally(() => {
+      this._pendingExports.delete(exportPromise);
+    });
   }
 }
