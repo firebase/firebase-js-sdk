@@ -14,8 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { assert, describe, it } from 'vitest';
-import { ErrorFactory, ErrorMap, FirebaseError } from '../src/errors';
+import { afterEach, assert, describe, it } from 'vitest';
+import {
+  enableContextualErrors,
+  ErrorFactory,
+  ErrorMap,
+  FirebaseError,
+  isContextualErrorsEnabled
+} from '../src/errors';
 
 type ErrorCode =
   'generic-error' | 'file-not-found' | 'anon-replace' | 'overwrite-field';
@@ -41,6 +47,10 @@ const ERROR_FACTORY = new ErrorFactory<ErrorCode, ErrorParams>(
 );
 
 describe('FirebaseError', () => {
+  afterEach(() => {
+    enableContextualErrors(false);
+  });
+
   it('creates an Error', () => {
     const e = ERROR_FACTORY.create('generic-error');
     assert.instanceOf(e, Error);
@@ -113,6 +123,37 @@ describe('FirebaseError', () => {
       assert.isDefined((e as FirebaseError).stack);
       assert.match((e as FirebaseError).stack!, /dummy2[\s\S]*?dummy1/);
     }
+  });
+
+  it('omits context when contextual errors are disabled', () => {
+    assert.isFalse(isContextualErrorsEnabled());
+    const e = new FirebaseError('test/code', 'Something failed', undefined, {
+      path: 'users/123'
+    });
+    assert.isUndefined(e.context);
+    assert.equal(e.message, 'Something failed');
+  });
+
+  it('includes context in message and property when contextual errors are enabled', () => {
+    enableContextualErrors(true);
+    assert.isTrue(isContextualErrorsEnabled());
+    const ctx = { path: 'users/123', operation: 'read' };
+    const e = new FirebaseError(
+      'test/code',
+      'Something failed',
+      undefined,
+      ctx
+    );
+    assert.deepEqual(e.context, ctx);
+    assert.equal(e.message, `Something failed Context: ${JSON.stringify(ctx)}`);
+  });
+
+  it('preserves instanceof for subclasses', () => {
+    class CustomFirebaseError extends FirebaseError<{ path: string }> {}
+    const e = new CustomFirebaseError('custom/code', 'boom');
+    assert.instanceOf(e, Error);
+    assert.instanceOf(e, FirebaseError);
+    assert.instanceOf(e, CustomFirebaseError);
   });
 });
 

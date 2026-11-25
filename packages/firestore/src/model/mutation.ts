@@ -19,6 +19,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { Timestamp } from '../lite-api/timestamp';
 import { Value as ProtoValue } from '../protos/firestore_proto_api';
 import { debugAssert, hardAssert } from '../util/assert';
+import { FirestoreErrorContext, FirestoreOperation } from '../util/error';
 import { arrayEquals } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
@@ -752,4 +753,50 @@ export class VerifyMutation extends Mutation {
   getFieldMask(): FieldMask | null {
     return null;
   }
+}
+
+/**
+ * Computes error context for a list of mutations (e.g. a WriteBatch or
+ * Transaction commit). Includes `path` when all relevant mutations target a
+ * single document.
+ */
+export function getMutationsErrorContext(
+  mutations: Mutation[]
+): FirestoreErrorContext {
+  const writeMutations = mutations.filter(m => m.type !== MutationType.Verify);
+  const relevant = writeMutations.length > 0 ? writeMutations : mutations;
+  if (relevant.length === 0) {
+    return { operation: FirestoreOperation.WRITE };
+  }
+
+  const firstPath = relevant[0].key.path.canonicalString();
+  const singlePath = relevant.every(
+    m => m.key.path.canonicalString() === firstPath
+  )
+    ? firstPath
+    : undefined;
+
+  let operation: FirestoreOperation;
+  if (writeMutations.length === 0) {
+    operation = FirestoreOperation.READ;
+  } else if (relevant.length === 1) {
+    switch (relevant[0].type) {
+      case MutationType.Delete:
+        operation = FirestoreOperation.DELETE;
+        break;
+      case MutationType.Patch:
+        operation = relevant[0].precondition.exists
+          ? FirestoreOperation.UPDATE
+          : FirestoreOperation.WRITE;
+        break;
+      default:
+        operation = FirestoreOperation.WRITE;
+    }
+  } else {
+    operation = FirestoreOperation.WRITE;
+  }
+
+  return singlePath !== undefined
+    ? { path: singlePath, operation }
+    : { operation };
 }

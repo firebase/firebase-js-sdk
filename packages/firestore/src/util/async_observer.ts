@@ -17,7 +17,7 @@
 
 import { Observer } from '../core/event_manager';
 
-import { FirestoreError } from './error';
+import { FirestoreError, FirestoreErrorContext, withContext } from './error';
 import { logError } from './log';
 import { EventHandler } from './misc';
 
@@ -33,7 +33,10 @@ export class AsyncObserver<T> implements Observer<T> {
    */
   private muted = false;
 
-  constructor(private observer: Partial<Observer<T>>) {}
+  constructor(
+    private observer: Partial<Observer<T>>,
+    private errorContext?: FirestoreErrorContext
+  ) {}
 
   next(value: T): void {
     if (this.muted) {
@@ -47,6 +50,9 @@ export class AsyncObserver<T> implements Observer<T> {
   error(error: FirestoreError): void {
     if (this.muted) {
       return;
+    }
+    if (this.errorContext) {
+      error = withContext(error, this.errorContext);
     }
     if (this.observer.error) {
       this.scheduleEvent(this.observer.error, error);

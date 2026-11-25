@@ -216,6 +216,16 @@ export function isCollectionGroupQuery(query: Query): boolean {
 }
 
 /**
+ * Returns the path or collection group ID targeted by this query for error
+ * context reporting.
+ */
+export function queryErrorPath(query: Query): string {
+  return query.collectionGroup !== null
+    ? query.collectionGroup
+    : query.path.canonicalString();
+}
+
+/**
  * Returns the normalized order-by constraint that is used to execute the Query,
  * which can be different from the order-by constraints the user provided (e.g.
  * the SDK and backend always orders by `__name__`). The normalized order-by

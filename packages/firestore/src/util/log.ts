@@ -23,12 +23,10 @@ import { formatJSON } from '../platform/format_json';
 export { LogLevel, LogLevelString };
 
 const logClient = new Logger('@firebase/firestore');
-
 // Helper methods are needed because variables can't be exported as read/write
 export function getLogLevel(): LogLevel {
   return logClient.logLevel;
 }
-
 /**
  * Sets the verbosity of Cloud Firestore logs (debug, error, or silent).
  *

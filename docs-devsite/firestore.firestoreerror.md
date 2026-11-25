@@ -15,9 +15,9 @@ An error returned by a Firestore operation.
 <b>Signature:</b>
 
 ```typescript
-export declare class FirestoreError extends FirebaseError 
+export declare class FirestoreError extends FirebaseError<FirestoreErrorContext> 
 ```
-<b>Extends:</b> [FirebaseError](./util.firebaseerror.md#firebaseerror_class)
+<b>Extends:</b> [FirebaseError](./util.firebaseerror.md#firebaseerror_class)<!-- -->&lt;[FirestoreErrorContext](./firestore.firestoreerrorcontext.md#firestoreerrorcontext_interface)<!-- -->&gt;
 
 ## Properties
 

@@ -20,6 +20,7 @@ import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
   DeleteMutation,
+  getMutationsErrorContext,
   Mutation,
   Precondition,
   VerifyMutation
@@ -30,7 +31,12 @@ import {
   invokeCommitRpc
 } from '../remote/datastore';
 import { fail, debugAssert } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
+import {
+  Code,
+  FirestoreError,
+  FirestoreOperation,
+  withContext
+} from '../util/error';
 
 import { SnapshotVersion } from './snapshot_version';
 
@@ -84,7 +90,10 @@ export class Transaction {
     try {
       this.write(data.toMutation(key, this.preconditionForUpdate(key)));
     } catch (e) {
-      this.lastTransactionError = e as FirestoreError | null;
+      this.lastTransactionError = withContext(e, {
+        path: key.path.canonicalString(),
+        operation: FirestoreOperation.UPDATE
+      }) as FirestoreError | null;
     }
     this.writtenDocs.add(key.toString());
   }
@@ -111,7 +120,11 @@ export class Transaction {
       const key = DocumentKey.fromPath(path);
       this.mutations.push(new VerifyMutation(key, this.precondition(key)));
     });
-    await invokeCommitRpc(this.datastore, this.mutations);
+    try {
+      await invokeCommitRpc(this.datastore, this.mutations);
+    } catch (e) {
+      throw withContext(e, getMutationsErrorContext(this.mutations));
+    }
     this.committed = true;
   }
 

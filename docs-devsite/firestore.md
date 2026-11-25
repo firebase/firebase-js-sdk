@@ -183,6 +183,12 @@ Cloud Firestore
 |  [VectorValue](./firestore.vectorvalue.md#vectorvalue_class) | Represents a vector type in Firestore documents. Create an instance with <code>[vector()](./firestore.md#vector_0dbdaf2)</code>. |
 |  [WriteBatch](./firestore.writebatch.md#writebatch_class) | A write batch, used to perform multiple writes as a single atomic unit.<!-- -->A <code>WriteBatch</code> object can be acquired by calling [writeBatch()](./firestore.md#writebatch_231a8e0)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore.writebatch.md#writebatchcommit) is called. |
 
+## Enumerations
+
+|  Enumeration | Description |
+|  --- | --- |
+|  [FirestoreOperation](./firestore.md#firestoreoperation) | The Firestore operation associated with a [FirestoreErrorContext](./firestore.firestoreerrorcontext.md#firestoreerrorcontext_interface)<!-- -->. |
+
 ## Interfaces
 
 |  Interface | Description |
@@ -192,6 +198,7 @@ Cloud Firestore
 |  [DocumentData](./firestore.documentdata.md#documentdata_interface) | Document data (for use with [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->) consists of fields mapped to values. |
 |  [ExperimentalLongPollingOptions](./firestore.experimentallongpollingoptions.md#experimentallongpollingoptions_interface) | Options that configure the SDK’s underlying network transport (WebChannel) when long-polling is used.<!-- -->Note: This interface is "experimental" and is subject to change.<!-- -->See <code>FirestoreSettings.experimentalAutoDetectLongPolling</code>, <code>FirestoreSettings.experimentalForceLongPolling</code>, and <code>FirestoreSettings.experimentalLongPollingOptions</code>. |
 |  [FirestoreDataConverter](./firestore.firestoredataconverter.md#firestoredataconverter_interface) | Converter used by <code>withConverter()</code> to transform user objects of type <code>AppModelType</code> into Firestore data of type <code>DbModelType</code>.<!-- -->Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore.<!-- -->In this context, an "AppModel" is a class that is used in an application to package together related information and functionality. Such a class could, for example, have properties with complex, nested data types, properties used for memoization, properties of types not supported by Firestore (such as <code>symbol</code> and <code>bigint</code>), and helper functions that perform compound operations. Such classes are not suitable and/or possible to store into a Firestore database. Instead, instances of such classes need to be converted to "plain old JavaScript objects" (POJOs) with exclusively primitive properties, potentially nested inside other POJOs or arrays of POJOs. In this context, this type is referred to as the "DbModel" and would be an object suitable for persisting into Firestore. For convenience, applications can implement <code>FirestoreDataConverter</code> and register the converter with Firestore objects, such as <code>DocumentReference</code> or <code>Query</code>, to automatically convert <code>AppModel</code> to <code>DbModel</code> when storing into Firestore, and convert <code>DbModel</code> to <code>AppModel</code> when retrieving from Firestore. |
+|  [FirestoreErrorContext](./firestore.firestoreerrorcontext.md#firestoreerrorcontext_interface) | Contextual information attached to a [FirestoreError](./firestore.firestoreerror.md#firestoreerror_class) when contextual errors are enabled. |
 |  [FirestoreSettings](./firestore.firestoresettings.md#firestoresettings_interface) | Specifies custom configurations for your Cloud Firestore instance. You must set these before invoking any other methods. |
 |  [Index](./firestore.index.md#index_interface) | <b><i>(Public Preview)</i></b> The SDK definition of a Firestore index. |
 |  [IndexConfiguration](./firestore.indexconfiguration.md#indexconfiguration_interface) | <b><i>(Public Preview)</i></b> A list of Firestore indexes to speed up local query execution.<!-- -->See [JSON Format](https://firebase.google.com/docs/reference/firestore/indexes/#json_format) for a description of the format of the index definition. |
@@ -3671,3 +3678,24 @@ export declare type WithFieldValue<T> =
         }
       : never);
 ```
+
+## FirestoreOperation
+
+The Firestore operation associated with a [FirestoreErrorContext](./firestore.firestoreerrorcontext.md#firestoreerrorcontext_interface)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare enum FirestoreOperation 
+```
+
+## Enumeration Members
+
+|  Member | Value | Description |
+|  --- | --- | --- |
+|  DELETE | <code>'delete'</code> |  |
+|  LIST | <code>'list'</code> |  |
+|  READ | <code>'read'</code> |  |
+|  UPDATE | <code>'update'</code> |  |
+|  WRITE | <code>'write'</code> |  |
+

@@ -21,7 +21,7 @@ import {
 } from '@firebase/firestore-types';
 import { getModularInstance } from '@firebase/util';
 
-import { LimitType } from '../core/query';
+import { LimitType, queryErrorPath } from '../core/query';
 import { DeleteMutation, Precondition } from '../model/mutation';
 import {
   invokeBatchGetDocumentsRpc,
@@ -30,6 +30,7 @@ import {
 } from '../remote/datastore';
 import { hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
+import { FirestoreOperation, withContextPromise } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { Bytes } from './bytes';
@@ -128,23 +129,28 @@ export function getDoc<AppModelType, DbModelType extends DocumentData>(
     reference,
     DocumentReference
   );
-  const datastore = getDatastore(reference.firestore);
-  const userDataWriter = new LiteUserDataWriter(reference.firestore);
+  return withContextPromise(
+    { path: reference.path, operation: FirestoreOperation.READ },
+    () => {
+      const datastore = getDatastore(reference.firestore);
+      const userDataWriter = new LiteUserDataWriter(reference.firestore);
 
-  return invokeBatchGetDocumentsRpc(datastore, [reference._key]).then(
-    result => {
-      hardAssert(
-        result.length === 1,
-        0x3d02,
-        'Expected a single document result'
-      );
-      const document = result[0];
-      return new DocumentSnapshot<AppModelType, DbModelType>(
-        reference.firestore,
-        userDataWriter,
-        reference._key,
-        document.isFoundDocument() ? document : null,
-        reference.converter
+      return invokeBatchGetDocumentsRpc(datastore, [reference._key]).then(
+        result => {
+          hardAssert(
+            result.length === 1,
+            0x3d02,
+            'Expected a single document result'
+          );
+          const document = result[0];
+          return new DocumentSnapshot<AppModelType, DbModelType>(
+            reference.firestore,
+            userDataWriter,
+            reference._key,
+            document.isFoundDocument() ? document : null,
+            reference.converter
+          );
+        }
       );
     }
   );
@@ -166,31 +172,36 @@ export function getDocs<AppModelType, DbModelType extends DocumentData>(
   query: Query<AppModelType, DbModelType>
 ): Promise<QuerySnapshot<AppModelType, DbModelType>> {
   query = cast<Query<AppModelType, DbModelType>>(query, Query);
-  validateHasExplicitOrderByForLimitToLast(query._query);
+  return withContextPromise(
+    { path: queryErrorPath(query._query), operation: FirestoreOperation.LIST },
+    () => {
+      validateHasExplicitOrderByForLimitToLast(query._query);
 
-  const datastore = getDatastore(query.firestore);
-  const userDataWriter = new LiteUserDataWriter(query.firestore);
-  return invokeRunQueryRpc(datastore, query._query).then(result => {
-    const docs = result.map(
-      doc =>
-        new QueryDocumentSnapshot<AppModelType, DbModelType>(
-          query.firestore,
-          userDataWriter,
-          doc.key,
-          doc,
-          query.converter
-        )
-    );
+      const datastore = getDatastore(query.firestore);
+      const userDataWriter = new LiteUserDataWriter(query.firestore);
+      return invokeRunQueryRpc(datastore, query._query).then(result => {
+        const docs = result.map(
+          doc =>
+            new QueryDocumentSnapshot<AppModelType, DbModelType>(
+              query.firestore,
+              userDataWriter,
+              doc.key,
+              doc,
+              query.converter
+            )
+        );
 
-    if (query._query.limitType === LimitType.Last) {
-      // Limit to last queries reverse the orderBy constraint that was
-      // specified by the user. As such, we need to reverse the order of the
-      // results to return the documents in the expected order.
-      docs.reverse();
+        if (query._query.limitType === LimitType.Last) {
+          // Limit to last queries reverse the orderBy constraint that was
+          // specified by the user. As such, we need to reverse the order of the
+          // results to return the documents in the expected order.
+          docs.reverse();
+        }
+
+        return new QuerySnapshot<AppModelType, DbModelType>(query, docs);
+      });
     }
-
-    return new QuerySnapshot<AppModelType, DbModelType>(query, docs);
-  });
+  );
 }
 
 /**
@@ -243,25 +254,30 @@ export function setDoc<AppModelType, DbModelType extends DocumentData>(
     reference,
     DocumentReference
   );
-  const convertedValue = applyFirestoreDataConverter(
-    reference.converter,
-    data,
-    options
-  );
-  const dataReader = newUserDataReader(reference.firestore);
-  const parsed = parseSetData(
-    dataReader,
-    'setDoc',
-    reference._key,
-    convertedValue,
-    reference.converter !== null,
-    options
-  );
+  return withContextPromise(
+    { path: reference.path, operation: FirestoreOperation.WRITE },
+    () => {
+      const convertedValue = applyFirestoreDataConverter(
+        reference.converter,
+        data,
+        options
+      );
+      const dataReader = newUserDataReader(reference.firestore);
+      const parsed = parseSetData(
+        dataReader,
+        'setDoc',
+        reference._key,
+        convertedValue,
+        reference.converter !== null,
+        options
+      );
 
-  const datastore = getDatastore(reference.firestore);
-  return invokeCommitRpc(datastore, [
-    parsed.toMutation(reference._key, Precondition.none())
-  ]);
+      const datastore = getDatastore(reference.firestore);
+      return invokeCommitRpc(datastore, [
+        parsed.toMutation(reference._key, Precondition.none())
+      ]);
+    }
+  );
 }
 
 /**
@@ -323,38 +339,43 @@ export function updateDoc<AppModelType, DbModelType extends DocumentData>(
     reference,
     DocumentReference
   );
-  const dataReader = newUserDataReader(reference.firestore);
+  return withContextPromise(
+    { path: reference.path, operation: FirestoreOperation.UPDATE },
+    () => {
+      const dataReader = newUserDataReader(reference.firestore);
 
-  // For Compat types, we have to "extract" the underlying types before
-  // performing validation.
-  fieldOrUpdateData = getModularInstance(fieldOrUpdateData);
+      // For Compat types, we have to "extract" the underlying types before
+      // performing validation.
+      fieldOrUpdateData = getModularInstance(fieldOrUpdateData);
 
-  let parsed: ParsedUpdateData;
-  if (
-    typeof fieldOrUpdateData === 'string' ||
-    fieldOrUpdateData instanceof FieldPath
-  ) {
-    parsed = parseUpdateVarargs(
-      dataReader,
-      'updateDoc',
-      reference._key,
-      fieldOrUpdateData,
-      value,
-      moreFieldsAndValues
-    );
-  } else {
-    parsed = parseUpdateData(
-      dataReader,
-      'updateDoc',
-      reference._key,
-      fieldOrUpdateData
-    );
-  }
+      let parsed: ParsedUpdateData;
+      if (
+        typeof fieldOrUpdateData === 'string' ||
+        fieldOrUpdateData instanceof FieldPath
+      ) {
+        parsed = parseUpdateVarargs(
+          dataReader,
+          'updateDoc',
+          reference._key,
+          fieldOrUpdateData,
+          value,
+          moreFieldsAndValues
+        );
+      } else {
+        parsed = parseUpdateData(
+          dataReader,
+          'updateDoc',
+          reference._key,
+          fieldOrUpdateData
+        );
+      }
 
-  const datastore = getDatastore(reference.firestore);
-  return invokeCommitRpc(datastore, [
-    parsed.toMutation(reference._key, Precondition.exists(true))
-  ]);
+      const datastore = getDatastore(reference.firestore);
+      return invokeCommitRpc(datastore, [
+        parsed.toMutation(reference._key, Precondition.exists(true))
+      ]);
+    }
+  );
 }
 
 /**
@@ -376,10 +397,15 @@ export function deleteDoc<AppModelType, DbModelType extends DocumentData>(
     reference,
     DocumentReference
   );
-  const datastore = getDatastore(reference.firestore);
-  return invokeCommitRpc(datastore, [
-    new DeleteMutation(reference._key, Precondition.none())
-  ]);
+  return withContextPromise(
+    { path: reference.path, operation: FirestoreOperation.DELETE },
+    () => {
+      const datastore = getDatastore(reference.firestore);
+      return invokeCommitRpc(datastore, [
+        new DeleteMutation(reference._key, Precondition.none())
+      ]);
+    }
+  );
 }
 
 /**
@@ -406,24 +432,28 @@ export function addDoc<AppModelType, DbModelType extends DocumentData>(
     CollectionReference
   );
   const docRef = doc(reference);
+  return withContextPromise(
+    { path: docRef.path, operation: FirestoreOperation.WRITE },
+    () => {
+      const convertedValue = applyFirestoreDataConverter(
+        reference.converter,
+        data as PartialWithFieldValue<AppModelType>
+      );
 
-  const convertedValue = applyFirestoreDataConverter(
-    reference.converter,
-    data as PartialWithFieldValue<AppModelType>
+      const dataReader = newUserDataReader(reference.firestore);
+      const parsed = parseSetData(
+        dataReader,
+        'addDoc',
+        docRef._key,
+        convertedValue,
+        docRef.converter !== null,
+        {}
+      );
+
+      const datastore = getDatastore(reference.firestore);
+      return invokeCommitRpc(datastore, [
+        parsed.toMutation(docRef._key, Precondition.exists(false))
+      ]).then(() => docRef);
+    }
   );
-
-  const dataReader = newUserDataReader(reference.firestore);
-  const parsed = parseSetData(
-    dataReader,
-    'addDoc',
-    docRef._key,
-    convertedValue,
-    docRef.converter !== null,
-    {}
-  );
-
-  const datastore = getDatastore(reference.firestore);
-  return invokeCommitRpc(datastore, [
-    parsed.toMutation(docRef._key, Precondition.exists(false))
-  ]).then(() => docRef);
 }
