@@ -1029,9 +1029,12 @@ async function onWriteStreamClose(
     );
   }
 
-  // If the write stream closed after the write handshake completes, a write
-  // operation failed and we fail the pending operation.
-  if (error && ensureWriteStream(remoteStoreImpl).handshakeComplete) {
+  // A post-handshake error can reject a write only if one is still pending.
+  if (
+    error &&
+    remoteStoreImpl.writePipeline.length > 0 &&
+    ensureWriteStream(remoteStoreImpl).handshakeComplete
+  ) {
     // This error affects the actual write.
     await handleWriteError(remoteStoreImpl, error!);
   }
