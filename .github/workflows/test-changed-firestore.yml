@@ -45,6 +45,7 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
           node-version: 24.22.1
+          cache: 'yarn'
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
@@ -66,16 +67,17 @@ jobs:
         id: set-output
         run: echo "CHANGED=true" >> "$GITHUB_OUTPUT";
       - name: Archive build
+        id: archive
         if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.check-changed.outcome != 'success' }}
         run: |
-          tar -cf build.tar --exclude=.git .
-          gzip build.tar
+          set -o pipefail
+          tar --exclude=.git -cf - . | zstd -T0 -q -f -o "${{ runner.temp }}/build.tar.zst"
       - name: Upload build archive
-        if: ${{ !cancelled() && steps.build.outcome == 'success' && steps.check-changed.outcome != 'success' }}
+        if: ${{ !cancelled() && steps.archive.outcome == 'success' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # ratchet:actions/upload-artifact@v7
         with:
-          name: build.tar.gz
-          path: build.tar.gz
+          name: build.tar.zst
+          path: ${{ runner.temp }}/build.tar.zst
           retention-days: ${{ env.artifactRetentionDays }}
 
   compat-test-chrome:
@@ -84,16 +86,20 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
+      - name: Download build archive
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
+        with:
+          name: build.tar.zst
+          path: ${{ runner.temp }}
+      - name: Unzip build artifact
+        run: |
+          set -o pipefail
+          zstd -dc "${{ runner.temp }}/build.tar.zst" | tar -xf -
+          rm -f "${{ runner.temp }}/build.tar.zst"
       - name: Set up Node (24)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
           node-version: 24.22.1
-      - name: Download build archive
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
-        with:
-          name: build.tar.gz
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run compat tests
@@ -103,21 +109,25 @@ jobs:
     name: Test Firestore
     strategy:
       matrix:
-        test-name: ["assertion-id:check", "test:browser", "test:node:emulator", "test:lite:browser", "test:browser:prod:enterprise", "test:lite:browser:enterprise"]
+        test-name: ["assertion-id:check", "test:browser", "test:node:emulator", "test:lite:browser", "test:browser:prod:enterprise --shard=1/3", "test:browser:prod:enterprise --shard=2/3", "test:browser:prod:enterprise --shard=3/3", "test:lite:browser:enterprise"]
     runs-on: ubuntu-latest
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
+      - name: Download build archive
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
+        with:
+          name: build.tar.zst
+          path: ${{ runner.temp }}
+      - name: Unzip build artifact
+        run: |
+          set -o pipefail
+          zstd -dc "${{ runner.temp }}/build.tar.zst" | tar -xf -
+          rm -f "${{ runner.temp }}/build.tar.zst"
       - name: Set up Node (24)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
           node-version: 24.22.1
-      - name: Download build archive
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
-        with:
-          name: build.tar.gz
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
       - name: Test setup and yarn install
         run: cp config/ci.config.json config/project.json
       - name: Run tests
@@ -134,16 +144,20 @@ jobs:
     needs: build
     if: ${{ github.event_name != 'pull_request' }}
     steps:
+      - name: Download build archive
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
+        with:
+          name: build.tar.zst
+          path: ${{ runner.temp }}
+      - name: Unzip build artifact
+        run: |
+          set -o pipefail
+          zstd -dc "${{ runner.temp }}/build.tar.zst" | tar -xf -
+          rm -f "${{ runner.temp }}/build.tar.zst"
       - name: Set up Node (24)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
           node-version: 24.22.1
-      - name: Download build archive
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
-        with:
-          name: build.tar.gz
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
       - name: Test setup against nightly Firestore
         env:
           INTEG_TESTS_GOOGLE_SERVICES: ${{ secrets.FIRESTORE_SDK_NIGHTLY_PROJECT_JSON }}
@@ -161,16 +175,20 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
+      - name: Download build archive
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
+        with:
+          name: build.tar.zst
+          path: ${{ runner.temp }}
+      - name: Unzip build artifact
+        run: |
+          set -o pipefail
+          zstd -dc "${{ runner.temp }}/build.tar.zst" | tar -xf -
+          rm -f "${{ runner.temp }}/build.tar.zst"
       - name: Set up Node (24)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
           node-version: 24.22.1
-      - name: Download build archive
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
-        with:
-          name: build.tar.gz
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
       - name: Test setup and yarn install
         run: |
           cp config/ci.config.json config/project.json
@@ -184,7 +202,7 @@ jobs:
     name: Test Firestore on Firefox
     strategy:
       matrix:
-        test-name: ["test:browser", "test:node:emulator", "test:lite:browser", "test:browser:prod:enterprise", "test:lite:browser:enterprise"]
+        test-name: ["test:browser", "test:lite:browser", "test:browser:prod:enterprise --shard=1/3", "test:browser:prod:enterprise --shard=2/3", "test:browser:prod:enterprise --shard=3/3", "test:lite:browser:enterprise"]
     runs-on: ubuntu-latest
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
@@ -192,9 +210,13 @@ jobs:
       - name: Download build archive
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
         with:
-          name: build.tar.gz
+          name: build.tar.zst
+          path: ${{ runner.temp }}
       - name: Unzip build artifact
-        run: tar xf build.tar.gz
+        run: |
+          set -o pipefail
+          zstd -dc "${{ runner.temp }}/build.tar.zst" | tar -xf -
+          rm -f "${{ runner.temp }}/build.tar.zst"
       - name: Set up Node (24)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
@@ -215,16 +237,21 @@ jobs:
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
     steps:
+      - name: Download build archive
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
+        with:
+          name: build.tar.zst
+          path: ${{ runner.temp }}
+      - name: Unzip build artifact
+        run: |
+          set -o pipefail
+          zstd -dc "${{ runner.temp }}/build.tar.zst" | tar -xf -
+          rm -f "${{ runner.temp }}/build.tar.zst"
       - name: Set up Node (24)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
           node-version: 24.22.1
-      - name: Download build archive
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
-        with:
-          name: build.tar.gz
-      - name: Unzip build artifact
-        run: tar xf build.tar.gz
+          cache: 'yarn'
       - name: Test setup
         run: |
           cp config/ci.config.json config/project.json
@@ -242,7 +269,7 @@ jobs:
         # TODO (dlarocque): Add test:travis once the browser tests are isolated
         # Exclude test:travis for now, since it includes node tests, which are failing for
         # some reason.
-        test-name: ["test:browser", "test:lite:browser", "test:browser:prod:enterprise", "test:lite:browser:enterprise"]
+        test-name: ["test:browser", "test:lite:browser", "test:browser:prod:enterprise --shard=1/2", "test:browser:prod:enterprise --shard=2/2", "test:lite:browser:enterprise"]
     runs-on: macos-latest
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
@@ -250,13 +277,18 @@ jobs:
       - name: Download build archive
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # ratchet:actions/download-artifact@v8
         with:
-          name: build.tar.gz
+          name: build.tar.zst
+          path: ${{ runner.temp }}
       - name: Unzip build artifact
-        run: tar xf build.tar.gz
+        run: |
+          set -o pipefail
+          zstd -dc "${{ runner.temp }}/build.tar.zst" | tar -xf -
+          rm -f "${{ runner.temp }}/build.tar.zst"
       - name: Set up Node (24)
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # ratchet:actions/setup-node@v7
         with:
           node-version: 24.22.1
+          cache: 'yarn'
       - name: Test setup
         run: |
           cp config/ci.config.json config/project.json
