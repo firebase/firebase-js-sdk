@@ -1470,14 +1470,27 @@ async function synchronizeQueryViewsAndRaiseSnapshots(
         syncEngineImpl.localStore,
         targetId
       );
-      debugAssert(!!target, `Target for id ${targetId} not found`);
+      if (!target) {
+        // The target is advertised in WebStorage by another tab, but it is not in
+        // this client's target cache. The two stores can legitimately drift apart
+        // (e.g. the other tab cleared its persistence, or wrote the WebStorage entry
+        // before this client's target cache caught up), and there is nothing to
+        // synchronize without the target. Skip it rather than throwing: an exception
+        // here rejects the enclosing AsyncQueue task, which marks the queue as failed
+        // permanently and takes the whole Firestore client down with it.
+        logWarn(
+          LOG_TAG,
+          `Ignoring active target ${targetId} that is not in the target cache.`
+        );
+        continue;
+      }
       targetData = await localStoreAllocateTarget(
         syncEngineImpl.localStore,
         target
       );
       await initializeViewAndComputeSnapshot(
         syncEngineImpl,
-        synthesizeTargetToQuery(target!),
+        synthesizeTargetToQuery(target),
         targetId,
         /*current=*/ false,
         targetData.resumeToken
@@ -1631,7 +1644,15 @@ export async function syncEngineApplyActiveTargetsChange(
       syncEngineImpl.localStore,
       targetId
     );
-    debugAssert(!!target, `Query data for active target ${targetId} not found`);
+    if (!target) {
+      // See synchronizeQueryViewsAndRaiseSnapshots(): a target another tab
+      // advertises in WebStorage need not be present in this client's target cache.
+      logWarn(
+        LOG_TAG,
+        `Ignoring active target ${targetId} that is not in the target cache.`
+      );
+      continue;
+    }
     const targetData = await localStoreAllocateTarget(
       syncEngineImpl.localStore,
       target
