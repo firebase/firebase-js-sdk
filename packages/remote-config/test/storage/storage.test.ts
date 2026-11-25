@@ -55,6 +55,37 @@ describe('Storage', () => {
     ).toBe('appId,appName,namespace,throttle_metadata');
   });
 
+  it(`${indexedDbTestCase.name} reopens the database after its connection is closed`, async () => {
+    const openDbPromise = openDatabase();
+    const storage = new IndexedDbStorage(
+      'appId',
+      'appName',
+      'namespace',
+      openDbPromise
+    );
+    await storage.setLastFetchStatus('success');
+
+    (await openDbPromise).close();
+    await storage.setLastFetchStatus('failure');
+
+    expect(await storage.getLastFetchStatus()).toBe('failure');
+  });
+
+  it(`${indexedDbTestCase.name} reopens the database after it failed to open`, async () => {
+    const openError = new Error('Connection to Indexed Database server lost.');
+    const storage = new IndexedDbStorage(
+      'appId',
+      'appName',
+      'namespace',
+      Promise.reject(openError)
+    );
+    await expect(storage.getLastFetchStatus()).rejects.toBe(openError);
+
+    await storage.setLastFetchStatus('success');
+
+    expect(await storage.getLastFetchStatus()).toBe('success');
+  });
+
   for (const { name, getStorage } of [indexedDbTestCase, inMemoryStorage]) {
     describe(name, () => {
       let storage: Storage;
