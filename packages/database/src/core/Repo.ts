@@ -63,7 +63,8 @@ import {
   syncTreeCalcCompleteEventCache,
   syncTreeGetServerValue,
   syncTreeRemoveEventRegistration,
-  syncTreeTagForQuery
+  syncTreeTagForQuery,
+  syncTreeViewExistsForQuery
 } from './SyncTree';
 import { Indexable } from './util/misc';
 import {
@@ -483,6 +484,15 @@ export function repoGetValue(
        * Raise any events,
        * Cleanup the SyncTree
        */
+      // If a view for the query already exists, another registration (e.g. an `onValue()` whose
+      // initial data hasn't arrived yet) has set up a listen for it. Applying the data below can
+      // remove that registration (an `onlyOnce` listener fires and removes itself), leaving this
+      // registration as the last one on the view. Removing it must then stop that listen, so
+      // listener deduplication can only be skipped when the view was created for this `get()`.
+      const viewExisted = syncTreeViewExistsForQuery(
+        repo.serverSyncTree_,
+        query
+      );
       syncTreeAddEventRegistration(
         repo.serverSyncTree_,
         query,
@@ -525,7 +535,7 @@ export function repoGetValue(
         query,
         eventRegistration,
         null,
-        true
+        !viewExisted
       );
       return node;
     },

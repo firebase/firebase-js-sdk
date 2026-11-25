@@ -618,6 +618,17 @@ export function syncTreeCalcCompleteEventCache(
   );
 }
 
+/**
+ * Returns whether a view exists for the query, meaning that event registrations currently use it.
+ */
+export function syncTreeViewExistsForQuery(
+  syncTree: SyncTree,
+  query: QueryContext
+): boolean {
+  const syncPoint = syncTree.syncPointTree_.get(query._path);
+  return !!syncPoint && syncPointViewExistsForQuery(syncPoint, query);
+}
+
 export function syncTreeGetServerValue(
   syncTree: SyncTree,
   query: QueryContext
