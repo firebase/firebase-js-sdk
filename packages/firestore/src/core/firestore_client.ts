@@ -62,7 +62,7 @@ import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { BundleReader, BundleReaderSync } from '../util/bundle_reader';
 import { newBundleReader } from '../util/bundle_reader_impl';
 import { newBundleReaderSync } from '../util/bundle_reader_sync_impl';
-import { Code, FirestoreError } from '../util/error';
+import { Code, FirestoreError, FirestoreErrorContext } from '../util/error';
 import { logDebug, logWarn } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
@@ -458,9 +458,10 @@ export function firestoreClientListen(
   client: FirestoreClient,
   query: QueryOrPipeline,
   options: ListenOptions,
-  observer: Partial<Observer<ViewSnapshot>>
+  observer: Partial<Observer<ViewSnapshot>>,
+  errorContext?: FirestoreErrorContext
 ): () => void {
-  const wrappedObserver = new AsyncObserver(observer);
+  const wrappedObserver = new AsyncObserver(observer, errorContext);
   const listener = new QueryListener(query, wrappedObserver, options);
   client.asyncQueue.enqueueAndForget(async () => {
     const eventManager = await getEventManager(client);

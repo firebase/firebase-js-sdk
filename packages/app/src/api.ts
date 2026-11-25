@@ -53,7 +53,8 @@ import {
   deepEqual,
   getDefaultAppConfig,
   isBrowser,
-  isWebWorker
+  isWebWorker,
+  enableContextualErrors as enableContextualErrorsImpl
 } from '@firebase/util';
 
 export { FirebaseError } from '@firebase/util';
@@ -524,4 +525,8 @@ export function onLog(
  */
 export function setLogLevel(logLevel: LogLevelString): void {
   setLogLevelImpl(logLevel);
+}
+
+export function enableContextualErrors(enabled: boolean): void {
+  enableContextualErrorsImpl(enabled);
 }

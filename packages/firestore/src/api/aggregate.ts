@@ -17,6 +17,7 @@
 
 import { AggregateImpl } from '../core/aggregate';
 import { firestoreClientRunAggregateQuery } from '../core/firestore_client';
+import { queryErrorPath } from '../core/query';
 import { count } from '../lite-api/aggregate';
 import {
   AggregateField,
@@ -25,6 +26,7 @@ import {
 } from '../lite-api/aggregate_types';
 import { DocumentData, Query } from '../lite-api/reference';
 import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
+import { FirestoreOperation, withContextPromise } from '../util/error';
 import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
 
@@ -123,23 +125,31 @@ export function getAggregateFromServer<
   AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>
 > {
   const firestore = cast(query.firestore, Firestore);
-  const client = ensureFirestoreConfigured(firestore);
+  return withContextPromise(
+    { path: queryErrorPath(query._query), operation: FirestoreOperation.LIST },
+    () => {
+      const client = ensureFirestoreConfigured(firestore);
 
-  const internalAggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
-    return new AggregateImpl(
-      alias,
-      aggregate.aggregateType,
-      aggregate._internalFieldPath
-    );
-  });
+      const internalAggregates = mapToArray(
+        aggregateSpec,
+        (aggregate, alias) => {
+          return new AggregateImpl(
+            alias,
+            aggregate.aggregateType,
+            aggregate._internalFieldPath
+          );
+        }
+      );
 
-  // Run the aggregation and convert the results
-  return firestoreClientRunAggregateQuery(
-    client,
-    query._query,
-    internalAggregates
-  ).then(aggregateResult =>
-    convertToAggregateQuerySnapshot(firestore, query, aggregateResult)
+      // Run the aggregation and convert the results
+      return firestoreClientRunAggregateQuery(
+        client,
+        query._query,
+        internalAggregates
+      ).then(aggregateResult =>
+        convertToAggregateQuerySnapshot(firestore, query, aggregateResult)
+      );
+    }
   );
 }
 

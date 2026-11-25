@@ -32,7 +32,12 @@ import {
   toStringValue
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
+import {
+  Code,
+  FirestoreError,
+  FirestoreErrorContext,
+  FirestoreOperation
+} from '../util/error';
 import {
   isPlainObject,
   validateNonEmptyArgument
@@ -1255,4 +1260,39 @@ function readUserDataHelper<
     );
   }
   return expressionMap;
+}
+
+/**
+ * Computes error context for a pipeline based on its source and mutation stages.
+ */
+export function getPipelineErrorContext(
+  stages: Stage[]
+): FirestoreErrorContext {
+  let path: string | undefined;
+  const firstStage = stages[0];
+  if (firstStage instanceof CollectionSource) {
+    path = firstStage.formattedCollectionPath.replace(/^\//, '');
+  } else if (firstStage instanceof CollectionGroupSource) {
+    path = firstStage.collectionId;
+  } else if (
+    firstStage instanceof DocumentsSource &&
+    firstStage.formattedPaths.length === 1
+  ) {
+    path = firstStage.formattedPaths[0].replace(/^\//, '');
+  }
+
+  let operation: FirestoreOperation;
+  if (stages.some(s => s instanceof Delete)) {
+    operation = FirestoreOperation.DELETE;
+  } else if (stages.some(s => s instanceof Update)) {
+    operation = FirestoreOperation.UPDATE;
+  } else if (stages.some(s => s instanceof Insert || s instanceof Upsert)) {
+    operation = FirestoreOperation.WRITE;
+  } else if (firstStage instanceof DocumentsSource) {
+    operation = FirestoreOperation.READ;
+  } else {
+    operation = FirestoreOperation.LIST;
+  }
+
+  return path !== undefined ? { path, operation } : { operation };
 }

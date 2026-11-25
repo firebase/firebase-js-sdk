@@ -359,7 +359,7 @@ DbModelType extends DocumentData = DocumentData
 }
 
 // @public
-export class FirestoreError extends FirebaseError {
+export class FirestoreError extends FirebaseError<FirestoreErrorContext> {
     readonly code: FirestoreErrorCode;
     readonly message: string;
     readonly stack?: string;
@@ -383,6 +383,28 @@ export type FirestoreErrorCode =
 | 'unavailable'
 | 'data-loss'
 | 'unauthenticated';
+
+// @public
+export interface FirestoreErrorContext {
+    // (undocumented)
+    operation?: FirestoreOperation;
+    // (undocumented)
+    path?: string;
+}
+
+// @public
+export enum FirestoreOperation {
+    // (undocumented)
+    DELETE = 'delete',
+    // (undocumented)
+    LIST = 'list',
+    // (undocumented)
+    READ = 'read',
+    // (undocumented)
+    UPDATE = 'update',
+    // (undocumented)
+    WRITE = 'write'
+}
 
 // @public
 export class GeoPoint {

@@ -17,9 +17,20 @@
 
 import { Compat, getModularInstance } from '@firebase/util';
 
-import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
+import {
+  DeleteMutation,
+  getMutationsErrorContext,
+  Mutation,
+  Precondition
+} from '../model/mutation';
 import { invokeCommitRpc } from '../remote/datastore';
-import { Code, FirestoreError } from '../util/error';
+import {
+  Code,
+  FirestoreError,
+  FirestoreOperation,
+  withContextPromise,
+  withContextSync
+} from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { getDatastore } from './components';
@@ -100,24 +111,30 @@ export class WriteBatch {
     data: WithFieldValue<AppModelType> | PartialWithFieldValue<AppModelType>,
     options?: SetOptions
   ): WriteBatch {
-    this._verifyNotCommitted();
+    withContextSync({ operation: FirestoreOperation.WRITE }, () =>
+      this._verifyNotCommitted()
+    );
     const ref = validateReference(documentRef, this._firestore);
-
-    const convertedValue = applyFirestoreDataConverter(
-      ref.converter,
-      data,
-      options
+    return withContextSync(
+      { path: ref.path, operation: FirestoreOperation.WRITE },
+      () => {
+        const convertedValue = applyFirestoreDataConverter(
+          ref.converter,
+          data,
+          options
+        );
+        const parsed = parseSetData(
+          this._dataReader,
+          'WriteBatch.set',
+          ref._key,
+          convertedValue,
+          ref.converter !== null,
+          options
+        );
+        this._mutations.push(parsed.toMutation(ref._key, Precondition.none()));
+        return this;
+      }
     );
-    const parsed = parseSetData(
-      this._dataReader,
-      'WriteBatch.set',
-      ref._key,
-      convertedValue,
-      ref.converter !== null,
-      options
-    );
-    this._mutations.push(parsed.toMutation(ref._key, Precondition.none()));
-    return this;
   }
 
   /**
@@ -163,39 +180,45 @@ export class WriteBatch {
     value?: unknown,
     ...moreFieldsAndValues: unknown[]
   ): WriteBatch {
-    this._verifyNotCommitted();
-    const ref = validateReference(documentRef, this._firestore);
-
-    // For Compat types, we have to "extract" the underlying types before
-    // performing validation.
-    fieldOrUpdateData = getModularInstance(fieldOrUpdateData);
-
-    let parsed;
-    if (
-      typeof fieldOrUpdateData === 'string' ||
-      fieldOrUpdateData instanceof FieldPath
-    ) {
-      parsed = parseUpdateVarargs(
-        this._dataReader,
-        'WriteBatch.update',
-        ref._key,
-        fieldOrUpdateData,
-        value,
-        moreFieldsAndValues
-      );
-    } else {
-      parsed = parseUpdateData(
-        this._dataReader,
-        'WriteBatch.update',
-        ref._key,
-        fieldOrUpdateData
-      );
-    }
-
-    this._mutations.push(
-      parsed.toMutation(ref._key, Precondition.exists(true))
+    withContextSync({ operation: FirestoreOperation.UPDATE }, () =>
+      this._verifyNotCommitted()
     );
-    return this;
+    const ref = validateReference(documentRef, this._firestore);
+    return withContextSync(
+      { path: ref.path, operation: FirestoreOperation.UPDATE },
+      () => {
+        // For Compat types, we have to "extract" the underlying types before
+        // performing validation.
+        fieldOrUpdateData = getModularInstance(fieldOrUpdateData);
+
+        let parsed;
+        if (
+          typeof fieldOrUpdateData === 'string' ||
+          fieldOrUpdateData instanceof FieldPath
+        ) {
+          parsed = parseUpdateVarargs(
+            this._dataReader,
+            'WriteBatch.update',
+            ref._key,
+            fieldOrUpdateData,
+            value,
+            moreFieldsAndValues
+          );
+        } else {
+          parsed = parseUpdateData(
+            this._dataReader,
+            'WriteBatch.update',
+            ref._key,
+            fieldOrUpdateData
+          );
+        }
+
+        this._mutations.push(
+          parsed.toMutation(ref._key, Precondition.exists(true))
+        );
+        return this;
+      }
+    );
   }
 
   /**
@@ -207,7 +230,9 @@ export class WriteBatch {
   delete<AppModelType, DbModelType extends DocumentData>(
     documentRef: DocumentReference<AppModelType, DbModelType>
   ): WriteBatch {
-    this._verifyNotCommitted();
+    withContextSync({ operation: FirestoreOperation.DELETE }, () =>
+      this._verifyNotCommitted()
+    );
     const ref = validateReference(documentRef, this._firestore);
     this._mutations = this._mutations.concat(
       new DeleteMutation(ref._key, Precondition.none())
@@ -228,13 +253,15 @@ export class WriteBatch {
    * resolve while you're offline).
    */
   commit(): Promise<void> {
-    this._verifyNotCommitted();
-    this._committed = true;
-    if (this._mutations.length > 0) {
-      return this._commitHandler(this._mutations);
-    }
+    return withContextPromise(getMutationsErrorContext(this._mutations), () => {
+      this._verifyNotCommitted();
+      this._committed = true;
+      if (this._mutations.length > 0) {
+        return this._commitHandler(this._mutations);
+      }
 
-    return Promise.resolve();
+      return Promise.resolve();
+    });
   }
 
   private _verifyNotCommitted(): void {

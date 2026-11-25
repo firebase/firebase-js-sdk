@@ -140,6 +140,11 @@ export type EmulatorMockTokenOptions = ({
     sub: string;
 }) & Partial<FirebaseIdToken>;
 
+// Warning: (ae-missing-release-tag) "enableContextualErrors" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function enableContextualErrors(enableFlag: boolean): void;
+
 // Warning: (ae-missing-release-tag) "ErrorData" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -207,11 +212,13 @@ export interface FirebaseDefaults {
 // Warning: (ae-missing-release-tag) "FirebaseError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export class FirebaseError extends Error {
+export class FirebaseError<T = object> extends Error {
     constructor(
     code: string, message: string,
-    customData?: Record<string, unknown> | undefined);
+    customData?: Record<string, unknown> | undefined, _context?: T);
     readonly code: string;
+    // (undocumented)
+    readonly context?: T;
     customData?: Record<string, unknown> | undefined;
     readonly name: string;
 }
@@ -274,6 +281,11 @@ export function isCloudflareWorker(): boolean;
 
 // @public
 export function isCloudWorkstation(url: string): boolean;
+
+// Warning: (ae-missing-release-tag) "isContextualErrorsEnabled" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function isContextualErrorsEnabled(): boolean;
 
 // Warning: (ae-missing-release-tag) "isElectron" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

@@ -172,4 +172,9 @@ export { GeoPoint } from '../src/lite-api/geo_point';
 
 export { Timestamp } from '../src/lite-api/timestamp';
 
-export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
+export {
+  FirestoreErrorCode,
+  FirestoreError,
+  FirestoreErrorContext,
+  FirestoreOperation
+} from '../src/util/error';

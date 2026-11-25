@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
+import { FirebaseError, isContextualErrorsEnabled } from '@firebase/util';
 
 /**
  * The set of Firestore status codes. The codes are the same at the ones
@@ -209,8 +209,31 @@ export const Code = {
   DATA_LOSS: 'data-loss' as FirestoreErrorCode
 };
 
+/**
+ * The Firestore operation associated with a {@link FirestoreErrorContext}.
+ */
+export enum FirestoreOperation {
+  READ = 'read',
+  WRITE = 'write',
+  LIST = 'list',
+  UPDATE = 'update',
+  DELETE = 'delete'
+}
+
+/**
+ * Contextual information attached to a {@link FirestoreError} when contextual
+ * errors are enabled.
+ */
+export interface FirestoreErrorContext {
+  path?: string;
+  operation?: FirestoreOperation;
+}
+
 /** An error returned by a Firestore operation. */
-export class FirestoreError extends FirebaseError {
+export class FirestoreError extends FirebaseError<FirestoreErrorContext> {
+  /** A custom error description. */
+  declare readonly message: string;
+
   /** The stack of the error. */
   readonly stack?: string;
 
@@ -223,13 +246,64 @@ export class FirestoreError extends FirebaseError {
     /**
      * A custom error description.
      */
-    readonly message: string
+    message: string,
+    context?: FirestoreErrorContext
   ) {
-    super(code, message);
+    super(code, message, undefined, context);
 
     // HACK: We write a toString property directly because Error is not a real
     // class and so inheritance does not work correctly. We could alternatively
     // do the same "back-door inheritance" trick that FirebaseError does.
     this.toString = () => `${this.name}: [code=${this.code}]: ${this.message}`;
+  }
+}
+
+/** @internal */
+export function withContext(
+  e: FirestoreError,
+  context: FirestoreErrorContext
+): FirestoreError;
+/** @internal */
+export function withContext(
+  e: unknown,
+  context: FirestoreErrorContext
+): unknown;
+export function withContext(
+  e: unknown,
+  context: FirestoreErrorContext
+): unknown {
+  if (
+    !isContextualErrorsEnabled() ||
+    !(e instanceof FirestoreError) ||
+    e.context
+  ) {
+    return e;
+  }
+  return new FirestoreError(e.code, e.message, context);
+}
+
+/** @internal */
+export function withContextSync<T>(
+  context: FirestoreErrorContext,
+  fn: () => T
+): T {
+  try {
+    return fn();
+  } catch (e) {
+    throw withContext(e, context);
+  }
+}
+
+/** @internal */
+export function withContextPromise<T>(
+  context: FirestoreErrorContext,
+  fn: () => Promise<T>
+): Promise<T> {
+  try {
+    return fn().catch(e => {
+      throw withContext(e, context);
+    });
+  } catch (e) {
+    throw withContext(e, context);
   }
 }

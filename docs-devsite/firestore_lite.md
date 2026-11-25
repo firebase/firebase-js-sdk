@@ -134,6 +134,12 @@ Firestore Lite is a small online-only SDK that allows read and write access to y
 |  [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) | Represents a vector type in Firestore documents. Create an instance with <code>[vector()](./firestore_lite.md#vector_0dbdaf2)</code>. |
 |  [WriteBatch](./firestore_lite.writebatch.md#writebatch_class) | A write batch, used to perform multiple writes as a single atomic unit.<!-- -->A <code>WriteBatch</code> object can be acquired by calling [writeBatch()](./firestore_lite.md#writebatch_231a8e0)<!-- -->. It provides methods for adding writes to the write batch. None of the writes will be committed (or visible locally) until [WriteBatch.commit()](./firestore_lite.writebatch.md#writebatchcommit) is called. |
 
+## Enumerations
+
+|  Enumeration | Description |
+|  --- | --- |
+|  [FirestoreOperation](./firestore_lite.md#firestoreoperation) | The Firestore operation associated with a [FirestoreErrorContext](./firestore_lite.firestoreerrorcontext.md#firestoreerrorcontext_interface)<!-- -->. |
+
 ## Interfaces
 
 |  Interface | Description |
@@ -141,6 +147,7 @@ Firestore Lite is a small online-only SDK that allows read and write access to y
 |  [AggregateSpec](./firestore_lite.aggregatespec.md#aggregatespec_interface) | Specifies a set of aggregations and their aliases. |
 |  [DocumentData](./firestore_lite.documentdata.md#documentdata_interface) | Document data (for use with [setDoc()](./firestore.md#setdoc_ee215ad)<!-- -->) consists of fields mapped to values. |
 |  [FirestoreDataConverter](./firestore_lite.firestoredataconverter.md#firestoredataconverter_interface) | Converter used by <code>withConverter()</code> to transform user objects of type <code>AppModelType</code> into Firestore data of type <code>DbModelType</code>.<!-- -->Using the converter allows you to specify generic type arguments when storing and retrieving objects from Firestore.<!-- -->In this context, an "AppModel" is a class that is used in an application to package together related information and functionality. Such a class could, for example, have properties with complex, nested data types, properties used for memoization, properties of types not supported by Firestore (such as <code>symbol</code> and <code>bigint</code>), and helper functions that perform compound operations. Such classes are not suitable and/or possible to store into a Firestore database. Instead, instances of such classes need to be converted to "plain old JavaScript objects" (POJOs) with exclusively primitive properties, potentially nested inside other POJOs or arrays of POJOs. In this context, this type is referred to as the "DbModel" and would be an object suitable for persisting into Firestore. For convenience, applications can implement <code>FirestoreDataConverter</code> and register the converter with Firestore objects, such as <code>DocumentReference</code> or <code>Query</code>, to automatically convert <code>AppModel</code> to <code>DbModel</code> when storing into Firestore, and convert <code>DbModel</code> to <code>AppModel</code> when retrieving from Firestore. |
+|  [FirestoreErrorContext](./firestore_lite.firestoreerrorcontext.md#firestoreerrorcontext_interface) | Contextual information attached to a [FirestoreError](./firestore_lite.firestoreerror.md#firestoreerror_class) when contextual errors are enabled. |
 |  [Settings](./firestore_lite.settings.md#settings_interface) | Specifies custom configurations for your Cloud Firestore instance. You must set these before invoking any other methods. |
 |  [TransactionOptions](./firestore_lite.transactionoptions.md#transactionoptions_interface) | Options to customize transaction behavior. |
 
@@ -2130,3 +2137,24 @@ export declare type WithFieldValue<T> =
         }
       : never);
 ```
+
+## FirestoreOperation
+
+The Firestore operation associated with a [FirestoreErrorContext](./firestore_lite.firestoreerrorcontext.md#firestoreerrorcontext_interface)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare enum FirestoreOperation 
+```
+
+## Enumeration Members
+
+|  Member | Value | Description |
+|  --- | --- | --- |
+|  DELETE | <code>'delete'</code> |  |
+|  LIST | <code>'list'</code> |  |
+|  READ | <code>'read'</code> |  |
+|  UPDATE | <code>'update'</code> |  |
+|  WRITE | <code>'write'</code> |  |
+

@@ -18,8 +18,10 @@
 import { deepEqual } from '@firebase/util';
 
 import { AggregateImpl } from '../core/aggregate';
+import { queryErrorPath } from '../core/query';
 import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
 import { invokeRunAggregationQueryRpc } from '../remote/datastore';
+import { FirestoreOperation, withContextPromise } from '../util/error';
 import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
 
@@ -102,23 +104,31 @@ export function getAggregate<
   AggregateQuerySnapshot<AggregateSpecType, AppModelType, DbModelType>
 > {
   const firestore = cast(query.firestore, Firestore);
-  const datastore = getDatastore(firestore);
+  return withContextPromise(
+    { path: queryErrorPath(query._query), operation: FirestoreOperation.LIST },
+    () => {
+      const datastore = getDatastore(firestore);
 
-  const internalAggregates = mapToArray(aggregateSpec, (aggregate, alias) => {
-    return new AggregateImpl(
-      alias,
-      aggregate.aggregateType,
-      aggregate._internalFieldPath
-    );
-  });
+      const internalAggregates = mapToArray(
+        aggregateSpec,
+        (aggregate, alias) => {
+          return new AggregateImpl(
+            alias,
+            aggregate.aggregateType,
+            aggregate._internalFieldPath
+          );
+        }
+      );
 
-  // Run the aggregation and convert the results
-  return invokeRunAggregationQueryRpc(
-    datastore,
-    query._query,
-    internalAggregates
-  ).then(aggregateResult =>
-    convertToAggregateQuerySnapshot(firestore, query, aggregateResult)
+      // Run the aggregation and convert the results
+      return invokeRunAggregationQueryRpc(
+        datastore,
+        query._query,
+        internalAggregates
+      ).then(aggregateResult =>
+        convertToAggregateQuerySnapshot(firestore, query, aggregateResult)
+      );
+    }
   );
 }
 

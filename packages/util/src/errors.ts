@@ -68,27 +68,41 @@ export interface StringLike {
 export interface ErrorData {
   [key: string]: unknown;
 }
+function formatMessageWithContext(message: string, context: unknown): string {
+  try {
+    return `${message} Context: ${JSON.stringify(context)}`;
+  } catch {
+    return message;
+  }
+}
 
 // Based on code from:
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
-export class FirebaseError extends Error {
+export class FirebaseError<T = object> extends Error {
   /** The custom name for all FirebaseErrors. */
   readonly name: string = ERROR_NAME;
+
+  readonly context?: T;
 
   constructor(
     /** The error code for this error. */
     readonly code: string,
     message: string,
     /** Custom data for this error. */
-    public customData?: Record<string, unknown>
+    public customData?: Record<string, unknown>,
+    _context?: T
   ) {
-    super(message);
+    const includeContext = contextualErrors && _context !== undefined;
+    super(
+      includeContext ? formatMessageWithContext(message, _context) : message
+    );
 
+    if (includeContext) {
+      this.context = _context;
+    }
     // Fix For ES5
     // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
-    // TODO(dlarocque): Replace this with `new.target`: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
-    //                   which we can now use since we no longer target ES5.
-    Object.setPrototypeOf(this, FirebaseError.prototype);
+    Object.setPrototypeOf(this, new.target.prototype);
 
     // Maintains proper stack trace for where our error was thrown.
     // Only available on V8.
@@ -153,4 +167,14 @@ function replaceTemplate(template: string, data: ErrorData): string {
     // Should never happen, but fallback just in case
     return template;
   }
+}
+
+let contextualErrors = false;
+
+export function enableContextualErrors(enableFlag: boolean): void {
+  contextualErrors = enableFlag;
+}
+
+export function isContextualErrorsEnabled(): boolean {
+  return contextualErrors;
 }

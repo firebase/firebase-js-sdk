@@ -25,12 +25,12 @@ import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult, PipelineSnapshot } from '../lite-api/pipeline-result';
 import { PipelineSource } from '../lite-api/pipeline-source';
 import { PipelineExecuteOptions } from '../lite-api/pipeline_options';
-import { Stage } from '../lite-api/stage';
+import { getPipelineErrorContext, Stage } from '../lite-api/stage';
 import {
   newUserDataReader,
   UserDataSource
 } from '../lite-api/user_data_reader';
-import { Code, FirestoreError } from '../util/error';
+import { Code, FirestoreError, withContextPromise } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
@@ -140,65 +140,69 @@ export function execute(
 
   const { pipeline, rawOptions, atomic, ...rest } = options;
 
-  if (!pipeline._db) {
-    return Promise.reject(
-      new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        'This pipeline was created without a database (e.g., as a subcollection pipeline) and cannot be executed directly. It can only be used as part of another pipeline.'
-      )
-    );
-  }
+  const errorContext = getPipelineErrorContext(pipeline.stages);
 
-  const firestore = cast(pipeline._db, Firestore);
-  const client = ensureFirestoreConfigured(firestore);
-
-  const userDataReader = newUserDataReader(firestore);
-  const context = userDataReader.createContext(
-    UserDataSource.Argument,
-    'execute'
-  );
-
-  pipeline._readUserData(context);
-  const userDataWriter = new ExpUserDataWriter(firestore);
-
-  const structuredPipelineOptions = new StructuredPipelineOptions(
-    rest,
-    rawOptions
-  );
-  structuredPipelineOptions._readUserData(context);
-
-  const structuredPipeline: StructuredPipeline = new StructuredPipeline(
-    pipeline,
-    structuredPipelineOptions
-  );
-
-  return firestoreClientExecutePipeline(client, structuredPipeline, {
-    atomic
-  }).then(result => {
-    // Get the execution time from the first result.
-    // firestoreClientExecutePipeline returns at least one PipelineStreamElement
-    // even if the returned document set is empty.
-    const executionTime =
-      result.length > 0 ? result[0].executionTime?.toTimestamp() : undefined;
-
-    const docs = result
-      // Currently ignore any response from ExecutePipeline that does
-      // not contain any document data in the `fields` property.
-      .filter(element => !!element.fields)
-      .map(
-        element =>
-          new PipelineResult(
-            userDataWriter,
-            element.fields!,
-            element.key?.path
-              ? new DocumentReference(firestore, null, element.key)
-              : undefined,
-            element.createTime?.toTimestamp(),
-            element.updateTime?.toTimestamp()
-          )
+  return withContextPromise(errorContext, () => {
+    if (!pipeline._db) {
+      return Promise.reject(
+        new FirestoreError(
+          Code.FAILED_PRECONDITION,
+          'This pipeline was created without a database (e.g., as a subcollection pipeline) and cannot be executed directly. It can only be used as part of another pipeline.'
+        )
       );
+    }
 
-    return new PipelineSnapshot(pipeline, docs, executionTime);
+    const firestore = cast(pipeline._db, Firestore);
+    const client = ensureFirestoreConfigured(firestore);
+
+    const userDataReader = newUserDataReader(firestore);
+    const context = userDataReader.createContext(
+      UserDataSource.Argument,
+      'execute'
+    );
+
+    pipeline._readUserData(context);
+    const userDataWriter = new ExpUserDataWriter(firestore);
+
+    const structuredPipelineOptions = new StructuredPipelineOptions(
+      rest,
+      rawOptions
+    );
+    structuredPipelineOptions._readUserData(context);
+
+    const structuredPipeline: StructuredPipeline = new StructuredPipeline(
+      pipeline,
+      structuredPipelineOptions
+    );
+
+    return firestoreClientExecutePipeline(client, structuredPipeline, {
+      atomic
+    }).then(result => {
+      // Get the execution time from the first result.
+      // firestoreClientExecutePipeline returns at least one PipelineStreamElement
+      // even if the returned document set is empty.
+      const executionTime =
+        result.length > 0 ? result[0].executionTime?.toTimestamp() : undefined;
+
+      const docs = result
+        // Currently ignore any response from ExecutePipeline that does
+        // not contain any document data in the `fields` property.
+        .filter(element => !!element.fields)
+        .map(
+          element =>
+            new PipelineResult(
+              userDataWriter,
+              element.fields!,
+              element.key?.path
+                ? new DocumentReference(firestore, null, element.key)
+                : undefined,
+              element.createTime?.toTimestamp(),
+              element.updateTime?.toTimestamp()
+            )
+        );
+
+      return new PipelineSnapshot(pipeline, docs, executionTime);
+    });
   });
 }
 

@@ -25,6 +25,8 @@ This package coordinates the communication between the different Firebase compon
 |  [initializeApp()](./app.md#initializeapp) | Creates and initializes a FirebaseApp instance. |
 |  <b>function(config, ...)</b> |
 |  [initializeServerApp(config)](./app.md#initializeserverapp_e7d0728) | Creates and initializes a [FirebaseServerApp](./app.firebaseserverapp.md#firebaseserverapp_interface) instance. |
+|  <b>function(enabled, ...)</b> |
+|  [enableContextualErrors(enabled)](./app.md#enablecontextualerrors_25adbe2) |  |
 |  <b>function(libraryKeyOrName, ...)</b> |
 |  [registerVersion(libraryKeyOrName, version, variant)](./app.md#registerversion_f673248) | Registers a library's name and version for platform logging purposes. |
 |  <b>function(logCallback, ...)</b> |
@@ -149,6 +151,26 @@ If invoked in an unsupported non-server environment such as a browser.
 If [FirebaseServerAppSettings.releaseOnDeref](./app.firebaseserverappsettings.md#firebaseserverappsettingsreleaseonderef) is defined but the runtime doesn't provide Finalization Registry support.
 
 If the `FIREBASE_OPTIONS` environment variable does not contain a valid project configuration required for auto-initialization.
+
+## function(enabled, ...)
+
+### enableContextualErrors(enabled) {:#enablecontextualerrors_25adbe2}
+
+<b>Signature:</b>
+
+```typescript
+export declare function enableContextualErrors(enabled: boolean): void;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  enabled | boolean |  |
+
+<b>Returns:</b>
+
+void
 
 ## function(libraryKeyOrName, ...)
 

@@ -20,7 +20,7 @@ import {
   StructuredPipelineOptions
 } from '../core/structured_pipeline';
 import { invokeExecutePipeline } from '../remote/datastore';
-import { Code, FirestoreError } from '../util/error';
+import { Code, FirestoreError, withContextPromise } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { getDatastore } from './components';
@@ -31,7 +31,7 @@ import { PipelineSource } from './pipeline-source';
 import { PipelineExecuteOptions } from './pipeline_options';
 import { DocumentReference } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
-import { Stage } from './stage';
+import { getPipelineErrorContext, Stage } from './stage';
 import { newUserDataReader, UserDataSource } from './user_data_reader';
 
 declare module './database' {
@@ -133,40 +133,43 @@ export function execute(
       };
 
   const { pipeline, rawOptions, atomic, ...rest } = options;
+  const errorContext = getPipelineErrorContext(pipeline.stages);
 
-  if (!pipeline._db) {
-    return Promise.reject(
-      new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        'This pipeline was created without a database (e.g., as a subcollection pipeline) and cannot be executed directly. It can only be used as part of another pipeline.'
-      )
+  return withContextPromise(errorContext, () => {
+    if (!pipeline._db) {
+      return Promise.reject(
+        new FirestoreError(
+          Code.FAILED_PRECONDITION,
+          'This pipeline was created without a database (e.g., as a subcollection pipeline) and cannot be executed directly. It can only be used as part of another pipeline.'
+        )
+      );
+    }
+    const datastore = getDatastore(pipeline._db);
+    const firestore = cast(pipeline._db, Firestore);
+
+    const userDataReader = newUserDataReader(firestore);
+    const context = userDataReader.createContext(
+      UserDataSource.Argument,
+      'execute'
     );
-  }
-  const datastore = getDatastore(pipeline._db);
-  const firestore = cast(pipeline._db, Firestore);
 
-  const userDataReader = newUserDataReader(firestore);
-  const context = userDataReader.createContext(
-    UserDataSource.Argument,
-    'execute'
-  );
+    pipeline._readUserData(context);
+    const userDataWriter = new LiteUserDataWriter(firestore);
 
-  pipeline._readUserData(context);
-  const userDataWriter = new LiteUserDataWriter(firestore);
+    const structuredPipelineOptions = new StructuredPipelineOptions(
+      rest,
+      rawOptions
+    );
+    structuredPipelineOptions._readUserData(context);
 
-  const structuredPipelineOptions = new StructuredPipelineOptions(
-    rest,
-    rawOptions
-  );
-  structuredPipelineOptions._readUserData(context);
+    const structuredPipeline: StructuredPipeline = new StructuredPipeline(
+      pipeline,
+      structuredPipelineOptions
+    );
 
-  const structuredPipeline: StructuredPipeline = new StructuredPipeline(
-    pipeline,
-    structuredPipelineOptions
-  );
-
-  return invokeExecutePipeline(datastore, structuredPipeline, { atomic }).then(
-    result => {
+    return invokeExecutePipeline(datastore, structuredPipeline, {
+      atomic
+    }).then(result => {
       // Get the execution time from the first result.
       // firestoreClientExecutePipeline returns at least one PipelineStreamElement
       // even if the returned document set is empty.
@@ -191,8 +194,8 @@ export function execute(
         );
 
       return new PipelineSnapshot(pipeline, docs, executionTime);
-    }
-  );
+    });
+  });
 }
 
 /**

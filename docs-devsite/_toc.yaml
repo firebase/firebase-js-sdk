@@ -541,6 +541,8 @@ toc:
     path: /docs/reference/js/firestore.firestoredataconverter.md
   - title: FirestoreError
     path: /docs/reference/js/firestore.firestoreerror.md
+  - title: FirestoreErrorContext
+    path: /docs/reference/js/firestore.firestoreerrorcontext.md
   - title: FirestoreSettings
     path: /docs/reference/js/firestore.firestoresettings.md
   - title: GeoPoint
@@ -658,6 +660,8 @@ toc:
     path: /docs/reference/js/firestore_lite.firestoredataconverter.md
   - title: FirestoreError
     path: /docs/reference/js/firestore_lite.firestoreerror.md
+  - title: FirestoreErrorContext
+    path: /docs/reference/js/firestore_lite.firestoreerrorcontext.md
   - title: GeoPoint
     path: /docs/reference/js/firestore_lite.geopoint.md
   - title: Int32Value

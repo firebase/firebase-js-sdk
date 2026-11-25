@@ -26,6 +26,11 @@ import {
 import { TransactionRunner } from '../core/transaction_runner';
 import { fail } from '../util/assert';
 import { newAsyncQueue } from '../util/async_queue_impl';
+import {
+  FirestoreOperation,
+  withContextPromise,
+  withContextSync
+} from '../util/error';
 import { cast } from '../util/input_validation';
 import { Deferred } from '../util/promise';
 
@@ -92,37 +97,44 @@ export class Transaction {
   ): Promise<DocumentSnapshot<AppModelType, DbModelType>> {
     const ref = validateReference(documentRef, this._firestore);
     const userDataWriter = new LiteUserDataWriter(this._firestore);
-    return this._transaction.lookup([ref._key]).then(docs => {
-      if (!docs || docs.length !== 1) {
-        return fail(0x5de9, 'Mismatch in docs returned from document lookup.');
-      }
-      const doc = docs[0];
-      if (doc.isFoundDocument()) {
-        return new DocumentSnapshot<AppModelType, DbModelType>(
-          this._firestore,
-          userDataWriter,
-          doc.key,
-          doc,
-          ref.converter
-        );
-      } else if (doc.isNoDocument()) {
-        return new DocumentSnapshot<AppModelType, DbModelType>(
-          this._firestore,
-          userDataWriter,
-          ref._key,
-          null,
-          ref.converter
-        );
-      } else {
-        throw fail(
-          0x4801,
-          'BatchGetDocumentsRequest returned unexpected document',
-          {
-            doc
+    return withContextPromise(
+      { path: ref.path, operation: FirestoreOperation.READ },
+      () =>
+        this._transaction.lookup([ref._key]).then(docs => {
+          if (!docs || docs.length !== 1) {
+            return fail(
+              0x5de9,
+              'Mismatch in docs returned from document lookup.'
+            );
           }
-        );
-      }
-    });
+          const doc = docs[0];
+          if (doc.isFoundDocument()) {
+            return new DocumentSnapshot<AppModelType, DbModelType>(
+              this._firestore,
+              userDataWriter,
+              doc.key,
+              doc,
+              ref.converter
+            );
+          } else if (doc.isNoDocument()) {
+            return new DocumentSnapshot<AppModelType, DbModelType>(
+              this._firestore,
+              userDataWriter,
+              ref._key,
+              null,
+              ref.converter
+            );
+          } else {
+            throw fail(
+              0x4801,
+              'BatchGetDocumentsRequest returned unexpected document',
+              {
+                doc
+              }
+            );
+          }
+        })
+    );
   }
 
   /**
@@ -161,21 +173,26 @@ export class Transaction {
     options?: SetOptions
   ): this {
     const ref = validateReference(documentRef, this._firestore);
-    const convertedValue = applyFirestoreDataConverter(
-      ref.converter,
-      value,
-      options
+    return withContextSync(
+      { path: ref.path, operation: FirestoreOperation.WRITE },
+      () => {
+        const convertedValue = applyFirestoreDataConverter(
+          ref.converter,
+          value,
+          options
+        );
+        const parsed = parseSetData(
+          this._dataReader,
+          'Transaction.set',
+          ref._key,
+          convertedValue,
+          ref.converter !== null,
+          options
+        );
+        this._transaction.set(ref._key, parsed);
+        return this;
+      }
     );
-    const parsed = parseSetData(
-      this._dataReader,
-      'Transaction.set',
-      ref._key,
-      convertedValue,
-      ref.converter !== null,
-      options
-    );
-    this._transaction.set(ref._key, parsed);
-    return this;
   }
 
   /**
@@ -222,35 +239,39 @@ export class Transaction {
     ...moreFieldsAndValues: unknown[]
   ): this {
     const ref = validateReference(documentRef, this._firestore);
+    return withContextSync(
+      { path: ref.path, operation: FirestoreOperation.UPDATE },
+      () => {
+        // For Compat types, we have to "extract" the underlying types before
+        // performing validation.
+        fieldOrUpdateData = getModularInstance(fieldOrUpdateData);
 
-    // For Compat types, we have to "extract" the underlying types before
-    // performing validation.
-    fieldOrUpdateData = getModularInstance(fieldOrUpdateData);
+        let parsed;
+        if (
+          typeof fieldOrUpdateData === 'string' ||
+          fieldOrUpdateData instanceof FieldPath
+        ) {
+          parsed = parseUpdateVarargs(
+            this._dataReader,
+            'Transaction.update',
+            ref._key,
+            fieldOrUpdateData,
+            value,
+            moreFieldsAndValues
+          );
+        } else {
+          parsed = parseUpdateData(
+            this._dataReader,
+            'Transaction.update',
+            ref._key,
+            fieldOrUpdateData
+          );
+        }
 
-    let parsed;
-    if (
-      typeof fieldOrUpdateData === 'string' ||
-      fieldOrUpdateData instanceof FieldPath
-    ) {
-      parsed = parseUpdateVarargs(
-        this._dataReader,
-        'Transaction.update',
-        ref._key,
-        fieldOrUpdateData,
-        value,
-        moreFieldsAndValues
-      );
-    } else {
-      parsed = parseUpdateData(
-        this._dataReader,
-        'Transaction.update',
-        ref._key,
-        fieldOrUpdateData
-      );
-    }
-
-    this._transaction.update(ref._key, parsed);
-    return this;
+        this._transaction.update(ref._key, parsed);
+        return this;
+      }
+    );
   }
 
   /**
@@ -263,8 +284,13 @@ export class Transaction {
     documentRef: DocumentReference<AppModelType, DbModelType>
   ): this {
     const ref = validateReference(documentRef, this._firestore);
-    this._transaction.delete(ref._key);
-    return this;
+    return withContextSync(
+      { path: ref.path, operation: FirestoreOperation.DELETE },
+      () => {
+        this._transaction.delete(ref._key);
+        return this;
+      }
+    );
   }
 }
 
