@@ -1,6 +1,7 @@
 {
   "name": "@firebase/webchannel-wrapper/bloom-blob",
   "description": "Bloom filter related code from the Closure library.",
+  "license": "Apache-2.0",
   "main": "../dist/bloom-blob/bloom_blob_es2018.js",
   "browser": "../dist/bloom-blob/esm/bloom_blob_es2018.js",
   "module": "../dist/bloom-blob/esm/bloom_blob_es2018.js",
