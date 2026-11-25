@@ -90,7 +90,7 @@ export class View {
     const newServerCache = new CacheNode(
       serverSnap,
       initialServerCache.isFullyInitialized(),
-      indexFilter.filtersNodes()
+      undefined
     );
     const newEventCache = new CacheNode(
       eventSnap,
