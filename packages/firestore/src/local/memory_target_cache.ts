@@ -161,21 +161,19 @@ export class MemoryTargetCache implements TargetCache {
     upperBound: ListenSequenceNumber,
     activeTargetIds: ActiveTargets
   ): PersistencePromise<number> {
-    let count = 0;
-    const removals: Array<PersistencePromise<void>> = [];
-    this.targets.forEach((key, targetData) => {
+    const toRemove: TargetData[] = [];
+    this.targets.forEach((_, targetData) => {
       if (
         targetData.sequenceNumber <= upperBound &&
         activeTargetIds.get(targetData.targetId) === null
       ) {
-        this.targets.delete(key);
-        removals.push(
-          this.removeMatchingKeysForTargetId(transaction, targetData.targetId)
-        );
-        count++;
+        toRemove.push(targetData);
       }
     });
-    return PersistencePromise.waitFor(removals).next(() => count);
+    const removals = toRemove.map(targetData =>
+      this.removeTargetData(transaction, targetData)
+    );
+    return PersistencePromise.waitFor(removals).next(() => toRemove.length);
   }
 
   getTargetCount(

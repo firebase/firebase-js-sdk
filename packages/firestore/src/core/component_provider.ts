@@ -189,6 +189,13 @@ export class LruGcMemoryOfflineComponentProvider extends MemoryOfflineComponentP
     super();
   }
 
+  async initialize(cfg: ComponentConfiguration): Promise<void> {
+    await super.initialize(cfg);
+    if (this.gcScheduler && !this.gcScheduler.started) {
+      this.gcScheduler.start();
+    }
+  }
+
   createGarbageCollectionScheduler(
     cfg: ComponentConfiguration,
     localStore: LocalStore

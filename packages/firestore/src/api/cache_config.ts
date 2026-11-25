@@ -206,19 +206,20 @@ class MemoryLruGarbageCollectorImpl implements MemoryLruGarbageCollector {
 }
 
 /**
- * Creates an instance of `MemoryEagerGarbageCollector`. This is also the
- * default garbage collector unless it is explicitly specified otherwise.
+ * Creates an instance of `MemoryEagerGarbageCollector`.
  */
 export function memoryEagerGarbageCollector(): MemoryEagerGarbageCollector {
   return new MemoryEagerGarbageCollectorImpl();
 }
 
 /**
- * Creates an instance of `MemoryLruGarbageCollector`.
- *
+ * Creates an instance of `MemoryLruGarbageCollector`. This is also the
+ * default garbage collector for `MemoryLocalCache` unless it is explicitly
+ * specified otherwise.<br/>
  * A target size can be specified as part of the setting parameter. The
  * collector will start deleting documents once the cache size exceeds
- * the given size. The default cache size is 40MB (40 * 1024 * 1024 bytes).
+ * the given size, or can be set to `CACHE_SIZE_UNLIMITED` to disable
+ * garbage collection. The default cache size is 40MB (40 * 1024 * 1024 bytes).
  */
 export function memoryLruGarbageCollector(settings?: {
   cacheSizeBytes?: number;
@@ -232,7 +233,7 @@ export function memoryLruGarbageCollector(settings?: {
 export interface MemoryCacheSettings {
   /**
    * The garbage collector to use, for the memory cache layer.
-   * A `MemoryEagerGarbageCollector` is used when this is undefined.
+   * A `MemoryLruGarbageCollector` is used when this is undefined.
    */
   garbageCollector?: MemoryGarbageCollector;
 }
