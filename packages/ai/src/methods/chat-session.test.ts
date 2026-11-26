@@ -1118,6 +1118,58 @@ describe('ChatSession', () => {
         ]);
         expect(contents[contents.length - 1].parts.length).to.equal(2);
       });
+      it('warns when a function call arrives after streamed text', async () => {
+        const greetingSpy = vi.fn(getGreeting);
+        const warnStub = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+        const textChunk = {
+          candidates: [
+            {
+              index: 1,
+              content: { role: 'model', parts: [{ text: 'Let me check.' }] }
+            }
+          ]
+        };
+        const fullTurn = {
+          candidates: [
+            {
+              index: 1,
+              content: {
+                role: 'model',
+                parts: [{ text: 'Let me check.' }, functionCallPartGreeting]
+              }
+            }
+          ]
+        };
+        const generateContentStreamStub = vi
+          .spyOn(mockGenerateContent, 'generateContentStream')
+          // @ts-ignore
+          .mockImplementation(async () => ({
+            firstValue: textChunk,
+            response: Promise.resolve(fullTurn)
+          }));
+        const chatSession = new ChatSessionImpl(
+          fakeApiSettings,
+          'a-model',
+          undefined,
+          {
+            tools: [
+              {
+                functionDeclarations: [
+                  getFunctionDeclarationGreeting(greetingSpy)
+                ]
+              }
+            ]
+          }
+        );
+        const result = await chatSession.sendMessageStream('My name is Bob');
+        await result.response;
+        await chatSession.getHistory();
+        expect(generateContentStreamStub).toHaveBeenCalledTimes(1);
+        expect(greetingSpy).not.toHaveBeenCalled();
+        expect(warnStub).toHaveBeenCalledWith(
+          expect.stringContaining('function call after text')
+        );
+      });
       it('does not call any functions if sequential limit is set to 0', async () => {
         const greetingSpy = vi.fn(getGreeting);
         const warnStub = vi.spyOn(logger, 'warn').mockImplementation(() => {});
@@ -1176,6 +1228,10 @@ describe('ChatSession', () => {
         expect(generateContentStreamStub).toHaveBeenCalledTimes(1);
         expect(warnStub).toHaveBeenCalledWith(
           expect.stringContaining('exceeded the limit')
+        );
+        await chatSession.getHistory();
+        expect(warnStub).not.toHaveBeenCalledWith(
+          expect.stringContaining('function call after text')
         );
         expect(greetingSpy).not.toHaveBeenCalled();
       });
