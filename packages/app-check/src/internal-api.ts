@@ -23,14 +23,14 @@ import {
   ListenerType
 } from './types';
 import { AppCheckTokenListener } from './public-types';
-import { getStateReference } from './state';
-import { TOKEN_REFRESH_TIME } from './constants';
+import { AppCheckState, getStateReference } from './state';
+import { EXCHANGE_TOKEN_TIMEOUT, TOKEN_REFRESH_TIME } from './constants';
 import { Refresher } from './proactive-refresh';
-import { ensureActivated } from './util';
+import { ensureActivated, exchangeTimeoutError } from './util';
 import { exchangeToken, getExchangeDebugTokenRequest } from './client';
 import { writeTokenToStorage } from './storage';
 import { getDebugToken, isDebugMode } from './debug';
-import { base64, FirebaseError } from '@firebase/util';
+import { base64, Deferred, FirebaseError } from '@firebase/util';
 import { logger } from './logger';
 import { AppCheckService } from './factory';
 import { AppCheckError } from './errors';
@@ -51,6 +51,39 @@ export function formatDummyToken(
     JSON.stringify(tokenErrorData),
     /* webSafe= */ false
   );
+}
+
+/**
+ * Makes `exchange` the exchange in flight and returns it. App Check gives
+ * up on it after EXCHANGE_TOKEN_TIMEOUT: callers are released with an
+ * error and `signal` is aborted. An exchange that never settles (for
+ * example a reCAPTCHA call lost while the tab was in the background) can
+ * then no longer block every later getToken() call.
+ */
+function startExchange(
+  state: AppCheckState,
+  exchange: (signal: AbortSignal) => Promise<AppCheckTokenInternal>
+): Promise<AppCheckTokenInternal> {
+  const result = new Deferred<AppCheckTokenInternal>();
+  const controller = new AbortController();
+  const timer = setTimeout(() => {
+    result.reject(exchangeTimeoutError());
+    controller.abort();
+  }, EXCHANGE_TOKEN_TIMEOUT);
+  const inFlight = result.promise.finally(() => {
+    clearTimeout(timer);
+    // Clear promise when settled - either resolved or rejected.
+    state.exchangeTokenPromise = undefined;
+  });
+  // Publish the slot before running provider code, so a provider that
+  // calls getToken() synchronously joins this exchange.
+  state.exchangeTokenPromise = inFlight;
+  try {
+    exchange(controller.signal).then(result.resolve, result.reject);
+  } catch (e) {
+    result.reject(e);
+  }
+  return inFlight;
 }
 
 /**
@@ -120,18 +153,19 @@ export async function getToken(
     try {
       const debugToken = await getDebugToken();
       // Avoid making another call to the exchange endpoint if one is in flight.
-      if (!state.exchangeTokenPromise) {
-        state.exchangeTokenPromise = exchangeToken(
-          getExchangeDebugTokenRequest(app, debugToken),
-          appCheck.heartbeatServiceProvider
-        ).finally(() => {
-          // Clear promise when settled - either resolved or rejected.
-          state.exchangeTokenPromise = undefined;
-        });
+      let exchangePromise = state.exchangeTokenPromise;
+      if (!exchangePromise) {
+        exchangePromise = startExchange(state, signal =>
+          exchangeToken(
+            getExchangeDebugTokenRequest(app, debugToken),
+            appCheck.heartbeatServiceProvider,
+            signal
+          )
+        );
         shouldCallListeners = true;
       }
       const tokenFromDebugExchange: AppCheckTokenInternal =
-        await state.exchangeTokenPromise;
+        await exchangePromise;
       // Write debug token to indexedDB.
       await writeTokenToStorage(app, tokenFromDebugExchange);
       // Write debug token to state.
@@ -160,17 +194,17 @@ export async function getToken(
    */
   try {
     // Avoid making another call to the exchange endpoint if one is in flight.
-    if (!state.exchangeTokenPromise) {
+    let exchangePromise = state.exchangeTokenPromise;
+    if (!exchangePromise) {
       // state.provider is populated in initializeAppCheck()
       // ensureActivated() at the top of this function checks that
       // initializeAppCheck() has been called.
-      state.exchangeTokenPromise = state.provider!.getToken().finally(() => {
-        // Clear promise when settled - either resolved or rejected.
-        state.exchangeTokenPromise = undefined;
-      });
+      exchangePromise = startExchange(state, signal =>
+        state.provider!.getToken(false, signal)
+      );
       shouldCallListeners = true;
     }
-    token = await getStateReference(app).exchangeTokenPromise;
+    token = await exchangePromise;
   } catch (e) {
     if (
       (e as FirebaseError).code === `appCheck/${AppCheckError.THROTTLED}` ||

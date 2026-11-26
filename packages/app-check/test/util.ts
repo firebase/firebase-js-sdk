@@ -74,7 +74,8 @@ export function getFullApp(): FirebaseApp {
       'heartbeat',
       () => {
         return {
-          triggerHeartbeat: () => {}
+          triggerHeartbeat: () => {},
+          getHeartbeatsHeader: () => Promise.resolve('a/1.2.3')
         } as any;
       },
       ComponentType.PUBLIC

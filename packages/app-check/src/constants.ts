@@ -40,6 +40,13 @@ export const TOKEN_REFRESH_TIME = {
 };
 
 /**
+ * How long one token exchange (attestation plus the call to the exchange
+ * endpoint) may take before App Check gives up on it. This is currently
+ * 60 seconds.
+ */
+export const EXCHANGE_TOKEN_TIMEOUT = 60 * 1000;
+
+/**
  * One day in millis, for certain error code backoffs.
  */
 export const ONE_DAY = 24 * 60 * 60 * 1000;
