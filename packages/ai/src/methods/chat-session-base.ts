@@ -235,6 +235,7 @@ export abstract class ChatSessionBase<
      * sequence has completed successfully.
      */
     const tempHistory: Content[] = [];
+    let stoppedAtCallLimit = false;
 
     const callGenerateContentStream =
       async (): Promise<GenerateContentStreamResult> => {
@@ -272,16 +273,25 @@ export abstract class ChatSessionBase<
             singleRequestOptions
           );
 
-          functionCalls = this._getCallableFunctionCalls(result.firstValue);
+          let modelTurn: GenerateContentResponse | undefined =
+            result.firstValue;
+          functionCalls = this._getCallableFunctionCalls(modelTurn);
+          if (functionCalls) {
+            // The model is calling functions. The rest of the turn can hold
+            // more calls (e.g. parallel calls split across chunks), so wait
+            // for the whole turn before running them and saving it to history.
+            modelTurn = await result.response;
+            functionCalls = this._getCallableFunctionCalls(modelTurn);
+          }
 
           if (
             functionCalls &&
-            result.firstValue &&
-            result.firstValue.candidates &&
-            result.firstValue.candidates.length > 0
+            modelTurn &&
+            modelTurn.candidates &&
+            modelTurn.candidates.length > 0
           ) {
             const responseContent = {
-              ...result.firstValue.candidates[0].content
+              ...modelTurn.candidates[0].content
             };
             if (!responseContent.role) {
               responseContent.role = 'model';
@@ -291,6 +301,7 @@ export abstract class ChatSessionBase<
         } while (functionCalls && functionCallTurnCount < functionCallMaxTurns);
 
         if (functionCalls && functionCallTurnCount >= functionCallMaxTurns) {
+          stoppedAtCallLimit = true;
           logger.warn(
             `Automatic function calling exceeded the limit of` +
               ` ${functionCallMaxTurns} function calls. Returning last model response.`
@@ -318,6 +329,14 @@ export abstract class ChatSessionBase<
         // TODO: Move response validation logic upstream to `stream-reader` so
         // errors propagate to the user's `result.response` promise.
         if (response.candidates && response.candidates.length > 0) {
+          if (!stoppedAtCallLimit && this._getCallableFunctionCalls(response)) {
+            // The stream started with text, so it was returned before the
+            // function call arrived and the call was not run.
+            logger.warn(
+              `sendMessageStream() response has a function call after text,` +
+                ` so automatic function calling did not run it.`
+            );
+          }
           this._history = this._history.concat(tempHistory);
           // TODO: Validate that `response.candidates[0].content` is not null.
           const responseContent = { ...response.candidates[0].content };

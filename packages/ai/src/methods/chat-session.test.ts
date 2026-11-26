@@ -917,19 +917,18 @@ describe('ChatSession', () => {
           .mockImplementation(async (apiSettings, model, params) => {
             const parts = params.contents[params.contents.length - 1].parts;
             if ((parts[0] as TextPart).text?.includes('Bob')) {
-              return {
-                firstValue: {
-                  candidates: [
-                    {
-                      index: 1,
-                      content: {
-                        role: 'model',
-                        parts: [functionCallPartGreeting]
-                      }
+              const callTurn = {
+                candidates: [
+                  {
+                    index: 1,
+                    content: {
+                      role: 'model',
+                      parts: [functionCallPartGreeting]
                     }
-                  ]
-                }
+                  }
+                ]
               };
+              return { firstValue: callTurn, response: callTurn };
             } else if (parts[0].type === 'functionResponse') {
               return {
                 firstValue: finalResponse,
@@ -982,22 +981,21 @@ describe('ChatSession', () => {
           .mockImplementation(async (apiSettings, model, params) => {
             const parts = params.contents[params.contents.length - 1].parts;
             if ((parts[0] as TextPart).text?.includes('Bob')) {
-              return {
-                firstValue: {
-                  candidates: [
-                    {
-                      index: 1,
-                      content: {
-                        role: 'model',
-                        parts: [
-                          functionCallPartGreeting,
-                          functionCallPartFarewell
-                        ]
-                      }
+              const callTurn = {
+                candidates: [
+                  {
+                    index: 1,
+                    content: {
+                      role: 'model',
+                      parts: [
+                        functionCallPartGreeting,
+                        functionCallPartFarewell
+                      ]
                     }
-                  ]
-                }
+                  }
+                ]
               };
+              return { firstValue: callTurn, response: callTurn };
             } else if (parts[0].type === 'functionResponse') {
               return {
                 firstValue: finalResponse,
@@ -1050,6 +1048,127 @@ describe('ChatSession', () => {
         });
         expect(greetingSpy).toHaveBeenCalledWith({ username: 'Bob' });
         expect(farewellSpy).toHaveBeenCalledWith({ username: 'Bob' });
+      });
+      it('calls functions that arrive after the first chunk', async () => {
+        // Parallel calls split across two chunks: the first chunk only has
+        // getGreeting, the aggregated turn has both calls.
+        const greetingSpy = vi.fn(getGreeting);
+        const farewellSpy = vi.fn(getFarewell);
+        const firstChunk = {
+          candidates: [
+            {
+              index: 1,
+              content: { role: 'model', parts: [functionCallPartGreeting] }
+            }
+          ]
+        };
+        const fullTurn = {
+          candidates: [
+            {
+              index: 1,
+              content: {
+                role: 'model',
+                parts: [functionCallPartGreeting, functionCallPartFarewell]
+              }
+            }
+          ]
+        };
+        const generateContentStreamStub = vi
+          .spyOn(mockGenerateContent, 'generateContentStream')
+          // @ts-ignore
+          .mockImplementation(async (apiSettings, model, params) => {
+            const parts = params.contents[params.contents.length - 1].parts;
+            if ((parts[0] as TextPart).text?.includes('Bob')) {
+              return {
+                firstValue: firstChunk,
+                response: Promise.resolve(fullTurn)
+              };
+            } else if (parts[0].type === 'functionResponse') {
+              return {
+                firstValue: finalResponse,
+                response: finalResponse
+              };
+            }
+          });
+        const chatSession = new ChatSessionImpl(
+          fakeApiSettings,
+          'a-model',
+          undefined,
+          {
+            tools: [
+              {
+                functionDeclarations: [
+                  getFunctionDeclarationGreeting(greetingSpy),
+                  getFunctionDeclarationFarewell(farewellSpy)
+                ]
+              }
+            ]
+          }
+        );
+        const result = await chatSession.sendMessageStream('My name is Bob');
+        await result.response;
+        expect(generateContentStreamStub).toHaveBeenCalledTimes(2);
+        expect(greetingSpy).toHaveBeenCalledWith({ username: 'Bob' });
+        expect(farewellSpy).toHaveBeenCalledWith({ username: 'Bob' });
+        const contents = generateContentStreamStub.mock.calls[1][2].contents;
+        // The saved model turn has both calls, followed by both responses.
+        expect(contents[contents.length - 2].parts).to.deep.equal([
+          functionCallPartGreeting,
+          functionCallPartFarewell
+        ]);
+        expect(contents[contents.length - 1].parts.length).to.equal(2);
+      });
+      it('warns when a function call arrives after streamed text', async () => {
+        const greetingSpy = vi.fn(getGreeting);
+        const warnStub = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+        const textChunk = {
+          candidates: [
+            {
+              index: 1,
+              content: { role: 'model', parts: [{ text: 'Let me check.' }] }
+            }
+          ]
+        };
+        const fullTurn = {
+          candidates: [
+            {
+              index: 1,
+              content: {
+                role: 'model',
+                parts: [{ text: 'Let me check.' }, functionCallPartGreeting]
+              }
+            }
+          ]
+        };
+        const generateContentStreamStub = vi
+          .spyOn(mockGenerateContent, 'generateContentStream')
+          // @ts-ignore
+          .mockImplementation(async () => ({
+            firstValue: textChunk,
+            response: Promise.resolve(fullTurn)
+          }));
+        const chatSession = new ChatSessionImpl(
+          fakeApiSettings,
+          'a-model',
+          undefined,
+          {
+            tools: [
+              {
+                functionDeclarations: [
+                  getFunctionDeclarationGreeting(greetingSpy)
+                ]
+              }
+            ]
+          }
+        );
+        const result = await chatSession.sendMessageStream('My name is Bob');
+        await result.response;
+        await chatSession.getHistory();
+        expect(generateContentStreamStub).toHaveBeenCalledTimes(1);
+        expect(greetingSpy).not.toHaveBeenCalled();
+        expect(warnStub).toHaveBeenCalledWith(
+          expect.stringContaining('function call after text')
+        );
       });
       it('does not call any functions if sequential limit is set to 0', async () => {
         const greetingSpy = vi.fn(getGreeting);
@@ -1109,6 +1228,10 @@ describe('ChatSession', () => {
         expect(generateContentStreamStub).toHaveBeenCalledTimes(1);
         expect(warnStub).toHaveBeenCalledWith(
           expect.stringContaining('exceeded the limit')
+        );
+        await chatSession.getHistory();
+        expect(warnStub).not.toHaveBeenCalledWith(
+          expect.stringContaining('function call after text')
         );
         expect(greetingSpy).not.toHaveBeenCalled();
       });
