@@ -237,7 +237,9 @@ export function aggregateResponses(
 ): GenerateContentResponse {
   const lastResponse = responses[responses.length - 1];
   const aggregatedResponse: GenerateContentResponse = {
-    promptFeedback: lastResponse?.promptFeedback
+    promptFeedback: lastResponse?.promptFeedback,
+    modelVersion: lastResponse?.modelVersion,
+    responseId: lastResponse?.responseId
   };
   for (const response of responses) {
     if (response.candidates) {

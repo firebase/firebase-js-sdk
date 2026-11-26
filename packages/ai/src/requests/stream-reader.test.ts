@@ -346,6 +346,15 @@ describe('processStream', () => {
 });
 
 describe('aggregateResponses', () => {
+  it('keeps modelVersion and responseId from the last response', () => {
+    const responsesToAggregate: GenerateContentResponse[] = [
+      { modelVersion: 'gemini-2.5-flash-001', responseId: 'first' },
+      { modelVersion: 'gemini-2.5-flash-002', responseId: 'last' }
+    ];
+    const response = aggregateResponses(responsesToAggregate);
+    expect(response.modelVersion).to.equal('gemini-2.5-flash-002');
+    expect(response.responseId).to.equal('last');
+  });
   it('handles no candidates, and promptFeedback', () => {
     const responsesToAggregate: GenerateContentResponse[] = [
       {

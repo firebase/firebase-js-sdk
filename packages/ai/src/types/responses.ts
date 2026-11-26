@@ -107,6 +107,8 @@ export interface GenerateContentResponse {
   candidates?: GenerateContentCandidate[];
   promptFeedback?: PromptFeedback;
   usageMetadata?: UsageMetadata;
+  modelVersion?: string;
+  responseId?: string;
 }
 
 /**

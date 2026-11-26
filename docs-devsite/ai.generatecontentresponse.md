@@ -23,7 +23,9 @@ export interface GenerateContentResponse
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [candidates](./ai.generatecontentresponse.md#generatecontentresponsecandidates) | [GenerateContentCandidate](./ai.generatecontentcandidate.md#generatecontentcandidate_interface)<!-- -->\[\] |  |
+|  [modelVersion](./ai.generatecontentresponse.md#generatecontentresponsemodelversion) | string |  |
 |  [promptFeedback](./ai.generatecontentresponse.md#generatecontentresponsepromptfeedback) | [PromptFeedback](./ai.promptfeedback.md#promptfeedback_interface) |  |
+|  [responseId](./ai.generatecontentresponse.md#generatecontentresponseresponseid) | string |  |
 |  [usageMetadata](./ai.generatecontentresponse.md#generatecontentresponseusagemetadata) | [UsageMetadata](./ai.usagemetadata.md#usagemetadata_interface) |  |
 
 ## GenerateContentResponse.candidates
@@ -34,12 +36,28 @@ export interface GenerateContentResponse
 candidates?: GenerateContentCandidate[];
 ```
 
+## GenerateContentResponse.modelVersion
+
+<b>Signature:</b>
+
+```typescript
+modelVersion?: string;
+```
+
 ## GenerateContentResponse.promptFeedback
 
 <b>Signature:</b>
 
 ```typescript
 promptFeedback?: PromptFeedback;
+```
+
+## GenerateContentResponse.responseId
+
+<b>Signature:</b>
+
+```typescript
+responseId?: string;
 ```
 
 ## GenerateContentResponse.usageMetadata

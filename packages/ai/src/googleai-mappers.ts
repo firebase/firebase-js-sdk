@@ -103,7 +103,9 @@ export function mapGenerateContentResponse(
     promptFeedback: googleAIResponse.promptFeedback
       ? mapPromptFeedback(googleAIResponse.promptFeedback)
       : undefined,
-    usageMetadata: googleAIResponse.usageMetadata
+    usageMetadata: googleAIResponse.usageMetadata,
+    modelVersion: googleAIResponse.modelVersion,
+    responseId: googleAIResponse.responseId
   };
 
   return generateContentResponse;
