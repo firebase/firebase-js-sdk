@@ -237,11 +237,15 @@ export function aggregateResponses(
 ): GenerateContentResponse {
   const lastResponse = responses[responses.length - 1];
   const aggregatedResponse: GenerateContentResponse = {
-    promptFeedback: lastResponse?.promptFeedback,
-    modelVersion: lastResponse?.modelVersion,
-    responseId: lastResponse?.responseId
+    promptFeedback: lastResponse?.promptFeedback
   };
   for (const response of responses) {
+    if (response.modelVersion) {
+      aggregatedResponse.modelVersion = response.modelVersion;
+    }
+    if (response.responseId) {
+      aggregatedResponse.responseId = response.responseId;
+    }
     if (response.candidates) {
       for (const candidate of response.candidates) {
         // Use 0 if index is undefined (protobuf default value omission).

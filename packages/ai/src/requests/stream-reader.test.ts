@@ -355,6 +355,16 @@ describe('aggregateResponses', () => {
     expect(response.modelVersion).to.equal('gemini-2.5-flash-002');
     expect(response.responseId).to.equal('last');
   });
+  it('keeps modelVersion and responseId when the last response lacks them', () => {
+    const responsesToAggregate: GenerateContentResponse[] = [
+      { modelVersion: 'gemini-2.5-flash-001', responseId: 'first' },
+      { modelVersion: 'gemini-2.5-flash-002', responseId: 'second' },
+      {}
+    ];
+    const response = aggregateResponses(responsesToAggregate);
+    expect(response.modelVersion).to.equal('gemini-2.5-flash-002');
+    expect(response.responseId).to.equal('second');
+  });
   it('handles no candidates, and promptFeedback', () => {
     const responsesToAggregate: GenerateContentResponse[] = [
       {
