@@ -130,9 +130,7 @@ export interface FirebaseSqlRpcOptions {
  * Do not instantiate directly: obtain instances via {@link (getSql:1) | getSql()}, which validates
  * the `ServiceConfig` and deduplicates clients per `(app, restUrl, schemaName)`.
  * Configure the target PostgreSQL schema via `schemaName` in {@link ServiceConfig} when calling
- * {@link (getSql:1) | getSql()} (you can also derive a modified `ServiceConfig` from an existing
- * {@link ServiceConfig} object via {@link copyServiceConfig}; `FirebaseSql` does not
- * expose a `.schema(name)` method).
+ * {@link (getSql:1) | getSql()} (`FirebaseSql` does not expose a `.schema(name)` method).
  *
  * Read {@link FirebaseSql.restUrl} and {@link FirebaseSql.schemaName} to inspect the resolved
  * endpoint URL and active schema. Client-wide static HTTP headers can be configured via

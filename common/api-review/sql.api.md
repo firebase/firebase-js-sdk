@@ -49,9 +49,6 @@ export const Code: Readonly<{
 export type ContainsNull<T> = unknown extends T ? false : null extends T ? true : false;
 
 // @public
-export function copyServiceConfig(serviceConfig: ServiceConfig): ServiceConfig;
-
-// @public
 export type ExplicitKeys<T> = {
     [K in keyof T]: string extends K ? never : K;
 }[keyof T];

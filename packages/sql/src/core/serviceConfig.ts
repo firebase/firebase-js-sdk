@@ -130,40 +130,8 @@ export interface ServiceConfig {
 }
 
 /**
- * Creates a mutable shallow copy of a {@link ServiceConfig} object (`Object.assign({}, serviceConfig)`).
- *
- * @remarks
- * When to use: deriving a modified configuration (for example, targeting another `schemaName` or
- * `serviceId`) from an existing or frozen {@link ServiceConfig} object without mutating the
- * original.
- *
- * Behavior and side effects: pure synchronous shallow copy with no network I/O or validation. The
- * returned object is unfrozen and safe to mutate before passing to {@link (getSql:1) | getSql()}.
- *
- * @param serviceConfig - Source {@link ServiceConfig} object to copy.
- * @returns A new mutable shallow copy of `serviceConfig`.
- *
- * @example
- * Derive a secondary schema client from an existing ServiceConfig object:
- * ```ts
- * import {
- *   copyServiceConfig,
- *   getSql,
- *   type ServiceConfig
- * } from 'firebase/sql';
- *
- * const baseServiceConfig: ServiceConfig = {
- *   serviceId: 'events-db',
- *   location: 'us-central1'
- * };
- * const sql = getSql(baseServiceConfig);
- *
- * const analyticsServiceConfig = copyServiceConfig(baseServiceConfig);
- * analyticsServiceConfig.schemaName = 'analytics';
- * const analyticsSql = getSql(analyticsServiceConfig);
- * ```
- *
- * @public
+ * Creates a mutable shallow copy of a `ServiceConfig` object (`Object.assign({}, serviceConfig)`).
+ * @internal
  */
 export function copyServiceConfig(serviceConfig: ServiceConfig): ServiceConfig {
   return Object.assign({}, serviceConfig);

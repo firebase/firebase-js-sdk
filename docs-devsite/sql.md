@@ -31,7 +31,6 @@ Example conventions and reference schema: code examples across this package assu
 |  <b>function(app, ...)</b> |
 |  [getSql(app, serviceConfig)](./sql.md#getsql_38182ec) | Returns the cached or newly initialized [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client bound to the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) and [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface)<!-- -->. |
 |  <b>function(serviceConfig, ...)</b> |
-|  [copyServiceConfig(serviceConfig)](./sql.md#copyserviceconfig_b956f3d) | Creates a mutable shallow copy of a [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) object (<code>Object.assign({}, serviceConfig)</code>). |
 |  [getSql(serviceConfig)](./sql.md#getsql_b956f3d) | Returns the cached or newly initialized [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client bound to the default [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) and the specified [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface)<!-- -->. |
 |  <b>function(sql, ...)</b> |
 |  [terminate(sql)](./sql.md#terminate_bc2cb94) | Terminates a [FirebaseSql](./sql.firebasesql.md#firebasesql_class) client, aborts any in-flight HTTP requests, cancels pending Auth and App Check initialization subscriptions, and evicts the instance from its <code>FirebaseApp</code> component cache. |
@@ -179,55 +178,6 @@ const analyticsSql = getSql(app, {
 ```
 
 ## function(serviceConfig, ...)
-
-### copyServiceConfig(serviceConfig) {:#copyserviceconfig_b956f3d}
-
-Creates a mutable shallow copy of a [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) object (`Object.assign({}, serviceConfig)`<!-- -->).
-
-When to use: deriving a modified configuration (for example, targeting another `schemaName` or `serviceId`<!-- -->) from an existing or frozen [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) object without mutating the original.
-
-Behavior and side effects: pure synchronous shallow copy with no network I/O or validation. The returned object is unfrozen and safe to mutate before passing to [getSql()](./sql.md#getsql_b956f3d)<!-- -->.
-
-<b>Signature:</b>
-
-```typescript
-export declare function copyServiceConfig(serviceConfig: ServiceConfig): ServiceConfig;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  serviceConfig | [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) | Source [ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface) object to copy. |
-
-<b>Returns:</b>
-
-[ServiceConfig](./sql.serviceconfig.md#serviceconfig_interface)
-
-A new mutable shallow copy of `serviceConfig`<!-- -->.
-
-### Example
-
-Derive a secondary schema client from an existing ServiceConfig object:
-
-```ts
-import {
-  copyServiceConfig,
-  getSql,
-  type ServiceConfig
-} from 'firebase/sql';
-
-const baseServiceConfig: ServiceConfig = {
-  serviceId: 'events-db',
-  location: 'us-central1'
-};
-const sql = getSql(baseServiceConfig);
-
-const analyticsServiceConfig = copyServiceConfig(baseServiceConfig);
-analyticsServiceConfig.schemaName = 'analytics';
-const analyticsSql = getSql(analyticsServiceConfig);
-
-```
 
 ### getSql(serviceConfig) {:#getsql_b956f3d}
 

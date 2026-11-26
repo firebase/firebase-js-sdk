@@ -19,7 +19,6 @@ import {
   Code,
   FirebaseSqlError,
   FirebaseSqlErrorCategory,
-  copyServiceConfig,
   getSql,
   terminate,
   type FilterOrOptions,
@@ -108,24 +107,25 @@ const res = await sql.from('venues').select('id, slug, name, city');
     }
   },
   {
-    id: 'client-copy-serviceconfig-schema',
+    id: 'client-explicit-schema',
     category: 'Client & ServiceConfig',
-    title: '2. copyServiceConfig() & Explicit schemaName',
+    title: '2. Explicit schemaName & Distinct Client',
     apiSymbols: [
-      'copyServiceConfig',
       'ServiceConfig',
       'ServiceConfig.schemaName',
       'FirebaseSql.schemaName',
       'FirebaseSql.restUrl'
     ],
     description:
-      'Clones a ServiceConfig object with copyServiceConfig(), sets schemaName: "public", inspects restUrl and schemaName on the distinct client, and terminates it.',
+      'Clones a ServiceConfig object with schemaName: "public", inspects restUrl and schemaName on the distinct client, and terminates it.',
     code: `const baseServiceConfig: ServiceConfig = {
   serviceId: 'YOUR_SERVICE_ID',
   location: 'us-central1'
 };
-const nextServiceConfig = copyServiceConfig(baseServiceConfig);
-nextServiceConfig.schemaName = 'public';
+const nextServiceConfig: ServiceConfig = {
+  ...baseServiceConfig,
+  schemaName: 'public'
+};
 
 const publicSql = getSql(sql.app, nextServiceConfig);
 // publicSql !== sql (explicit 'public' vs. undefined default)
@@ -141,8 +141,10 @@ try {
       const sql = getActiveSql();
       const { serviceId, location } = getActiveConnection();
       const baseServiceConfig: ServiceConfig = { serviceId, location };
-      const nextServiceConfig = copyServiceConfig(baseServiceConfig);
-      nextServiceConfig.schemaName = 'public';
+      const nextServiceConfig: ServiceConfig = {
+        ...baseServiceConfig,
+        schemaName: 'public'
+      };
 
       const publicSql = getSql(sql.app, nextServiceConfig);
       const distinctFromDefault = publicSql !== sql;
