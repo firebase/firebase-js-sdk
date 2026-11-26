@@ -449,7 +449,11 @@ export interface GenerateContentResponse {
     // (undocumented)
     candidates?: GenerateContentCandidate[];
     // (undocumented)
+    modelVersion?: string;
+    // (undocumented)
     promptFeedback?: PromptFeedback;
+    // (undocumented)
+    responseId?: string;
     // (undocumented)
     usageMetadata?: UsageMetadata;
 }
@@ -600,7 +604,11 @@ export interface GoogleAIGenerateContentResponse {
     // (undocumented)
     candidates?: GoogleAIGenerateContentCandidate[];
     // (undocumented)
+    modelVersion?: string;
+    // (undocumented)
     promptFeedback?: PromptFeedback;
+    // (undocumented)
+    responseId?: string;
     // (undocumented)
     usageMetadata?: UsageMetadata;
 }

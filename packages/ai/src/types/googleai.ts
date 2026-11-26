@@ -48,6 +48,8 @@ export interface GoogleAIGenerateContentResponse {
   candidates?: GoogleAIGenerateContentCandidate[];
   promptFeedback?: PromptFeedback;
   usageMetadata?: UsageMetadata;
+  modelVersion?: string;
+  responseId?: string;
 }
 
 /**

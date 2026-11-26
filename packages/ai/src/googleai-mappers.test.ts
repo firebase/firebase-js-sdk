@@ -129,6 +129,16 @@ describe('Google AI Mappers', () => {
   });
 
   describe('mapGenerateContentResponse', () => {
+    it('should pass through modelVersion and responseId', () => {
+      const googleAIResponse: GoogleAIGenerateContentResponse = {
+        candidates: [],
+        modelVersion: 'gemini-2.5-flash',
+        responseId: 'abc123'
+      };
+      const mappedResponse = mapGenerateContentResponse(googleAIResponse);
+      expect(mappedResponse.modelVersion).to.equal('gemini-2.5-flash');
+      expect(mappedResponse.responseId).to.equal('abc123');
+    });
     it('should map a full Google AI response', async () => {
       const googleAIMockResponse: GoogleAIGenerateContentResponse = await (
         getMockResponse('googleAI', 'unary-success-citations.json') as Response

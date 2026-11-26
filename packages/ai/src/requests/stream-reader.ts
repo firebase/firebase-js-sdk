@@ -240,6 +240,12 @@ export function aggregateResponses(
     promptFeedback: lastResponse?.promptFeedback
   };
   for (const response of responses) {
+    if (response.modelVersion) {
+      aggregatedResponse.modelVersion = response.modelVersion;
+    }
+    if (response.responseId) {
+      aggregatedResponse.responseId = response.responseId;
+    }
     if (response.candidates) {
       for (const candidate of response.candidates) {
         // Use 0 if index is undefined (protobuf default value omission).
