@@ -274,13 +274,14 @@ export abstract class ChatSessionBase<
 
           let modelTurn: GenerateContentResponse | undefined =
             result.firstValue;
-          if (this._getCallableFunctionCalls(modelTurn)) {
+          functionCalls = this._getCallableFunctionCalls(modelTurn);
+          if (functionCalls) {
             // The model is calling functions. The rest of the turn can hold
             // more calls (e.g. parallel calls split across chunks), so wait
             // for the whole turn before running them and saving it to history.
             modelTurn = await result.response;
+            functionCalls = this._getCallableFunctionCalls(modelTurn);
           }
-          functionCalls = this._getCallableFunctionCalls(modelTurn);
 
           if (
             functionCalls &&

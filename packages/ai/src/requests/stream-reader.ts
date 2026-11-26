@@ -105,15 +105,21 @@ async function processStreamInternal(
   // often streams its thinking before a function call, and stopping at the
   // first chunk would miss the call.
   let value: GenerateContentResponse | undefined;
-  while (true) {
-    const result = await reader.read();
-    if (result.done) {
-      break;
+  try {
+    while (true) {
+      const result = await reader.read();
+      if (result.done) {
+        break;
+      }
+      value = result.value;
+      if (!isThoughtOnly(value)) {
+        break;
+      }
     }
-    value = result.value;
-    if (!isThoughtOnly(value)) {
-      break;
-    }
+  } finally {
+    // Release the peek branch so it doesn't keep buffering the rest of the
+    // stream. Cancelling one branch of a tee leaves the other one running.
+    reader.cancel().catch(() => {});
   }
   return {
     firstValue: value,
