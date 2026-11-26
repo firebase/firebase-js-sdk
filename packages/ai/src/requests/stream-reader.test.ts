@@ -198,6 +198,75 @@ describe('processStream', () => {
       }
     ]);
   });
+  it('firstValue skips chunks that only hold thoughts', async () => {
+    const chunks = [
+      {
+        candidates: [
+          {
+            index: 0,
+            content: {
+              role: 'model',
+              parts: [{ text: 'thinking', thought: true }]
+            }
+          }
+        ]
+      },
+      {
+        candidates: [
+          {
+            index: 0,
+            content: {
+              role: 'model',
+              parts: [
+                {
+                  functionCall: {
+                    name: 'getTemperature',
+                    args: { city: 'Paris' }
+                  },
+                  thoughtSignature: 'sig'
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ];
+    const body = chunks
+      .map(chunk => `data: ${JSON.stringify(chunk)}\r\n\r\n`)
+      .join('');
+    const result = await processStream(
+      { body: getChunkedStream(body) } as Response,
+      fakeApiSettings
+    );
+    expect(result.firstValue).to.deep.equal(chunks[1]);
+    const aggregatedResponse = await result.response;
+    expect(aggregatedResponse.functionCalls()).to.deep.equal([
+      { name: 'getTemperature', args: { city: 'Paris' } }
+    ]);
+  });
+  it('firstValue stops at the first chunk with non-thought content', async () => {
+    const chunks = [
+      {
+        candidates: [
+          { index: 0, content: { role: 'model', parts: [{ text: 'Hello' }] } }
+        ]
+      },
+      {
+        candidates: [
+          { index: 0, content: { role: 'model', parts: [{ text: ' world' }] } }
+        ]
+      }
+    ];
+    const body = chunks
+      .map(chunk => `data: ${JSON.stringify(chunk)}\r\n\r\n`)
+      .join('');
+    const result = await processStream(
+      { body: getChunkedStream(body) } as Response,
+      fakeApiSettings
+    );
+    expect(result.firstValue).to.deep.equal(chunks[0]);
+    expect((await result.response).text()).to.equal('Hello world');
+  });
   it('candidate had finishReason', async () => {
     const fakeResponse = getMockResponseStreaming(
       'vertexAI',

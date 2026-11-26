@@ -473,19 +473,18 @@ describe('TemplateChatSession', () => {
           .mockImplementation(async (apiSettings, templateId, params: any) => {
             const parts = params.history[params.history.length - 1].parts;
             if (parts[0].text?.includes('Bob')) {
-              return {
-                firstValue: {
-                  candidates: [
-                    {
-                      index: 1,
-                      content: {
-                        role: 'model',
-                        parts: [functionCallPartGreeting]
-                      }
+              const callTurn = {
+                candidates: [
+                  {
+                    index: 1,
+                    content: {
+                      role: 'model',
+                      parts: [functionCallPartGreeting]
                     }
-                  ]
-                }
+                  }
+                ]
               };
+              return { firstValue: callTurn, response: callTurn };
             } else if (parts[0].functionResponse) {
               return {
                 firstValue: finalResponse,

@@ -101,7 +101,20 @@ async function processStreamInternal(
 }> {
   const [streamForPeek, streamForAggregation] = stream.tee();
   const reader = streamForPeek.getReader();
-  const { value } = await reader.read();
+  // Skip chunks that only hold thoughts. With `includeThoughts`, the model
+  // often streams its thinking before a function call, and stopping at the
+  // first chunk would miss the call.
+  let value: GenerateContentResponse | undefined;
+  while (true) {
+    const result = await reader.read();
+    if (result.done) {
+      break;
+    }
+    value = result.value;
+    if (!isThoughtOnly(value)) {
+      break;
+    }
+  }
   return {
     firstValue: value,
     response: getResponsePromise(
@@ -110,6 +123,17 @@ async function processStreamInternal(
       inferenceSource
     )
   };
+}
+
+/**
+ * Returns true if the first candidate has parts and every one of them is a
+ * thought.
+ */
+function isThoughtOnly(response: GenerateContentResponse): boolean {
+  const parts = response.candidates?.[0]?.content?.parts;
+  return (
+    !!parts?.length && parts.every(part => 'thought' in part && part.thought)
+  );
 }
 
 async function getResponsePromise(

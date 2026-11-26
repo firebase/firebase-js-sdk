@@ -272,16 +272,24 @@ export abstract class ChatSessionBase<
             singleRequestOptions
           );
 
-          functionCalls = this._getCallableFunctionCalls(result.firstValue);
+          let modelTurn: GenerateContentResponse | undefined =
+            result.firstValue;
+          if (this._getCallableFunctionCalls(modelTurn)) {
+            // The model is calling functions. The rest of the turn can hold
+            // more calls (e.g. parallel calls split across chunks), so wait
+            // for the whole turn before running them and saving it to history.
+            modelTurn = await result.response;
+          }
+          functionCalls = this._getCallableFunctionCalls(modelTurn);
 
           if (
             functionCalls &&
-            result.firstValue &&
-            result.firstValue.candidates &&
-            result.firstValue.candidates.length > 0
+            modelTurn &&
+            modelTurn.candidates &&
+            modelTurn.candidates.length > 0
           ) {
             const responseContent = {
-              ...result.firstValue.candidates[0].content
+              ...modelTurn.candidates[0].content
             };
             if (!responseContent.role) {
               responseContent.role = 'model';
