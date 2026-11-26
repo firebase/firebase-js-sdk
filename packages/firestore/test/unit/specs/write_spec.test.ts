@@ -27,6 +27,24 @@ import { client, spec } from './spec_builder';
 import { RpcError } from './spec_rpc_error';
 
 describeSpec('Writes:', [], () => {
+  for (const code of [Code.PERMISSION_DENIED, Code.UNAVAILABLE]) {
+    specTest(
+      'An idle write stream closed with ' + code + ' allows later writes',
+      ['no-android', 'no-ios'],
+      () => {
+        return spec()
+          .userSets('collection/first', { value: 1 })
+          .writeAcks('collection/first', 1000)
+          .expectNumOutstandingWrites(0)
+          .writeStreamCloses(code)
+          .expectNumOutstandingWrites(0)
+          .userSets('collection/second', { value: 2 })
+          .writeAcks('collection/second', 2000)
+          .expectNumOutstandingWrites(0);
+      }
+    );
+  }
+
   specTest(
     'Two sequential writes to different documents smoke test.',
     [],

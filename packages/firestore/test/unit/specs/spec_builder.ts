@@ -1013,6 +1013,18 @@ export class SpecBuilder {
     return this;
   }
 
+  /** Closes the write stream without requiring an outstanding write request. */
+  writeStreamCloses(error: Code): this {
+    this.nextStep();
+    this.currentStep = {
+      writeStreamClose: {
+        code: mapRpcCodeFromCode(error),
+        message: 'Simulated Backend Error'
+      }
+    };
+    return this;
+  }
+
   waitForPendingWrites(): this {
     this.nextStep();
     this.currentStep = {

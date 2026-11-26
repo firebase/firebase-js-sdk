@@ -474,6 +474,12 @@ abstract class TestRunner {
       return this.doWatchStreamClose(step.watchStreamClose!);
     } else if ('writeAck' in step) {
       return this.doWriteAck(step.writeAck!);
+    } else if ('writeStreamClose' in step) {
+      const error = step.writeStreamClose!;
+      this.connection.failWrite(
+        new FirestoreError(mapCodeFromRpcCode(error.code), error.message)
+      );
+      return Promise.resolve();
     } else if ('failWrite' in step) {
       return this.doFailWrite(step.failWrite!);
     } else if ('waitForPendingWrites' in step) {
@@ -1741,6 +1747,8 @@ export interface SpecStep {
 
   /** Ack the last write */
   writeAck?: SpecWriteAck;
+  /** Closes the write stream without failing a particular write. */
+  writeStreamClose?: SpecError;
   /** Fail a write */
   failWrite?: SpecWriteFailure;
   /** Add a new `waitForPendingWrites` listener. */
