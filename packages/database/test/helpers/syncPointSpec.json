@@ -8442,5 +8442,259 @@
         ]
       }
     ]
+  },
+  {
+    "name": "Ack of a removal below a server leaf restores the leaf after a shadowed revert",
+    "steps": [
+      {
+        "type": "listen",
+        "path": "",
+        "events": []
+      },
+      {
+        "type": "serverUpdate",
+        "path": "",
+        "data": 1,
+        "events": [
+          {
+            "path": "",
+            "type": "value",
+            "data": 1
+          }
+        ]
+      },
+      {
+        "type": "set",
+        "path": "b",
+        "data": 1,
+        "events": [
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "b",
+            "prevName": null,
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": { "b": 1 }
+          }
+        ]
+      },
+      {
+        "type": "set",
+        "path": "b",
+        "data": null,
+        "events": [
+          {
+            "path": "",
+            "type": "child_removed",
+            "name": "b",
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": null
+          }
+        ]
+      },
+      {
+        "type": "ackUserWrite",
+        "writeId": 0,
+        "revert": true,
+        "events": []
+      },
+      {
+        "type": "serverUpdate",
+        "path": "b",
+        "data": null,
+        "events": []
+      },
+      {
+        "type": "ackUserWrite",
+        "writeId": 1,
+        "events": [
+          {
+            "path": "",
+            "type": "value",
+            "data": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Ack of an update below a server leaf restores the leaf after a shadowed revert",
+    "steps": [
+      {
+        "type": "listen",
+        "path": "",
+        "events": []
+      },
+      {
+        "type": "serverUpdate",
+        "path": "",
+        "data": 1,
+        "events": [
+          {
+            "path": "",
+            "type": "value",
+            "data": 1
+          }
+        ]
+      },
+      {
+        "type": "set",
+        "path": "b",
+        "data": 1,
+        "events": [
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "b",
+            "prevName": null,
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": { "b": 1 }
+          }
+        ]
+      },
+      {
+        "type": "update",
+        "path": "",
+        "data": { "b": null },
+        "events": [
+          {
+            "path": "",
+            "type": "child_removed",
+            "name": "b",
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": null
+          }
+        ]
+      },
+      {
+        "type": "ackUserWrite",
+        "writeId": 0,
+        "revert": true,
+        "events": []
+      },
+      {
+        "type": "ackUserWrite",
+        "writeId": 1,
+        "events": [
+          {
+            "path": "",
+            "type": "value",
+            "data": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Ack of a removal below a server leaf child restores the child after a shadowed revert",
+    "steps": [
+      {
+        "type": "listen",
+        "path": "",
+        "events": []
+      },
+      {
+        "type": "serverUpdate",
+        "path": "",
+        "data": { "a": 1 },
+        "events": [
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "a",
+            "prevName": null,
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": { "a": 1 }
+          }
+        ]
+      },
+      {
+        "type": "set",
+        "path": "a/b",
+        "data": 1,
+        "events": [
+          {
+            "path": "",
+            "type": "child_changed",
+            "name": "a",
+            "prevName": null,
+            "data": { "b": 1 }
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": { "a": { "b": 1 } }
+          }
+        ]
+      },
+      {
+        "type": "set",
+        "path": "a/b",
+        "data": null,
+        "events": [
+          {
+            "path": "",
+            "type": "child_removed",
+            "name": "a",
+            "data": { "b": 1 }
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": null
+          }
+        ]
+      },
+      {
+        "type": "ackUserWrite",
+        "writeId": 0,
+        "revert": true,
+        "events": []
+      },
+      {
+        "type": "serverUpdate",
+        "path": "a/b",
+        "data": null,
+        "events": []
+      },
+      {
+        "type": "ackUserWrite",
+        "writeId": 1,
+        "events": [
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "a",
+            "prevName": null,
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": { "a": 1 }
+          }
+        ]
+      }
+    ]
   }
 ]

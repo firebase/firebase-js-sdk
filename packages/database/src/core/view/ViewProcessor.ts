@@ -45,6 +45,7 @@ import {
   writeTreeRefShadowingWrite
 } from '../WriteTree';
 
+import { CacheNode } from './CacheNode';
 import { Change, changeValue } from './Change';
 import { ChildChangeAccumulator } from './ChildChangeAccumulator';
 import {
@@ -686,6 +687,24 @@ function viewProcessorAckUserWrite(
   // Essentially we'll just get our existing server cache for the affected paths and re-apply it as a server update
   // now that it won't be shadowed.
   const serverCache = viewCache.serverCache;
+  // Below a leaf the server cache only holds empty children, so re-applying the child at the acked path would
+  // never bring the leaf back into the event cache. Re-apply the leaf itself instead.
+  const serverLeafPath = viewProcessorCompleteServerLeafPath(
+    serverCache,
+    ackPath
+  );
+  if (serverLeafPath != null) {
+    return viewProcessorApplyServerOverwrite(
+      viewProcessor,
+      viewCache,
+      serverLeafPath,
+      serverCache.getNode().getChild(serverLeafPath),
+      writesCache,
+      completeCache,
+      filterServerNode,
+      accumulator
+    );
+  }
   if (affectedTree.value != null) {
     // This is an overwrite.
     if (
@@ -745,6 +764,32 @@ function viewProcessorAckUserWrite(
       accumulator
     );
   }
+}
+
+/**
+ * Returns the path of the first leaf the complete server cache holds on the way from the view root to `path`
+ * (`path` included), or null if there is none.
+ */
+function viewProcessorCompleteServerLeafPath(
+  serverCache: CacheNode,
+  path: Path
+): Path | null {
+  let node = serverCache.getNode();
+  let leafPath = newEmptyPath();
+  let remaining = path;
+  while (!node.isLeafNode()) {
+    if (pathIsEmpty(remaining)) {
+      return null;
+    }
+    const childKey = pathGetFront(remaining);
+    node = node.getImmediateChild(childKey);
+    leafPath = pathChild(leafPath, childKey);
+    remaining = pathPopFront(remaining);
+  }
+  const isComplete =
+    (pathIsEmpty(leafPath) && serverCache.isFullyInitialized()) ||
+    serverCache.isCompleteForPath(leafPath);
+  return isComplete ? leafPath : null;
 }
 
 function viewProcessorListenComplete(
