@@ -45,6 +45,7 @@ import {
   writeTreeRefShadowingWrite
 } from '../WriteTree';
 
+import { CacheNode } from './CacheNode';
 import { Change, changeValue } from './Change';
 import { ChildChangeAccumulator } from './ChildChangeAccumulator';
 import {
@@ -566,6 +567,27 @@ function viewProcessorApplyUserMerge(
     }
   });
 
+  const mergeTree = pathIsEmpty(path)
+    ? changedChildren
+    : new ImmutableTree<Node>(null).setTree(path, changedChildren);
+  viewProcessorForEachLostMergePriority(
+    viewCache.eventCache,
+    curViewCache.eventCache.getNode(),
+    newEmptyPath(),
+    mergeTree,
+    (priorityPath, priority) => {
+      curViewCache = viewProcessorApplyUserOverwrite(
+        viewProcessor,
+        curViewCache,
+        priorityPath,
+        priority,
+        writesCache,
+        serverCache,
+        accumulator
+      );
+    }
+  );
+
   return curViewCache;
 }
 
@@ -574,10 +596,63 @@ function viewProcessorApplyMerge(
   node: Node,
   merge: ImmutableTree<Node>
 ): Node {
+  let newNode = node;
   merge.foreach((relativePath, childNode) => {
-    node = node.updateChild(relativePath, childNode);
+    newNode = newNode.updateChild(relativePath, childNode);
   });
-  return node;
+  viewProcessorForEachLostMergePriority(
+    new CacheNode(node, true, false),
+    newNode,
+    newEmptyPath(),
+    merge,
+    (priorityPath, priority) => {
+      newNode = newNode.updateChild(priorityPath, priority);
+    }
+  );
+  return newNode;
+}
+
+/**
+ * Applying a merge one entry at a time can empty a node before later entries
+ * fill it again, and an empty node has no priority. This calls
+ * `restorePriority` for each node that the merge writes into without
+ * overwriting it and that ends up non-empty with the wrong priority: the one
+ * the merge sets, or else the one the node had before the merge.
+ */
+function viewProcessorForEachLostMergePriority(
+  oldCache: CacheNode,
+  newNode: Node,
+  path: Path,
+  mergeTree: ImmutableTree<Node>,
+  restorePriority: (priorityPath: Path, priority: Node) => void
+): void {
+  if (mergeTree.value !== null) {
+    return;
+  }
+  mergeTree.children.inorderTraversal((childKey, childTree) => {
+    viewProcessorForEachLostMergePriority(
+      oldCache,
+      newNode,
+      pathChild(path, childKey),
+      childTree,
+      restorePriority
+    );
+  });
+  const priorityWrite = mergeTree.children.get('.priority');
+  let priority: Node | null = null;
+  if (priorityWrite !== null) {
+    priority = priorityWrite.value;
+  } else if (oldCache.isCompleteForPath(path)) {
+    priority = oldCache.getNode().getChild(path).getPriority();
+  }
+  const mergedNode = newNode.getChild(path);
+  if (
+    priority !== null &&
+    !mergedNode.isEmpty() &&
+    !mergedNode.getPriority().equals(priority)
+  ) {
+    restorePriority(pathChild(path, '.priority'), priority);
+  }
 }
 
 function viewProcessorApplyServerMerge(
@@ -663,6 +738,25 @@ function viewProcessorApplyServerMerge(
       );
     }
   });
+
+  viewProcessorForEachLostMergePriority(
+    viewCache.serverCache,
+    curViewCache.serverCache.getNode(),
+    newEmptyPath(),
+    viewMergeTree,
+    (priorityPath, priority) => {
+      curViewCache = viewProcessorApplyServerOverwrite(
+        viewProcessor,
+        curViewCache,
+        priorityPath,
+        priority,
+        writesCache,
+        serverCache,
+        filterServerNode,
+        accumulator
+      );
+    }
+  );
 
   return curViewCache;
 }
