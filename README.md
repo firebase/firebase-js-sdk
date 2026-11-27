@@ -1,7 +1,7 @@
 # Firebase JavaScript SDK
 
 <!-- BADGES -->
-![Build Status](https://img.shields.io/github/actions/workflow/status/firebase/firebase-js-sdk/test-all.yml)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/firebase/firebase-js-sdk/test-all.yml)](https://github.com/firebase/firebase-js-sdk/actions)
 [![Version](https://img.shields.io/npm/v/firebase.svg?label=version)](https://www.npmjs.com/package/firebase)
 [![Coverage Status](https://coveralls.io/repos/github/firebase/firebase-js-sdk/badge.svg?branch=main)](https://coveralls.io/github/firebase/firebase-js-sdk?branch=main)
 <!-- END BADGES -->
