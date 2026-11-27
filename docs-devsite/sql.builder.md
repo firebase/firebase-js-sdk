@@ -230,7 +230,7 @@ Sets a custom HTTP header on this single request, overriding any client-level he
 
 When to use: attaching per-request correlation, tracing, or custom application headers (see [FirebaseSql.setHeaders()](./sql.firebasesql.md#firebasesqlsetheaders) for client-wide static headers).
 
-Do not use for authentication, App Check, or Firebase telemetry headers—passing any protected header name (matched case-insensitively after trimming: `'authorization'`<!-- -->, `'x-firebase-auth-token'`<!-- -->, `'x-firebase-appcheck'`<!-- -->, `'x-goog-api-client'`<!-- -->, `'x-client-version'`<!-- -->, `'x-firebase-gmpid'`<!-- -->, `'x-firebase-client'`<!-- -->, `'x-firebase-client-log-type'`<!-- -->, `'x-goog-request-params'`<!-- -->, `'x-firebase-sqlconnect-affinity'`<!-- -->) synchronously throws a [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class)<!-- -->. Firebase Auth and App Check tokens are injected automatically by the SDK transport.
+Do not use for authentication, impersonation, App Check, Firebase telemetry/routing, or PostgREST-managed headers—passing any protected header name (matched case-insensitively after trimming: `'authorization'`<!-- -->, `'x-firebase-auth-impersonate'`<!-- -->, `'x-firebase-auth-token'`<!-- -->, `'x-firebase-appcheck'`<!-- -->, `'x-goog-api-client'`<!-- -->, `'x-client-version'`<!-- -->, `'x-firebase-gmpid'`<!-- -->, `'x-firebase-client'`<!-- -->, `'x-firebase-client-log-type'`<!-- -->, `'x-goog-request-params'`<!-- -->, `'x-firebase-sqlconnect-affinity'`<!-- -->, `'accept-profile'`<!-- -->, `'content-profile'`<!-- -->, `'x-retry-count'`<!-- -->, `'prefer'`<!-- -->, `'accept'`<!-- -->, `'content-type'`<!-- -->, `'range'`<!-- -->, `'range-unit'`<!-- -->) synchronously throws a [FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class)<!-- -->. Firebase Auth and App Check tokens are injected automatically by the SDK transport.
 
 Behavior and side effects: clones this builder's internal `Headers` map, calls `Headers.set(name, value)`<!-- -->, and returns `this` without network I/O.
 
@@ -244,7 +244,7 @@ setHeader(name: string, value: string): this;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  name | string | Valid HTTP header token name (no spaces or control characters, and not a protected Firebase or <code>Authorization</code> header). |
+|  name | string | Valid HTTP header token name (no spaces or control characters, and not a protected Firebase, <code>Authorization</code>, or PostgREST header). |
 |  value | string | Valid HTTP header ByteString value (Latin-1 characters with no CR or LF). |
 
 <b>Returns:</b>
@@ -255,7 +255,7 @@ This builder for continued chaining.
 
 #### Exceptions
 
-[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) synchronously with `code: 'invalid-argument'` ([Code.INVALID\_ARGUMENT](./sql.md#code)<!-- -->) and `category: 'sql-client'` if `name` is a protected Firebase or `Authorization` header.
+[FirebaseSqlError](./sql.firebasesqlerror.md#firebasesqlerror_class) synchronously with `code: 'invalid-argument'` ([Code.INVALID\_ARGUMENT](./sql.md#code)<!-- -->) and `category: 'sql-client'` if `name` is a protected Firebase, `Authorization`<!-- -->, or PostgREST header.
 
 `TypeError` synchronously if `name` or `value` is rejected by `Headers.set(name, value)` (for example, spaces in `name`<!-- -->, CR/LF, or non-Latin-1 characters).
 
