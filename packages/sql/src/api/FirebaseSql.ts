@@ -330,12 +330,14 @@ export class FirebaseSql {
    * terminated). A failing call leaves {@link FirebaseSql.isMutable} and any previously set headers
    * unchanged.
    *
-   * Disallowed headers: do not pass authentication, App Check, or reserved Firebase telemetry and
-   * routing headers (`Authorization`, `x-firebase-auth-token`, `x-firebase-appcheck`,
+   * Disallowed headers: do not pass authentication, impersonation, App Check, reserved Firebase
+   * telemetry/routing, or PostgREST-managed headers (`Authorization`,
+   * `X-Firebase-Auth-Impersonate`, `x-firebase-auth-token`, `x-firebase-appcheck`,
    * `x-goog-api-client`, `x-client-version`, `x-firebase-gmpid`, `x-firebase-client`,
-   * `x-firebase-client-log-type`, `x-goog-request-params`, `x-firebase-sqlconnect-affinity`),
-   * matched trimmed and case-insensitively. Firebase Auth and App Check tokens are attached
-   * automatically when configured on {@link FirebaseSql.app}.
+   * `x-firebase-client-log-type`, `x-goog-request-params`, `x-firebase-sqlconnect-affinity`,
+   * `Accept-Profile`, `Content-Profile`, `X-Retry-Count`, `Prefer`, `Accept`, `Content-Type`,
+   * `Range`, `Range-Unit`), matched trimmed and case-insensitively. Firebase Auth and App Check
+   * tokens are attached automatically when configured on {@link FirebaseSql.app}.
    *
    * @param headers - Static HTTP headers (`Record<string, string>`, `[string, string][]`, or `Headers`) to include on every outgoing request.
    *
@@ -345,10 +347,13 @@ export class FirebaseSql {
    * names, CR/LF, or non-Latin-1 characters). Evaluated before lifecycle state checks.
    * @throws {@link FirebaseSqlError} (`invalid-argument`, category `'sql-client'`)
    * Thrown synchronously if any header name (trimmed, case-insensitive) matches a protected auth,
-   * App Check, or Firebase telemetry/routing header (`Authorization`, `x-firebase-auth-token`,
+   * impersonation, App Check, Firebase telemetry/routing, or PostgREST-managed header
+   * (`Authorization`, `X-Firebase-Auth-Impersonate`, `x-firebase-auth-token`,
    * `x-firebase-appcheck`, `x-goog-api-client`, `x-client-version`, `x-firebase-gmpid`,
    * `x-firebase-client`, `x-firebase-client-log-type`, `x-goog-request-params`,
-   * `x-firebase-sqlconnect-affinity`). Evaluated before lifecycle state checks.
+   * `x-firebase-sqlconnect-affinity`, `Accept-Profile`, `Content-Profile`, `X-Retry-Count`,
+   * `Prefer`, `Accept`, `Content-Type`, `Range`, `Range-Unit`). Evaluated before lifecycle state
+   * checks.
    * @throws {@link FirebaseSqlError} (`already-initialized`, category `'sql-client'`)
    * Thrown synchronously if {@link FirebaseSql.isMutable} is `false` because {@link FirebaseSql.from}
    * or {@link FirebaseSql.rpc} has already been called on this client.

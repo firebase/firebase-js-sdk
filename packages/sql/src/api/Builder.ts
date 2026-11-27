@@ -629,22 +629,24 @@ export interface Builder<
    * When to use: attaching per-request correlation, tracing, or custom application headers (see
    * {@link FirebaseSql.setHeaders} for client-wide static headers).
    *
-   * Do not use for authentication, App Check, or Firebase telemetry headers—passing any protected
-   * header name (matched case-insensitively after trimming: `'authorization'`,
-   * `'x-firebase-auth-token'`, `'x-firebase-appcheck'`, `'x-goog-api-client'`,
-   * `'x-client-version'`, `'x-firebase-gmpid'`, `'x-firebase-client'`,
-   * `'x-firebase-client-log-type'`, `'x-goog-request-params'`, `'x-firebase-sqlconnect-affinity'`)
+   * Do not use for authentication, impersonation, App Check, Firebase telemetry/routing, or
+   * PostgREST-managed headers—passing any protected header name (matched case-insensitively after
+   * trimming: `'authorization'`, `'x-firebase-auth-impersonate'`, `'x-firebase-auth-token'`,
+   * `'x-firebase-appcheck'`, `'x-goog-api-client'`, `'x-client-version'`, `'x-firebase-gmpid'`,
+   * `'x-firebase-client'`, `'x-firebase-client-log-type'`, `'x-goog-request-params'`,
+   * `'x-firebase-sqlconnect-affinity'`, `'accept-profile'`, `'content-profile'`,
+   * `'x-retry-count'`, `'prefer'`, `'accept'`, `'content-type'`, `'range'`, `'range-unit'`)
    * synchronously throws a {@link FirebaseSqlError}. Firebase Auth and App Check tokens are
    * injected automatically by the SDK transport.
    *
    * Behavior and side effects: clones this builder's internal `Headers` map, calls
    * `Headers.set(name, value)`, and returns `this` without network I/O.
    *
-   * @param name - Valid HTTP header token name (no spaces or control characters, and not a protected Firebase or `Authorization` header).
+   * @param name - Valid HTTP header token name (no spaces or control characters, and not a protected Firebase, `Authorization`, or PostgREST header).
    * @param value - Valid HTTP header ByteString value (Latin-1 characters with no CR or LF).
    * @returns This builder for continued chaining.
    *
-   * @throws {@link FirebaseSqlError} synchronously with `code: 'invalid-argument'` ({@link (Code:variable) | Code.INVALID_ARGUMENT}) and `category: 'sql-client'` if `name` is a protected Firebase or `Authorization` header.
+   * @throws {@link FirebaseSqlError} synchronously with `code: 'invalid-argument'` ({@link (Code:variable) | Code.INVALID_ARGUMENT}) and `category: 'sql-client'` if `name` is a protected Firebase, `Authorization`, or PostgREST header.
    * @throws `TypeError` synchronously if `name` or `value` is rejected by `Headers.set(name, value)` (for example, spaces in `name`, CR/LF, or non-Latin-1 characters).
    *
    * @example
