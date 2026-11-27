@@ -84,12 +84,21 @@ if (argv.firestoreEdition) {
 }
 
 let executable = vitest;
-let args = ['run', '--project=node'];
+const project = argv.platform.startsWith('browser') ? 'browser' : 'node';
+let args = ['run', `--project=${project}`];
 
 if (argv.debug) {
   executable = 'node';
-  const vitestMjs = resolve(__dirname, '../../../node_modules/vitest/vitest.mjs');
-  args = ['--inspect-brk', vitestMjs, '--project=node', '--no-file-parallelism'];
+  const vitestMjs = resolve(
+    __dirname,
+    '../../../node_modules/vitest/vitest.mjs'
+  );
+  args = [
+    '--inspect-brk',
+    vitestMjs,
+    `--project=${project}`,
+    '--no-file-parallelism'
+  ];
 }
 
 if (argv.grep) {
