@@ -28,6 +28,7 @@ import {
   FirebaseHeaders,
   LOWERCASE_DISALLOWED_HEADER_KEYS,
   resolveRequestHeaders,
+  validateHeaderName,
   validateHeaders
 } from './headers';
 
@@ -38,11 +39,67 @@ describe('validateHeaders()', () => {
     ).not.toThrow();
   });
 
+  it('includes all required, forbidden, auth, impersonation, and PostgREST reserved headers', () => {
+    const expectedReservedHeaders = [
+      'x-goog-api-client',
+      'x-client-version',
+      'x-firebase-gmpid',
+      'x-firebase-auth-token',
+      'x-firebase-appcheck',
+      'x-firebase-sqlconnect-affinity',
+      'x-goog-request-params',
+      'x-firebase-client',
+      'x-firebase-client-log-type',
+      'authorization',
+      'x-firebase-auth-impersonate',
+      'accept-profile',
+      'content-profile',
+      'x-retry-count',
+      'prefer',
+      'accept',
+      'content-type',
+      'range',
+      'range-unit'
+    ];
+    expect(Array.from(LOWERCASE_DISALLOWED_HEADER_KEYS).sort()).toEqual(
+      expectedReservedHeaders.slice().sort()
+    );
+  });
+
   it('throws FirebaseSqlError(INVALID_ARGUMENT, SQL_CLIENT) for every disallowed header key', () => {
     for (const key of LOWERCASE_DISALLOWED_HEADER_KEYS) {
       let caughtError: unknown;
       try {
         validateHeaders(new Headers({ [key.toUpperCase()]: 'val' }));
+      } catch (err) {
+        caughtError = err;
+      }
+      expect(caughtError).toBeInstanceOf(FirebaseSqlError);
+      expect((caughtError as FirebaseSqlError).code).toBe(
+        Code.INVALID_ARGUMENT
+      );
+      expect((caughtError as FirebaseSqlError).category).toBe(
+        FirebaseSqlErrorCategory.SQL_CLIENT
+      );
+    }
+  });
+
+  it('rejects newly reserved headers case-insensitively with surrounding whitespace in validateHeaderName()', () => {
+    const cases = [
+      '  X-Firebase-Auth-Impersonate  ',
+      'Accept-Profile',
+      ' CONTENT-PROFILE ',
+      'X-Retry-Count',
+      'Prefer',
+      'Accept',
+      'Content-Type',
+      'Range',
+      'Range-Unit'
+    ];
+    for (const name of cases) {
+      let caughtError: unknown;
+      try {
+        validateHeaderName(name);
       } catch (err) {
         caughtError = err;
       }
@@ -124,6 +181,8 @@ describe('resolveRequestHeaders()', () => {
         'X-Goog-Request-Params': 'params-val',
         'x-firebase-client': 'client-val',
         'X-Firebase-Client-Log-Type': 'log-val',
+        'Authorization': 'Bearer secret-token',
+        'X-Firebase-Auth-Impersonate': 'uid-impersonated',
         'x-custom-header': 'custom-val'
       }
     });
@@ -132,7 +191,33 @@ describe('resolveRequestHeaders()', () => {
     expect(result['x-goog-request-params']).toBeUndefined();
     expect(result['x-firebase-client']).toBeUndefined();
     expect(result['x-firebase-client-log-type']).toBeUndefined();
+    expect(result['authorization']).toBeUndefined();
+    expect(result['x-firebase-auth-impersonate']).toBeUndefined();
     expect(result['x-custom-header']).toBe('custom-val');
+  });
+
+  it('preserves PostgREST-managed headers attached before transport fetch', () => {
+    const result = resolveRequestHeaders(null, null, {
+      headers: {
+        'Accept-Profile': 'analytics',
+        'Content-Profile': 'public',
+        'X-Retry-Count': '2',
+        'Prefer': 'count=exact',
+        'Accept': 'application/vnd.pgrst.object+json',
+        'Content-Type': 'application/json',
+        'Range': '0-9',
+        'Range-Unit': 'items'
+      }
+    });
+
+    expect(result['accept-profile']).toBe('analytics');
+    expect(result['content-profile']).toBe('public');
+    expect(result['x-retry-count']).toBe('2');
+    expect(result['prefer']).toBe('count=exact');
+    expect(result['accept']).toBe('application/vnd.pgrst.object+json');
+    expect(result['content-type']).toBe('application/json');
+    expect(result['range']).toBe('0-9');
+    expect(result['range-unit']).toBe('items');
   });
 
   it('attaches default telemetry', () => {
