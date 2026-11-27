@@ -51,7 +51,8 @@ export const FirebaseHeaders = Object.freeze({
 });
 
 /**
- * Lowercased HTTP header keys forbidden for FSQL SDK.
+ * Lowercased HTTP header keys forbidden on the wire for FSQL SDK.
+ * Stripped in `resolveRequestHeaders()` and rejected in `setHeaders()` / `setHeader()`.
  * Keep in sync with go/firebasesql:sdk:headers.
  */
 const FORBIDDEN_HEADERS = [
@@ -59,12 +60,34 @@ const FORBIDDEN_HEADERS = [
   'x-goog-request-params',
   'x-firebase-client',
   'x-firebase-client-log-type',
-  'authorization'
+  'authorization',
+  'x-firebase-auth-impersonate'
+] as const;
+
+/**
+ * Lowercased PostgREST-managed HTTP header keys reserved for internal SDK use.
+ * Rejected in `setHeaders()` / `setHeader()`, but NOT stripped in `resolveRequestHeaders()`
+ * because `@supabase/postgrest-js` attaches them before invoking transport `fetch`.
+ * Keep in sync with go/firebasesql:sdk:headers.
+ */
+const POSTGREST_RESERVED_HEADERS = [
+  'accept-profile',
+  'content-profile',
+  'x-retry-count',
+  'prefer',
+  'accept',
+  'content-type',
+  'range',
+  'range-unit'
 ] as const;
 
 /** @internal */
 export const LOWERCASE_DISALLOWED_HEADER_KEYS: ReadonlySet<string> =
-  new Set<string>([...Object.values(FirebaseHeaders), ...FORBIDDEN_HEADERS]);
+  new Set<string>([
+    ...Object.values(FirebaseHeaders),
+    ...FORBIDDEN_HEADERS,
+    ...POSTGREST_RESERVED_HEADERS
+  ]);
 
 /**
  * Returns the {@linkcode FirebaseHeaders.GOOG_API_CLIENT | 'x-goog-api-client'} header value.
