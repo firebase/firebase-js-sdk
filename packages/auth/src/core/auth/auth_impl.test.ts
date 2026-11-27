@@ -44,6 +44,7 @@ import { mockEndpointWithParams } from '../../../test/helpers/api/helper';
 import { Endpoint, RecaptchaClientType, RecaptchaVersion } from '../../api';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../errors';
+import { _createError } from '../util/assert';
 import { PasswordValidationStatus } from '../../model/public_types';
 import { PasswordPolicyImpl } from './password_policy_impl';
 import { Mock, MockInstance } from 'vitest';
@@ -611,6 +612,29 @@ describe('core/auth/auth_impl', () => {
           expect(idTokenCallback).toHaveBeenCalled();
           // This should never be called on a storage event.
           expect(beforeStateCallback).not.toHaveBeenCalled();
+        });
+
+        it('should not reject if the token refresh hits a network error', async () => {
+          persistenceStub._get.mockReturnValue(Promise.resolve(user.toJSON()));
+          vi.spyOn(auth.currentUser!, 'getIdToken').mockRejectedValue(
+            _createError(AuthErrorCode.NETWORK_REQUEST_FAILED, {
+              appName: auth.name
+            })
+          );
+
+          await expect(auth._onStorageEvent()).resolves.toBeUndefined();
+          expect(auth.currentUser?.uid).toBe(user.uid);
+        });
+
+        it('should still reject on other token refresh errors', async () => {
+          persistenceStub._get.mockReturnValue(Promise.resolve(user.toJSON()));
+          vi.spyOn(auth.currentUser!, 'getIdToken').mockRejectedValue(
+            _createError(AuthErrorCode.TOKEN_EXPIRED, { appName: auth.name })
+          );
+
+          await expect(auth._onStorageEvent()).rejects.toThrow(
+            'auth/user-token-expired'
+          );
         });
       });
 

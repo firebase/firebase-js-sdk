@@ -41,6 +41,7 @@ import {
 import {
   createSubscribe,
   ErrorFactory,
+  FirebaseError,
   getModularInstance,
   Observer,
   Subscribe
@@ -231,7 +232,20 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       this._currentUser._assign(user);
       // If tokens changed from previous user tokens, this will trigger
       // notifyAuthListeners_.
-      await this.currentUser.getIdToken();
+      try {
+        await this.currentUser.getIdToken();
+      } catch (e) {
+        // The persistence layer doesn't handle this promise, so a refresh
+        // that fails while offline would become an unhandled rejection.
+        // The next getIdToken() call retries, like the proactive refresh.
+        if (
+          (e as FirebaseError)?.code !==
+          `auth/${AuthErrorCode.NETWORK_REQUEST_FAILED}`
+        ) {
+          throw e;
+        }
+        _logWarn(`Failed to refresh the token after a storage event: ${e}`);
+      }
       return;
     }
 
