@@ -231,7 +231,13 @@ function viewProcessorGenerateEventCacheAfterServerEvent(
     return viewCache;
   } else {
     let newEventCache, serverNode;
-    if (pathIsEmpty(changePath)) {
+    // A primitive event cache can't take a child update: an empty child below a leaf looks like "nothing changed"
+    // even when the server cache no longer holds the leaf (e.g. a write below the leaf was acked and removed again).
+    // Rebuild it from the complete server cache instead.
+    const rebuildLeafEventCache =
+      oldEventSnap.getNode().isLeafNode() &&
+      viewCache.serverCache.isFullyInitialized();
+    if (pathIsEmpty(changePath) || rebuildLeafEventCache) {
       // TODO: figure out how this plays with "sliding ack windows"
       assert(
         viewCache.serverCache.isFullyInitialized(),

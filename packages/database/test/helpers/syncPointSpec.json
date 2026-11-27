@@ -8442,5 +8442,226 @@
         ]
       }
     ]
+  },
+
+  {
+    "name": "Acked set then remove below a leaf node raises the server value",
+    ".comment": "Issue #10686: the pending writes hide the child, so the event cache stays at the leaf until the last ack",
+    "steps": [
+      {
+        "type": "listen",
+        "path": "r",
+        "events": []
+      },
+      {
+        "type": "set",
+        "path": "r/c",
+        "data": { "v": 1 },
+        "events": [
+          {
+            "path": "r",
+            "type": "child_added",
+            "name": "c",
+            "prevName": null,
+            "data": { "v": 1 }
+          }
+        ]
+      },
+      {
+        "type": "set",
+        "path": "r/c",
+        "data": null,
+        "events": [
+          {
+            "path": "r",
+            "type": "child_removed",
+            "name": "c",
+            "data": { "v": 1 }
+          }
+        ]
+      },
+      {
+        ".comment": "The pending remove below a leaf leaves the leaf in place",
+        "type": "serverUpdate",
+        "path": "r",
+        "data": 1,
+        "events": [
+          {
+            "path": "r",
+            "type": "value",
+            "data": 1
+          }
+        ]
+      },
+      {
+        "type": "serverUpdate",
+        "path": "r/c",
+        "data": { "v": 1 },
+        "events": []
+      },
+      {
+        ".comment": "Shadowed by write 1, no events",
+        "type": "ackUserWrite",
+        "writeId": 0,
+        "events": []
+      },
+      {
+        "type": "serverUpdate",
+        "path": "r/c",
+        "data": null,
+        "events": []
+      },
+      {
+        ".comment": "No writes left: the event cache must match the empty server cache",
+        "type": "ackUserWrite",
+        "writeId": 1,
+        "events": [
+          {
+            "path": "r",
+            "type": "value",
+            "data": null
+          }
+        ]
+      }
+    ]
+  },
+
+  {
+    "name": "Acked update then remove below a leaf node raises the server value",
+    ".comment": "Issue #10686, with merges instead of sets",
+    "steps": [
+      {
+        "type": "listen",
+        "path": "r",
+        "events": []
+      },
+      {
+        "type": "update",
+        "path": "r",
+        "data": { "c": { "v": 1 } },
+        "events": [
+          {
+            "path": "r",
+            "type": "child_added",
+            "name": "c",
+            "prevName": null,
+            "data": { "v": 1 }
+          }
+        ]
+      },
+      {
+        "type": "update",
+        "path": "r",
+        "data": { "c": null },
+        "events": [
+          {
+            "path": "r",
+            "type": "child_removed",
+            "name": "c",
+            "data": { "v": 1 }
+          }
+        ]
+      },
+      {
+        "type": "serverUpdate",
+        "path": "r",
+        "data": 1,
+        "events": [
+          {
+            "path": "r",
+            "type": "value",
+            "data": 1
+          }
+        ]
+      },
+      {
+        "type": "serverMerge",
+        "path": "r",
+        "data": { "c": { "v": 1 } },
+        "events": []
+      },
+      {
+        "type": "ackUserWrite",
+        "writeId": 0,
+        "events": []
+      },
+      {
+        "type": "serverMerge",
+        "path": "r",
+        "data": { "c": null },
+        "events": []
+      },
+      {
+        "type": "ackUserWrite",
+        "writeId": 1,
+        "events": [
+          {
+            "path": "r",
+            "type": "value",
+            "data": null
+          }
+        ]
+      }
+    ]
+  },
+
+  {
+    "name": "Server child set and remove below a leaf node",
+    "steps": [
+      {
+        "type": "listen",
+        "path": "r",
+        "events": []
+      },
+      {
+        "type": "serverUpdate",
+        "path": "r",
+        "data": 1,
+        "events": [
+          {
+            "path": "r",
+            "type": "value",
+            "data": 1
+          }
+        ]
+      },
+      {
+        "type": "serverUpdate",
+        "path": "r/c",
+        "data": { "v": 1 },
+        "events": [
+          {
+            "path": "r",
+            "type": "child_added",
+            "name": "c",
+            "prevName": null,
+            "data": { "v": 1 }
+          },
+          {
+            "path": "r",
+            "type": "value",
+            "data": { "c": { "v": 1 } }
+          }
+        ]
+      },
+      {
+        "type": "serverUpdate",
+        "path": "r/c",
+        "data": null,
+        "events": [
+          {
+            "path": "r",
+            "type": "child_removed",
+            "name": "c",
+            "data": { "v": 1 }
+          },
+          {
+            "path": "r",
+            "type": "value",
+            "data": null
+          }
+        ]
+      }
+    ]
   }
 ]
