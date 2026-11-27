@@ -350,6 +350,47 @@ describe('CompoundWrite Tests', () => {
     );
   });
 
+  it('update that removes the last child and adds another keeps the priority', () => {
+    const node = nodeFromJSON({ 'child-1': 'value-1', '.priority': 'prio' });
+    const compoundWrite = compoundWriteAddWrites(
+      CompoundWrite.empty(),
+      newEmptyPath(),
+      { 'child-1': EMPTY_NODE, 'child-2': nodeFromJSON('value-2') }
+    );
+    assertNodesEqual(
+      nodeFromJSON({ 'child-2': 'value-2', '.priority': 'prio' }),
+      compoundWriteApply(compoundWrite, node)
+    );
+  });
+
+  it('deep update that empties and refills a node keeps its priority', () => {
+    const node = nodeFromJSON({ foo: { a: 1, '.priority': 'prio' } });
+    let compoundWrite = compoundWriteAddWrite(
+      CompoundWrite.empty(),
+      new Path('foo/a'),
+      EMPTY_NODE
+    );
+    compoundWrite = compoundWriteAddWrite(
+      compoundWrite,
+      new Path('foo/b'),
+      nodeFromJSON(1)
+    );
+    assertNodesEqual(
+      nodeFromJSON({ foo: { b: 1, '.priority': 'prio' } }),
+      compoundWriteApply(compoundWrite, node)
+    );
+  });
+
+  it('update that removes every child leaves no priority', () => {
+    const node = nodeFromJSON({ 'child-1': 'value-1', '.priority': 'prio' });
+    const compoundWrite = compoundWriteAddWrite(
+      CompoundWrite.empty(),
+      new Path('child-1'),
+      EMPTY_NODE
+    );
+    expect(compoundWriteApply(compoundWrite, node).isEmpty()).toBe(true);
+  });
+
   it('child write of root priority works', () => {
     const compoundWrite = compoundWriteAddWrite(
       CompoundWrite.empty(),

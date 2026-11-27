@@ -8442,5 +8442,487 @@
         ]
       }
     ]
+  },
+  {
+    "name": "User merge that removes the last child and adds another keeps the priority",
+    "steps": [
+      {
+        "type": "listen",
+        "path": "",
+        "events": []
+      },
+      {
+        "type": "serverUpdate",
+        "path": "",
+        "data": {
+          "a": 1,
+          ".priority": 1
+        },
+        "events": [
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "a",
+            "prevName": null,
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": {
+              "a": 1,
+              ".priority": 1
+            }
+          }
+        ]
+      },
+      {
+        ".comment": "Removing a empties the node before b is added",
+        "type": "update",
+        "path": "",
+        "data": {
+          "a": null,
+          "b": 1
+        },
+        "events": [
+          {
+            "path": "",
+            "type": "child_removed",
+            "name": "a",
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "b",
+            "prevName": null,
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": {
+              "b": 1,
+              ".priority": 1
+            }
+          }
+        ]
+      },
+      {
+        "type": "serverMerge",
+        "path": "",
+        "data": {
+          "a": null,
+          "b": 1
+        },
+        "events": []
+      },
+      {
+        "type": "ackUserWrite",
+        "writeId": 0,
+        "events": []
+      },
+      {
+        ".comment": "A new query at the same location reads the server cache",
+        "type": "listen",
+        "path": "",
+        "params": {
+          "tag": 1,
+          "orderByKey": true
+        },
+        "events": [
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "b",
+            "prevName": null,
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": {
+              "b": 1,
+              ".priority": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Server merge that removes the last child and adds another keeps the priority",
+    "steps": [
+      {
+        "type": "listen",
+        "path": "",
+        "events": []
+      },
+      {
+        "type": "serverUpdate",
+        "path": "",
+        "data": {
+          "a": 1,
+          ".priority": 1
+        },
+        "events": [
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "a",
+            "prevName": null,
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": {
+              "a": 1,
+              ".priority": 1
+            }
+          }
+        ]
+      },
+      {
+        "type": "serverMerge",
+        "path": "",
+        "data": {
+          "a": null,
+          "b": 1
+        },
+        "events": [
+          {
+            "path": "",
+            "type": "child_removed",
+            "name": "a",
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "b",
+            "prevName": null,
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": {
+              "b": 1,
+              ".priority": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "User merge that removes the last child of a child and adds another keeps the child's priority",
+    "steps": [
+      {
+        "type": "listen",
+        "path": "",
+        "events": []
+      },
+      {
+        "type": "serverUpdate",
+        "path": "",
+        "data": {
+          "n": {
+            "a": 1,
+            ".priority": 1
+          }
+        },
+        "events": [
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "n",
+            "prevName": null,
+            "data": {
+              "a": 1,
+              ".priority": 1
+            }
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": {
+              "n": {
+                "a": 1,
+                ".priority": 1
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "update",
+        "path": "n",
+        "data": {
+          "a": null,
+          "b": 1
+        },
+        "events": [
+          {
+            "path": "",
+            "type": "child_changed",
+            "name": "n",
+            "prevName": null,
+            "data": {
+              "b": 1,
+              ".priority": 1
+            }
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": {
+              "n": {
+                "b": 1,
+                ".priority": 1
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "serverMerge",
+        "path": "n",
+        "data": {
+          "a": null,
+          "b": 1
+        },
+        "events": []
+      },
+      {
+        "type": "ackUserWrite",
+        "writeId": 0,
+        "events": []
+      },
+      {
+        ".comment": "A new query at the same location reads the server cache",
+        "type": "listen",
+        "path": "",
+        "params": {
+          "tag": 1,
+          "orderByKey": true
+        },
+        "events": [
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "n",
+            "prevName": null,
+            "data": {
+              "b": 1,
+              ".priority": 1
+            }
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": {
+              "n": {
+                "b": 1,
+                ".priority": 1
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "User merge that removes the last child and adds another sets the priority it writes",
+    "steps": [
+      {
+        "type": "listen",
+        "path": "",
+        "events": []
+      },
+      {
+        "type": "serverUpdate",
+        "path": "",
+        "data": {
+          "a": 1,
+          ".priority": 1
+        },
+        "events": [
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "a",
+            "prevName": null,
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": {
+              "a": 1,
+              ".priority": 1
+            }
+          }
+        ]
+      },
+      {
+        "type": "update",
+        "path": "",
+        "data": {
+          ".priority": 2,
+          "a": null,
+          "b": 1
+        },
+        "events": [
+          {
+            "path": "",
+            "type": "child_removed",
+            "name": "a",
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "b",
+            "prevName": null,
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": {
+              "b": 1,
+              ".priority": 2
+            }
+          }
+        ]
+      },
+      {
+        "type": "serverMerge",
+        "path": "",
+        "data": {
+          ".priority": 2,
+          "a": null,
+          "b": 1
+        },
+        "events": []
+      },
+      {
+        "type": "ackUserWrite",
+        "writeId": 0,
+        "events": []
+      },
+      {
+        ".comment": "A new query at the same location reads the server cache",
+        "type": "listen",
+        "path": "",
+        "params": {
+          "tag": 1,
+          "orderByKey": true
+        },
+        "events": [
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "b",
+            "prevName": null,
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": {
+              "b": 1,
+              ".priority": 2
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "User merge that removes every child leaves an empty node without priority",
+    "steps": [
+      {
+        "type": "listen",
+        "path": "",
+        "events": []
+      },
+      {
+        "type": "serverUpdate",
+        "path": "",
+        "data": {
+          "a": 1,
+          ".priority": 1
+        },
+        "events": [
+          {
+            "path": "",
+            "type": "child_added",
+            "name": "a",
+            "prevName": null,
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": {
+              "a": 1,
+              ".priority": 1
+            }
+          }
+        ]
+      },
+      {
+        "type": "update",
+        "path": "",
+        "data": {
+          "a": null
+        },
+        "events": [
+          {
+            "path": "",
+            "type": "child_removed",
+            "name": "a",
+            "data": 1
+          },
+          {
+            "path": "",
+            "type": "value",
+            "data": null
+          }
+        ]
+      },
+      {
+        "type": "serverMerge",
+        "path": "",
+        "data": {
+          "a": null
+        },
+        "events": []
+      },
+      {
+        "type": "ackUserWrite",
+        "writeId": 0,
+        "events": []
+      },
+      {
+        ".comment": "A new query at the same location reads the server cache",
+        "type": "listen",
+        "path": "",
+        "params": {
+          "tag": 1,
+          "orderByKey": true
+        },
+        "events": [
+          {
+            "path": "",
+            "type": "value",
+            "data": null
+          }
+        ]
+      }
+    ]
   }
 ]

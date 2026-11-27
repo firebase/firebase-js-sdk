@@ -220,6 +220,7 @@ function applySubtreeWrite(
     // Since there a write is always a leaf, we're done here
     return node.updateChild(relativePath, writeTree.value);
   } else {
+    const oldPriority = node.getChild(relativePath).getPriority();
     let priorityWrite = null;
     writeTree.children.inorderTraversal((childKey, childTree) => {
       if (childKey === '.priority') {
@@ -238,6 +239,12 @@ function applySubtreeWrite(
         );
       }
     });
+    // Writing the children one at a time can empty the node before later
+    // writes fill it again, which drops its priority. Unless a priority was
+    // written, the node keeps its old one.
+    if (priorityWrite === null && !oldPriority.isEmpty()) {
+      priorityWrite = oldPriority;
+    }
     // If there was a priority write, we only apply it if the node is not empty
     if (!node.getChild(relativePath).isEmpty() && priorityWrite !== null) {
       node = node.updateChild(
