@@ -30,7 +30,7 @@
     "test:lite:browser:debug": "TEST_PLATFORM=browser_lite vitest --project=browser --browser.headless=false test/lite",
     "test": "run-s --npm-path npm lint assertion-id:check test:tooling test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all:ci",
-    "test:tooling": "yarn build:scripts && node --test scripts/run-tests.test.cjs",
+    "test:tooling": "tsc -moduleResolution node --module commonjs scripts/run-tests.ts && terser scripts/run-tests.js -o scripts/run-tests.js && node --test scripts/run-tests.test.cjs",
     "test:all:ci": "run-s --npm-path npm test:tooling assertion-id:check test:browser test:node:emulator test:lite:browser test:browser:prod:enterprise test:lite:browser:enterprise",
     "test:all": "run-p --npm-path npm test:browser test:lite:browser test:node:emulator test:minified test:browser:prod:enterprise test:lite:browser:enterprise",
     "test:browser": "FIRESTORE_TARGET_BACKEND=prod vitest run --project=browser",
