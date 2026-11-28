@@ -17,7 +17,9 @@
 
 import path from 'path';
 import { fileURLToPath } from 'url';
-import createBaseConfig from '../../config/vitest.base.mjs';
+import createBaseConfig, {
+  applyProjectDefaults
+} from '../../config/vitest.base.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -72,16 +74,16 @@ config.test.projects = config.test.projects
       ...project.test,
       include: ['temp/test/integration/api/**/*.test.ts'],
       setupFiles: [path.resolve(__dirname, 'setup.ts')],
-      fileParallelism: false,
-      isolate: false,
-      testTimeout: 20000,
-      hookTimeout: 20000,
-      retry: process.env.CI ? 3 : 0,
-      browser: {
-        ...project.test.browser,
-        screenshotFailures: false
-      }
+      isolate: false
     }
   }));
+
+applyProjectDefaults(config, {
+  testTimeout: 20000,
+  hookTimeout: 20000,
+  retry: process.env.CI ? 3 : 0,
+  fileParallelism: false,
+  screenshotFailures: false
+});
 
 export default config;

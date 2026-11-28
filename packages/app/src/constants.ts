@@ -23,6 +23,7 @@ import { name as appCheckCompatName } from '../../../packages/app-check-compat/p
 import { name as appCheckName } from '../../../packages/app-check/package.json';
 import { name as authName } from '../../../packages/auth/package.json';
 import { name as authCompatName } from '../../../packages/auth-compat/package.json';
+import { name as crashlyticsName } from '../../../packages/crashlytics/package.json';
 import { name as databaseName } from '../../../packages/database/package.json';
 import { name as dataconnectName } from '../../../packages/data-connect/package.json';
 import { name as databaseCompatName } from '../../../packages/database-compat/package.json';
@@ -59,6 +60,7 @@ export const PLATFORM_LOG_STRING = {
   [appCheckCompatName]: 'fire-app-check-compat',
   [authName]: 'fire-auth',
   [authCompatName]: 'fire-auth-compat',
+  [crashlyticsName]: 'fire-cls',
   [databaseName]: 'fire-rtdb',
   [dataconnectName]: 'fire-data-connect',
   [databaseCompatName]: 'fire-rtdb-compat',

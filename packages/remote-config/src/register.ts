@@ -79,6 +79,8 @@ export function registerRemoteConfig(): void {
     if (!appId) {
       throw ERROR_FACTORY.create(ErrorCode.REGISTRATION_APP_ID);
     }
+    // Deprecated: `templateId` is deprecated, see RemoteConfigOptions.templateId.
+    // Server templates ("firebase-server") can't be fetched from client apps.
     const namespace = options?.templateId || 'firebase';
 
     const storage = isIndexedDBAvailable()

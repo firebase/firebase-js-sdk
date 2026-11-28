@@ -7,5 +7,5 @@ test
 # Files not needed by end users
 gulpfile.js
 index.ts
-karma.conf.js
+vitest.config.mjs
 tsconfig.json

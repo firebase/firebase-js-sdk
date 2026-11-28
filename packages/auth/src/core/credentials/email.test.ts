@@ -256,7 +256,7 @@ describe('core/credentials/email', () => {
             'No reCAPTCHA enterprise script loaded.'
           );
           // Should call getRecaptchaConfig once to refresh the cached recaptcha config
-          expect(getRecaptchaConfigMock.calls.length).toBe(2);
+          expect(getRecaptchaConfigMock!.calls.length).toBe(2);
           expect(auth._agentRecaptchaConfig?.siteKey).toBe('site-key');
         });
 
@@ -418,7 +418,7 @@ describe('core/credentials/email', () => {
             credential._linkToIdToken(auth, 'id-token-2')
           ).rejects.toThrow('No reCAPTCHA enterprise script loaded.');
           // Should call getRecaptchaConfig once to refresh the cached recaptcha config
-          expect(getRecaptchaConfigMock.calls.length).toBe(2);
+          expect(getRecaptchaConfigMock!.calls.length).toBe(2);
           expect(auth._agentRecaptchaConfig?.siteKey).toBe('site-key');
         });
 

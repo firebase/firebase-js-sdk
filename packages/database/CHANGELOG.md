@@ -1,5 +1,13 @@
 # Unreleased
 
+## 1.1.6
+
+### Patch Changes
+
+- [`79c5c47`](https://github.com/firebase/firebase-js-sdk/commit/79c5c4755e4c29aee493105c4876ac42477ae2a3) [#10571](https://github.com/firebase/firebase-js-sdk/pull/10571) - Fix transactions becoming permanently stuck after overlapping writes cancel the same in-flight transaction more than once.
+
+- [`96fb62c`](https://github.com/firebase/firebase-js-sdk/commit/96fb62ce1050c6a1371a7a84762cb48877d541d9) [#10389](https://github.com/firebase/firebase-js-sdk/pull/10389) - Migrate test suite to Vitest and update type-only re-exports.
+
 ## 1.1.5
 
 ### Patch Changes

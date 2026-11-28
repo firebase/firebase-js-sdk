@@ -6,6 +6,6 @@ This directory is for Firebase E2E tests that are completely independent of the 
   
   A common use case might be to clone this repo, cd into the chosen directory under e2e, npm install, and run npm scripts.
 
-* Have a self-contained set of NPM dependencies. They should not depend on the local version of Firebase in the SDK nor assume inherited availability of any packages in the top level package.json of this repo (typescript, firebase, karma, etc.).
+* Have a self-contained set of NPM dependencies. They should not depend on the local version of Firebase in the SDK nor assume inherited availability of any packages in the top level package.json of this repo (typescript, firebase, vitest, etc.).
 
 See the `template/` directory for an example.

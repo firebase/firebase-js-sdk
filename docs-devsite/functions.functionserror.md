@@ -25,12 +25,13 @@ export declare class FunctionsError extends FirebaseError
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(code, message, details, url)](./functions.functionserror.md#functionserrorconstructor) |  | Constructs a new instance of the <code>FunctionsError</code> class. |
+|  [(constructor)(code, message, details, url, cause)](./functions.functionserror.md#functionserrorconstructor) |  | Constructs a new instance of the <code>FunctionsError</code> class. |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
+|  [cause](./functions.functionserror.md#functionserrorcause) |  | unknown | Optional. The underlying error that caused this error, if applicable. |
 |  [details](./functions.functionserror.md#functionserrordetails) |  | unknown | Additional details to be converted to JSON and included in the error response. |
 
 ## FunctionsError.(constructor)
@@ -43,7 +44,8 @@ Constructs a new instance of the `FunctionsError` class.
 constructor(
     code: FunctionsErrorCode, message?: string, 
     details?: unknown, 
-    url?: string);
+    url?: string, 
+    cause?: unknown);
 ```
 
 #### Parameters
@@ -54,6 +56,17 @@ constructor(
 |  message | string |  |
 |  details | unknown |  |
 |  url | string |  |
+|  cause | unknown |  |
+
+## FunctionsError.cause
+
+Optional. The underlying error that caused this error, if applicable.
+
+<b>Signature:</b>
+
+```typescript
+readonly cause?: unknown;
+```
 
 ## FunctionsError.details
 

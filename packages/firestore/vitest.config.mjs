@@ -19,7 +19,9 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import ts from 'typescript';
-import createBaseConfig from '../../config/vitest.base.mjs';
+import createBaseConfig, {
+  applyProjectDefaults
+} from '../../config/vitest.base.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -178,6 +180,8 @@ config.test.projects = config.test.projects.map(project => {
               USE_MOCK_PERSISTENCE: process.env.USE_MOCK_PERSISTENCE,
               FIRESTORE_RUN_LARGE_DOC_TESTS:
                 process.env.FIRESTORE_RUN_LARGE_DOC_TESTS,
+              FIRESTORE_RUN_COMPREHENSIVE_TESTS:
+                process.env.FIRESTORE_RUN_COMPREHENSIVE_TESTS,
               INCLUDE_FIRESTORE_PERSISTENCE:
                 process.env.INCLUDE_FIRESTORE_PERSISTENCE
             })
@@ -209,10 +213,6 @@ config.test.projects = config.test.projects.map(project => {
     test: {
       ...project.test,
       setupFiles,
-      fileParallelism: false,
-      testTimeout: 20000,
-      hookTimeout: 20000,
-      retry: process.env.CI ? 3 : 0,
       ...(isBrowser
         ? {
             browser: {
@@ -226,8 +226,7 @@ config.test.projects = config.test.projects.map(project => {
                         ? 'firefox'
                         : 'chromium'
                 }
-              ],
-              screenshotFailures: false
+              ]
             },
             isolate: false
           }
@@ -236,6 +235,14 @@ config.test.projects = config.test.projects.map(project => {
       exclude
     }
   };
+});
+
+applyProjectDefaults(config, {
+  testTimeout: 20000,
+  hookTimeout: 20000,
+  retry: process.env.CI ? 3 : 0,
+  fileParallelism: false,
+  screenshotFailures: false
 });
 
 export default config;

@@ -16,7 +16,6 @@
  */
 
 import { deleteApp, initializeApp } from '@firebase/app';
-import { expect } from 'chai';
 
 import { getDataConnect } from '../../src';
 
@@ -26,7 +25,7 @@ describe('Data Connect Test', () => {
     const app = initializeApp({ projectId: undefined }, 'a');
     expect(() =>
       getDataConnect(app, { connector: 'c', location: 'l', service: 's' })
-    ).to.throw(
+    ).toThrow(
       'Project ID must be provided. Did you pass in a proper projectId to initializeApp?'
     );
     await deleteApp(app);
@@ -36,7 +35,7 @@ describe('Data Connect Test', () => {
     const customApp = initializeApp({ projectId }, 'customApp');
     expect(() =>
       getDataConnect({ connector: 'c', location: 'l', service: 's' })
-    ).to.not.throw(
+    ).not.toThrow(
       'Project ID must be provided. Did you pass in a proper projectId to initializeApp?'
     );
     const dc = getDataConnect(customApp, {
@@ -44,20 +43,20 @@ describe('Data Connect Test', () => {
       location: 'l',
       service: 's'
     });
-    expect(dc.app.options.projectId).to.eq(projectId);
+    expect(dc.app.options.projectId).toBe(projectId);
     await deleteApp(customApp);
   });
   it('should throw an error if `connectorConfig` is not provided', async () => {
     const projectId = 'p';
     const customApp = initializeApp({ projectId }, 'customApp');
     // @ts-ignore
-    expect(() => getDataConnect(customApp)).to.throw('DC Option Required');
+    expect(() => getDataConnect(customApp)).toThrow('DC Option Required');
     const dc = getDataConnect(customApp, {
       connector: 'c',
       location: 'l',
       service: 's'
     });
-    expect(dc.app.options.projectId).to.eq(projectId);
+    expect(dc.app.options.projectId).toBe(projectId);
     await deleteApp(customApp);
   });
 });

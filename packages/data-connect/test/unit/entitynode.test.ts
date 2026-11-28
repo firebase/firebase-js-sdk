@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { makeMemoryCacheProvider } from '../../src';
 import {
   EncodingMode,
@@ -56,12 +54,12 @@ describe('entity node', () => {
       new ImpactedQueryRefsAccumulator(queryId),
       memoryCacheProvider
     );
-    expect(node.objectLists).to.have.property('movies');
-    expect(node.objectLists.movies[0].entityDataKeys).to.have.lengthOf(1);
-    expect(node.objectLists.movies[0].entityDataKeys.has('title')).to.be.true;
-    expect(
-      node.objectLists.movies[0].toJSON(EncodingMode.hydrated)
-    ).to.deep.equal(exampleData.movies[0]);
+    expect(node.objectLists).toHaveProperty('movies');
+    expect(node.objectLists.movies[0].entityDataKeys).toHaveLength(1);
+    expect(node.objectLists.movies[0].entityDataKeys.has('title')).toBe(true);
+    expect(node.objectLists.movies[0].toJSON(EncodingMode.hydrated)).toEqual(
+      exampleData.movies[0]
+    );
   });
   it('should load data for an array with multiple entities', async () => {
     /**
@@ -99,13 +97,13 @@ describe('entity node', () => {
       new ImpactedQueryRefsAccumulator(queryId),
       memoryCacheProvider
     );
-    expect(node.objectLists).to.have.property('movies');
-    expect(node.objectLists.movies).to.have.lengthOf(2);
-    expect(node.objectLists.movies[0].entityDataKeys.has('title')).to.be.true;
-    expect(node.objectLists.movies[1].entityDataKeys.has('title')).to.be.true;
+    expect(node.objectLists).toHaveProperty('movies');
+    expect(node.objectLists.movies).toHaveLength(2);
+    expect(node.objectLists.movies[0].entityDataKeys.has('title')).toBe(true);
+    expect(node.objectLists.movies[1].entityDataKeys.has('title')).toBe(true);
     expect(
       node.objectLists.movies.map(movie => movie.toJSON(EncodingMode.hydrated))
-    ).to.deep.equal(exampleData.movies);
+    ).toEqual(exampleData.movies);
   });
   it('should load data for an object', async () => {
     /**
@@ -133,8 +131,8 @@ describe('entity node', () => {
       new ImpactedQueryRefsAccumulator(queryId),
       memoryCacheProvider
     );
-    expect(node.references.movie.entityDataKeys.has('title')).to.be.true;
-    expect(node.toJSON(EncodingMode.hydrated)).to.deep.equal(exampleData);
+    expect(node.references.movie.entityDataKeys.has('title')).toBe(true);
+    expect(node.toJSON(EncodingMode.hydrated)).toEqual(exampleData);
   });
   it('should keep track of the right fields when two queries have different fields required from entity data objects', async () => {
     /**
@@ -179,11 +177,13 @@ describe('entity node', () => {
       genreNode.objectLists.movies.map(movie =>
         movie.toJSON(EncodingMode.hydrated)
       )
-    ).to.deep.equal(exampleExtraGenreData.movies);
-    expect(genreNode.objectLists.movies[0].entityDataKeys.has('genre')).to.be
-      .true;
-    expect(genreNode.objectLists.movies[1].entityDataKeys.has('genre')).to.be
-      .true;
+    ).toEqual(exampleExtraGenreData.movies);
+    expect(genreNode.objectLists.movies[0].entityDataKeys.has('genre')).toBe(
+      true
+    );
+    expect(genreNode.objectLists.movies[1].entityDataKeys.has('genre')).toBe(
+      true
+    );
     const titleNode = new EntityNode();
     const exampleData = {
       movies: [
@@ -217,21 +217,25 @@ describe('entity node', () => {
       titleNode.objectLists.movies.map(movie =>
         movie.toJSON(EncodingMode.hydrated)
       )
-    ).to.deep.equal(exampleData.movies);
-    expect(titleNode.objectLists.movies[0].entityDataKeys.has('title')).to.be
-      .true;
-    expect(titleNode.objectLists.movies[1].entityDataKeys.has('title')).to.be
-      .true;
-    expect(titleNode.objectLists.movies[0].entityDataKeys.has('genre')).to.be
-      .false;
-    expect(titleNode.objectLists.movies[1].entityDataKeys.has('genre')).to.be
-      .false;
+    ).toEqual(exampleData.movies);
+    expect(titleNode.objectLists.movies[0].entityDataKeys.has('title')).toBe(
+      true
+    );
+    expect(titleNode.objectLists.movies[1].entityDataKeys.has('title')).toBe(
+      true
+    );
+    expect(titleNode.objectLists.movies[0].entityDataKeys.has('genre')).toBe(
+      false
+    );
+    expect(titleNode.objectLists.movies[1].entityDataKeys.has('genre')).toBe(
+      false
+    );
     expect(
       titleNode.objectLists.movies[0].entityData?.getServerValues()?.title
-    ).to.equal('the matrix');
+    ).toBe('the matrix');
     expect(
       titleNode.objectLists.movies[1].entityData?.getServerValues()?.title
-    ).to.equal('the dark knight');
+    ).toBe('the dark knight');
   });
   it('should load data for nested entities', async () => {
     const exampleEntityIds = {
@@ -266,12 +270,12 @@ describe('entity node', () => {
     );
     expect(
       node.objectLists.posts[0].references['author'].entityDataKeys.has('name')
-    ).to.be.true;
+    ).toBe(true);
     expect(
       node.objectLists.posts[0].references[
         'author'
       ].entityData?.getServerValues()!.name
-    ).to.equal('Cypher');
+    ).toBe('Cypher');
   });
 
   it('should load data for complex nested lists and objects like a social media feed', async () => {
@@ -345,37 +349,35 @@ describe('entity node', () => {
     );
 
     // Verify root-level entities
-    expect(node.objectLists).to.have.property('posts');
-    expect(node.objectLists.posts).to.have.lengthOf(2);
-    expect(node.objectLists.posts[0].entityDataKeys.has('title')).to.be.true;
+    expect(node.objectLists).toHaveProperty('posts');
+    expect(node.objectLists.posts).toHaveLength(2);
+    expect(node.objectLists.posts[0].entityDataKeys.has('title')).toBe(true);
 
     // Verify nested entities
     expect(
       node.objectLists.posts[0].references['author'].entityDataKeys.has('name')
-    ).to.be.true;
+    ).toBe(true);
     expect(
       node.objectLists.posts[0].references[
         'author'
       ].entityData?.getServerValues()!.name
-    ).to.equal('Alice');
+    ).toBe('Alice');
 
     // Verify deeply nested lists and entities
-    expect(node.objectLists.posts[0].objectLists['comments']).to.have.lengthOf(
-      2
-    );
+    expect(node.objectLists.posts[0].objectLists['comments']).toHaveLength(2);
     expect(
       node.objectLists.posts[0].objectLists['comments'][0].references[
         'author'
       ].entityData?.getServerValues()!.name
-    ).to.equal('Bob');
+    ).toBe('Bob');
     expect(
       node.objectLists.posts[0].objectLists['comments'][1].references[
         'author'
       ].entityData?.getServerValues()!.name
-    ).to.equal('Alice');
+    ).toBe('Alice');
 
     // Verify JSON export constructs the merged object fully
-    expect(node.toJSON(EncodingMode.hydrated)).to.deep.equal(exampleData);
+    expect(node.toJSON(EncodingMode.hydrated)).toEqual(exampleData);
 
     // Make a second query requesting additional fields for the same entity
     const userProfileQueryId = 'userProfileQuery';
@@ -405,32 +407,35 @@ describe('entity node', () => {
     // since both query nodes point to the same global cache manager
     const author1Entity =
       node.objectLists.posts[0].references['author'].entityData;
-    expect(author1Entity?.getServerValues()!.name).to.equal('Alice');
-    expect(author1Entity?.getServerValues()!.username).to.equal('@alice');
-    expect(author1Entity?.getServerValues()!.bio).to.equal('Just another user');
-    expect(author1Entity?.getServerValues()!.avatarUrl).to.equal(
+    expect(author1Entity?.getServerValues()!.name).toBe('Alice');
+    expect(author1Entity?.getServerValues()!.username).toBe('@alice');
+    expect(author1Entity?.getServerValues()!.bio).toBe('Just another user');
+    expect(author1Entity?.getServerValues()!.avatarUrl).toBe(
       'https://example.com/alice.png'
     );
 
     // Make sure we kept the original entity keys for this node correct
     expect(
       node.objectLists.posts[0].references['author'].entityDataKeys.has('name')
-    ).to.be.true;
+    ).toBe(true);
     expect(
       node.objectLists.posts[0].references['author'].entityDataKeys.has(
         'username'
       )
-    ).to.be.true;
+    ).toBe(true);
     expect(
       node.objectLists.posts[0].references['author'].entityDataKeys.has('bio')
-    ).to.be.false;
+    ).toBe(false);
 
     // Verify the profileNode's keys as well
-    expect(profileNode.references['profile'].entityDataKeys.has('name')).to.be
-      .true;
-    expect(profileNode.references['profile'].entityDataKeys.has('bio')).to.be
-      .true;
-    expect(profileNode.references['profile'].entityDataKeys.has('username')).to
-      .be.false;
+    expect(profileNode.references['profile'].entityDataKeys.has('name')).toBe(
+      true
+    );
+    expect(profileNode.references['profile'].entityDataKeys.has('bio')).toBe(
+      true
+    );
+    expect(
+      profileNode.references['profile'].entityDataKeys.has('username')
+    ).toBe(false);
   });
 });

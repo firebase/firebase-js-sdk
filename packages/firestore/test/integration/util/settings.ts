@@ -21,9 +21,6 @@ import { PrivateSettings } from './firebase_export';
  * NOTE: These helpers are used by api/ tests and therefore may not have any
  * dependencies on src/ files.
  */
-// __karma__ is an untyped global
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const __karma__: any;
 
 export enum TargetBackend {
   EMULATOR = 'emulator',
@@ -52,10 +49,6 @@ console.log(`Default Settings: ${JSON.stringify(DEFAULT_SETTINGS)}`);
 console.log(`Default DatabaseId: ${JSON.stringify(TARGET_DB_ID)}`);
 
 function getTargetDbId(): string | '(default)' {
-  const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
-  if (karma && karma.config.databaseId) {
-    return karma.config.databaseId;
-  }
   if (process.env.FIRESTORE_TARGET_DB_ID) {
     return process.env.FIRESTORE_TARGET_DB_ID;
   }
@@ -63,11 +56,17 @@ function getTargetDbId(): string | '(default)' {
 }
 
 export function getRunEnterpriseTests(): boolean {
-  const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
-  if (karma && karma.config.firestoreEdition === 'enterprise') {
-    return true;
-  }
   return !!process.env.RUN_ENTERPRISE_TESTS;
+}
+
+/**
+ * Whether to run comprehensive integration test suites, which are skipped by
+ * default to keep CI and local runs fast. Enable them by setting the
+ * `FIRESTORE_RUN_COMPREHENSIVE_TESTS` environment variable to `true` or `YES`.
+ */
+export function getRunComprehensiveTests(): boolean {
+  const value = process.env.FIRESTORE_RUN_COMPREHENSIVE_TESTS;
+  return value === 'true' || value === 'YES';
 }
 
 function parseTargetBackend(targetBackend: string): TargetBackend {
@@ -88,10 +87,6 @@ function parseTargetBackend(targetBackend: string): TargetBackend {
 }
 
 export function getTargetBackend(): TargetBackend {
-  const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
-  if (karma && karma.config.targetBackend) {
-    return parseTargetBackend(karma.config.targetBackend);
-  }
   if (process.env.FIRESTORE_TARGET_BACKEND) {
     return parseTargetBackend(process.env.FIRESTORE_TARGET_BACKEND);
   }

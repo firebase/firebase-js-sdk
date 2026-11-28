@@ -4,5 +4,5 @@
     "outDir": "dist",
     "strict": true
   },
-  "exclude": ["dist/**/*", "test/**/*"]
+  "exclude": ["dist/**/*", "test/**/*", "vitest.config.mjs"]
 }

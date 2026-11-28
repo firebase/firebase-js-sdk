@@ -36,6 +36,16 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 `;
 
+/**
+ * Matches the opening delimiters of Jinja template syntax: `{{` (expression),
+ * `{%` (statement), and `{#` (comment). Devsite runs the generated markdown
+ * through Jinja, so any of these sequences in a doc comment (for example, the
+ * JSX snippet `options={{...}}`) will break the devsite build. Checked against
+ * the generated docs before GOOGLE3_HEADER (which legitimately contains a Jinja
+ * comment) is added.
+ */
+const JINJA_OPEN_DELIMITER_RE = /\{\{|\{%|\{#/;
+
 const tmpDir = `${projectRoot}/temp`;
 const EXCLUDED_PACKAGES = [
   'app-compat',
@@ -338,6 +348,30 @@ async function generateDocs(
 
   if (forDevsite) {
     const mdFiles = fs.readdirSync(join(projectRoot, outputFolder));
+
+    // Devsite runs these files through Jinja, so fail fast if any generated
+    // content contains Jinja delimiters. This must run before GOOGLE3_HEADER
+    // is added, since the header itself is a Jinja comment.
+    const jinjaViolations: string[] = [];
+    for (const mdFile of mdFiles) {
+      const content = fs.readFileSync(
+        join(projectRoot, outputFolder, mdFile),
+        'utf-8'
+      );
+      jinjaViolations.push(
+        ...findJinjaDelimiters(content, `${outputFolder}/${mdFile}`)
+      );
+    }
+    if (jinjaViolations.length > 0) {
+      throw new Error(
+        `Generated docs contain formatting that is not compatible with Jinja on devsite. ` +
+          `Jinja treats "{{", "{%", and "{#" as template delimiters, so these sequences ` +
+          `cannot appear in doc comments (e.g. write "{ {...} }" instead of "{{...}}"). ` +
+          `Fix the source doc comments for the following:\n` +
+          jinjaViolations.map(violation => `  ${violation}`).join('\n')
+      );
+    }
+
     for (const mdFile of mdFiles) {
       const fullPath = join(projectRoot, outputFolder, mdFile);
       const content = fs.readFileSync(fullPath, 'utf-8');
@@ -351,6 +385,20 @@ async function generateDocs(
   await moveRulesUnitTestingDocs(outputFolder, command);
   await removeExcludedDocs(outputFolder);
   await removeExcludedPackageEntries(outputFolder);
+}
+
+/**
+ * Returns a `path:line: text` entry for each line of `content` that contains
+ * a Jinja opening delimiter (see JINJA_OPEN_DELIMITER_RE).
+ */
+function findJinjaDelimiters(content: string, filePath: string): string[] {
+  const offendingLines: string[] = [];
+  content.split('\n').forEach((line, index) => {
+    if (JINJA_OPEN_DELIMITER_RE.test(line)) {
+      offendingLines.push(`${filePath}:${index + 1}: ${line.trim()}`);
+    }
+  });
+  return offendingLines;
 }
 
 /**

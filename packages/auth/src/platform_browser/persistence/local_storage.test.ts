@@ -23,7 +23,7 @@ import {
 } from '../../core/persistence';
 import { _getInstance } from '../../core/util/instantiator';
 import { browserLocalPersistence, _POLLING_INTERVAL_MS } from './local_storage';
-import { MockInstance } from 'vitest';
+import { Mock } from 'vitest';
 
 describe('platform_browser/persistence/local_storage', () => {
   const persistence: PersistenceInternal = _getInstance(
@@ -86,7 +86,7 @@ describe('platform_browser/persistence/local_storage', () => {
     const key = 'my-key';
     const newValue = 'new-value';
 
-    let callback: MockInstance;
+    let callback: Mock;
 
     beforeEach(() => {
       callback = vi.fn();
@@ -102,7 +102,7 @@ describe('platform_browser/persistence/local_storage', () => {
       });
 
       describe('with multiple listeners', () => {
-        let otherCallback: MockInstance;
+        let otherCallback: Mock;
 
         beforeEach(() => {
           otherCallback = vi.fn();

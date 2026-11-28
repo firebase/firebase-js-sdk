@@ -1,0 +1,33 @@
+{
+  "extends": "../../config/tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "jsx": "react",
+    "experimentalDecorators": true,
+    "baseUrl": ".",
+    "paths": {
+      "@opentelemetry/browser-api": [
+        "node_modules/@opentelemetry/browser-api/dist/index.d.ts",
+        "../../node_modules/@opentelemetry/browser-api/dist/index.d.ts"
+      ],
+      "@opentelemetry/browser-instrumentation/experimental/*": [
+        "node_modules/@opentelemetry/browser-instrumentation/dist/*",
+        "../../node_modules/@opentelemetry/browser-instrumentation/dist/*"
+      ],
+      "@opentelemetry/instrumentation": [
+        "node_modules/@opentelemetry/instrumentation",
+        "../../node_modules/@opentelemetry/instrumentation"
+      ],
+      "@angular/core/testing": [
+        "node_modules/@angular/core/types/testing.d.ts",
+        "../../node_modules/@angular/core/types/testing.d.ts"
+      ],
+      "@angular/platform-browser/testing": [
+        "node_modules/@angular/platform-browser/types/testing.d.ts",
+        "../../node_modules/@angular/platform-browser/types/testing.d.ts"
+      ]
+    }
+  },
+  "exclude": ["dist/**/*"],
+  "include": ["src/**/*", "test/**/*", "index.ts", "index.node.ts"]
+}

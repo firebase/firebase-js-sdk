@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { afterAll, beforeAll, beforeEach, describe } from 'vitest';
 import { AuthDriver } from './auth_driver';
 
 /** The browsers that these tests will run in */
@@ -44,6 +43,7 @@ export function browserDescribe(
         await driver.closeExtraWindows();
         await driver.reset();
         await driver.injectConfigAndInitAuth();
+        await driver.waitForAuthInit();
       }, 30000);
 
       describe(title, { timeout: 60000 }, () => {

@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
-import { Metadata } from '@grpc/grpc-js';
+import { EventEmitter } from 'events';
+
+import { Metadata, status } from '@grpc/grpc-js';
 
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { ResourcePath } from '../../../src/model/path';
@@ -180,6 +182,164 @@ describe('GrpcConnection', () => {
         'grpc.max_receive_message_length': 17 * 1024 * 1024,
         'grpc.max_send_message_length': 17 * 1024 * 1024
       });
+    });
+  });
+
+  describe('terminate()', () => {
+    const flushAsync = (): Promise<void> =>
+      new Promise(resolve => setImmediate(resolve));
+    const channelClosedError = {
+      code: status.UNAVAILABLE,
+      message: '14 UNAVAILABLE: Channel closed before call started'
+    };
+    const createConnectionWithStub = (FirestoreStub: unknown): GrpcConnection =>
+      new GrpcConnection(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        { google: { firestore: { v1: { Firestore: FirestoreStub } } } } as any,
+        testDatabaseInfo
+      );
+
+    it('ignores in-flight invokeStreamingRPC sync/async errors, data, and end events during and after terminate()', async () => {
+      const streams = [new EventEmitter(), new EventEmitter()];
+      let callIndex = 0;
+      const conn = createConnectionWithStub(
+        class {
+          RunAggregationQuery(): EventEmitter {
+            return streams[callIndex++];
+          }
+          close(): void {
+            streams[0].emit('error', channelClosedError);
+            process.nextTick(() => {
+              streams[1].emit('data', { result: {} });
+              streams[1].emit('end');
+              streams[1].emit('error', channelClosedError);
+            });
+          }
+        }
+      );
+
+      let settled = false;
+      const markSettled = (): void => {
+        settled = true;
+      };
+      void conn
+        .invokeStreamingRPC(
+          'RunAggregationQuery',
+          ResourcePath.emptyPath(),
+          {},
+          null,
+          null
+        )
+        .then(markSettled, markSettled);
+      void conn
+        .invokeStreamingRPC(
+          'RunAggregationQuery',
+          ResourcePath.emptyPath(),
+          {},
+          null,
+          null,
+          /*expectedResponseCount=*/ 1
+        )
+        .then(markSettled, markSettled);
+
+      conn.terminate();
+      await flushAsync();
+      expect(settled).toBe(false);
+    });
+
+    it('ignores in-flight invokeRPC error and success callbacks during and after terminate()', async () => {
+      const callbacks: Array<(err: unknown, resp?: unknown) => void> = [];
+      const conn = createConnectionWithStub(
+        class {
+          Commit(
+            _req: unknown,
+            _metadata: Metadata,
+            callback: (err: unknown, resp?: unknown) => void
+          ): void {
+            callbacks.push(callback);
+          }
+          close(): void {
+            callbacks[0]?.(channelClosedError);
+            process.nextTick(() => {
+              callbacks[1]?.(undefined, { writeResults: [] });
+            });
+          }
+        }
+      );
+
+      let settled = false;
+      const markSettled = (): void => {
+        settled = true;
+      };
+      void conn
+        .invokeRPC('Commit', ResourcePath.emptyPath(), {}, null, null)
+        .then(markSettled, markSettled);
+      void conn
+        .invokeRPC('Commit', ResourcePath.emptyPath(), {}, null, null)
+        .then(markSettled, markSettled);
+
+      conn.terminate();
+      await flushAsync();
+      expect(settled).toBe(false);
+    });
+
+    it('closes active stub once and does not recreate a stub for RPCs or streams after terminate()', async () => {
+      const closeSpy = vi.fn();
+      let constructorCalls = 0;
+      const conn = createConnectionWithStub(
+        class {
+          constructor() {
+            constructorCalls += 1;
+          }
+          Commit(
+            _req: unknown,
+            _metadata: Metadata,
+            callback: (err: unknown, resp?: unknown) => void
+          ): void {
+            callback(undefined, {});
+          }
+          close(): void {
+            closeSpy();
+          }
+        }
+      );
+
+      await conn.invokeRPC('Commit', ResourcePath.emptyPath(), {}, null, null);
+      expect(constructorCalls).toBe(1);
+
+      conn.terminate();
+      conn.terminate();
+      expect(closeSpy).toHaveBeenCalledTimes(1);
+
+      let settled = false;
+      const markSettled = (): void => {
+        settled = true;
+      };
+      void conn
+        .invokeRPC('Commit', ResourcePath.emptyPath(), {}, null, null)
+        .then(markSettled, markSettled);
+      void conn
+        .invokeStreamingRPC(
+          'RunAggregationQuery',
+          ResourcePath.emptyPath(),
+          {},
+          null,
+          null
+        )
+        .then(markSettled, markSettled);
+
+      let streamOpened = false;
+      const stream = conn.openStream('Listen', null, null);
+      stream.onOpen(() => {
+        streamOpened = true;
+      });
+      stream.send({});
+      stream.close();
+
+      await new Promise(resolve => setTimeout(resolve, 0));
+      expect(constructorCalls).toBe(1);
+      expect(settled).toBe(false);
+      expect(streamOpened).toBe(false);
     });
   });
 });

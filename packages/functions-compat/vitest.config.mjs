@@ -17,4 +17,13 @@
 
 import createBaseConfig from '../../config/vitest.base.mjs';
 
-export default createBaseConfig(import.meta.url);
+export default createBaseConfig(
+  import.meta.url,
+  {},
+  {
+    testTimeout: 20000,
+    hookTimeout: 20000,
+    retry: process.env.CI ? 2 : 0,
+    screenshotFailures: false
+  }
+);

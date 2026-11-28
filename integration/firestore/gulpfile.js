@@ -45,6 +45,7 @@ function copyTests() {
         testBase + '/integration/util/composite_index_test_helper.ts',
         testBase + '/integration/util/events_accumulator.ts',
         testBase + '/integration/util/helpers.ts',
+        testBase + '/integration/util/pipeline_assertions.ts',
         testBase + '/integration/util/pipeline_helpers.ts',
         testBase + '/integration/util/settings.ts',
         testBase + '/integration/util/testing_hooks_util.ts',

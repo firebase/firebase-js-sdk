@@ -16,7 +16,6 @@
  */
 
 import type * as firestore from '@firebase/firestore-types';
-import { expect } from 'chai';
 
 import { Deferred } from './promise';
 
@@ -44,7 +43,7 @@ export class EventsAccumulator<
   };
 
   awaitEvents(length: number): Promise<T[]> {
-    expect(this.deferred).to.equal(null, 'Already waiting for events.');
+    expect(this.deferred, 'Already waiting for events.').toBe(null);
     this.waitingFor = length;
     this.deferred = new Deferred<T[]>();
     const promise = this.deferred.promise;

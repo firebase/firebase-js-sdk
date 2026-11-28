@@ -97,9 +97,11 @@ describe('Performance Monitoring > remote_config_service', () => {
       .mockResolvedValue(new Response('{}'));
 
     if (fetchConfig) {
-      fetchConfig.reject
-        ? fetchStub.mockRejectedValue(new Error('Network error'))
-        : fetchStub.mockResolvedValue(fetchConfig.value);
+      if (fetchConfig.reject) {
+        fetchStub.mockRejectedValue(new Error('Network error'));
+      } else if (fetchConfig.value) {
+        fetchStub.mockResolvedValue(fetchConfig.value);
+      }
     }
 
     vi.spyOn(consoleLogger, 'info').mockImplementation(() => {});

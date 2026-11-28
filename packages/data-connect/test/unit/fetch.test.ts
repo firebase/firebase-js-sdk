@@ -15,17 +15,11 @@
  * limitations under the License.
  */
 
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
-
 import { CallerSdkType, CallerSdkTypeEnum } from '../../src/network';
 import { dcFetch, initializeFetch } from '../../src/network/rest';
-use(chaiAsPromised);
-use(sinonChai);
-function mockFetch(json: object, reject: boolean): sinon.SinonStub {
-  const fakeFetchImpl = sinon.stub().returns(
+
+function mockFetch(json: object, reject: boolean): ReturnType<typeof vi.fn> {
+  const fakeFetchImpl = vi.fn().mockReturnValue(
     Promise.resolve({
       json: () => {
         return Promise.resolve(json);
@@ -36,7 +30,12 @@ function mockFetch(json: object, reject: boolean): sinon.SinonStub {
   initializeFetch(fakeFetchImpl);
   return fakeFetchImpl;
 }
+
 describe('fetch', () => {
+  afterEach(() => {
+    initializeFetch(globalThis.fetch);
+  });
+
   it('should throw an error with just the message when the server responds with an error with a message property in the body', async () => {
     const message = 'Failed to connect to Postgres instance';
     mockFetch(
@@ -65,7 +64,7 @@ describe('fetch', () => {
         CallerSdkTypeEnum.Base,
         false
       )
-    ).to.eventually.be.rejectedWith(message);
+    ).rejects.toThrow(message);
   });
   it('should throw a stringified message when the server responds with an error without a message property in the body', async () => {
     const message = 'Failed to connect to Postgres instance';
@@ -90,7 +89,7 @@ describe('fetch', () => {
         CallerSdkTypeEnum.Base,
         false
       )
-    ).to.eventually.be.rejectedWith(JSON.stringify(json));
+    ).rejects.toThrow(JSON.stringify(json));
   });
   it('should throw a stringified message when the server responds with an error without a message property in the body', async () => {
     const json = {
@@ -122,9 +121,11 @@ describe('fetch', () => {
         CallerSdkTypeEnum.Base,
         false
       )
-    ).to.eventually.be.rejected.then(error => {
-      expect(error.response.data).to.eq(json.data);
-      expect(error.response.errors).to.eq(json.errors);
+    ).rejects.toMatchObject({
+      response: {
+        data: json.data,
+        errors: json.errors
+      }
     });
   });
   it('should assign different values to custom headers based on the _callerSdkType argument (_isUsingGen is false)', async () => {
@@ -164,15 +165,14 @@ describe('fetch', () => {
         } else {
           expectedHeaderRegex = RegExp(`js\/${callerSdkType.toLowerCase()}`);
         }
-        expect(
-          fakeFetchImpl.calledWithMatch(
-            'http://localhost',
-            sinon.match.hasNested(
-              'headers.X-Goog-Api-Client',
-              sinon.match(expectedHeaderRegex)
-            )
-          )
-        ).to.be.true;
+        expect(fakeFetchImpl).toHaveBeenLastCalledWith(
+          'http://localhost',
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              'X-Goog-Api-Client': expect.stringMatching(expectedHeaderRegex)
+            })
+          })
+        );
       }
     }
   });
@@ -213,15 +213,14 @@ describe('fetch', () => {
         } else {
           expectedHeaderRegex = RegExp(`js\/${callerSdkType.toLowerCase()}`);
         }
-        expect(
-          fakeFetchImpl.calledWithMatch(
-            'http://localhost',
-            sinon.match.hasNested(
-              'headers.X-Goog-Api-Client',
-              sinon.match(expectedHeaderRegex)
-            )
-          )
-        ).to.be.true;
+        expect(fakeFetchImpl).toHaveBeenLastCalledWith(
+          'http://localhost',
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              'X-Goog-Api-Client': expect.stringMatching(expectedHeaderRegex)
+            })
+          })
+        );
       }
     }
   });
@@ -246,9 +245,9 @@ describe('fetch', () => {
       CallerSdkTypeEnum.Base,
       true
     );
-    expect(fakeFetchImpl).to.have.been.calledWithMatch(
+    expect(fakeFetchImpl).toHaveBeenCalledWith(
       'https://abc.cloudworkstations.dev',
-      { credentials: 'include' }
+      expect.objectContaining({ credentials: 'include' })
     );
   });
 });

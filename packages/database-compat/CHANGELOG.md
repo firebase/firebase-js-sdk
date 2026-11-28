@@ -1,5 +1,12 @@
 # @firebase/database-compat
 
+## 2.1.8
+
+### Patch Changes
+
+- Updated dependencies [[`79c5c47`](https://github.com/firebase/firebase-js-sdk/commit/79c5c4755e4c29aee493105c4876ac42477ae2a3), [`96fb62c`](https://github.com/firebase/firebase-js-sdk/commit/96fb62ce1050c6a1371a7a84762cb48877d541d9)]:
+  - @firebase/database@1.1.6
+
 ## 2.1.7
 
 ### Patch Changes

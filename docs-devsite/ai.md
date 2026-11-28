@@ -140,6 +140,7 @@ The Firebase AI Web SDK.
 |  [SingleSpeakerSpeechConfig](./ai.singlespeakerspeechconfig.md#singlespeakerspeechconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for speech synthesis for a single speaker. |
 |  [SlidingWindow](./ai.slidingwindow.md#slidingwindow_interface) | <b><i>(Public Preview)</i></b> Configures the sliding window context compression mechanism. |
 |  [SpeakerVoiceConfig](./ai.speakervoiceconfig.md#speakervoiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for a single speaker's voice. |
+|  [SpeechMetadata](./ai.speechmetadata.md#speechmetadata_interface) | <b><i>(Public Preview)</i></b> Structured speech metadata associated with a [TextPart](./ai.textpart.md#textpart_interface)<!-- -->.<!-- -->Used to guide speech generation for a specific piece of text, such as identifying which speaker says it and the vocal style they should use. |
 |  [StartAudioConversationOptions](./ai.startaudioconversationoptions.md#startaudioconversationoptions_interface) | <b><i>(Public Preview)</i></b> Options for [startAudioConversation()](./ai.md#startaudioconversation_01c8e7f)<!-- -->. |
 |  [StartChatParams](./ai.startchatparams.md#startchatparams_interface) | Params for [GenerativeModel.startChat()](./ai.generativemodel.md#generativemodelstartchat)<!-- -->. |
 |  [StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface) | <b><i>(Public Preview)</i></b> Parameters for starting a template-based chat session with [TemplateGenerativeModel.startChat()](./ai.templategenerativemodel.md#templategenerativemodelstartchat)<!-- -->. |
@@ -250,6 +251,10 @@ export declare function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 [AI](./ai.ai.md#ai_interface)
 
 The default [AI](./ai.ai.md#ai_interface) instance for the given [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->.
+
+#### Exceptions
+
+If `options.useLimitedUseAppCheckTokens` conflicts with the options of the existing [AI](./ai.ai.md#ai_interface) instance for the same app and backend.
 
 ### Example 1
 
@@ -440,6 +445,7 @@ AIErrorCode: {
     readonly SESSION_CLOSED: "session-closed";
     readonly INVALID_CONTENT: "invalid-content";
     readonly API_NOT_ENABLED: "api-not-enabled";
+    readonly ALREADY_INITIALIZED: "already-initialized";
     readonly INVALID_SCHEMA: "invalid-schema";
     readonly NO_API_KEY: "no-api-key";
     readonly NO_APP_ID: "no-app-id";

@@ -96,11 +96,11 @@ export function mapGenerateContentRequest(
 export function mapGenerateContentResponse(
   googleAIResponse: GoogleAIGenerateContentResponse
 ): GenerateContentResponse {
-  const generateContentResponse = {
+  const generateContentResponse: GenerateContentResponse = {
     candidates: googleAIResponse.candidates
       ? mapGenerateContentCandidates(googleAIResponse.candidates)
       : undefined,
-    prompt: googleAIResponse.promptFeedback
+    promptFeedback: googleAIResponse.promptFeedback
       ? mapPromptFeedback(googleAIResponse.promptFeedback)
       : undefined,
     usageMetadata: googleAIResponse.usageMetadata
@@ -207,7 +207,9 @@ export function mapPromptFeedback(
 ): PromptFeedback {
   // Assign missing SafetyRating properties to their defaults if undefined.
   const mappedSafetyRatings: SafetyRating[] = [];
-  promptFeedback.safetyRatings.forEach(safetyRating => {
+  // `safetyRatings` is a repeated field, so the backend omits it entirely when
+  // it is empty (e.g. PROHIBITED_CONTENT, BLOCKLIST, or OTHER blocks).
+  (promptFeedback.safetyRatings ?? []).forEach(safetyRating => {
     mappedSafetyRatings.push({
       category: safetyRating.category,
       probability: safetyRating.probability,

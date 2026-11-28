@@ -16,11 +16,6 @@
  */
 
 import { deleteApp, FirebaseApp, initializeApp } from '@firebase/app';
-import { expect } from 'chai';
-import * as chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
-import sinonChai from 'sinon-chai';
 
 import {
   Code,
@@ -40,13 +35,9 @@ import {
 import { DataConnectTransportManager } from '../../src/network/manager';
 import { RESTTransport } from '../../src/network/rest';
 import { AbstractDataConnectStreamTransport } from '../../src/network/stream/streamTransport';
-import { WebSocketTransport } from '../../src/network/stream/websocket';
 import { DataConnectStreamRequest } from '../../src/network/stream/wire';
 
 import { MockWebSocket } from './testUtils';
-
-chai.use(sinonChai);
-chai.use(chaiAsPromised);
 
 /** Interface that exposes private fields of DataConnect for testing purposes. */
 interface DataConnectWithInternals {
@@ -100,29 +91,39 @@ interface StreamTransportWithInternals {
   streamIsReady: boolean;
 }
 
+interface StubStreamTransport {
+  invokeQuery: ReturnType<typeof vi.fn>;
+  invokeMutation: ReturnType<typeof vi.fn>;
+  invokeSubscribe: ReturnType<typeof vi.fn>;
+  invokeUnsubscribe: ReturnType<typeof vi.fn>;
+  useEmulator: ReturnType<typeof vi.fn>;
+  onAuthTokenChanged: ReturnType<typeof vi.fn>;
+  hasActiveSubscriptions: boolean;
+}
+
 describe('Streaming & Query Layer Integration', () => {
   let dc: DataConnect;
   let app: FirebaseApp;
-  let stubStreamTransport: sinon.SinonStubbedInstance<WebSocketTransport>;
-  let initStreamTransportStub: sinon.SinonStub;
+  let stubStreamTransport: StubStreamTransport;
+  let initStreamTransportStub: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     stubStreamTransport = {
-      invokeQuery: sinon.stub(),
-      invokeMutation: sinon.stub(),
-      invokeSubscribe: sinon.stub(),
-      invokeUnsubscribe: sinon.stub(),
-      useEmulator: sinon.stub(),
-      onAuthTokenChanged: sinon.stub(),
+      invokeQuery: vi.fn(),
+      invokeMutation: vi.fn(),
+      invokeSubscribe: vi.fn(),
+      invokeUnsubscribe: vi.fn(),
+      useEmulator: vi.fn(),
+      onAuthTokenChanged: vi.fn(),
       hasActiveSubscriptions: false
-    } as unknown as sinon.SinonStubbedInstance<WebSocketTransport>;
+    };
 
-    initStreamTransportStub = sinon
-      .stub(
+    initStreamTransportStub = vi
+      .spyOn(
         DataConnectTransportManager.prototype as unknown as ManagerWithInternals,
         'initStreamTransport'
       )
-      .callsFake(function (this: ManagerWithInternals) {
+      .mockImplementation(function (this: ManagerWithInternals) {
         this.streamTransport =
           stubStreamTransport as unknown as StreamTransportWithInternals;
         return stubStreamTransport as unknown as AbstractDataConnectStreamTransport;
@@ -140,7 +141,6 @@ describe('Streaming & Query Layer Integration', () => {
   afterEach(async () => {
     await dc._delete();
     await deleteApp(app);
-    sinon.restore();
   });
 
   const testVariables = { foo: 'bar' };
@@ -159,23 +159,23 @@ describe('Streaming & Query Layer Integration', () => {
         testVariables
       );
 
-      void executeQuery(q);
-      expect(initStreamTransportStub).to.not.have.been.called;
-      void executeMutation(m);
-      expect(initStreamTransportStub).to.not.have.been.called;
+      executeQuery(q).catch(() => {});
+      expect(initStreamTransportStub).not.toHaveBeenCalled();
+      executeMutation(m).catch(() => {});
+      expect(initStreamTransportStub).not.toHaveBeenCalled();
     });
 
     it('subscribe should initialize stream', async () => {
       const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
       subscribe(q, () => {});
-      expect(initStreamTransportStub).to.have.been.calledOnce;
-      expect(stubStreamTransport.invokeSubscribe).to.have.been.calledOnce;
+      expect(initStreamTransportStub).toHaveBeenCalledTimes(1);
+      expect(stubStreamTransport.invokeSubscribe).toHaveBeenCalledTimes(1);
     });
 
     it('query layer should call invokeUnsubscribe on last unsubscribe', async () => {
-      const onNextSpy1 = sinon.spy();
-      const onNextSpy2 = sinon.spy();
-      const onNextSpy3 = sinon.spy();
+      const onNextSpy1 = vi.fn();
+      const onNextSpy2 = vi.fn();
+      const onNextSpy3 = vi.fn();
       const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
 
       const unsub1 = subscribe(q, onNextSpy1);
@@ -183,11 +183,12 @@ describe('Streaming & Query Layer Integration', () => {
       const unsub3 = subscribe(q, onNextSpy3);
 
       unsub1();
-      expect(stubStreamTransport.invokeUnsubscribe).to.not.have.been.called;
+      expect(stubStreamTransport.invokeUnsubscribe).not.toHaveBeenCalled();
       unsub2();
-      expect(stubStreamTransport.invokeUnsubscribe).to.not.have.been.called;
+      expect(stubStreamTransport.invokeUnsubscribe).not.toHaveBeenCalled();
       unsub3();
-      expect(stubStreamTransport.invokeUnsubscribe).to.have.been.calledOnceWith(
+      expect(stubStreamTransport.invokeUnsubscribe).toHaveBeenCalledTimes(1);
+      expect(stubStreamTransport.invokeUnsubscribe).toHaveBeenCalledWith(
         queryName,
         testVariables
       );
@@ -196,22 +197,20 @@ describe('Streaming & Query Layer Integration', () => {
     it('executeQuery should use stream when stream is active', async () => {
       const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
 
-      stubStreamTransport.invokeQuery.resolves({
+      stubStreamTransport.invokeQuery.mockResolvedValue({
         data: testData,
         errors: [],
         extensions: {}
       });
 
       // stub preferCacheResults to avoid race condition where subscribe calls invokeQuery asynchronously
-      sinon
-        .stub(
-          (dc as unknown as DataConnectWithInternals)._queryManager,
-          'preferCacheResults'
-        )
-        .resolves({ data: testData, source: 'CACHE' } as QueryResult<
-          TestData,
-          TestVariables
-        >);
+      vi.spyOn(
+        (dc as unknown as DataConnectWithInternals)._queryManager,
+        'preferCacheResults'
+      ).mockResolvedValue({ data: testData, source: 'CACHE' } as QueryResult<
+        TestData,
+        TestVariables
+      >);
 
       // open a subscription to activate the stream
       subscribe(q, { onNext: () => {} });
@@ -225,15 +224,16 @@ describe('Streaming & Query Layer Integration', () => {
       ).streamIsReady = true;
 
       // reset history because subscribe might have triggered calls before stub was active or otherwise
-      stubStreamTransport.invokeQuery.resetHistory();
+      stubStreamTransport.invokeQuery.mockClear();
 
       const result = await executeQuery(q, { fetchPolicy: 'SERVER_ONLY' });
 
-      expect(stubStreamTransport.invokeQuery).to.have.been.calledOnceWith(
+      expect(stubStreamTransport.invokeQuery).toHaveBeenCalledTimes(1);
+      expect(stubStreamTransport.invokeQuery).toHaveBeenCalledWith(
         queryName,
         testVariables
       );
-      expect(result.data).to.deep.equal(testData);
+      expect(result.data).toEqual(testData);
     });
 
     it('executeMutation should use stream when stream is active', async () => {
@@ -255,7 +255,7 @@ describe('Streaming & Query Layer Integration', () => {
         stubStreamTransport as unknown as StreamTransportWithInternals
       ).streamIsReady = true;
 
-      stubStreamTransport.invokeMutation.resolves({
+      stubStreamTransport.invokeMutation.mockResolvedValue({
         data: testData,
         errors: [],
         extensions: {}
@@ -263,11 +263,12 @@ describe('Streaming & Query Layer Integration', () => {
 
       const result = await executeMutation(m);
 
-      expect(stubStreamTransport.invokeMutation).to.have.been.calledOnceWith(
+      expect(stubStreamTransport.invokeMutation).toHaveBeenCalledTimes(1);
+      expect(stubStreamTransport.invokeMutation).toHaveBeenCalledWith(
         'testMutation',
         testVariables
       );
-      expect(result.data).to.deep.equal(testData);
+      expect(result.data).toEqual(testData);
     });
   });
 
@@ -283,47 +284,47 @@ describe('Streaming & Query Layer Integration', () => {
         'otherQuery',
         { foo: 'xyz' }
       );
-      const relevantSpy1 = sinon.spy();
-      const relevantSpy2 = sinon.spy();
-      const relevantSpy3 = sinon.spy();
-      const irrelevantSpy = sinon.spy();
+      const relevantSpy1 = vi.fn();
+      const relevantSpy2 = vi.fn();
+      const relevantSpy3 = vi.fn();
+      const irrelevantSpy = vi.fn();
       subscribe(relevantQuery, relevantSpy1);
       subscribe(relevantQuery, relevantSpy2);
       subscribe(relevantQuery, relevantSpy3);
       subscribe(irrelevantQuery, irrelevantSpy);
 
       // get the query layer's observer was passed to invokeSubscribe
-      const observer = stubStreamTransport.invokeSubscribe.firstCall.args[0];
+      const observer = stubStreamTransport.invokeSubscribe.mock.calls[0][0];
 
       // call the observer with data
       await observer.onData({ data: testData, errors: [], extensions: {} });
 
-      expect(relevantSpy1.calledOnce).to.be.true;
-      expect(relevantSpy2.calledOnce).to.be.true;
-      expect(relevantSpy3.calledOnce).to.be.true;
-      expect(irrelevantSpy).to.not.have.been.called;
-      const result1 = relevantSpy1.firstCall.args[0];
-      const result2 = relevantSpy2.firstCall.args[0];
-      const result3 = relevantSpy3.firstCall.args[0];
-      expect(result1.data).to.deep.equal(testData);
-      expect(result2.data).to.deep.equal(testData);
-      expect(result3.data).to.deep.equal(testData);
+      expect(relevantSpy1.mock.calls.length === 1).toBe(true);
+      expect(relevantSpy2.mock.calls.length === 1).toBe(true);
+      expect(relevantSpy3.mock.calls.length === 1).toBe(true);
+      expect(irrelevantSpy).not.toHaveBeenCalled();
+      const result1 = relevantSpy1.mock.calls[0][0];
+      const result2 = relevantSpy2.mock.calls[0][0];
+      const result3 = relevantSpy3.mock.calls[0][0];
+      expect(result1.data).toEqual(testData);
+      expect(result2.data).toEqual(testData);
+      expect(result3.data).toEqual(testData);
     });
 
     it('should update cache when data is pushed', async () => {
       const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
-      const onNextSpy = sinon.spy();
+      const onNextSpy = vi.fn();
       subscribe(q, onNextSpy);
 
       // get the query layer's observer which was passed to invokeSubscribe
-      const observer = stubStreamTransport.invokeSubscribe.firstCall.args[0];
+      const observer = stubStreamTransport.invokeSubscribe.mock.calls[0][0];
 
       // call the observer with data
       await observer.onData({ data: testData, errors: [], extensions: {} });
 
       // verify CACHE_ONLY executions see the data returned from the observer
       const cacheResult1 = await executeQuery(q, { fetchPolicy: 'CACHE_ONLY' });
-      expect(cacheResult1.data).to.deep.equal(testData);
+      expect(cacheResult1.data).toEqual(testData);
 
       // simulate second notification
       const newData: TestData = { abc: 'NEW DATA' };
@@ -331,7 +332,7 @@ describe('Streaming & Query Layer Integration', () => {
 
       // verify CACHE_ONLY again
       const cacheResult2 = await executeQuery(q, { fetchPolicy: 'CACHE_ONLY' });
-      expect(cacheResult2.data).to.deep.equal(newData);
+      expect(cacheResult2.data).toEqual(newData);
     });
 
     it('should notify all relevant subscribers of errors when they are pushed', async () => {
@@ -346,10 +347,10 @@ describe('Streaming & Query Layer Integration', () => {
         'otherQuery',
         newVars
       );
-      const relevantSpy1 = sinon.spy();
-      const relevantSpy2 = sinon.spy();
-      const relevantSpy3 = sinon.spy();
-      const irrelevantSpy = sinon.spy();
+      const relevantSpy1 = vi.fn();
+      const relevantSpy2 = vi.fn();
+      const relevantSpy3 = vi.fn();
+      const irrelevantSpy = vi.fn();
 
       subscribe(relevantQuery, { onNext: () => {}, onErr: relevantSpy1 });
       subscribe(relevantQuery, { onNext: () => {}, onErr: relevantSpy2 });
@@ -357,7 +358,7 @@ describe('Streaming & Query Layer Integration', () => {
       subscribe(irrelevantQuery, { onNext: () => {}, onErr: irrelevantSpy });
 
       // get the query layer's observer which was passed to invokeSubscribe
-      const observer = stubStreamTransport.invokeSubscribe.firstCall.args[0];
+      const observer = stubStreamTransport.invokeSubscribe.mock.calls[0][0];
 
       // call the observer with errors
       const expectedError = new Error('test error');
@@ -367,44 +368,44 @@ describe('Streaming & Query Layer Integration', () => {
         extensions: {}
       });
 
-      expect(relevantSpy1.calledOnce).to.be.true;
-      expect(relevantSpy2.calledOnce).to.be.true;
-      expect(relevantSpy3.calledOnce).to.be.true;
-      expect(irrelevantSpy).to.not.have.been.called;
-      const result1 = relevantSpy1.firstCall.args[0];
-      const result2 = relevantSpy2.firstCall.args[0];
-      const result3 = relevantSpy3.firstCall.args[0];
-      expect(result1).to.be.an.instanceOf(Error);
-      expect(result1.message).to.include(
+      expect(relevantSpy1.mock.calls.length === 1).toBe(true);
+      expect(relevantSpy2.mock.calls.length === 1).toBe(true);
+      expect(relevantSpy3.mock.calls.length === 1).toBe(true);
+      expect(irrelevantSpy).not.toHaveBeenCalled();
+      const result1 = relevantSpy1.mock.calls[0][0];
+      const result2 = relevantSpy2.mock.calls[0][0];
+      const result3 = relevantSpy3.mock.calls[0][0];
+      expect(result1).toBeInstanceOf(Error);
+      expect(result1.message).toContain(
         'DataConnect error received from subscribe notification'
       );
-      expect(result2).to.be.an.instanceOf(Error);
-      expect(result2.message).to.include(
+      expect(result2).toBeInstanceOf(Error);
+      expect(result2.message).toContain(
         'DataConnect error received from subscribe notification'
       );
-      expect(result3).to.be.an.instanceOf(Error);
-      expect(result3.message).to.include(
+      expect(result3).toBeInstanceOf(Error);
+      expect(result3.message).toContain(
         'DataConnect error received from subscribe notification'
       );
     });
 
     it('should clean up subscriptions in query layer when observer receives a disconnect error', async () => {
       const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
-      const onNextSpy = sinon.spy();
-      const onErrSpy = sinon.spy();
+      const onNextSpy = vi.fn();
+      const onErrSpy = vi.fn();
 
       subscribe(q, { onNext: onNextSpy, onErr: onErrSpy });
 
       const notificationObserver =
-        stubStreamTransport.invokeSubscribe.firstCall.args[0];
+        stubStreamTransport.invokeSubscribe.mock.calls[0][0];
 
       await notificationObserver.onDisconnect(
         Code.OTHER,
         'WebSocket disconnected externally'
       );
 
-      expect(onErrSpy).to.have.been.calledOnce;
-      expect(stubStreamTransport.invokeUnsubscribe).to.have.been.calledOnce;
+      expect(onErrSpy).toHaveBeenCalledTimes(1);
+      expect(stubStreamTransport.invokeUnsubscribe).toHaveBeenCalledTimes(1);
 
       // Call observer again with data, should not reach subscriber because it was cleaned up
       await notificationObserver.onData({
@@ -412,17 +413,17 @@ describe('Streaming & Query Layer Integration', () => {
         errors: [],
         extensions: {}
       });
-      expect(onNextSpy).to.not.have.been.called;
+      expect(onNextSpy).not.toHaveBeenCalled();
     });
 
     it('should NOT clean up subscriptions in query layer when observer receives a non-disconnect error', async () => {
       const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
-      const onNextSpy = sinon.spy();
-      const onErrSpy = sinon.spy();
+      const onNextSpy = vi.fn();
+      const onErrSpy = vi.fn();
 
       subscribe(q, { onNext: onNextSpy, onErr: onErrSpy });
 
-      const observer = stubStreamTransport.invokeSubscribe.firstCall.args[0];
+      const observer = stubStreamTransport.invokeSubscribe.mock.calls[0][0];
 
       const expectedError = new Error('test error');
       await observer.onData({
@@ -431,16 +432,16 @@ describe('Streaming & Query Layer Integration', () => {
         extensions: {}
       });
 
-      expect(onErrSpy).to.have.been.calledOnce;
+      expect(onErrSpy).toHaveBeenCalledTimes(1);
 
       // Call observer again with data, should STILL reach subscriber because it was NOT cleaned up
       const testData: TestData = { abc: 'new data' };
       await observer.onData({ data: testData, errors: [], extensions: {} });
-      expect(onNextSpy).to.have.been.calledOnce;
-      expect(onNextSpy.firstCall.args[0].data).to.deep.equal(testData);
+      expect(onNextSpy).toHaveBeenCalledTimes(1);
+      expect(onNextSpy.mock.calls[0][0].data).toEqual(testData);
 
       // Verify that invokeUnsubscribe was NOT called
-      expect(stubStreamTransport.invokeUnsubscribe).to.not.have.been.called;
+      expect(stubStreamTransport.invokeUnsubscribe).not.toHaveBeenCalled();
     });
   });
 });

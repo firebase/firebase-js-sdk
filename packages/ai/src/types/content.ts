@@ -63,6 +63,10 @@ export interface UnknownPart {
    * Applicable if `inlineData` is a video.
    */
   videoMetadata?: VideoMetadata;
+  /**
+   * Structured speech metadata used to guide speech generation for this text.
+   */
+  speechMetadata?: SpeechMetadata;
 }
 
 /**
@@ -77,6 +81,33 @@ export interface TextPart {
    * @internal
    */
   thoughtSignature?: string;
+  /**
+   * Structured speech metadata used to guide speech generation for this text.
+   *
+   * @beta
+   */
+  speechMetadata?: SpeechMetadata;
+}
+
+/**
+ * Structured speech metadata associated with a {@link TextPart}.
+ *
+ * Used to guide speech generation for a specific piece of text, such as identifying which speaker
+ * says it and the vocal style they should use.
+ *
+ * @beta
+ */
+export interface SpeechMetadata {
+  /**
+   * Identifies which speaker is speaking this turn. When using a
+   * {@link MultiSpeakerVoiceConfig}, this should match the {@link SpeakerVoiceConfig.speaker} of
+   * one of the configured speakers.
+   */
+  speaker?: string;
+  /**
+   * A natural language description of the vocal style (such as `"cheerful"`).
+   */
+  style?: string;
 }
 
 /**

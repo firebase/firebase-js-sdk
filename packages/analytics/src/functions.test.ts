@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import type { MockInstance } from 'vitest';
+import type { Mock } from 'vitest';
 import {
   setCurrentScreen,
   logEvent,
@@ -37,7 +37,7 @@ const fakeMeasurementId = 'abcd-efgh-ijkl';
 const fakeInitializationPromise = Promise.resolve(fakeMeasurementId);
 
 describe('FirebaseAnalytics methods', () => {
-  const gtagStub: MockInstance = vi.fn();
+  const gtagStub: Mock<Gtag> = vi.fn();
 
   it('logEvent() calls gtag function correctly', async () => {
     await logEvent(gtagStub, fakeInitializationPromise, 'add_to_cart', {
