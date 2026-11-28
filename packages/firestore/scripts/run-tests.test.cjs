@@ -16,49 +16,39 @@
  */
 
 const assert = require('node:assert/strict');
-const { readFileSync } = require('node:fs');
+const { spawnSync } = require('node:child_process');
 const path = require('node:path');
 const { test } = require('node:test');
-const vm = require('node:vm');
-const yargs = require('yargs/yargs');
-
-const source = readFileSync(path.join(__dirname, 'run-tests.js'), 'utf8');
 
 function launch(args) {
-  const calls = [];
-  const env = {};
-  const childProcess = { kill: () => {} };
-  const promise = Promise.resolve();
-  promise.childProcess = childProcess;
-  vm.runInNewContext(source, {
-    __dirname,
-    exports: {},
-    console,
-    require(name) {
-      if (name === 'yargs') {
-        return yargs(args);
-      }
-      if (name === 'child-process-promise') {
-        return {
-          spawn(executable, argv, options) {
-            calls.push({ executable, args: Array.from(argv), options });
-            return promise;
-          }
-        };
-      }
-      return require(name);
-    },
-    process: {
+  const env = { ...process.env };
+  for (const key of [
+    'TEST_PLATFORM',
+    'FIRESTORE_TARGET_BACKEND',
+    'USE_MOCK_PERSISTENCE',
+    'FIRESTORE_TARGET_DB_ID',
+    'RUN_ENTERPRISE_TESTS'
+  ]) {
+    delete env[key];
+  }
+  const child = spawnSync(
+    process.execPath,
+    [
+      '--require',
+      path.join(__dirname, 'run-tests.fixture.cjs'),
+      path.join(__dirname, 'run-tests.js'),
+      ...args
+    ],
+    {
+      cwd: path.resolve(__dirname, '..'),
       env,
-      cwd: () => __dirname,
-      once: () => {},
-      exit(code) {
-        throw new Error(`Unexpected process exit: ${code}`);
-      }
+      encoding: 'utf8',
+      timeout: 10000
     }
-  });
-  assert.equal(calls.length, 1);
-  return { ...calls[0], env };
+  );
+  assert.ifError(child.error);
+  assert.equal(child.status, 0, child.stderr);
+  return JSON.parse(child.stdout);
 }
 
 for (const [platform, project] of [
