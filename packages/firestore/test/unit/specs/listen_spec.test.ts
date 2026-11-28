@@ -467,6 +467,19 @@ describeSpec('Listens:', [], () => {
       .expectEvents(query1, { added: [docB] });
   });
 
+  specTest('Redundant enableNetwork() keeps the watch stream', [], () => {
+    const query1 = query('collection');
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    return spec()
+      .userListens(query1)
+      .expectWatchStreamRequestCount(1)
+      .enableNetwork()
+      .enableNetwork()
+      .expectWatchStreamRequestCount(1)
+      .watchAcksFull(query1, 1000, docA)
+      .expectEvents(query1, { added: [docA] });
+  });
+
   specTest('Synthesizes deletes for missing document', [], () => {
     const collQuery = query('collection');
     const docQuery = query('collection/a');
