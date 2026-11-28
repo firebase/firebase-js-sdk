@@ -46,7 +46,7 @@ import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { AuthErrorCode } from '../errors';
 import { PasswordValidationStatus } from '../../model/public_types';
 import { PasswordPolicyImpl } from './password_policy_impl';
-import { MockInstance } from 'vitest';
+import { Mock, MockInstance } from 'vitest';
 const FAKE_APP: FirebaseApp = {
   name: 'test-app',
   options: {
@@ -122,7 +122,7 @@ describe('core/auth/auth_impl', () => {
       });
 
       persistenceStub._set.mockImplementation(() => {
-        return new Promise(resolve => {
+        return new Promise<void>(resolve => {
           // Force into the async flow to make this test actually meaningful
           setTimeout(() => resolve(), 1);
         });
@@ -279,9 +279,9 @@ describe('core/auth/auth_impl', () => {
 
     describe('user logs in/out, tokens refresh', () => {
       let user: UserInternal;
-      let authStateCallback: MockInstance;
-      let idTokenCallback: MockInstance;
-      let beforeAuthCallback: MockInstance;
+      let authStateCallback: Mock;
+      let idTokenCallback: Mock;
+      let beforeAuthCallback: Mock;
 
       beforeEach(() => {
         user = testUser(auth, 'uid');
@@ -480,7 +480,7 @@ describe('core/auth/auth_impl', () => {
 
       it('_updateCurrentUser throws if a beforeAuthStateChange callback rejects', async () => {
         await auth._updateCurrentUser(null);
-        const cb1 = vi.fn().mockRejectedValue();
+        const cb1 = vi.fn().mockRejectedValue(undefined);
         const cb2 = vi.fn();
         auth.beforeAuthStateChanged(cb1);
         auth.beforeAuthStateChanged(cb2);
@@ -494,9 +494,9 @@ describe('core/auth/auth_impl', () => {
   });
 
   describe('#_onStorageEvent', () => {
-    let authStateCallback: MockInstance;
-    let idTokenCallback: MockInstance;
-    let beforeStateCallback: MockInstance;
+    let authStateCallback: Mock;
+    let idTokenCallback: Mock;
+    let beforeStateCallback: Mock;
 
     beforeEach(async () => {
       authStateCallback = vi.fn();
@@ -1274,6 +1274,160 @@ describe('core/auth/auth_impl', () => {
       expect(authImpl._isInitialized).toBe(true);
       expect(authImpl.currentUser).toBeNull();
       await expect(authImpl.authStateReady()).resolves.not.toThrow();
+    });
+
+    it('falls back to secondary persistence and fires onAuthStateChanged when primary persistence fails all operations', async () => {
+      vi.spyOn(reload, '_reloadWithoutSaving').mockResolvedValue();
+      const authImpl = new AuthImpl(
+        FAKE_APP,
+        FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+        FAKE_APP_CHECK_CONTROLLER_PROVIDER,
+        {
+          apiKey: FAKE_APP.options.apiKey!,
+          apiHost: DefaultConfig.API_HOST,
+          apiScheme: DefaultConfig.API_SCHEME,
+          tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+          clientPlatform: ClientPlatform.BROWSER,
+          sdkClientVersion: 'v'
+        }
+      );
+
+      const expectedUser = testUser(authImpl, 'persisted-fallback-uid');
+      const brokenPrimary: PersistenceInternal = {
+        type: PersistenceType.LOCAL,
+        _isAvailable: () => Promise.reject(new Error('IndexedDB blocked')),
+        _set: () => Promise.reject(new Error('IndexedDB blocked')),
+        _get: () => Promise.reject(new Error('IndexedDB blocked')),
+        _remove: () => Promise.reject(new Error('IndexedDB blocked')),
+        _addListener: () => {
+          throw new Error('IndexedDB blocked');
+        },
+        _removeListener: () => {},
+        _shouldAllowMigration: true
+      };
+      const workingFallback: PersistenceInternal = {
+        type: PersistenceType.LOCAL,
+        _isAvailable: async () => true,
+        _set: async () => {},
+        _get: async <T>() => expectedUser.toJSON() as unknown as T,
+        _remove: async () => {},
+        _addListener: () => {},
+        _removeListener: () => {},
+        _shouldAllowMigration: true
+      };
+
+      const stateSpy = vi.fn();
+      const initPromise = authImpl._initializeWithPersistence([
+        brokenPrimary,
+        workingFallback
+      ]);
+      authImpl.onAuthStateChanged(stateSpy);
+
+      await initPromise;
+      await authImpl.authStateReady();
+
+      expect(authImpl._isInitialized).toBe(true);
+      expect(authImpl.currentUser?.uid).toBe('persisted-fallback-uid');
+      expect(stateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ uid: 'persisted-fallback-uid' })
+      );
+    });
+
+    it('preserves loaded currentUser and fires onAuthStateChanged when persistence _get succeeds but _set fails during init (#10540)', async () => {
+      vi.spyOn(reload, '_reloadWithoutSaving').mockResolvedValue();
+      const authImpl = new AuthImpl(
+        FAKE_APP,
+        FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+        FAKE_APP_CHECK_CONTROLLER_PROVIDER,
+        {
+          apiKey: FAKE_APP.options.apiKey!,
+          apiHost: DefaultConfig.API_HOST,
+          apiScheme: DefaultConfig.API_SCHEME,
+          tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+          clientPlatform: ClientPlatform.BROWSER,
+          sdkClientVersion: 'v'
+        }
+      );
+
+      const expectedUser = testUser(authImpl, 'readonly-loaded-uid');
+      const removeSpy = vi.fn().mockRejectedValue(new Error('DB_TIMEOUT'));
+      const readOnlyBlockedPersistence: PersistenceInternal = {
+        type: PersistenceType.LOCAL,
+        _isAvailable: async () => false,
+        _set: () => Promise.reject(new Error('DB_TIMEOUT')),
+        _get: async <T>() => expectedUser.toJSON() as unknown as T,
+        _remove: removeSpy,
+        _addListener: () => {},
+        _removeListener: () => {},
+        _shouldAllowMigration: true
+      };
+
+      const stateSpy = vi.fn();
+      const initPromise = authImpl._initializeWithPersistence([
+        readOnlyBlockedPersistence
+      ]);
+      authImpl.onAuthStateChanged(stateSpy);
+
+      await initPromise;
+      await authImpl.authStateReady();
+
+      expect(authImpl._isInitialized).toBe(true);
+      expect((authImpl as any).persistenceManager.persistence).toBe(
+        readOnlyBlockedPersistence
+      );
+      expect(authImpl.currentUser?.uid).toBe('readonly-loaded-uid');
+      expect(removeSpy).not.toHaveBeenCalled();
+      expect(stateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ uid: 'readonly-loaded-uid' })
+      );
+    });
+
+    it('clears currentUser to null and fires onAuthStateChanged(null) when user is invalidated during init even if _remove fails', async () => {
+      const authImpl = new AuthImpl(
+        FAKE_APP,
+        FAKE_HEARTBEAT_CONTROLLER_PROVIDER,
+        FAKE_APP_CHECK_CONTROLLER_PROVIDER,
+        {
+          apiKey: FAKE_APP.options.apiKey!,
+          apiHost: DefaultConfig.API_HOST,
+          apiScheme: DefaultConfig.API_SCHEME,
+          tokenApiHost: DefaultConfig.TOKEN_API_HOST,
+          clientPlatform: ClientPlatform.BROWSER,
+          sdkClientVersion: 'v'
+        }
+      );
+      vi.spyOn(reload, '_reloadWithoutSaving').mockRejectedValue(
+        authImpl._errorFactory.create(AuthErrorCode.TOKEN_EXPIRED, {
+          appName: FAKE_APP.name
+        })
+      );
+
+      const invalidatedUser = testUser(authImpl, 'invalidated-uid');
+      const removeSpy = vi.fn().mockRejectedValue(new Error('DB_TIMEOUT'));
+      const readOnlyBlockedPersistence: PersistenceInternal = {
+        type: PersistenceType.LOCAL,
+        _isAvailable: async () => false,
+        _set: () => Promise.reject(new Error('DB_TIMEOUT')),
+        _get: async <T>() => invalidatedUser.toJSON() as unknown as T,
+        _remove: removeSpy,
+        _addListener: () => {},
+        _removeListener: () => {},
+        _shouldAllowMigration: true
+      };
+
+      const stateSpy = vi.fn();
+      const initPromise = authImpl._initializeWithPersistence([
+        readOnlyBlockedPersistence
+      ]);
+      authImpl.onAuthStateChanged(stateSpy);
+
+      await initPromise;
+      await authImpl.authStateReady();
+
+      expect(authImpl._isInitialized).toBe(true);
+      expect(authImpl.currentUser).toBeNull();
+      expect(removeSpy).toHaveBeenCalledTimes(1);
+      expect(stateSpy).toHaveBeenCalledWith(null);
     });
   });
 

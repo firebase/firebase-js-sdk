@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { base64 } from '../src/crypt';
 import { createMockUserToken, EmulatorMockTokenOptions } from '../src/emulator';
 

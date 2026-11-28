@@ -29,7 +29,9 @@ import {
   initializeV3,
   initializeEnterprise,
   getToken,
-  GreCAPTCHATopLevel
+  GreCAPTCHATopLevel,
+  RECAPTCHA_URL,
+  RECAPTCHA_ENTERPRISE_URL
 } from './recaptcha';
 import {
   clearState,
@@ -77,9 +79,18 @@ describe('recaptcha', () => {
         return fakeRecaptcha;
       });
 
+      const srcSetter = vi.spyOn(HTMLScriptElement.prototype, 'src', 'set');
+
       expect(findgreCAPTCHAScriptsOnPage().length).toBe(0);
       await initializeV3(app, FAKE_SITE_KEY);
-      expect(findgreCAPTCHAScriptsOnPage().length).toBe(1);
+      const scripts = findgreCAPTCHAScriptsOnPage();
+      expect(scripts.length).toBe(1);
+      expect(scripts[0].src).toBe(RECAPTCHA_URL);
+      if (typeof window.TrustedScriptURL !== 'undefined') {
+        expect(srcSetter).toHaveBeenCalledWith(
+          expect.any(window.TrustedScriptURL)
+        );
+      }
     });
 
     it('creates invisible widget', async () => {
@@ -124,9 +135,20 @@ describe('recaptcha', () => {
         return fakeRecaptcha;
       });
 
+      const srcSetter = vi.spyOn(HTMLScriptElement.prototype, 'src', 'set');
+
       expect(findgreCAPTCHAScriptsOnPage().length).toBe(0);
       await initializeEnterprise(app, FAKE_SITE_KEY);
-      expect(findgreCAPTCHAScriptsOnPage().length).toBe(1);
+      const scripts = findgreCAPTCHAScriptsOnPage();
+      expect(scripts.length).toBe(1);
+      expect(scripts[0].src).toBe(
+        `${RECAPTCHA_ENTERPRISE_URL}?render=explicit`
+      );
+      if (typeof window.TrustedScriptURL !== 'undefined') {
+        expect(srcSetter).toHaveBeenCalledWith(
+          expect.any(window.TrustedScriptURL)
+        );
+      }
     });
 
     it('creates invisible widget', async () => {

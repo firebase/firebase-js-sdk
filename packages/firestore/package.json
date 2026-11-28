@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "4.19.0",
+  "version": "4.20.0",
   "engines": {
     "node": ">=24.12.0"
   },
@@ -139,8 +139,8 @@
     "@firebase/logger": "0.5.2",
     "@firebase/util": "1.15.3",
     "@firebase/webchannel-wrapper": "1.0.7",
-    "@grpc/grpc-js": "~1.9.0",
-    "@grpc/proto-loader": "^0.7.8",
+    "@grpc/grpc-js": "~1.14.7",
+    "@grpc/proto-loader": "^0.8.0",
     "re2js": "^2.8.3",
     "tslib": "^2.1.0"
   },
@@ -148,13 +148,12 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.16.4",
-    "@firebase/app-compat": "0.5.20",
-    "@firebase/auth": "1.13.8",
+    "@firebase/app": "0.16.7",
+    "@firebase/app-compat": "0.5.23",
+    "@firebase/auth": "1.13.11",
     "@js-temporal/polyfill": "0.5.1",
     "@rollup/plugin-alias": "5.1.1",
     "@rollup/plugin-json": "6.1.0",
-    "chai-exclude": "2.1.1",
     "json-stable-stringify": "1.2.1",
     "protobufjs": "7.6.6",
     "rollup": "4.62.2",

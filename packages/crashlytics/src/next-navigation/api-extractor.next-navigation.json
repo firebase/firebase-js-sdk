@@ -1,0 +1,16 @@
+{
+  "extends": "../../../../config/api-extractor.json",
+  "mainEntryPointFilePath": "<projectFolder>/dist/next-navigation/index.d.ts",
+  "dtsRollup": {
+    "enabled": false
+  },
+  "docModel": {
+    "apiJsonFilePath": "<projectFolder>/temp/crashlytics-next-navigation.api.json"
+  },
+  "apiReport": {
+    "enabled": false
+  },
+  "bundledPackages": [
+    "next"
+  ]
+}

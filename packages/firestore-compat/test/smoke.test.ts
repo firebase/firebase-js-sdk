@@ -16,7 +16,6 @@
  */
 
 import type * as firestore from '@firebase/firestore-types';
-import { expect } from 'chai';
 
 import { EventsAccumulator } from './util/events_accumulator';
 import * as integrationHelpers from './util/helpers';
@@ -45,7 +44,7 @@ apiDescribe('Smoke Test', (persistence: boolean) => {
           return ref.get();
         })
         .then((doc: firestore.DocumentSnapshot) => {
-          expect(doc.data()).to.deep.equal(data);
+          expect(doc.data()).toEqual(data);
         });
     });
   });
@@ -62,12 +61,12 @@ apiDescribe('Smoke Test', (persistence: boolean) => {
           })
           .then((doc: firestore.DocumentSnapshot) => {
             const recv = doc.data()!;
-            expect(recv['message']).to.deep.equal(data.message);
+            expect(recv['message']).toEqual(data.message);
             const user = recv['user'];
             // Make sure it looks like a DocumentRef.
-            expect(user.set).to.be.an.instanceof(Function);
-            expect(user.onSnapshot).to.be.an.instanceof(Function);
-            expect(user.id).to.deep.equal(ref2.id);
+            expect(user.set).toBeInstanceOf(Function);
+            expect(user.onSnapshot).toBeInstanceOf(Function);
+            expect(user.id).toEqual(ref2.id);
           });
       });
     });
@@ -91,8 +90,8 @@ apiDescribe('Smoke Test', (persistence: boolean) => {
           return accum
             .awaitEvent()
             .then(docSnap => {
-              expect(docSnap.exists).to.equal(true);
-              expect(docSnap.data()).to.deep.equal(data);
+              expect(docSnap.exists).toBe(true);
+              expect(docSnap.data()).toEqual(data);
             })
             .then(() => unlisten());
         });
@@ -110,9 +109,9 @@ apiDescribe('Smoke Test', (persistence: boolean) => {
         return accum
           .awaitEvent()
           .then(querySnap => {
-            expect(querySnap.empty).to.equal(true);
-            expect(querySnap.size).to.equal(0);
-            expect(querySnap.docs.length).to.equal(0);
+            expect(querySnap.empty).toBe(true);
+            expect(querySnap.size).toBe(0);
+            expect(querySnap.docs.length).toBe(0);
           })
           .then(() => unlisten());
       }
@@ -130,9 +129,9 @@ apiDescribe('Smoke Test', (persistence: boolean) => {
     };
     return integrationHelpers.withTestCollection(persistence, testDocs, ref => {
       return ref.get().then(result => {
-        expect(result.empty).to.equal(false);
-        expect(result.size).to.equal(3);
-        expect(integrationHelpers.toDataArray(result)).to.deep.equal([
+        expect(result.empty).toBe(false);
+        expect(result.size).toBe(3);
+        expect(integrationHelpers.toDataArray(result)).toEqual([
           testDocs[1],
           testDocs[2],
           testDocs[3]
@@ -157,7 +156,7 @@ apiDescribe('Smoke Test', (persistence: boolean) => {
       coll => {
         const query = coll.where('filter', '==', true).orderBy('sort', 'desc');
         return query.get().then(result => {
-          expect(integrationHelpers.toDataArray(result)).to.deep.equal([
+          expect(integrationHelpers.toDataArray(result)).toEqual([
             testDocs[2],
             testDocs[3],
             testDocs[1]

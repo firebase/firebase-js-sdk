@@ -29,6 +29,7 @@ import pkg from '../package.json' with { type: 'json' };
 import compatPkg from './package.json' with { type: 'json' };
 import appPkg from './app/package.json' with { type: 'json' };
 import { emitModulePackageFile } from '../../../scripts/build/rollup_emit_module_package_file.js';
+import { transpileJs } from '../../../scripts/build/rollup_transpile_js.js';
 
 const __dirname = import.meta.dirname;
 
@@ -95,6 +96,13 @@ const typescriptPluginCDN = rollupTypescriptPlugin({
 });
 
 /**
+ * Transpiles the JavaScript modules in the CDN bundles, mostly third-party
+ * dependencies, to the tsconfig target, so the bundles don't contain newer
+ * syntax than that target.
+ */
+const transpileJsPlugin = transpileJs();
+
+/**
  * Individual Component Builds
  */
 const appBuilds = [
@@ -148,7 +156,12 @@ const appBuilds = [
       format: 'umd',
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, typescriptPluginCDN, uglify(uglifyOptions)]
+    plugins: [
+      ...plugins,
+      typescriptPluginCDN,
+      transpileJsPlugin,
+      uglify(uglifyOptions)
+    ]
   }
 ];
 
@@ -216,7 +229,12 @@ const componentBuilds = compatPkg.components
       {
         input: `${__dirname}/${component}/index.ts`,
         output: createUmdOutputConfig(`firebase-${component}-compat.js`),
-        plugins: [...plugins, typescriptPluginCDN, uglify(uglifyOptions)],
+        plugins: [
+          ...plugins,
+          typescriptPluginCDN,
+          transpileJsPlugin,
+          uglify(uglifyOptions)
+        ],
         external: ['@firebase/app-compat', '@firebase/app']
       }
     ];
@@ -250,7 +268,12 @@ const completeBuilds = [
       sourcemap: true,
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, typescriptPluginCDN, uglify(uglifyOptions)]
+    plugins: [
+      ...plugins,
+      typescriptPluginCDN,
+      transpileJsPlugin,
+      uglify(uglifyOptions)
+    ]
   },
   /**
    * App Node.js Builds
@@ -304,6 +327,7 @@ const completeBuilds = [
       }),
       json({ preferConst: true }),
       commonjs(),
+      transpileJsPlugin,
       terser()
     ]
   }

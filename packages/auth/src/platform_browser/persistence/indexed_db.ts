@@ -47,6 +47,24 @@ const DB_VERSION = 1;
 const DB_OBJECTSTORE_NAME = 'firebaseLocalStorage';
 const DB_DATA_KEYPATH = 'fbase_key';
 
+export const _POLLING_INTERVAL_MS = 800;
+export const _TRANSACTION_RETRY_COUNT = 3;
+/**
+ * Short timeout scoped to the `readwrite` availability probe in `_isAvailable()`.
+ * Matches `_POLLING_INTERVAL_MS` so that if a background tab is suspended while
+ * holding a `readonly` poll transaction that blocks `readwrite` transactions
+ * (#10540), the startup probe fails fast and aborts its queued transaction in
+ * under a second without blocking fallback or user loading.
+ */
+export const _DB_PROBE_TIMEOUT_MS = 800;
+/**
+ * Timeout for opening the database and regular IndexedDB read/write requests.
+ * Kept at multiple seconds to accommodate cold `indexedDB.open()` or slow disk
+ * I/O on low-end devices without premature timeouts.
+ */
+export const _DB_TIMEOUT_MS = 2500;
+const DB_TIMEOUT_ERROR = 'DB_TIMEOUT';
+
 interface DBObject {
   [DB_DATA_KEYPATH]: string;
   value: PersistedBlob;
@@ -61,13 +79,32 @@ interface DBObject {
 class DBPromise<T> {
   constructor(private readonly request: IDBRequest) {}
 
-  toPromise(): Promise<T> {
+  toPromise(timeoutMs = _DB_TIMEOUT_MS): Promise<T> {
     return new Promise<T>((resolve, reject) => {
+      let settled = false;
+      const timer = setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          try {
+            this.request.transaction?.abort();
+          } catch {}
+          reject(new Error(DB_TIMEOUT_ERROR));
+        }
+      }, timeoutMs);
+
       this.request.addEventListener('success', () => {
-        resolve(this.request.result);
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          resolve(this.request.result);
+        }
       });
       this.request.addEventListener('error', () => {
-        reject(this.request.error);
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          reject(this.request.error);
+        }
       });
     });
   }
@@ -92,8 +129,20 @@ export function _deleteDatabase(): Promise<void> {
 export function _openDatabase(): Promise<IDBDatabase> {
   const request = indexedDB.open(DB_NAME, DB_VERSION);
   return new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        reject(new Error(DB_TIMEOUT_ERROR));
+      }
+    }, _DB_TIMEOUT_MS);
+
     request.addEventListener('error', () => {
-      reject(request.error);
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
+        reject(request.error);
+      }
     });
 
     request.addEventListener('upgradeneeded', () => {
@@ -102,12 +151,21 @@ export function _openDatabase(): Promise<IDBDatabase> {
       try {
         db.createObjectStore(DB_OBJECTSTORE_NAME, { keyPath: DB_DATA_KEYPATH });
       } catch (e) {
-        reject(e);
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          reject(e);
+        }
       }
     });
 
     request.addEventListener('success', async () => {
       const db: IDBDatabase = request.result;
+      if (settled) {
+        db.close();
+        return;
+      }
+      clearTimeout(timer);
       // Strange bug that occurs in Firefox when multiple tabs are opened at the
       // same time. The only way to recover seems to be deleting the database
       // and re-initializing it.
@@ -116,9 +174,22 @@ export function _openDatabase(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(DB_OBJECTSTORE_NAME)) {
         // Need to close the database or else you get a `blocked` event
         db.close();
-        await _deleteDatabase();
-        resolve(await _openDatabase());
+        try {
+          // Note: if `deleteDatabase` is `blocked` by another tab's open connection and
+          // times out (`DB_TIMEOUT_ERROR`), `request.transaction` is null so the browser
+          // keeps the delete request queued until all blocking connections close.
+          await _deleteDatabase();
+          const reopenedDb = await _openDatabase();
+          settled = true;
+          resolve(reopenedDb);
+        } catch (e) {
+          if (!settled) {
+            settled = true;
+            reject(e);
+          }
+        }
       } else {
+        settled = true;
         resolve(db);
       }
     });
@@ -128,13 +199,14 @@ export function _openDatabase(): Promise<IDBDatabase> {
 export async function _putObject(
   db: IDBDatabase,
   key: string,
-  value: PersistenceValue | string
+  value: PersistenceValue | string,
+  timeoutMs = _DB_TIMEOUT_MS
 ): Promise<void> {
   const request = getObjectStore(db, true).put({
     [DB_DATA_KEYPATH]: key,
     value
   });
-  return new DBPromise<void>(request).toPromise();
+  return new DBPromise<void>(request).toPromise(timeoutMs);
 }
 
 async function getObject(
@@ -146,13 +218,14 @@ async function getObject(
   return data === undefined ? null : data.value;
 }
 
-export function _deleteObject(db: IDBDatabase, key: string): Promise<void> {
+export function _deleteObject(
+  db: IDBDatabase,
+  key: string,
+  timeoutMs = _DB_TIMEOUT_MS
+): Promise<void> {
   const request = getObjectStore(db, true).delete(key);
-  return new DBPromise<void>(request).toPromise();
+  return new DBPromise<void>(request).toPromise(timeoutMs);
 }
-
-export const _POLLING_INTERVAL_MS = 800;
-export const _TRANSACTION_RETRY_COUNT = 3;
 
 class IndexedDBLocalPersistence implements InternalPersistence {
   static type: 'LOCAL' = 'LOCAL';
@@ -168,6 +241,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   private pollTimer: any | null = null;
   private isClosing = false;
   private pendingWrites = 0;
+  _lastProbeTimedOut = false;
 
   private receiver: Receiver | null = null;
   private sender: Sender | null = null;
@@ -227,31 +301,44 @@ class IndexedDBLocalPersistence implements InternalPersistence {
     if (this.dbPromise) {
       return this.dbPromise;
     }
-    this.dbPromise = _openDatabase();
-    this.dbPromise.catch(() => {
-      this.dbPromise = null;
+    const dbPromise = _openDatabase();
+    this.dbPromise = dbPromise;
+    dbPromise.catch(() => {
+      if (this.dbPromise === dbPromise) {
+        this.dbPromise = null;
+      }
     });
-    return this.dbPromise;
+    return dbPromise;
   }
 
   async _withRetries<T>(op: (db: IDBDatabase) => Promise<T>): Promise<T> {
     let numAttempts = 0;
 
     while (true) {
+      let db: IDBDatabase | undefined;
+      let dbPromiseBeforeOp: Promise<IDBDatabase> | null = null;
       try {
-        const db = await this._openDb();
+        const openPromise = this._openDb();
+        dbPromiseBeforeOp = this.dbPromise;
+        db = await openPromise;
         return await op(db);
       } catch (e) {
-        if (numAttempts++ > _TRANSACTION_RETRY_COUNT) {
-          throw e;
-        }
-        if (this.dbPromise) {
-          const dbPromise = this.dbPromise;
+        if (db) {
+          db.close();
+          if (dbPromiseBeforeOp && this.dbPromise === dbPromiseBeforeOp) {
+            this.dbPromise = null;
+          }
+        } else if (this.dbPromise && this.dbPromise === dbPromiseBeforeOp) {
+          const currentDbPromise = this.dbPromise;
           this.dbPromise = null;
           try {
-            const db = await dbPromise;
-            db.close();
+            const openedDb = await currentDbPromise;
+            openedDb.close();
           } catch {}
+        }
+        const isTimeout = e instanceof Error && e.message === DB_TIMEOUT_ERROR;
+        if (isTimeout || numAttempts++ > _TRANSACTION_RETRY_COUNT) {
+          throw e;
         }
         // TODO: consider adding exponential backoff
       }
@@ -353,16 +440,20 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   }
 
   async _isAvailable(): Promise<boolean> {
+    this._lastProbeTimedOut = false;
     try {
       if (!indexedDB) {
         return false;
       }
       await this._withRetries(async (db: IDBDatabase) => {
-        await _putObject(db, STORAGE_AVAILABLE_KEY, '1');
-        await _deleteObject(db, STORAGE_AVAILABLE_KEY);
+        await _putObject(db, STORAGE_AVAILABLE_KEY, '1', _DB_PROBE_TIMEOUT_MS);
+        await _deleteObject(db, STORAGE_AVAILABLE_KEY, _DB_PROBE_TIMEOUT_MS);
       });
       return true;
-    } catch {}
+    } catch (e) {
+      this._lastProbeTimedOut =
+        e instanceof Error && e.message === DB_TIMEOUT_ERROR;
+    }
     return false;
   }
 
@@ -384,11 +475,22 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   }
 
   async _get<T extends PersistenceValue>(key: string): Promise<T | null> {
-    const obj = (await this._withRetries((db: IDBDatabase) =>
-      getObject(db, key)
-    )) as T;
-    this.localCache[key] = obj;
-    return obj;
+    try {
+      const obj = (await this._withRetries((db: IDBDatabase) =>
+        getObject(db, key)
+      )) as T;
+      this.localCache[key] = obj;
+      return obj;
+    } catch (e) {
+      if (
+        e instanceof Error &&
+        e.message === DB_TIMEOUT_ERROR &&
+        this.localCache[key] != null
+      ) {
+        return this.localCache[key] as T;
+      }
+      throw e;
+    }
   }
 
   async _remove(key: string): Promise<void> {
@@ -487,8 +589,10 @@ class IndexedDBLocalPersistence implements InternalPersistence {
     }
     if (!this.listeners[key]) {
       this.listeners[key] = new Set();
-      // Populate the cache to avoid spuriously triggering on first poll.
-      void this._get(key).catch(() => {}); // This can happen in the background async and we can return immediately.
+      if (!(key in this.localCache)) {
+        // Populate the cache to avoid spuriously triggering on first poll.
+        void this._get(key).catch(() => {}); // This can happen in the background async and we can return immediately.
+      }
     }
     this.listeners[key].add(listener);
   }

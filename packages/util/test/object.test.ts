@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { deepEqual } from '../src/obj';
 
 describe('deepEqual()', () => {

@@ -100,7 +100,7 @@ describe('platform_browser/recaptcha/recaptcha_mock', () => {
 
     describe('#getResponse', () => {
       it('returns the result from the widget if available', () => {
-        (widget.getResponse as MockInstance).mockReturnValue('widget-result');
+        vi.mocked(widget.getResponse).mockReturnValue('widget-result');
         rc._widgets.set(_WIDGET_ID_START, widget);
         expect(rc.getResponse()).toBe('widget-result');
       });

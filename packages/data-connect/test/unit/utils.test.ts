@@ -16,7 +16,6 @@
  */
 
 import { deleteApp, initializeApp, FirebaseApp } from '@firebase/app';
-import { expect } from 'chai';
 
 import { getDataConnect } from '../../src';
 import { validateArgs } from '../../src/util/validateArgs';
@@ -32,17 +31,17 @@ describe('Utils', () => {
     const connectorConfig = { connector: 'c', location: 'l', service: 's' };
     expect(() =>
       validateArgs(connectorConfig, undefined, undefined, true)
-    ).to.throw('Variables required');
+    ).toThrow('Variables required');
   });
   it('[vars required: false, vars provided: false] should return data connect instance and no variables', () => {
     const connectorConfig = { connector: 'c', location: 'l', service: 's' };
     const dc = getDataConnect(app, connectorConfig);
-    expect(validateArgs(connectorConfig)).to.deep.eq({ dc, vars: undefined });
+    expect(validateArgs(connectorConfig)).toEqual({ dc, vars: undefined });
   });
   it('[vars required: false, vars provided: false, data connect provided: true] should return data connect instance and no variables', () => {
     const connectorConfig = { connector: 'c', location: 'l', service: 's' };
     const dc = getDataConnect(app, connectorConfig);
-    expect(validateArgs(connectorConfig, dc)).to.deep.eq({
+    expect(validateArgs(connectorConfig, dc)).toEqual({
       dc,
       vars: undefined
     });
@@ -51,6 +50,6 @@ describe('Utils', () => {
     const connectorConfig = { connector: 'c', location: 'l', service: 's' };
     const dc = getDataConnect(app, connectorConfig);
     const vars = { a: 1 };
-    expect(validateArgs(connectorConfig, dc, vars)).to.deep.eq({ dc, vars });
+    expect(validateArgs(connectorConfig, dc, vars)).toEqual({ dc, vars });
   });
 });

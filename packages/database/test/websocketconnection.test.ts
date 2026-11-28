@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { APPLICATION_ID_PARAM } from '../src/realtime/Constants';
 import { WebSocketConnection } from '../src/realtime/WebSocketConnection';
 
@@ -32,7 +30,7 @@ describe('WebSocketConnection', () => {
       applicationId
     );
     const searchParams = new URL(websocketConnection.connURL).searchParams;
-    expect(searchParams.get(APPLICATION_ID_PARAM)).to.equal(applicationId);
+    expect(searchParams.get(APPLICATION_ID_PARAM)).toBe(applicationId);
   });
   it('should not add an applicationId to the query parameter if applicationId is empty', () => {
     const repoInfo = testRepoInfo('https://test-ns.firebaseio.com');
@@ -43,6 +41,6 @@ describe('WebSocketConnection', () => {
       applicationId
     );
     const searchParams = new URL(websocketConnection.connURL).searchParams;
-    expect(searchParams.get(APPLICATION_ID_PARAM)).to.be.null;
+    expect(searchParams.get(APPLICATION_ID_PARAM)).toBeNull();
   });
 });

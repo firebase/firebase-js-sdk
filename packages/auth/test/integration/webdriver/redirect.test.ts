@@ -16,12 +16,9 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import {
-  OperationType,
-  UserCredential,
-  User,
-  OAuthCredential
-} from '@firebase/auth';
+import { OperationType } from '@firebase/auth';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import type { UserCredential, User, OAuthCredential } from '@firebase/auth';
 import { IdPPage } from './util/idp_page';
 import { browserDescribe } from './util/test_runner';
 import {
@@ -31,7 +28,6 @@ import {
   MiddlewareFunction,
   RedirectFunction
 } from './util/functions';
-import { JsLoadCondition } from './util/js_load_condition';
 import { START_FUNCTION } from './util/auth_driver';
 
 browserDescribe('WebDriver redirect IdP test', driver => {
@@ -44,7 +40,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
 
   it('allows users to sign in', async () => {
     await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
 
     // We're now on the widget page; wait for load
     await widget.pageLoad();
@@ -72,15 +68,10 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     expect(await driver.call(RedirectFunction.REDIRECT_RESULT)).toBeNull();
   });
 
-  // Redirect works with middleware for now
-  it('is blocked by middleware', async ctx => {
-    if (driver.isCompatLayer()) {
-      console.warn('Skipping middleware tests in compat');
-      ctx.skip();
-    }
-
+  // Redirect works with middleware for now (compat layer doesn't support middleware)
+  it.skipIf(driver.isCompatLayer())('is blocked by middleware', async () => {
     await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
 
     // We're now on the widget page; wait for load
     await widget.pageLoad();
@@ -90,7 +81,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     await widget.fillScreenName('bob.test');
     await widget.fillProfilePhoto('http://bob.test/bob.png');
     await widget.clickSignIn();
-    await driver.webDriver.wait(new JsLoadCondition(START_FUNCTION));
+    await driver.waitForGlobal(START_FUNCTION);
     await driver.call(MiddlewareFunction.ATTACH_BLOCKING_MIDDLEWARE_ON_START);
 
     await driver.reinitOnRedirect();
@@ -108,7 +99,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
 
     // Then, link with redirect
     await driver.callNoWait(RedirectFunction.IDP_LINK_REDIRECT);
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
     await widget.pageLoad();
     await widget.clickAddAccount();
     await widget.fillEmail('bob@bob.test');
@@ -125,7 +116,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
   it('can be converted to a credential', async () => {
     // Start with redirect
     await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
     await widget.pageLoad();
     await widget.clickAddAccount();
     await widget.fillEmail('bob@bob.test');
@@ -153,7 +144,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
   it('handles account exists different credential errors', async () => {
     // Start with redirect and a verified account
     await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
     await widget.pageLoad();
     await widget.clickAddAccount();
     await widget.fillEmail('bob@bob.test');
@@ -190,7 +181,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
       AnonFunction.SIGN_IN_ANONYMOUSLY
     );
     await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
     await widget.pageLoad();
     await widget.clickAddAccount();
     await widget.fillEmail('bob@bob.test');
@@ -207,7 +198,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
       AnonFunction.SIGN_IN_ANONYMOUSLY
     );
     await driver.callNoWait(RedirectFunction.IDP_LINK_REDIRECT);
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
     await widget.pageLoad();
     await widget.clickAddAccount();
     await widget.fillEmail('bob@bob.test');
@@ -229,7 +220,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     // Link using pre-populated user
     await driver.callNoWait(RedirectFunction.IDP_LINK_REDIRECT);
 
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
     await widget.pageLoad();
     await widget.clickAddAccount();
     await widget.fillEmail('other-user@test.test');
@@ -252,7 +243,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
     // Link using pre-populated user
     await driver.callNoWait(RedirectFunction.IDP_LINK_REDIRECT);
 
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
     await widget.pageLoad();
     await widget.clickAddAccount();
     await widget.fillEmail('same@test.test');
@@ -290,7 +281,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
       await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
 
       // This time, select an existing account
-      const widget = new IdPPage(driver.webDriver);
+      const widget = new IdPPage(driver);
       await widget.pageLoad();
       await widget.selectExistingAccountByEmail(user1.email!);
 
@@ -305,7 +296,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
       // Sign in using pre-populated user
       await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
 
-      const widget = new IdPPage(driver.webDriver);
+      const widget = new IdPPage(driver);
       await widget.pageLoad();
       await widget.selectExistingAccountByEmail(user1.email!);
 
@@ -330,7 +321,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
       // Sign in using pre-populated user
       await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
 
-      const widget = new IdPPage(driver.webDriver);
+      const widget = new IdPPage(driver);
       await widget.pageLoad();
       await widget.selectExistingAccountByEmail(user1.email!);
 
@@ -348,7 +339,7 @@ browserDescribe('WebDriver redirect IdP test', driver => {
 
     it('handles aborted sign ins', async () => {
       await driver.callNoWait(RedirectFunction.IDP_REDIRECT);
-      const widget = new IdPPage(driver.webDriver);
+      const widget = new IdPPage(driver);
 
       // Don't actually sign in; go back to the previous page
       await widget.pageLoad();

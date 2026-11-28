@@ -40,7 +40,7 @@
     "yargs": "17.7.2"
   },
   "devDependencies": {
-    "@firebase/app": "0.16.4",
+    "@firebase/app": "0.16.7",
     "@firebase/logger": "0.5.2",
     "@types/webpack": "5.28.5"
   },
@@ -51,12 +51,6 @@
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
-  },
-  "nyc": {
-    "extension": [
-      ".ts"
-    ],
-    "reportDir": "./coverage/node"
   },
   "engines": {
     "node": ">=24.12.0"

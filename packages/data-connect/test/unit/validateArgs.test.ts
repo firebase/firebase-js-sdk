@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import * as sinon from 'sinon';
-
 import * as dataConnectIndex from '../../src/api/DataConnect';
 import { DataConnect, ConnectorConfig } from '../../src/api/DataConnect';
 import { Code, DataConnectError } from '../../src/core/error';
@@ -27,12 +24,14 @@ import {
   validateArgsWithOptions
 } from '../../src/util/validateArgs';
 
+vi.mock('../../src/api/DataConnect', { spy: true });
+
 interface IdVars {
   id: string;
 }
 
 describe('validateArgs()', () => {
-  let getDataConnectStub: sinon.SinonStub;
+  let getDataConnectStub: ReturnType<typeof vi.spyOn>;
 
   const connectorConfig: ConnectorConfig = {
     location: 'us-west2',
@@ -44,7 +43,7 @@ describe('validateArgs()', () => {
     app: { options: { projectId: 'my-project' } },
     dataConnectOptions: connectorConfig,
     source: 'PROVIDED',
-    enableEmulator: sinon.stub()
+    enableEmulator: vi.fn()
   } as unknown as DataConnect;
 
   const variables: IdVars = { id: 'stephenarosaj' };
@@ -57,13 +56,9 @@ describe('validateArgs()', () => {
   } as unknown as DataConnect;
 
   beforeEach(() => {
-    getDataConnectStub = sinon
-      .stub(dataConnectIndex, 'getDataConnect')
-      .returns(stubDcInstance);
-  });
-
-  afterEach(() => {
-    getDataConnectStub.restore();
+    getDataConnectStub = vi
+      .spyOn(dataConnectIndex, 'getDataConnect')
+      .mockReturnValue(stubDcInstance);
   });
 
   describe('validateArgs', () => {
@@ -74,8 +69,8 @@ describe('validateArgs()', () => {
           providedDcInstance,
           variables
         );
-        expect(dcInstance).to.deep.equal(providedDcInstance);
-        expect(inputVars).to.deep.equal(variables);
+        expect(dcInstance).toEqual(providedDcInstance);
+        expect(inputVars).toEqual(variables);
       });
 
       it('when only vars are provided (infer dc)', () => {
@@ -83,44 +78,52 @@ describe('validateArgs()', () => {
           connectorConfig,
           variables
         );
-        expect(getDataConnectStub.calledOnce).to.be.true;
-        expect(dcInstance).to.deep.equal(stubDcInstance);
-        expect(inputVars).to.deep.equal(variables);
+        expect(getDataConnectStub).toHaveBeenCalledTimes(1);
+        expect(dcInstance).toEqual(stubDcInstance);
+        expect(inputVars).toEqual(variables);
       });
 
       it('when no args are provided (infer dc)', () => {
         const { dc: dcInstance, vars: inputVars } =
           validateArgs(connectorConfig);
-        expect(getDataConnectStub.calledOnce).to.be.true;
-        expect(dcInstance).to.deep.equal(stubDcInstance);
-        expect(inputVars).to.be.undefined;
+        expect(getDataConnectStub).toHaveBeenCalledTimes(1);
+        expect(dcInstance).toEqual(stubDcInstance);
+        expect(inputVars).toBeUndefined();
       });
     });
 
     describe('should throw when vars are required but missing', () => {
       it('and dc is provided', () => {
-        expect(() => {
+        const fn = (): unknown =>
           validateArgs(
             connectorConfig,
             providedDcInstance,
             undefined,
             /** variablesRequired = */ true
           );
-        })
-          .to.throw(DataConnectError, 'Variables required')
-          .with.property('code', Code.INVALID_ARGUMENT);
+        expect(fn).toThrow(DataConnectError);
+        expect(fn).toThrow(
+          expect.objectContaining({
+            message: expect.stringContaining('Variables required'),
+            code: Code.INVALID_ARGUMENT
+          })
+        );
       });
       it('and dc is NOT provided', () => {
-        expect(() => {
+        const fn = (): unknown =>
           validateArgs(
             connectorConfig,
             undefined,
             undefined,
             /** variablesRequired = */ true
           );
-        })
-          .to.throw(DataConnectError, 'Variables required')
-          .with.property('code', Code.INVALID_ARGUMENT);
+        expect(fn).toThrow(DataConnectError);
+        expect(fn).toThrow(
+          expect.objectContaining({
+            message: expect.stringContaining('Variables required'),
+            code: Code.INVALID_ARGUMENT
+          })
+        );
       });
     });
   });
@@ -141,9 +144,9 @@ describe('validateArgs()', () => {
             /** hasVars = */ true,
             /** variablesRequired = */ false
           );
-          expect(dcInstance).to.deep.equal(providedDcInstance);
-          expect(inputVars).to.deep.equal(variables);
-          expect(inputOpts).to.deep.equal(options);
+          expect(dcInstance).toEqual(providedDcInstance);
+          expect(inputVars).toEqual(variables);
+          expect(inputOpts).toEqual(options);
         });
 
         it('when vars and options are provided (infer dc)', () => {
@@ -159,10 +162,10 @@ describe('validateArgs()', () => {
             /** hasVars = */ true,
             /** variablesRequired = */ false
           );
-          expect(getDataConnectStub.calledOnce).to.be.true;
-          expect(dcInstance).to.deep.equal(stubDcInstance);
-          expect(inputVars).to.deep.equal(variables);
-          expect(inputOpts).to.deep.equal(options);
+          expect(getDataConnectStub).toHaveBeenCalledTimes(1);
+          expect(dcInstance).toEqual(stubDcInstance);
+          expect(inputVars).toEqual(variables);
+          expect(inputOpts).toEqual(options);
         });
 
         it('when dc and vars are provided (no options)', () => {
@@ -178,9 +181,9 @@ describe('validateArgs()', () => {
             /** hasVars = */ true,
             /** variablesRequired = */ false
           );
-          expect(dcInstance).to.deep.equal(providedDcInstance);
-          expect(inputVars).to.deep.equal(variables);
-          expect(inputOpts).to.be.undefined;
+          expect(dcInstance).toEqual(providedDcInstance);
+          expect(inputVars).toEqual(variables);
+          expect(inputOpts).toBeUndefined();
         });
 
         it('when only vars are provided (no options, infer dc)', () => {
@@ -196,10 +199,10 @@ describe('validateArgs()', () => {
             /** hasVars = */ true,
             /** variablesRequired = */ false
           );
-          expect(getDataConnectStub.calledOnce).to.be.true;
-          expect(dcInstance).to.deep.equal(stubDcInstance);
-          expect(inputVars).to.deep.equal(variables);
-          expect(inputOpts).to.be.undefined;
+          expect(getDataConnectStub).toHaveBeenCalledTimes(1);
+          expect(dcInstance).toEqual(stubDcInstance);
+          expect(inputVars).toEqual(variables);
+          expect(inputOpts).toBeUndefined();
         });
 
         it('when dc and options are provided (optional vars are undefined)', () => {
@@ -215,9 +218,9 @@ describe('validateArgs()', () => {
             /** hasVars = */ true,
             /** variablesRequired = */ false
           );
-          expect(dcInstance).to.deep.equal(providedDcInstance);
-          expect(inputVars).to.be.undefined;
-          expect(inputOpts).to.deep.equal(options);
+          expect(dcInstance).toEqual(providedDcInstance);
+          expect(inputVars).toBeUndefined();
+          expect(inputOpts).toEqual(options);
         });
 
         it('when only options is provided (infer dc, optional vars are undefined)', () => {
@@ -233,9 +236,9 @@ describe('validateArgs()', () => {
             /** hasVars = */ true,
             /** variablesRequired = */ false
           );
-          expect(dcInstance).to.deep.equal(stubDcInstance);
-          expect(inputVars).to.be.undefined;
-          expect(inputOpts).to.deep.equal(options);
+          expect(dcInstance).toEqual(stubDcInstance);
+          expect(inputVars).toBeUndefined();
+          expect(inputOpts).toEqual(options);
         });
 
         it('when no args are provided (infer dc, optional vars are undefined)', () => {
@@ -251,10 +254,10 @@ describe('validateArgs()', () => {
             /** hasVars = */ true,
             /** variablesRequired = */ false
           );
-          expect(getDataConnectStub.calledOnce).to.be.true;
-          expect(dcInstance).to.deep.equal(stubDcInstance);
-          expect(inputVars).to.be.undefined;
-          expect(inputOpts).to.be.undefined;
+          expect(getDataConnectStub).toHaveBeenCalledTimes(1);
+          expect(dcInstance).toEqual(stubDcInstance);
+          expect(inputVars).toBeUndefined();
+          expect(inputOpts).toBeUndefined();
         });
       });
 
@@ -272,9 +275,9 @@ describe('validateArgs()', () => {
             /** hasVars = */ false,
             /** variablesRequired = */ false
           );
-          expect(dcInstance).to.deep.equal(providedDcInstance);
-          expect(inputVars).to.deep.equal(undefined);
-          expect(inputOpts).to.deep.equal(options);
+          expect(dcInstance).toEqual(providedDcInstance);
+          expect(inputVars).toEqual(undefined);
+          expect(inputOpts).toEqual(options);
         });
 
         it('when only dc is provided (no options)', () => {
@@ -290,9 +293,9 @@ describe('validateArgs()', () => {
             /** hasVars = */ false,
             /** variablesRequired = */ false
           );
-          expect(dcInstance).to.deep.equal(providedDcInstance);
-          expect(inputVars).to.deep.equal(undefined);
-          expect(inputOpts).to.be.undefined;
+          expect(dcInstance).toEqual(providedDcInstance);
+          expect(inputVars).toEqual(undefined);
+          expect(inputOpts).toBeUndefined();
         });
 
         it('when only options are provided (infer dc)', () => {
@@ -308,10 +311,10 @@ describe('validateArgs()', () => {
             /** hasVars = */ false,
             /** variablesRequired = */ false
           );
-          expect(getDataConnectStub.calledOnce).to.be.true;
-          expect(dcInstance).to.deep.equal(stubDcInstance);
-          expect(inputVars).to.deep.equal(undefined);
-          expect(inputOpts).to.deep.equal(options);
+          expect(getDataConnectStub).toHaveBeenCalledTimes(1);
+          expect(dcInstance).toEqual(stubDcInstance);
+          expect(inputVars).toEqual(undefined);
+          expect(inputOpts).toEqual(options);
         });
 
         it('when no args are provided (infer dc)', () => {
@@ -327,17 +330,17 @@ describe('validateArgs()', () => {
             /** hasVars = */ false,
             /** variablesRequired = */ false
           );
-          expect(getDataConnectStub.calledOnce).to.be.true;
-          expect(dcInstance).to.deep.equal(stubDcInstance);
-          expect(inputVars).to.be.undefined;
-          expect(inputOpts).to.be.undefined;
+          expect(getDataConnectStub).toHaveBeenCalledTimes(1);
+          expect(dcInstance).toEqual(stubDcInstance);
+          expect(inputVars).toBeUndefined();
+          expect(inputOpts).toBeUndefined();
         });
       });
     });
 
     describe('should throw when vars are required but missing', () => {
       it('and only dc is provided', () => {
-        expect(() => {
+        const fn = (): unknown =>
           validateArgsWithOptions(
             connectorConfig,
             providedDcInstance,
@@ -346,13 +349,17 @@ describe('validateArgs()', () => {
             /** hasVars = */ true,
             /** variablesRequired = */ true
           );
-        })
-          .to.throw(DataConnectError, 'Variables required')
-          .with.property('code', Code.INVALID_ARGUMENT);
+        expect(fn).toThrow(DataConnectError);
+        expect(fn).toThrow(
+          expect.objectContaining({
+            message: expect.stringContaining('Variables required'),
+            code: Code.INVALID_ARGUMENT
+          })
+        );
       });
 
       it('and only options is provided', () => {
-        expect(() => {
+        const fn = (): unknown =>
           validateArgsWithOptions(
             connectorConfig,
             undefined,
@@ -361,13 +368,17 @@ describe('validateArgs()', () => {
             /** hasVars = */ true,
             /** variablesRequired = */ true
           );
-        })
-          .to.throw(DataConnectError, 'Variables required')
-          .with.property('code', Code.INVALID_ARGUMENT);
+        expect(fn).toThrow(DataConnectError);
+        expect(fn).toThrow(
+          expect.objectContaining({
+            message: expect.stringContaining('Variables required'),
+            code: Code.INVALID_ARGUMENT
+          })
+        );
       });
 
       it('and dc and options is provided', () => {
-        expect(() => {
+        const fn = (): unknown =>
           validateArgsWithOptions(
             connectorConfig,
             providedDcInstance,
@@ -376,13 +387,17 @@ describe('validateArgs()', () => {
             /** hasVars = */ true,
             /** variablesRequired = */ true
           );
-        })
-          .to.throw(DataConnectError, 'Variables required')
-          .with.property('code', Code.INVALID_ARGUMENT);
+        expect(fn).toThrow(DataConnectError);
+        expect(fn).toThrow(
+          expect.objectContaining({
+            message: expect.stringContaining('Variables required'),
+            code: Code.INVALID_ARGUMENT
+          })
+        );
       });
 
       it('and nothing is provided', () => {
-        expect(() => {
+        const fn = (): unknown =>
           validateArgsWithOptions(
             connectorConfig,
             undefined,
@@ -391,9 +406,13 @@ describe('validateArgs()', () => {
             /** hasVars = */ true,
             /** variablesRequired = */ true
           );
-        })
-          .to.throw(DataConnectError, 'Variables required')
-          .with.property('code', Code.INVALID_ARGUMENT);
+        expect(fn).toThrow(DataConnectError);
+        expect(fn).toThrow(
+          expect.objectContaining({
+            message: expect.stringContaining('Variables required'),
+            code: Code.INVALID_ARGUMENT
+          })
+        );
       });
     });
   });

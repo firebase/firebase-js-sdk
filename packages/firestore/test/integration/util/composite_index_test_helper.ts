@@ -43,8 +43,6 @@ import {
   _AutoId,
   // @ts-ignore internal API usage
   _FieldPath,
-  newTestFirestore,
-  newTestApp,
   collection
 } from './firebase_export';
 import {
@@ -52,13 +50,14 @@ import {
   checkOnlineAndOfflineResultsMatch,
   PERSISTENCE_MODE_UNSPECIFIED,
   PersistenceMode,
-  toIds
+  toIds,
+  withTestDbsSettings
 } from './helpers';
 import {
   COMPOSITE_INDEX_TEST_COLLECTION,
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS,
-  TARGET_DB_ID
+  getRunEnterpriseTests
 } from './settings';
 
 /**
@@ -76,6 +75,7 @@ import {
  */
 export class CompositeIndexTestHelper {
   private readonly testId: string;
+  private readonly collectionId: string;
   private readonly TEST_ID_FIELD: string = 'testId';
   private readonly TTL_FIELD: string = 'expireAt';
 
@@ -83,9 +83,17 @@ export class CompositeIndexTestHelper {
   // identifier for data isolation.
   constructor() {
     this.testId = 'test-id-' + _AutoId.newId();
+    // Firestore Enterprise Edition executes composite and collection-group
+    // queries without requiring pre-provisioned indexes, whereas the shared
+    // COMPOSITE_INDEX_TEST_COLLECTION in the Enterprise test database has no
+    // indexes and accumulates documents across CI runs (causing multi-second
+    // full-collection scans on every query).
+    this.collectionId = getRunEnterpriseTests()
+      ? `${COMPOSITE_INDEX_TEST_COLLECTION}-${this.testId}`
+      : COMPOSITE_INDEX_TEST_COLLECTION;
   }
 
-  // Runs a test with specified documents in the COMPOSITE_INDEX_TEST_COLLECTION.
+  // Runs a test with specified documents in the target test collection.
   async withTestDocs<T>(
     persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
     docs: { [key: string]: DocumentData },
@@ -95,26 +103,23 @@ export class CompositeIndexTestHelper {
       persistence,
       DEFAULT_SETTINGS,
       this.prepareTestDocuments(docs),
-      COMPOSITE_INDEX_TEST_COLLECTION,
+      this.collectionId,
       fn
     );
   }
 
-  // Runs a test on COMPOSITE_INDEX_TEST_COLLECTION.
+  // Runs a test on the target test collection.
   async withTestCollection<T>(
     persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
     fn: (collection: CollectionReference, db: Firestore) => Promise<T>
   ): Promise<T> {
-    const settings = { ...DEFAULT_SETTINGS };
-    if (persistence !== PERSISTENCE_MODE_UNSPECIFIED) {
-      settings.localCache = persistence.asLocalCacheFirestoreSettings();
-    }
-    const db = newTestFirestore(
-      newTestApp(DEFAULT_PROJECT_ID),
-      settings,
-      TARGET_DB_ID
+    return withTestDbsSettings(
+      persistence,
+      DEFAULT_PROJECT_ID,
+      DEFAULT_SETTINGS,
+      1,
+      ([db]) => fn(collection(db, this.collectionId), db)
     );
-    return fn(collection(db, COMPOSITE_INDEX_TEST_COLLECTION), db);
   }
 
   // Hash the document key with testId.

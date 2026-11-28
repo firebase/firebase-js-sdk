@@ -297,7 +297,7 @@ describe('platform_browser/popup_redirect', () => {
     });
 
     it('rejects immediately if origin validation fails', async () => {
-      (validateOrigin._validateOrigin as MockInstance).mockReturnValue(
+      vi.mocked(validateOrigin._validateOrigin).mockReturnValue(
         Promise.reject(new Error('invalid-origin'))
       );
       const promise = resolver._openRedirect(auth, provider, event);
@@ -316,7 +316,7 @@ describe('platform_browser/popup_redirect', () => {
 
     it('rejects if origin validation fails', async () => {
       await resolver._initialize(auth);
-      (validateOrigin._validateOrigin as MockInstance).mockReturnValue(
+      vi.mocked(validateOrigin._validateOrigin).mockReturnValue(
         Promise.reject(new Error('invalid-origin'))
       );
 

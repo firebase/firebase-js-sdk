@@ -16,9 +16,6 @@
  */
 
 import { deleteApp, initializeApp, FirebaseApp } from '@firebase/app';
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import * as sinon from 'sinon';
 
 import {
   connectDataConnectEmulator,
@@ -39,8 +36,6 @@ import {
 import { DataConnectTransportManager } from '../src/network/manager';
 
 import { getConnectionConfig, initDatabase, PROJECT_ID } from './util';
-
-use(chaiAsPromised);
 
 interface Post {
   id: string;
@@ -96,18 +91,19 @@ describe('DataConnect Tests', async () => {
     });
     dc = initDatabase();
     await seedDatabase(dc, TEST_ID);
-    sinon
-      .stub(DataConnectTransportManager.prototype, 'invokeSubscribe')
-      .returns();
-    sinon
-      .stub(DataConnectTransportManager.prototype, 'invokeUnsubscribe')
-      .returns();
+    vi.spyOn(
+      DataConnectTransportManager.prototype,
+      'invokeSubscribe'
+    ).mockReturnValue();
+    vi.spyOn(
+      DataConnectTransportManager.prototype,
+      'invokeUnsubscribe'
+    ).mockReturnValue();
   });
   afterEach(async () => {
     await deleteDatabase(dc);
     await deleteApp(app);
     await terminate(dc);
-    sinon.restore();
   });
   function getPostsRef(): QueryRef<PostListResponse, PostVariables> {
     return queryRef<PostListResponse, PostVariables>(dc, 'ListPosts', {
@@ -117,7 +113,7 @@ describe('DataConnect Tests', async () => {
   it('Can get all posts', async () => {
     const taskListQuery = getPostsRef();
     const taskListRes = await executeQuery(taskListQuery);
-    expect(taskListRes.data).to.deep.eq({
+    expect(taskListRes.data).toEqual({
       posts: REAL_DATA
     });
   });
@@ -138,17 +134,17 @@ describe('DataConnect Tests', async () => {
       }
     );
     const res = await promise;
-    expect(res.data).to.deep.eq({
+    expect(res.data).toEqual({
       posts: REAL_DATA
     });
-    expect(res.source).to.eq(SOURCE_SERVER);
+    expect(res.source).toBe(SOURCE_SERVER);
   });
   it(`returns the result source as cache when data already exists`, async () => {
     const taskListQuery = getPostsRef();
     const queryResult = await executeQuery(taskListQuery);
     const result = await waitForFirstEvent(taskListQuery);
-    expect(result.data).to.deep.eq(queryResult.data);
-    expect(result.source).to.eq(SOURCE_CACHE);
+    expect(result.data).toEqual(queryResult.data);
+    expect(result.source).toBe(SOURCE_CACHE);
   });
   it(`returns the proper JSON when calling .toJSON()`, async () => {
     const taskListQuery = getPostsRef();
@@ -170,9 +166,9 @@ describe('DataConnect Tests', async () => {
       source: SOURCE_CACHE
     };
     const json = result.toJSON();
-    expect(json.data).to.deep.eq(serializedRef.data);
-    expect(json.refInfo).to.deep.eq(serializedRef.refInfo);
-    expect(json.source).to.deep.eq(serializedRef.source);
+    expect(json.data).toEqual(serializedRef.data);
+    expect(json.refInfo).toEqual(serializedRef.refInfo);
+    expect(json.source).toEqual(serializedRef.source);
   });
   it(`throws an error when the user can't connect to the server`, async () => {
     // You can't point an existing data connect instance to a new emulator port, so we have to create a new one
@@ -183,7 +179,7 @@ describe('DataConnect Tests', async () => {
     });
     connectDataConnectEmulator(fakeInstance, 'localhost', 3512);
     const taskListQuery = queryRef<PostListResponse>(fakeInstance, 'ListPosts');
-    await expect(executeQuery(taskListQuery)).to.eventually.be.rejectedWith(
+    await expect(executeQuery(taskListQuery)).rejects.toThrow(
       /EADDRNOTAVAIL|ECONNREFUSED|Failed to fetch/
     );
   });
@@ -194,9 +190,7 @@ describe('DataConnect Tests', async () => {
     );
     const message =
       'unauthorized: you are not authorized to perform this operation';
-    await expect(
-      executeQuery(invalidTaskListQuery)
-    ).to.eventually.be.rejectedWith(message);
+    await expect(executeQuery(invalidTaskListQuery)).rejects.toThrow(message);
   });
 });
 async function waitForFirstEvent<Data, Variables>(

@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
 import { getMaxAgeFromExtensions } from '../../src/core/query/QueryManager';
 
 describe('maxAge', () => {
@@ -27,7 +25,7 @@ describe('maxAge', () => {
         maxAge: '100s'
       }
     ]);
-    expect(maxAge).to.equal(100);
+    expect(maxAge).toBe(100);
   });
 
   it('should return undefined when an invalid maxAge is returned', async () => {
@@ -37,6 +35,6 @@ describe('maxAge', () => {
         maxAge: 'abc'
       }
     ]);
-    expect(maxAge).to.equal(undefined);
+    expect(maxAge).toBe(undefined);
   });
 });

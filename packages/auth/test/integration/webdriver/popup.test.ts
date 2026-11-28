@@ -16,12 +16,9 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import {
-  OperationType,
-  UserCredential,
-  User,
-  OAuthCredential
-} from '@firebase/auth';
+import { OperationType } from '@firebase/auth';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import type { UserCredential, User, OAuthCredential } from '@firebase/auth';
 import { IdPPage } from './util/idp_page';
 import { browserDescribe } from './util/test_runner';
 import {
@@ -36,7 +33,7 @@ browserDescribe('Popup IdP tests', driver => {
   it('allows users to sign in', async () => {
     await driver.callNoWait(PopupFunction.IDP_POPUP);
     await driver.selectPopupWindow();
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
 
     // We're now on the widget page; wait for load
     await widget.pageLoad();
@@ -60,33 +57,32 @@ browserDescribe('Popup IdP tests', driver => {
     expect(result.user).toEqual(currentUser);
   });
 
-  it('is blocked by auth middleware', async ctx => {
-    if (driver.isCompatLayer()) {
-      // Compat layer doesn't support middleware yet
-      ctx.skip();
+  // Compat layer doesn't support middleware yet
+  it.skipIf(driver.isCompatLayer())(
+    'is blocked by auth middleware',
+    async () => {
+      await driver.call(MiddlewareFunction.ATTACH_BLOCKING_MIDDLEWARE);
+      await driver.callNoWait(PopupFunction.IDP_POPUP);
+      await driver.selectPopupWindow();
+      const widget = new IdPPage(driver);
+
+      // We're now on the widget page; wait for load
+      await widget.pageLoad();
+      await widget.clickAddAccount();
+      await widget.fillEmail('bob@bob.test');
+      await widget.fillDisplayName('Bob Test');
+      await widget.fillScreenName('bob.test');
+      await widget.fillProfilePhoto('http://bob.test/bob.png');
+      await widget.clickSignIn();
+
+      await driver.selectMainWindow();
+      await expect(driver.call(PopupFunction.POPUP_RESULT)).rejects.toThrow(
+        'auth/login-blocked'
+      );
+      const currentUser = await driver.getUserSnapshot();
+      expect(currentUser).toBeNull();
     }
-
-    await driver.call(MiddlewareFunction.ATTACH_BLOCKING_MIDDLEWARE);
-    await driver.callNoWait(PopupFunction.IDP_POPUP);
-    await driver.selectPopupWindow();
-    const widget = new IdPPage(driver.webDriver);
-
-    // We're now on the widget page; wait for load
-    await widget.pageLoad();
-    await widget.clickAddAccount();
-    await widget.fillEmail('bob@bob.test');
-    await widget.fillDisplayName('Bob Test');
-    await widget.fillScreenName('bob.test');
-    await widget.fillProfilePhoto('http://bob.test/bob.png');
-    await widget.clickSignIn();
-
-    await driver.selectMainWindow();
-    await expect(driver.call(PopupFunction.POPUP_RESULT)).rejects.toThrow(
-      'auth/login-blocked'
-    );
-    const currentUser = await driver.getUserSnapshot();
-    expect(currentUser).toBeNull();
-  });
+  );
 
   it('can link with another account account', async () => {
     // First, sign in anonymously
@@ -97,7 +93,7 @@ browserDescribe('Popup IdP tests', driver => {
     // Then, link with popup
     await driver.callNoWait(PopupFunction.IDP_LINK_POPUP);
     await driver.selectPopupWindow();
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
     await widget.pageLoad();
     await widget.clickAddAccount();
     await widget.fillEmail('bob@bob.test');
@@ -115,7 +111,7 @@ browserDescribe('Popup IdP tests', driver => {
     // Start with popup
     await driver.callNoWait(PopupFunction.IDP_POPUP);
     await driver.selectPopupWindow();
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
     await widget.pageLoad();
     await widget.clickAddAccount();
     await widget.fillEmail('bob@bob.test');
@@ -144,7 +140,7 @@ browserDescribe('Popup IdP tests', driver => {
     // Start with popup and a verified account
     await driver.callNoWait(PopupFunction.IDP_POPUP);
     await driver.selectPopupWindow();
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
     await widget.pageLoad();
     await widget.clickAddAccount();
     await widget.fillEmail('bob@bob.test');
@@ -182,7 +178,7 @@ browserDescribe('Popup IdP tests', driver => {
     );
     await driver.callNoWait(PopupFunction.IDP_POPUP);
     await driver.selectPopupWindow();
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
     await widget.pageLoad();
     await widget.clickAddAccount();
     await widget.fillEmail('bob@bob.test');
@@ -200,7 +196,7 @@ browserDescribe('Popup IdP tests', driver => {
     );
     await driver.callNoWait(PopupFunction.IDP_LINK_POPUP);
     await driver.selectPopupWindow();
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
     await widget.pageLoad();
     await widget.clickAddAccount();
     await widget.fillEmail('bob@bob.test');
@@ -222,7 +218,7 @@ browserDescribe('Popup IdP tests', driver => {
     // Link using pre-populated user
     await driver.callNoWait(PopupFunction.IDP_LINK_POPUP);
     await driver.selectPopupWindow();
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
     await widget.pageLoad();
     await widget.clickAddAccount();
     await widget.fillEmail('other-user@test.test');
@@ -245,7 +241,7 @@ browserDescribe('Popup IdP tests', driver => {
     // Link using pre-populated user
     await driver.callNoWait(PopupFunction.IDP_LINK_POPUP);
     await driver.selectPopupWindow();
-    const widget = new IdPPage(driver.webDriver);
+    const widget = new IdPPage(driver);
     await widget.pageLoad();
     await widget.clickAddAccount();
     await widget.fillEmail('same@test.test');
@@ -284,7 +280,7 @@ browserDescribe('Popup IdP tests', driver => {
       await driver.selectPopupWindow();
 
       // This time, select an existing account
-      const widget = new IdPPage(driver.webDriver);
+      const widget = new IdPPage(driver);
       await widget.pageLoad();
       await widget.selectExistingAccountByEmail(user1.email!);
 
@@ -300,7 +296,7 @@ browserDescribe('Popup IdP tests', driver => {
       await driver.callNoWait(PopupFunction.IDP_POPUP);
       await driver.selectPopupWindow();
 
-      const widget = new IdPPage(driver.webDriver);
+      const widget = new IdPPage(driver);
       await widget.pageLoad();
       await widget.selectExistingAccountByEmail(user1.email!);
 
@@ -327,7 +323,7 @@ browserDescribe('Popup IdP tests', driver => {
       await driver.callNoWait(PopupFunction.IDP_POPUP);
       await driver.selectPopupWindow();
 
-      const widget = new IdPPage(driver.webDriver);
+      const widget = new IdPPage(driver);
       await widget.pageLoad();
       await widget.selectExistingAccountByEmail(user1.email!);
 
@@ -347,7 +343,7 @@ browserDescribe('Popup IdP tests', driver => {
     it('handles aborted sign ins', async () => {
       await driver.callNoWait(PopupFunction.IDP_POPUP);
       await driver.selectPopupWindow();
-      const widget = new IdPPage(driver.webDriver);
+      const widget = new IdPPage(driver);
 
       // Don't actually sign in; go back to the previous page
       await widget.pageLoad();

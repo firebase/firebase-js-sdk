@@ -18,7 +18,7 @@
 // APIs that don't depend on @firebase/app
 export {
   Database,
-  EmulatorMockTokenOptions,
+  type EmulatorMockTokenOptions,
   enableLogging,
   goOffline,
   goOnline,
@@ -26,7 +26,7 @@ export {
   forceLongPolling,
   connectDatabaseEmulator
 } from './api/Database';
-export {
+export type {
   Query,
   DatabaseReference,
   ListenOptions,
@@ -36,10 +36,10 @@ export {
 export { OnDisconnect } from './api/OnDisconnect';
 export {
   DataSnapshot,
-  EventType,
-  IteratedDataSnapshot,
+  type EventType,
+  type IteratedDataSnapshot,
   QueryConstraint,
-  QueryConstraintType,
+  type QueryConstraintType,
   endAt,
   endBefore,
   equalTo,
@@ -73,7 +73,7 @@ export {
 export { increment, serverTimestamp } from './api/ServerValue';
 export {
   runTransaction,
-  TransactionOptions,
+  type TransactionOptions,
   TransactionResult
 } from './api/Transaction';
 
@@ -88,7 +88,7 @@ export {
   validatePathString as _validatePathString,
   validateWritablePath as _validateWritablePath
 } from './core/util/validation';
-export { UserCallback as _UserCallback } from './core/view/EventRegistration';
+export type { UserCallback as _UserCallback } from './core/view/EventRegistration';
 export { QueryParams as _QueryParams } from './core/view/QueryParams';
 
 /* eslint-disable camelcase */

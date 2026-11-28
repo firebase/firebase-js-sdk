@@ -16,8 +16,6 @@
  */
 
 import { initializeApp, FirebaseApp, deleteApp } from '@firebase/app';
-import { expect } from 'chai';
-import * as sinon from 'sinon';
 
 import {
   DataConnect,
@@ -42,16 +40,17 @@ describe('caching', () => {
     app = firebaseApp;
 
     // Stub transport to prevent real network calls for subscribe.
-    sinon
-      .stub(DataConnectTransportManager.prototype, 'invokeSubscribe')
-      .returns();
-    sinon
-      .stub(DataConnectTransportManager.prototype, 'invokeUnsubscribe')
-      .returns();
+    vi.spyOn(
+      DataConnectTransportManager.prototype,
+      'invokeSubscribe'
+    ).mockReturnValue();
+    vi.spyOn(
+      DataConnectTransportManager.prototype,
+      'invokeUnsubscribe'
+    ).mockReturnValue();
   });
   afterEach(async () => {
     await deleteApp(app);
-    sinon.restore();
   });
   it('should resolve from cache with an interdependent query', async () => {
     interface Q1Data {
@@ -135,12 +134,12 @@ describe('caching', () => {
     const result = await executeQuery(q1, {
       fetchPolicy: 'SERVER_ONLY'
     });
-    expect(result.data.movies).to.deep.eq(expected.data.movies);
+    expect(result.data.movies).toEqual(expected.data.movies);
     // wait for 2 seconds to make sure we don't have too many events coming in.
     await waitFor(2000);
 
-    expect(events.length).to.eq(2);
-    expect(events).to.deep.eq([
+    expect(events.length).toBe(2);
+    expect(events).toEqual([
       {
         data: {
           movies: [
@@ -167,11 +166,11 @@ describe('caching', () => {
     const result2 = await executeQuery(q1, {
       fetchPolicy: 'CACHE_ONLY'
     });
-    expect(result2.data.movies).to.deep.eq(expected.data.movies);
+    expect(result2.data.movies).toEqual(expected.data.movies);
     const genreResult = await executeQuery(q2, {
       fetchPolicy: 'CACHE_ONLY'
     });
-    expect(genreResult.data.movies).to.deep.eq([
+    expect(genreResult.data.movies).toEqual([
       {
         title: 'the matrix',
         genre: 'sci-fi'
@@ -258,12 +257,12 @@ describe('caching', () => {
     const result = await executeQuery(q1, {
       fetchPolicy: 'SERVER_ONLY'
     });
-    expect(result.data.movies).to.deep.eq(expected.data.movies);
+    expect(result.data.movies).toEqual(expected.data.movies);
     // wait for 2 seconds to make sure we don't have too many events coming in.
     await waitFor(2000);
 
-    expect(events.length).to.eq(1);
-    expect(events).to.deep.eq([
+    expect(events.length).toBe(1);
+    expect(events).toEqual([
       {
         data: {
           movies: [
@@ -338,7 +337,7 @@ describe('caching', () => {
     const resultTree = await dc._queryManager.getFromResultTreeCache(
       queryRef<Q1Data>(dc, titleQueryId)
     );
-    expect(resultTree && resultTree.data).to.deep.eq(titleResponse.data);
+    expect(resultTree && resultTree.data).toEqual(titleResponse.data);
     const genreQueryId = 'genreQuery';
     await updateCacheData(
       dc,
@@ -353,7 +352,7 @@ describe('caching', () => {
     const resultTree2 = await dc._queryManager.getFromResultTreeCache(
       queryRef<Q2Data>(dc, genreQueryId)
     );
-    expect(resultTree2?.data).to.deep.eq({
+    expect(resultTree2?.data).toEqual({
       movie: {
         genre: 'sci-fi'
       }
@@ -361,7 +360,7 @@ describe('caching', () => {
     const result = await executeQuery(queryRef<Q2Data>(dc, genreQueryId), {
       fetchPolicy: 'CACHE_ONLY'
     });
-    expect(result.data).to.deep.eq({
+    expect(result.data).toEqual({
       movie: {
         genre: 'sci-fi'
       }
@@ -451,7 +450,7 @@ describe('caching', () => {
         fetchPolicy: 'CACHE_ONLY'
       }
     );
-    expect(result.data).to.deep.eq(homePageData);
+    expect(result.data).toEqual(homePageData);
 
     interface GetUserCommentsData {
       user: {
@@ -504,12 +503,12 @@ describe('caching', () => {
         fetchPolicy: 'CACHE_ONLY'
       }
     );
-    expect(result2.data).to.deep.eq(userCommentsData);
+    expect(result2.data).toEqual(userCommentsData);
   });
 });
 
 function stubFetch(response: unknown): void {
-  const fakeFetchImpl = sinon.stub().returns({
+  const fakeFetchImpl = vi.fn().mockReturnValue({
     json: () => {
       return Promise.resolve(response);
     },

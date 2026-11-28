@@ -16,8 +16,6 @@
  */
 
 import { promiseWithTimeout } from '@firebase/util';
-import { expect, use } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 import * as _ from 'lodash';
 
 import {
@@ -31,9 +29,6 @@ import {
 import { DataSnapshot, Query, Reference } from '../src/api/Reference';
 
 import { getFreshRepo, getPath, getRandomNode, pause } from './helpers/util';
-
-use(chaiAsPromised);
-
 type TaskList = Array<[Query, any]>;
 
 describe('Query Tests', () => {
@@ -83,8 +78,8 @@ describe('Query Tests', () => {
     const db = path.database;
     const dbChild = child.database;
 
-    expect(db).to.equal(dbChild);
-    expect(path.database).to.equal(db);
+    expect(db).toBe(dbChild);
+    expect(path.database).toBe(db);
   });
 
   it('Invalid queries throw', () => {
@@ -98,205 +93,205 @@ describe('Query Tests', () => {
      */
     expect(() => {
       (path as any).limitToLast();
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       (path as any).limitToLast('100');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       (path as any).limitToLast({ x: 5 });
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.limitToLast(100).limitToLast(100);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.limitToLast(100).limitToFirst(100);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.limitToLast(100).limitToLast(100);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.limitToFirst(100).limitToLast(100);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.limitToFirst(100).limitToFirst(100);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.limitToFirst(100).limitToLast(100);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.limitToLast(100).limitToLast(100);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.limitToLast(100).limitToFirst(100);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.limitToLast(100).limitToLast(100);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByPriority().orderByPriority();
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByPriority().orderByKey();
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByPriority().orderByChild('foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByPriority().startAt(true);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByPriority().startAfter(true);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByPriority().endAt(false);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByPriority().equalTo(true);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().orderByPriority();
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().orderByKey();
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().orderByChild('foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByChild('foo').orderByPriority();
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByChild('foo').orderByKey();
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByChild('foo').orderByChild('foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       (path as any).orderByChild('foo').startAt({ a: 1 });
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       (path as any).orderByChild('foo').startAfter({ a: 1 });
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       (path as any).orderByChild('foo').endAt({ a: 1 });
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       (path as any).orderByChild('foo').equalTo({ a: 1 });
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.startAt('foo').startAt('foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.startAfter('foo').startAfter('foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.startAt('foo').startAfter('foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.startAfter('foo').startAt('foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.startAt('foo').equalTo('foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.startAfter('foo').equalTo('foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.endAt('foo').endAt('foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.endAt('foo').equalTo('foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.equalTo('foo').startAt('foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.equalTo('foo').startAfter('foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.equalTo('foo').endAt('foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.equalTo('foo').equalTo('foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().startAt('foo', 'foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().startAfter('foo', 'foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().endAt('foo', 'foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().equalTo('foo', 'foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().startAt(1);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().startAfter(1);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().startAt(true);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().startAfter(true);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().startAt(null);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().startAfter(null);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().endAt(1);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().endAt(true);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().endAt(null);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().equalTo(1);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().equalTo(true);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.orderByKey().equalTo(null);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.startAt('foo', 'foo').orderByKey();
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.startAfter('foo', 'foo').orderByKey();
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.endAt('foo', 'foo').orderByKey();
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.equalTo('foo', 'foo').orderByKey();
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.startAt(1).orderByKey();
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.startAfter(1).orderByKey();
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.startAt(true).orderByKey();
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.startAfter(true).orderByKey();
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.endAt(1).orderByKey();
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       path.endAt(true).orderByKey();
-    }).to.throw();
+    }).toThrow();
   });
 
   it('can produce a valid ref', () => {
@@ -305,7 +300,7 @@ describe('Query Tests', () => {
     const query = path.limitToLast(1);
     const ref = query.ref;
 
-    expect(ref.toString()).to.equal(path.toString());
+    expect(ref.toString()).toBe(path.toString());
   });
 
   it('Passing invalidKeys to startAt / endAt throws.', () => {
@@ -325,10 +320,10 @@ describe('Query Tests', () => {
     _.each(badKeys, badKey => {
       expect(() => {
         f.startAt(null, badKey);
-      }).to.throw();
+      }).toThrow();
       expect(() => {
         f.endAt(null, badKey);
-      }).to.throw();
+      }).toThrow();
     });
   });
 
@@ -349,7 +344,7 @@ describe('Query Tests', () => {
     _.each(badKeys, badKey => {
       expect(() => {
         f.startAfter(null, badKey);
-      }).to.throw();
+      }).toThrow();
     });
   });
 
@@ -357,13 +352,13 @@ describe('Query Tests', () => {
     const ref = getRandomNode() as Reference;
     expect(() => {
       ref.orderByChild('$child/foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       ref.orderByChild('$key');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       ref.orderByChild('$priority');
-    }).to.throw();
+    }).toThrow();
   });
 
   it('Query.queryIdentifier works.', () => {
@@ -372,78 +367,76 @@ describe('Query Tests', () => {
       return query._delegate._queryIdentifier;
     };
 
-    expect(queryId(path)).to.equal('default');
+    expect(queryId(path)).toBe('default');
 
-    expect(queryId(path.startAt('pri', 'name'))).to.equal(
+    expect(queryId(path.startAt('pri', 'name'))).toBe(
       '{"sin":true,"sn":"name","sp":"pri"}'
     );
-    expect(queryId(path.startAfter('pri', 'name'))).to.equal(
+    expect(queryId(path.startAfter('pri', 'name'))).toBe(
       '{"sin":false,"sn":"name","sp":"pri"}'
     );
-    expect(queryId(path.endAt('pri', 'name'))).to.equal(
+    expect(queryId(path.endAt('pri', 'name'))).toBe(
       '{"ein":true,"en":"name","ep":"pri"}'
     );
-    expect(queryId(path.endBefore('pri', 'name'))).to.equal(
+    expect(queryId(path.endBefore('pri', 'name'))).toBe(
       '{"ein":false,"en":"name","ep":"pri"}'
     );
 
-    expect(queryId(path.startAt('spri').endAt('epri'))).to.equal(
+    expect(queryId(path.startAt('spri').endAt('epri'))).toBe(
       '{"ein":true,"ep":"epri","sin":true,"sp":"spri"}'
     );
-    expect(queryId(path.startAt('spri').endBefore('epri'))).to.equal(
+    expect(queryId(path.startAt('spri').endBefore('epri'))).toBe(
       '{"ein":false,"en":"[MIN_NAME]","ep":"epri","sin":true,"sp":"spri"}'
     );
-    expect(queryId(path.startAfter('spri').endAt('epri'))).to.equal(
+    expect(queryId(path.startAfter('spri').endAt('epri'))).toBe(
       '{"ein":true,"ep":"epri","sin":false,"sn":"[MAX_NAME]","sp":"spri"}'
     );
-    expect(queryId(path.startAfter('spri').endBefore('epri'))).to.equal(
+    expect(queryId(path.startAfter('spri').endBefore('epri'))).toBe(
       '{"ein":false,"en":"[MIN_NAME]","ep":"epri","sin":false,"sn":"[MAX_NAME]","sp":"spri"}'
     );
 
-    expect(
-      queryId(path.startAt('spri', 'sname').endAt('epri', 'ename'))
-    ).to.equal(
+    expect(queryId(path.startAt('spri', 'sname').endAt('epri', 'ename'))).toBe(
       '{"ein":true,"en":"ename","ep":"epri","sin":true,"sn":"sname","sp":"spri"}'
     );
     expect(
       queryId(path.startAt('spri', 'sname').endBefore('epri', 'ename'))
-    ).to.equal(
+    ).toBe(
       '{"ein":false,"en":"ename","ep":"epri","sin":true,"sn":"sname","sp":"spri"}'
     );
     expect(
       queryId(path.startAfter('spri', 'sname').endAt('epri', 'ename'))
-    ).to.equal(
+    ).toBe(
       '{"ein":true,"en":"ename","ep":"epri","sin":false,"sn":"sname","sp":"spri"}'
     );
     expect(
       queryId(path.startAfter('spri', 'sname').endBefore('epri', 'ename'))
-    ).to.equal(
+    ).toBe(
       '{"ein":false,"en":"ename","ep":"epri","sin":false,"sn":"sname","sp":"spri"}'
     );
 
-    expect(queryId(path.startAt('pri').limitToFirst(100))).to.equal(
+    expect(queryId(path.startAt('pri').limitToFirst(100))).toBe(
       '{"l":100,"sin":true,"sp":"pri","vf":"l"}'
     );
-    expect(queryId(path.startAfter('pri').limitToFirst(100))).to.equal(
+    expect(queryId(path.startAfter('pri').limitToFirst(100))).toBe(
       '{"l":100,"sin":false,"sn":"[MAX_NAME]","sp":"pri","vf":"l"}'
     );
-    expect(queryId(path.endAt('pri').limitToLast(100))).to.equal(
+    expect(queryId(path.endAt('pri').limitToLast(100))).toBe(
       '{"ein":true,"ep":"pri","l":100,"vf":"r"}'
     );
-    expect(queryId(path.endBefore('pri').limitToLast(100))).to.equal(
+    expect(queryId(path.endBefore('pri').limitToLast(100))).toBe(
       '{"ein":false,"en":"[MIN_NAME]","ep":"pri","l":100,"vf":"r"}'
     );
 
-    expect(queryId(path.startAt('bar').orderByChild('foo'))).to.equal(
+    expect(queryId(path.startAt('bar').orderByChild('foo'))).toBe(
       '{"i":"foo","sin":true,"sp":"bar"}'
     );
-    expect(queryId(path.startAfter('bar').orderByChild('foo'))).to.equal(
+    expect(queryId(path.startAfter('bar').orderByChild('foo'))).toBe(
       '{"i":"foo","sin":false,"sn":"[MAX_NAME]","sp":"bar"}'
     );
-    expect(queryId(path.endAt('bar').orderByChild('foo'))).to.equal(
+    expect(queryId(path.endAt('bar').orderByChild('foo'))).toBe(
       '{"ein":true,"ep":"bar","i":"foo"}'
     );
-    expect(queryId(path.endBefore('bar').orderByChild('foo'))).to.equal(
+    expect(queryId(path.endBefore('bar').orderByChild('foo'))).toBe(
       '{"ein":false,"en":"[MIN_NAME]","ep":"bar","i":"foo"}'
     );
   });
@@ -452,37 +445,37 @@ describe('Query Tests', () => {
     const ref = getRandomNode() as Reference;
     expect(() => {
       (ref as any).isEqual();
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       (ref as any).isEqual('');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       (ref as any).isEqual('foo');
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       (ref as any).isEqual({});
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       (ref as any).isEqual([]);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       (ref as any).isEqual(0);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       (ref as any).isEqual(1);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       (ref as any).isEqual(NaN);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       ref.isEqual(null);
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       (ref as any).isEqual({ a: 1 });
-    }).to.throw();
+    }).toThrow();
     expect(() => {
       (ref as any).isEqual(ref, 'extra');
-    }).to.throw();
+    }).toThrow();
   });
 
   it('Query.isEqual works.', () => {
@@ -491,11 +484,12 @@ describe('Query Tests', () => {
     const childRef = rootRef.child('child');
 
     // Equivalent refs
-    expect(path.isEqual(path), 'Query.isEqual - 1').to.be.true;
-    expect(rootRef.isEqual(rootRef), 'Query.isEqual - 2').to.be.true;
-    expect(rootRef.isEqual(childRef.parent), 'Query.isEqual - 3').to.be.true;
-    expect(rootRef.child('child').isEqual(childRef), 'Query.isEqual - 4').to.be
-      .true;
+    expect(path.isEqual(path), 'Query.isEqual - 1').toBe(true);
+    expect(rootRef.isEqual(rootRef), 'Query.isEqual - 2').toBe(true);
+    expect(rootRef.isEqual(childRef.parent), 'Query.isEqual - 3').toBe(true);
+    expect(rootRef.child('child').isEqual(childRef), 'Query.isEqual - 4').toBe(
+      true
+    );
 
     // Refs with different repos
     // NOTE: getFreshRepo() no longer takes a hostname, so this test needs to be reworked.
@@ -507,9 +501,11 @@ describe('Query Tests', () => {
     // expect(childRef.isEqual(rootRefDifferentRepo.child('child')), 'Query.isEqual - 6').to.be.false;
 
     // Refs with different paths
-    expect(rootRef.isEqual(childRef), 'Query.isEqual - 7').to.be.false;
-    expect(childRef.isEqual(rootRef.child('otherChild')), 'Query.isEqual - 8')
-      .to.be.false;
+    expect(rootRef.isEqual(childRef), 'Query.isEqual - 7').toBe(false);
+    expect(
+      childRef.isEqual(rootRef.child('otherChild')),
+      'Query.isEqual - 8'
+    ).toBe(false);
 
     const childQueryLast25 = childRef.limitToLast(25);
     const childQueryOrderedByKey = childRef.orderByKey();
@@ -528,62 +524,68 @@ describe('Query Tests', () => {
       .endAt(2);
 
     // Equivalent queries
-    expect(childRef.isEqual(childQueryLast25.ref), 'Query.isEqual - 9').to.be
-      .true;
+    expect(childRef.isEqual(childQueryLast25.ref), 'Query.isEqual - 9').toBe(
+      true
+    );
     expect(
       childQueryLast25.isEqual(childRef.limitToLast(25)),
       'Query.isEqual - 10'
-    ).to.be.true;
+    ).toBe(true);
     expect(
       childQueryStartAt1EndAt2.isEqual(
         childQueryOrderedByTimestamp.startAt(1).endAt(2)
       ),
       'Query.isEqual - 11'
-    ).to.be.true;
+    ).toBe(true);
 
     // Non-equivalent queries
-    expect(childQueryLast25.isEqual(childRef), 'Query.isEqual - 12').to.be
-      .false;
+    expect(childQueryLast25.isEqual(childRef), 'Query.isEqual - 12').toBe(
+      false
+    );
     expect(
       childQueryLast25.isEqual(childQueryOrderedByKey),
       'Query.isEqual - 13'
-    ).to.be.false;
+    ).toBe(false);
     expect(
       childQueryLast25.isEqual(childQueryOrderedByPriority),
       'Query.isEqual - 14'
-    ).to.be.false;
+    ).toBe(false);
     expect(
       childQueryLast25.isEqual(childQueryOrderedByTimestamp),
       'Query.isEqual - 15'
-    ).to.be.false;
+    ).toBe(false);
     expect(
       childQueryOrderedByKey.isEqual(childQueryOrderedByPriority),
       'Query.isEqual - 16'
-    ).to.be.false;
+    ).toBe(false);
     expect(
       childQueryOrderedByKey.isEqual(childQueryOrderedByTimestamp),
       'Query.isEqual - 17'
-    ).to.be.false;
-    expect(childQueryStartAt1.isEqual(childQueryStartAt2), 'Query.isEqual - 18')
-      .to.be.false;
+    ).toBe(false);
+    expect(
+      childQueryStartAt1.isEqual(childQueryStartAt2),
+      'Query.isEqual - 18'
+    ).toBe(false);
     expect(
       childQueryStartAfter1.isEqual(childQueryStartAfter2),
       'Query.isEqual - 19'
-    ).to.be.false;
+    ).toBe(false);
     expect(
       childQueryStartAt1.isEqual(childQueryStartAt1EndAt2),
       'Query.isEqual - 20'
-    ).to.be.false;
+    ).toBe(false);
     expect(
       childQueryStartAfter1.isEqual(childQueryStartAfter1EndAt2),
       'Query.isEqual - 21'
-    ).to.be.false;
-    expect(childQueryEndAt2.isEqual(childQueryStartAt2), 'Query.isEqual - 22')
-      .to.be.false;
+    ).toBe(false);
+    expect(
+      childQueryEndAt2.isEqual(childQueryStartAt2),
+      'Query.isEqual - 22'
+    ).toBe(false);
     expect(
       childQueryEndAt2.isEqual(childQueryStartAt1EndAt2),
       'Query.isEqual - 23'
-    ).to.be.false;
+    ).toBe(false);
   });
 
   it('Query.off can be called on the default query.', () => {
@@ -596,12 +598,12 @@ describe('Query Tests', () => {
     path.limitToLast(5).on('value', callback);
 
     path.set({ a: 5, b: 6 });
-    expect(eventFired).to.be.true;
+    expect(eventFired).toBe(true);
     eventFired = false;
 
     path.off('value', callback);
     path.set({ a: 6, b: 5 });
-    expect(eventFired).to.be.false;
+    expect(eventFired).toBe(false);
   });
 
   it('Query.off can be called on the specific query.', () => {
@@ -614,12 +616,12 @@ describe('Query Tests', () => {
     path.limitToLast(5).on('value', callback);
 
     path.set({ a: 5, b: 6 });
-    expect(eventFired).to.be.true;
+    expect(eventFired).toBe(true);
     eventFired = false;
 
     path.limitToLast(5).off('value', callback);
     path.set({ a: 6, b: 5 });
-    expect(eventFired).to.be.false;
+    expect(eventFired).toBe(false);
   });
 
   it('Query.off can be called without a callback specified.', () => {
@@ -636,12 +638,12 @@ describe('Query Tests', () => {
     path.limitToLast(5).on('value', callback2);
 
     path.set({ a: 5, b: 6 });
-    expect(eventFired).to.be.true;
+    expect(eventFired).toBe(true);
     eventFired = false;
 
     path.off('value');
     path.set({ a: 6, b: 5 });
-    expect(eventFired).to.be.false;
+    expect(eventFired).toBe(false);
   });
 
   it('Query.off can be called without an event type or callback specified.', () => {
@@ -658,12 +660,12 @@ describe('Query Tests', () => {
     path.limitToLast(5).on('value', callback2);
 
     path.set({ a: 5, b: 6 });
-    expect(eventFired).to.be.true;
+    expect(eventFired).toBe(true);
     eventFired = false;
 
     path.off();
     path.set({ a: 6, b: 5 });
-    expect(eventFired).to.be.false;
+    expect(eventFired).toBe(false);
   });
 
   it('Query.off respects provided context (for value events).', () => {
@@ -676,8 +678,8 @@ describe('Query Tests', () => {
     ref.on('value', b.onValue, b);
 
     ref.set('hello!');
-    expect(a.gotValue).to.be.true;
-    expect(b.gotValue).to.be.true;
+    expect(a.gotValue).toBe(true);
+    expect(b.gotValue).toBe(true);
     a.gotValue = b.gotValue = false;
 
     // unsubscribe b
@@ -685,8 +687,8 @@ describe('Query Tests', () => {
 
     // Only a should get this event.
     ref.set(42);
-    expect(a.gotValue).to.be.true;
-    expect(b.gotValue).to.be.false;
+    expect(a.gotValue).toBe(true);
+    expect(b.gotValue).toBe(false);
 
     ref.off('value', a.onValue, a);
   });
@@ -701,8 +703,8 @@ describe('Query Tests', () => {
     ref.on('child_added', b.onChildAdded, b);
 
     ref.push('hello!');
-    expect(a.gotChildAdded).to.be.true;
-    expect(b.gotChildAdded).to.be.true;
+    expect(a.gotChildAdded).toBe(true);
+    expect(b.gotChildAdded).toBe(true);
     a.gotChildAdded = b.gotChildAdded = false;
 
     // unsubscribe b.
@@ -710,8 +712,8 @@ describe('Query Tests', () => {
 
     // Only a should get this event.
     ref.push(42);
-    expect(a.gotChildAdded).to.be.true;
-    expect(b.gotChildAdded).to.be.false;
+    expect(a.gotChildAdded).toBe(true);
+    expect(b.gotChildAdded).toBe(false);
 
     ref.off('child_added', a.onChildAdded, a);
   });
@@ -726,8 +728,8 @@ describe('Query Tests', () => {
     ref.on('value', b.onValue, b);
 
     ref.set('hello!');
-    expect(a.gotValue).to.be.true;
-    expect(b.gotValue).to.be.true;
+    expect(a.gotValue).toBe(true);
+    expect(b.gotValue).toBe(true);
     a.gotValue = b.gotValue = false;
 
     // unsubscribe value events.
@@ -735,8 +737,8 @@ describe('Query Tests', () => {
 
     // Should get no events.
     ref.set(42);
-    expect(a.gotValue).to.be.false;
-    expect(b.gotValue).to.be.false;
+    expect(a.gotValue).toBe(false);
+    expect(b.gotValue).toBe(false);
   });
 
   it('Query.off with no callback/context removes all callbacks, even with contexts (for child events).', () => {
@@ -749,8 +751,8 @@ describe('Query Tests', () => {
     ref.on('child_added', b.onChildAdded, b);
 
     ref.push('hello!');
-    expect(a.gotChildAdded).to.be.true;
-    expect(b.gotChildAdded).to.be.true;
+    expect(a.gotChildAdded).toBe(true);
+    expect(b.gotChildAdded).toBe(true);
     a.gotChildAdded = b.gotChildAdded = false;
 
     // unsubscribe child_added.
@@ -758,8 +760,8 @@ describe('Query Tests', () => {
 
     // Should get no events.
     ref.push(42);
-    expect(a.gotChildAdded).to.be.false;
-    expect(b.gotChildAdded).to.be.false;
+    expect(a.gotChildAdded).toBe(false);
+    expect(b.gotChildAdded).toBe(false);
   });
 
   it('Query.off with no event type / callback removes all callbacks (even those with contexts).', () => {
@@ -775,10 +777,10 @@ describe('Query Tests', () => {
 
     ref.set(null);
     ref.push('hello!');
-    expect(a.gotChildAdded).to.be.true;
-    expect(a.gotValue).to.be.true;
-    expect(b.gotChildAdded).to.be.true;
-    expect(b.gotValue).to.be.true;
+    expect(a.gotChildAdded).toBe(true);
+    expect(a.gotValue).toBe(true);
+    expect(b.gotChildAdded).toBe(true);
+    expect(b.gotValue).toBe(true);
     a.gotValue = b.gotValue = a.gotChildAdded = b.gotChildAdded = false;
 
     // unsubscribe all events.
@@ -786,10 +788,10 @@ describe('Query Tests', () => {
 
     // We should get no events.
     ref.push(42);
-    expect(a.gotChildAdded).to.be.false;
-    expect(b.gotChildAdded).to.be.false;
-    expect(a.gotValue).to.be.false;
-    expect(b.gotValue).to.be.false;
+    expect(a.gotChildAdded).toBe(false);
+    expect(b.gotChildAdded).toBe(false);
+    expect(a.gotValue).toBe(false);
+    expect(b.gotValue).toBe(false);
   });
 
   it('Set a limit of 5, add a bunch of nodes, ensure only last 5 items are kept.', () => {
@@ -806,11 +808,11 @@ describe('Query Tests', () => {
 
     let expected = 5;
     snap.forEach(child => {
-      expect(child.val()).to.equal(expected);
+      expect(child.val()).toBe(expected);
       expected++;
     });
 
-    expect(expected).to.equal(10);
+    expect(expected).toBe(10);
   });
 
   it('Raises snapshots synchronously', () => {
@@ -820,7 +822,7 @@ describe('Query Tests', () => {
       newValue = v.val();
     });
     node.set('foo');
-    expect(newValue).to.equal('foo');
+    expect(newValue).toBe('foo');
   });
 
   it('Set a limit of 5, add a bunch of nodes, ensure only last 5 items are sent from server.', async () => {
@@ -847,11 +849,11 @@ describe('Query Tests', () => {
     let expected = 5;
 
     snap.forEach(child => {
-      expect(child.val()).to.equal(expected);
+      expect(child.val()).toBe(expected);
       expected++;
     });
 
-    expect(expected).to.equal(10);
+    expect(expected).toBe(10);
   });
 
   it('Set various limits, ensure resulting data is correct.', async () => {
@@ -875,7 +877,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -913,7 +915,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -952,7 +954,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -990,7 +992,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1019,7 +1021,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1036,13 +1038,13 @@ describe('Query Tests', () => {
     });
     node.set({ a: 1, b: 2, c: 3 });
 
-    expect(added).to.equal('b c ');
-    expect(removed).to.equal('');
+    expect(added).toBe('b c ');
+    expect(removed).toBe('');
 
     added = '';
     node.child('d').set(4);
-    expect(added).to.equal('d ');
-    expect(removed).to.equal('b ');
+    expect(added).toBe('d ');
+    expect(removed).toBe('b ');
   });
 
   it('Set limit, ensure child_removed and child_added events are fired when limit is hit, using server data', async () => {
@@ -1064,14 +1066,14 @@ describe('Query Tests', () => {
 
     await ea.promise;
 
-    expect(added).to.equal('b c ');
-    expect(removed).to.equal('');
+    expect(added).toBe('b c ');
+    expect(removed).toBe('');
 
     added = '';
     await node.child('d').set(4);
 
-    expect(added).to.equal('d ');
-    expect(removed).to.equal('b ');
+    expect(added).toBe('d ');
+    expect(removed).toBe('b ');
   });
 
   it('Set start and limit, ensure child_removed and child_added events are fired when limit is hit.', () => {
@@ -1092,13 +1094,13 @@ describe('Query Tests', () => {
         removed += snap.key + ' ';
       });
     node.set({ a: 1, b: 2, c: 3 });
-    expect(added).to.equal('a b ');
-    expect(removed).to.equal('');
+    expect(added).toBe('a b ');
+    expect(removed).toBe('');
 
     added = '';
     node.child('aa').set(4);
-    expect(added).to.equal('aa ');
-    expect(removed).to.equal('b ');
+    expect(added).toBe('aa ');
+    expect(removed).toBe('b ');
   });
 
   it('Set startAfter and limit, ensure child_removed and child_added events are fired when limit is hit.', () => {
@@ -1119,13 +1121,13 @@ describe('Query Tests', () => {
         removed += snap.key + ' ';
       });
     node.set({ a: 1, b: 2, c: 3 });
-    expect(added).to.equal('b c ');
-    expect(removed).to.equal('');
+    expect(added).toBe('b c ');
+    expect(removed).toBe('');
 
     added = '';
     node.child('aa').set(4);
-    expect(added).to.equal('aa ');
-    expect(removed).to.equal('c ');
+    expect(added).toBe('aa ');
+    expect(removed).toBe('c ');
   });
 
   it('Set start and limit, ensure child_removed and child_added events are fired when limit is hit, using server data', async () => {
@@ -1152,14 +1154,14 @@ describe('Query Tests', () => {
 
     await ea.promise;
 
-    expect(added).to.equal('a b ');
-    expect(removed).to.equal('');
+    expect(added).toBe('a b ');
+    expect(removed).toBe('');
 
     added = '';
     await node.child('aa').set(4);
 
-    expect(added).to.equal('aa ');
-    expect(removed).to.equal('b ');
+    expect(added).toBe('aa ');
+    expect(removed).toBe('b ');
   });
 
   it('Set start and limit, ensure child_removed and child_added events are fired when limit is hit, using server data', async () => {
@@ -1186,14 +1188,14 @@ describe('Query Tests', () => {
 
     await ea.promise;
 
-    expect(added).to.equal('b c ');
-    expect(removed).to.equal('');
+    expect(added).toBe('b c ');
+    expect(removed).toBe('');
 
     added = '';
     await node.child('bb').set(4);
 
-    expect(added).to.equal('bb ');
-    expect(removed).to.equal('c ');
+    expect(added).toBe('bb ');
+    expect(removed).toBe('c ');
   });
 
   it("Set start and limit, ensure child_added events are fired when limit isn't hit yet.", () => {
@@ -1214,13 +1216,13 @@ describe('Query Tests', () => {
         removed += snap.key + ' ';
       });
     node.set({ c: 3 });
-    expect(added).to.equal('c ');
-    expect(removed).to.equal('');
+    expect(added).toBe('c ');
+    expect(removed).toBe('');
 
     added = '';
     node.child('b').set(4);
-    expect(added).to.equal('b ');
-    expect(removed).to.equal('');
+    expect(added).toBe('b ');
+    expect(removed).toBe('');
   });
 
   it("Set startAfter and limit, ensure child_added events are fired when limit isn't hit yet.", () => {
@@ -1241,13 +1243,13 @@ describe('Query Tests', () => {
         removed += snap.key + ' ';
       });
     node.set({ c: 3 });
-    expect(added).to.equal('c ');
-    expect(removed).to.equal('');
+    expect(added).toBe('c ');
+    expect(removed).toBe('');
 
     added = '';
     node.child('b').set(4);
-    expect(added).to.equal('b ');
-    expect(removed).to.equal('');
+    expect(added).toBe('b ');
+    expect(removed).toBe('');
   });
 
   it("Set start and limit, ensure child_added events are fired when limit isn't hit yet, using server data", async () => {
@@ -1275,14 +1277,14 @@ describe('Query Tests', () => {
 
     await ea.promise;
 
-    expect(added).to.equal('c ');
-    expect(removed).to.equal('');
+    expect(added).toBe('c ');
+    expect(removed).toBe('');
 
     added = '';
     await node.child('b').set(4);
 
-    expect(added).to.equal('b ');
-    expect(removed).to.equal('');
+    expect(added).toBe('b ');
+    expect(removed).toBe('');
   });
 
   it("Set startAfter and limit, ensure child_added events are fired when limit isn't hit yet, using server data", async () => {
@@ -1310,14 +1312,14 @@ describe('Query Tests', () => {
 
     await ea.promise;
 
-    expect(added).to.equal('c ');
-    expect(removed).to.equal('');
+    expect(added).toBe('c ');
+    expect(removed).toBe('');
 
     added = '';
     await node.child('b').set(4);
 
-    expect(added).to.equal('b ');
-    expect(removed).to.equal('');
+    expect(added).toBe('b ');
+    expect(removed).toBe('');
   });
 
   it('Set a limit, ensure child_removed and child_added events are fired when limit is satisfied and you remove an item.', async () => {
@@ -1334,12 +1336,12 @@ describe('Query Tests', () => {
       removed += snap.key + ' ';
     });
     node.set({ a: 1, b: 2, c: 3 });
-    expect(added).to.equal('b c ');
-    expect(removed).to.equal('');
+    expect(added).toBe('b c ');
+    expect(removed).toBe('');
 
     added = '';
     node.child('b').remove();
-    expect(removed).to.equal('b ');
+    expect(removed).toBe('b ');
 
     await ea.promise;
   });
@@ -1362,18 +1364,18 @@ describe('Query Tests', () => {
 
     await ea.promise;
 
-    expect(added).to.equal('b c ');
-    expect(removed).to.equal('');
+    expect(added).toBe('b c ');
+    expect(removed).toBe('');
 
     // We are going to wait for one more event before closing
     ea = EventAccumulatorFactory.waitsForCount(1);
     added = '';
     await node.child('b').remove();
 
-    expect(removed).to.equal('b ');
+    expect(removed).toBe('b ');
 
     await ea.promise;
-    expect(added).to.equal('a ');
+    expect(added).toBe('a ');
   });
 
   it('Set a limit, ensure child_removed events are fired when limit is satisfied, you remove an item, and there are no more.', () => {
@@ -1388,15 +1390,15 @@ describe('Query Tests', () => {
       removed += snap.key + ' ';
     });
     node.set({ b: 2, c: 3 });
-    expect(added).to.equal('b c ');
-    expect(removed).to.equal('');
+    expect(added).toBe('b c ');
+    expect(removed).toBe('');
 
     added = '';
     node.child('b').remove();
-    expect(added).to.equal('');
-    expect(removed).to.equal('b ');
+    expect(added).toBe('');
+    expect(removed).toBe('b ');
     node.child('c').remove();
-    expect(removed).to.equal('b c ');
+    expect(removed).toBe('b c ');
   });
 
   it('Set a limit, ensure child_removed events are fired when limit is satisfied, you remove an item, and there are no more. Using server data', async () => {
@@ -1416,15 +1418,15 @@ describe('Query Tests', () => {
 
     await ea.promise;
 
-    expect(added).to.equal('b c ');
-    expect(removed).to.equal('');
+    expect(added).toBe('b c ');
+    expect(removed).toBe('');
 
     added = '';
 
     await node.child('b').remove();
 
-    expect(added).to.equal('');
-    expect(removed).to.equal('b ');
+    expect(added).toBe('');
+    expect(removed).toBe('b ');
   });
 
   it('Ensure startAfter on key index works', async () => {
@@ -1434,8 +1436,8 @@ describe('Query Tests', () => {
     await childOne.set(1);
     await childTwo.set(2);
     const snap = await node.orderByKey().startAfter(childOne.key).get();
-    expect(Object.keys(snap.val())).to.deep.equal([childTwo.key]);
-    expect(Object.values(snap.val())).to.deep.equal([snap.val()[childTwo.key]]);
+    expect(Object.keys(snap.val())).toEqual([childTwo.key]);
+    expect(Object.values(snap.val())).toEqual([snap.val()[childTwo.key]]);
   });
 
   it('Ensure endBefore on key index works', async () => {
@@ -1445,8 +1447,8 @@ describe('Query Tests', () => {
     await childOne.set(1);
     await childTwo.set(2);
     const snap = await node.orderByKey().endBefore(childTwo.key).get();
-    expect(Object.keys(snap.val())).to.deep.equal([childOne.key]);
-    expect(Object.values(snap.val())).to.deep.equal([snap.val()[childOne.key]]);
+    expect(Object.keys(snap.val())).toEqual([childOne.key]);
+    expect(Object.values(snap.val())).toEqual([snap.val()[childOne.key]]);
   });
 
   it('Ensure startAfter on key index works with overlapping listener', async () => {
@@ -1462,8 +1464,8 @@ describe('Query Tests', () => {
     });
     await ea.promise;
     const snap = await node.orderByKey().startAfter(childOne.key).get();
-    expect(Object.keys(snap.val())).to.deep.equal([childTwo.key]);
-    expect(Object.values(snap.val())).to.deep.equal([snap.val()[childTwo.key]]);
+    expect(Object.keys(snap.val())).toEqual([childTwo.key]);
+    expect(Object.values(snap.val())).toEqual([snap.val()[childTwo.key]]);
   });
 
   it('Ensure endBefore on key index works with overlapping listener', async () => {
@@ -1479,8 +1481,8 @@ describe('Query Tests', () => {
     });
     await ea.promise;
     const snap = await node.orderByKey().endBefore(childTwo.key).get();
-    expect(Object.keys(snap.val())).to.deep.equal([childOne.key]);
-    expect(Object.values(snap.val())).to.deep.equal([snap.val()[childOne.key]]);
+    expect(Object.keys(snap.val())).toEqual([childOne.key]);
+    expect(Object.values(snap.val())).toEqual([snap.val()[childOne.key]]);
   });
 
   it('Ensure startAt / endAt with priority works.', async () => {
@@ -1507,7 +1509,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1536,7 +1538,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1565,7 +1567,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1594,7 +1596,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1623,7 +1625,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1652,7 +1654,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1681,7 +1683,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1710,7 +1712,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1739,7 +1741,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1768,7 +1770,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1797,7 +1799,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1826,7 +1828,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1853,7 +1855,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1880,7 +1882,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1907,7 +1909,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1934,7 +1936,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1963,7 +1965,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -1992,7 +1994,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -2021,7 +2023,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -2050,7 +2052,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -2079,7 +2081,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -2108,7 +2110,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -2137,7 +2139,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -2166,7 +2168,7 @@ describe('Query Tests', () => {
           ea.addEvent(snap.val());
         });
         const [newVal] = await ea.promise;
-        expect(newVal).to.deep.equal(val);
+        expect(newVal).toEqual(val);
       })
     );
   });
@@ -2180,19 +2182,19 @@ describe('Query Tests', () => {
     });
 
     node.child('a').set(1);
-    expect(added).to.equal('a null, ');
+    expect(added).toBe('a null, ');
 
     added = '';
     node.child('c').set(3);
-    expect(added).to.equal('c a, ');
+    expect(added).toBe('c a, ');
 
     added = '';
     node.child('b').set(2);
-    expect(added).to.equal('b null, ');
+    expect(added).toBe('b null, ');
 
     added = '';
     node.child('d').set(4);
-    expect(added).to.equal('d c, ');
+    expect(added).toBe('d c, ');
   });
 
   it('Set a limit, add some nodes, ensure prevName works correctly. With server data', async () => {
@@ -2209,22 +2211,22 @@ describe('Query Tests', () => {
 
     await ea.promise;
 
-    expect(added).to.equal('a null, ');
+    expect(added).toBe('a null, ');
 
     added = '';
     await node.child('c').set(3);
 
-    expect(added).to.equal('c a, ');
+    expect(added).toBe('c a, ');
 
     added = '';
     await node.child('b').set(2);
 
-    expect(added).to.equal('b null, ');
+    expect(added).toBe('b null, ');
 
     added = '';
     await node.child('d').set(4);
 
-    expect(added).to.equal('d c, ');
+    expect(added).toBe('d c, ');
   });
 
   it('Set a limit, move some nodes, ensure prevName works correctly.', () => {
@@ -2240,15 +2242,15 @@ describe('Query Tests', () => {
     node.child('d').setWithPriority('d', 40);
 
     node.child('c').setPriority(50);
-    expect(moved).to.equal('c d, ');
+    expect(moved).toBe('c d, ');
 
     moved = '';
     node.child('c').setPriority(35);
-    expect(moved).to.equal('c null, ');
+    expect(moved).toBe('c null, ');
 
     moved = '';
     node.child('b').setPriority(33);
-    expect(moved).to.equal('');
+    expect(moved).toBe('');
   });
 
   it('Set a limit, move some nodes, ensure prevName works correctly, with server data', async () => {
@@ -2268,16 +2270,16 @@ describe('Query Tests', () => {
 
     await node.child('c').setPriority(50);
 
-    expect(moved).to.equal('c d, ');
+    expect(moved).toBe('c d, ');
 
     moved = '';
     await node.child('c').setPriority(35);
 
-    expect(moved).to.equal('c null, ');
+    expect(moved).toBe('c null, ');
     moved = '';
     await node.child('b').setPriority(33);
 
-    expect(moved).to.equal('');
+    expect(moved).toBe('');
   });
 
   it('Numeric priorities: Set a limit, move some nodes, ensure prevName works correctly.', () => {
@@ -2294,7 +2296,7 @@ describe('Query Tests', () => {
     node.child('d').setWithPriority('d', 4);
 
     node.child('c').setPriority(10);
-    expect(moved).to.equal('c d, ');
+    expect(moved).toBe('c d, ');
   });
 
   it('Numeric priorities: Set a limit, move some nodes, ensure prevName works correctly. With server data', async () => {
@@ -2314,7 +2316,7 @@ describe('Query Tests', () => {
 
     await node.child('c').setPriority(10);
 
-    expect(moved).to.equal('c d, ');
+    expect(moved).toBe('c d, ');
   });
 
   it('Set a limit, add a bunch of nodes, ensure local events are correct.', () => {
@@ -2334,7 +2336,7 @@ describe('Query Tests', () => {
       n.set(i);
     }
 
-    expect(eventHistory).to.equal(
+    expect(eventHistory).toBe(
       '0 added, 1 added, 0 removed, 2 added, 1 removed, 3 added, 2 removed, 4 added, '
     );
   });
@@ -2345,7 +2347,7 @@ describe('Query Tests', () => {
     const readNode = nodePair[1];
     const ea = new EventAccumulator(() => {
       try {
-        expect(eventHistory).to.equal('3 added, 4 added, ');
+        expect(eventHistory).toBe('3 added, 4 added, ');
         return true;
       } catch (err) {
         return false;
@@ -2406,15 +2408,18 @@ describe('Query Tests', () => {
     const node = getRandomNode() as Reference;
     const callback = function () {};
     const ret = node.on('value', callback);
-    expect(ret).to.equal(callback);
+    expect(ret).toBe(callback);
   });
 
-  it("Limit on unsynced node fires 'value'.", done => {
-    const f = getRandomNode() as Reference;
-    f.limitToLast(1).on('value', () => {
-      done();
-    });
-  });
+  it("Limit on unsynced node fires 'value'.", () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const f = getRandomNode() as Reference;
+      f.limitToLast(1).on('value', () => {
+        done();
+      });
+    }));
 
   it('Filtering to only null priorities works.', async () => {
     const f = getRandomNode() as Reference;
@@ -2442,7 +2447,7 @@ describe('Query Tests', () => {
       });
 
     const [val] = await snapAcc.promise;
-    expect(val).to.deep.equal({ a: 0, b: 1 });
+    expect(val).toEqual({ a: 0, b: 1 });
   });
 
   it('Null priorities not included in startAfter().', async () => {
@@ -2471,7 +2476,7 @@ describe('Query Tests', () => {
       });
 
     const [val] = await snapAcc.promise;
-    expect(val).to.deep.equal(null);
+    expect(val).toEqual(null);
   });
 
   it('null priorities included in endAt(2).', async () => {
@@ -2491,7 +2496,7 @@ describe('Query Tests', () => {
     });
 
     const [val] = await ea.promise;
-    expect(val).to.deep.equal({ a: 0, b: 1, c: 2 });
+    expect(val).toEqual({ a: 0, b: 1, c: 2 });
   });
 
   it('null priorities included in endBefore.', async () => {
@@ -2511,7 +2516,7 @@ describe('Query Tests', () => {
     });
 
     const [val] = await ea.promise;
-    expect(val).to.deep.equal({ a: 0, b: 1 });
+    expect(val).toEqual({ a: 0, b: 1 });
   });
 
   it('null priorities not included in startAt(2).', async () => {
@@ -2532,7 +2537,7 @@ describe('Query Tests', () => {
     });
 
     const [val] = await ea.promise;
-    expect(val).to.deep.equal({ c: 2, d: 3, e: 4 });
+    expect(val).toEqual({ c: 2, d: 3, e: 4 });
   });
 
   it('null priorities not included in startAfter(2).', async () => {
@@ -2553,7 +2558,7 @@ describe('Query Tests', () => {
     });
 
     const [val] = await ea.promise;
-    expect(val).to.deep.equal({ d: 3, e: 4 });
+    expect(val).toEqual({ d: 3, e: 4 });
   });
 
   function dumpListens(node: Query) {
@@ -2588,85 +2593,85 @@ describe('Query Tests', () => {
 
   it('Dedupe listens: listen on parent.', () => {
     const node = getRandomNode() as Reference;
-    expect(dumpListens(node)).to.equal('');
+    expect(dumpListens(node)).toBe('');
 
     const aOn = node.child('a').on('value', () => {});
-    expect(dumpListens(node)).to.equal('/a:default');
+    expect(dumpListens(node)).toBe('/a:default');
 
     const rootOn = node.on('value', () => {});
-    expect(dumpListens(node)).to.equal(':default');
+    expect(dumpListens(node)).toBe(':default');
 
     node.off('value', rootOn);
-    expect(dumpListens(node)).to.equal('/a:default');
+    expect(dumpListens(node)).toBe('/a:default');
 
     node.child('a').off('value', aOn);
-    expect(dumpListens(node)).to.equal('');
+    expect(dumpListens(node)).toBe('');
   });
 
   it('Dedupe listens: listen on grandchild.', () => {
     const node = getRandomNode() as Reference;
 
     const rootOn = node.on('value', () => {});
-    expect(dumpListens(node)).to.equal(':default');
+    expect(dumpListens(node)).toBe(':default');
 
     const aaOn = node.child('a/aa').on('value', () => {});
-    expect(dumpListens(node)).to.equal(':default');
+    expect(dumpListens(node)).toBe(':default');
 
     node.off('value', rootOn);
     node.child('a/aa').off('value', aaOn);
-    expect(dumpListens(node)).to.equal('');
+    expect(dumpListens(node)).toBe('');
   });
 
   it('Dedupe listens: listen on grandparent of two children.', () => {
     const node = getRandomNode() as Reference;
-    expect(dumpListens(node)).to.equal('');
+    expect(dumpListens(node)).toBe('');
 
     const aaOn = node.child('a/aa').on('value', () => {});
-    expect(dumpListens(node)).to.equal('/a/aa:default');
+    expect(dumpListens(node)).toBe('/a/aa:default');
 
     const bbOn = node.child('a/bb').on('value', () => {});
-    expect(dumpListens(node)).to.equal('/a/aa:default;/a/bb:default');
+    expect(dumpListens(node)).toBe('/a/aa:default;/a/bb:default');
 
     const rootOn = node.on('value', () => {});
-    expect(dumpListens(node)).to.equal(':default');
+    expect(dumpListens(node)).toBe(':default');
 
     node.off('value', rootOn);
-    expect(dumpListens(node)).to.equal('/a/aa:default;/a/bb:default');
+    expect(dumpListens(node)).toBe('/a/aa:default;/a/bb:default');
 
     node.child('a/aa').off('value', aaOn);
-    expect(dumpListens(node)).to.equal('/a/bb:default');
+    expect(dumpListens(node)).toBe('/a/bb:default');
 
     node.child('a/bb').off('value', bbOn);
-    expect(dumpListens(node)).to.equal('');
+    expect(dumpListens(node)).toBe('');
   });
 
   it('Dedupe queried listens: multiple queried listens; no dupes', () => {
     const node = getRandomNode() as Reference;
-    expect(dumpListens(node)).to.equal('');
+    expect(dumpListens(node)).toBe('');
 
     const aLim1On = node
       .child('a')
       .limitToLast(1)
       .on('value', () => {});
-    expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"}');
+    expect(dumpListens(node)).toBe('/a:{"l":1,"vf":"r"}');
 
     const rootLim1On = node.limitToLast(1).on('value', () => {});
-    expect(dumpListens(node)).to.equal(':{"l":1,"vf":"r"};/a:{"l":1,"vf":"r"}');
+    expect(dumpListens(node)).toBe(':{"l":1,"vf":"r"};/a:{"l":1,"vf":"r"}');
 
     const aLim5On = node
       .child('a')
       .limitToLast(5)
       .on('value', () => {});
-    expect(dumpListens(node)).to.equal(
+    expect(dumpListens(node)).toBe(
       ':{"l":1,"vf":"r"};/a:{"l":1,"vf":"r"},{"l":5,"vf":"r"}'
     );
 
     node.limitToLast(1).off('value', rootLim1On);
-    expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"},{"l":5,"vf":"r"}');
+    expect(dumpListens(node)).toBe('/a:{"l":1,"vf":"r"},{"l":5,"vf":"r"}');
 
     node.child('a').limitToLast(1).off('value', aLim1On);
     node.child('a').limitToLast(5).off('value', aLim5On);
-    expect(dumpListens(node)).to.equal('');
+    expect(dumpListens(node)).toBe('');
   });
 
   it('Dedupe queried listens: listen on parent of queried children.', () => {
@@ -2676,28 +2681,26 @@ describe('Query Tests', () => {
       .child('a')
       .limitToLast(1)
       .on('value', () => {});
-    expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"}');
+    expect(dumpListens(node)).toBe('/a:{"l":1,"vf":"r"}');
 
     const bLim1On = node
       .child('b')
       .limitToLast(1)
       .on('value', () => {});
-    expect(dumpListens(node)).to.equal(
-      '/a:{"l":1,"vf":"r"};/b:{"l":1,"vf":"r"}'
-    );
+    expect(dumpListens(node)).toBe('/a:{"l":1,"vf":"r"};/b:{"l":1,"vf":"r"}');
 
     const rootOn = node.on('value', () => {});
-    expect(dumpListens(node)).to.equal(':default');
+    expect(dumpListens(node)).toBe(':default');
 
     // remove in slightly random order.
     node.child('a').limitToLast(1).off('value', aLim1On);
-    expect(dumpListens(node)).to.equal(':default');
+    expect(dumpListens(node)).toBe(':default');
 
     node.off('value', rootOn);
-    expect(dumpListens(node)).to.equal('/b:{"l":1,"vf":"r"}');
+    expect(dumpListens(node)).toBe('/b:{"l":1,"vf":"r"}');
 
     node.child('b').limitToLast(1).off('value', bLim1On);
-    expect(dumpListens(node)).to.equal('');
+    expect(dumpListens(node)).toBe('');
   });
 
   it('Limit with mix of null and non-null priorities.', () => {
@@ -2717,7 +2720,7 @@ describe('Query Tests', () => {
       Fred: { score: 0, name: 'Fred' }
     });
 
-    expect(children.join(',')).to.equal('Sally,James,Andrew,Mike,Vikrum');
+    expect(children.join(',')).toBe('Sally,James,Andrew,Mike,Vikrum');
   });
 
   it('Limit with mix of null and non-null priorities using server data', async () => {
@@ -2741,7 +2744,7 @@ describe('Query Tests', () => {
 
     await ea.promise;
 
-    expect(children.join(',')).to.equal('Sally,James,Andrew,Mike,Vikrum');
+    expect(children.join(',')).toBe('Sally,James,Andrew,Mike,Vikrum');
   });
 
   it('.on() with a context works.', () => {
@@ -2758,13 +2761,13 @@ describe('Query Tests', () => {
     ref.on('value', l.onEvent, l);
 
     ref.set('test');
-    expect(l.snap.val()).to.equal('test');
+    expect(l.snap.val()).toBe('test');
 
     ref.off('value', l.onEvent, l);
 
     // Ensure we don't get any more events.
     ref.set('blah');
-    expect(l.snap.val()).to.equal('test');
+    expect(l.snap.val()).toBe('test');
   });
 
   it('.once() with a context works.', () => {
@@ -2781,11 +2784,11 @@ describe('Query Tests', () => {
     ref.once('value', l.onEvent, l);
 
     ref.set('test');
-    expect(l.snap.val()).to.equal('test');
+    expect(l.snap.val()).toBe('test');
 
     // Shouldn't get any more events.
     ref.set('blah');
-    expect(l.snap.val()).to.equal('test');
+    expect(l.snap.val()).toBe('test');
   });
 
   it('handles an update that deletes the entire window in a query', () => {
@@ -2806,10 +2809,10 @@ describe('Query Tests', () => {
       c: null
     });
 
-    expect(snaps.length).to.equal(2);
-    expect(snaps[0]).to.deep.equal({ b: 2, c: 3 });
+    expect(snaps.length).toBe(2);
+    expect(snaps[0]).toEqual({ b: 2, c: 3 });
     // The original set is still outstanding (synchronous API), so we have a full cache to re-window against
-    expect(snaps[1]).to.deep.equal({ a: 1 });
+    expect(snaps[1]).toEqual({ a: 1 });
   });
 
   it('handles an out-of-view query on a child', () => {
@@ -2826,12 +2829,12 @@ describe('Query Tests', () => {
     });
 
     ref.set({ a: 1, b: 2 });
-    expect(parent).to.deep.equal({ b: 2 });
-    expect(child).to.equal(1);
+    expect(parent).toEqual({ b: 2 });
+    expect(child).toBe(1);
 
     ref.update({ c: 3 });
-    expect(parent).to.deep.equal({ c: 3 });
-    expect(child).to.equal(1);
+    expect(parent).toEqual({ c: 3 });
+    expect(child).toBe(1);
   });
 
   it('handles a child query going out of view of the parent', () => {
@@ -2848,14 +2851,14 @@ describe('Query Tests', () => {
     });
 
     ref.set({ a: 1 });
-    expect(parent).to.deep.equal({ a: 1 });
-    expect(child).to.equal(1);
+    expect(parent).toEqual({ a: 1 });
+    expect(child).toBe(1);
     ref.child('b').set(2);
-    expect(parent).to.deep.equal({ b: 2 });
-    expect(child).to.equal(1);
+    expect(parent).toEqual({ b: 2 });
+    expect(child).toBe(1);
     ref.child('b').remove();
-    expect(parent).to.deep.equal({ a: 1 });
-    expect(child).to.equal(1);
+    expect(parent).toEqual({ a: 1 });
+    expect(child).toBe(1);
   });
 
   it('handles diverging views', () => {
@@ -2878,11 +2881,11 @@ describe('Query Tests', () => {
       });
 
     ref.set({ a: 1, b: 2, c: 3 });
-    expect(c).to.deep.equal({ c: 3 });
-    expect(d).to.deep.equal({ c: 3 });
+    expect(c).toEqual({ c: 3 });
+    expect(d).toEqual({ c: 3 });
     ref.child('d').set(4);
-    expect(c).to.deep.equal({ c: 3 });
-    expect(d).to.deep.equal({ d: 4 });
+    expect(c).toEqual({ c: 3 });
+    expect(d).toEqual({ d: 4 });
   });
 
   it('handles removing a queried element', async () => {
@@ -2896,30 +2899,33 @@ describe('Query Tests', () => {
     });
 
     ref.set({ a: 1, b: 2 });
-    expect(val).to.equal(2);
+    expect(val).toBe(2);
 
     ref.child('b').remove();
 
     await ea.promise;
 
-    expect(val).to.equal(1);
+    expect(val).toBe(1);
   });
 
-  it('.startAt().limitToFirst(1) works.', done => {
-    const ref = getRandomNode() as Reference;
-    ref.set({ a: 1, b: 2 });
+  it('.startAt().limitToFirst(1) works.', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
 
-    let val;
-    ref
-      .startAt()
-      .limitToFirst(1)
-      .on('child_added', snap => {
-        val = snap.val();
-        if (val === 1) {
-          done();
-        }
-      });
-  });
+      const ref = getRandomNode() as Reference;
+      ref.set({ a: 1, b: 2 });
+
+      let val;
+      ref
+        .startAt()
+        .limitToFirst(1)
+        .on('child_added', snap => {
+          val = snap.val();
+          if (val === 1) {
+            done();
+          }
+        });
+    }));
 
   it('.startAt().limitToFirst(1) and then remove first child (case 1664).', async () => {
     const ref = getRandomNode() as Reference;
@@ -2936,72 +2942,78 @@ describe('Query Tests', () => {
       });
 
     await ea.promise;
-    expect(val).to.equal(1);
+    expect(val).toBe(1);
 
     ea.reset();
     ref.child('a').remove();
 
     await ea.promise;
-    expect(val).to.equal(2);
+    expect(val).toBe(2);
   });
 
-  it('.startAt() with two arguments works properly (case 1169).', done => {
-    const ref = getRandomNode() as Reference;
-    const data = {
-      Walker: {
-        name: 'Walker',
-        score: 20,
-        '.priority': 20
-      },
-      Michael: {
-        name: 'Michael',
-        score: 100,
-        '.priority': 100
-      }
-    };
-    ref.set(data, () => {
-      ref
-        .startAt(20, 'Walker')
-        .limitToFirst(2)
-        .on('value', s => {
-          const childNames = [];
-          s.forEach(node => {
-            childNames.push(node.key);
-          });
-          expect(childNames).to.deep.equal(['Walker', 'Michael']);
-          done();
-        });
-    });
-  });
+  it('.startAt() with two arguments works properly (case 1169).', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
 
-  it('.startAfter() with two arguments works properly (case 1169).', done => {
-    const ref = getRandomNode() as Reference;
-    const data = {
-      Walker: {
-        name: 'Walker',
-        score: 20,
-        '.priority': 20
-      },
-      Michael: {
-        name: 'Michael',
-        score: 100,
-        '.priority': 100
-      }
-    };
-    ref.set(data, () => {
-      ref
-        .startAfter(20, 'Walker')
-        .limitToFirst(2)
-        .on('value', s => {
-          const childNames = [];
-          s.forEach(node => {
-            childNames.push(node.key);
+      const ref = getRandomNode() as Reference;
+      const data = {
+        Walker: {
+          name: 'Walker',
+          score: 20,
+          '.priority': 20
+        },
+        Michael: {
+          name: 'Michael',
+          score: 100,
+          '.priority': 100
+        }
+      };
+      ref.set(data, () => {
+        ref
+          .startAt(20, 'Walker')
+          .limitToFirst(2)
+          .on('value', s => {
+            const childNames = [];
+            s.forEach(node => {
+              childNames.push(node.key);
+            });
+            expect(childNames).toEqual(['Walker', 'Michael']);
+            done();
           });
-          expect(childNames).to.deep.equal(['Michael']);
-          done();
-        });
-    });
-  });
+      });
+    }));
+
+  it('.startAfter() with two arguments works properly (case 1169).', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const ref = getRandomNode() as Reference;
+      const data = {
+        Walker: {
+          name: 'Walker',
+          score: 20,
+          '.priority': 20
+        },
+        Michael: {
+          name: 'Michael',
+          score: 100,
+          '.priority': 100
+        }
+      };
+      ref.set(data, () => {
+        ref
+          .startAfter(20, 'Walker')
+          .limitToFirst(2)
+          .on('value', s => {
+            const childNames = [];
+            s.forEach(node => {
+              childNames.push(node.key);
+            });
+            expect(childNames).toEqual(['Michael']);
+            done();
+          });
+      });
+    }));
 
   it('handles multiple queries on the same node', async () => {
     const ref = getRandomNode() as Reference;
@@ -3020,7 +3032,7 @@ describe('Query Tests', () => {
     let firstListen = false;
     ref.limitToLast(2).on('value', snap => {
       // This shouldn't get called twice, we don't update the values here
-      expect(firstListen).to.be.false;
+      expect(firstListen).toBe(false);
       firstListen = true;
       ea.addEvent();
     });
@@ -3031,7 +3043,7 @@ describe('Query Tests', () => {
     await ref.limitToLast(1).once('value');
     const snap = await ref.limitToLast(1).once('value');
     const val = snap.val();
-    expect(val).to.deep.equal({ f: 6 });
+    expect(val).toEqual({ f: 6 });
   });
 
   it('handles once called on a node with a default listener', async () => {
@@ -3057,7 +3069,7 @@ describe('Query Tests', () => {
     // now do the once call
     const snap = await ref.limitToLast(1).once('child_added');
     const val = snap.val();
-    expect(val).to.equal(6);
+    expect(val).toBe(6);
   });
 
   it('handles once called on a node with a default listener and non-complete limit', async () => {
@@ -3080,155 +3092,174 @@ describe('Query Tests', () => {
     // now do the once call
     const snap = await ref.limitToLast(5).once('value');
     const val = snap.val();
-    expect(val).to.deep.equal({ a: 1, b: 2, c: 3 });
+    expect(val).toEqual({ a: 1, b: 2, c: 3 });
   });
 
-  it('Remote remove triggers events.', done => {
-    const refPair = getRandomNode(2),
-      writeRef = refPair[0],
-      readRef = refPair[1];
+  it('Remote remove triggers events.', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
 
-    writeRef.set({ a: 'a', b: 'b', c: 'c', d: 'd', e: 'e' }, () => {
-      // Wait to get the initial data, and then remove 'c' remotely and wait for new data.
-      let count = 0;
-      readRef.limitToLast(5).on('value', s => {
-        count++;
-        if (count === 1) {
-          expect(s.val()).to.deep.equal({
-            a: 'a',
-            b: 'b',
-            c: 'c',
-            d: 'd',
-            e: 'e'
-          });
-          writeRef.child('c').remove();
-        } else {
-          expect(count).to.equal(2);
-          expect(s.val()).to.deep.equal({ a: 'a', b: 'b', d: 'd', e: 'e' });
-          done();
-        }
-      });
-    });
-  });
+      const refPair = getRandomNode(2),
+        writeRef = refPair[0],
+        readRef = refPair[1];
 
-  it(".endAt(null, 'f').limitToLast(5) returns the right set of children.", done => {
-    const ref = getRandomNode() as Reference;
-    ref.set(
-      { a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h' },
-      () => {
-        ref
-          .endAt(null, 'f')
-          .limitToLast(5)
-          .on('value', s => {
-            expect(s.val()).to.deep.equal({
-              b: 'b',
-              c: 'c',
-              d: 'd',
-              e: 'e',
-              f: 'f'
-            });
-            done();
-          });
-      }
-    );
-  });
-
-  it(".endBefore(null, 'f').limitToLast(5) returns the right set of children.", done => {
-    const ref = getRandomNode() as Reference;
-    ref.set(
-      { a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h' },
-      () => {
-        ref
-          .endBefore(null, 'f')
-          .limitToLast(5)
-          .on('value', s => {
-            expect(s.val()).to.deep.equal({
+      writeRef.set({ a: 'a', b: 'b', c: 'c', d: 'd', e: 'e' }, () => {
+        // Wait to get the initial data, and then remove 'c' remotely and wait for new data.
+        let count = 0;
+        readRef.limitToLast(5).on('value', s => {
+          count++;
+          if (count === 1) {
+            expect(s.val()).toEqual({
               a: 'a',
               b: 'b',
               c: 'c',
               d: 'd',
               e: 'e'
             });
+            writeRef.child('c').remove();
+          } else {
+            expect(count).toBe(2);
+            expect(s.val()).toEqual({ a: 'a', b: 'b', d: 'd', e: 'e' });
             done();
-          });
-      }
-    );
-  });
+          }
+        });
+      });
+    }));
 
-  it('complex update() at query root raises correct value event', done => {
-    const nodePair = getRandomNode(2);
-    const writer = nodePair[0];
-    const reader = nodePair[1];
+  it(".endAt(null, 'f').limitToLast(5) returns the right set of children.", () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
 
-    let readerLoaded = false;
-    writer
-      .child('foo')
-      .set({ a: 1, b: 2, c: 3, d: 4, e: 5 }, (error, dummy) => {
-        reader
-          .child('foo')
-          .startAt()
-          .limitToFirst(4)
-          .on('value', snapshot => {
-            const val = snapshot.val();
-            if (!readerLoaded) {
-              readerLoaded = true;
-              expect(val).to.deep.equal({ a: 1, b: 2, c: 3, d: 4 });
-
-              // This update causes the following to happen:
-              // 1. An in-view child is set to null (b)
-              // 2. An in-view child has its value changed (c)
-              // 3. An in-view child is changed and bumped out-of-view (d)
-              // We expect to get null values for b and d, along with the new children and updated value for c
-              writer
-                .child('foo')
-                .update({ b: null, c: 'a', cc: 'new', cd: 'new2', d: 'gone' });
-            } else {
-              done();
-              expect(val).to.deep.equal({
-                a: 1,
-                c: 'a',
-                cc: 'new',
-                cd: 'new2'
+      const ref = getRandomNode() as Reference;
+      ref.set(
+        { a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h' },
+        () => {
+          ref
+            .endAt(null, 'f')
+            .limitToLast(5)
+            .on('value', s => {
+              expect(s.val()).toEqual({
+                b: 'b',
+                c: 'c',
+                d: 'd',
+                e: 'e',
+                f: 'f'
               });
-            }
-          });
-      });
-  });
-
-  it('update() at query root raises correct value event', done => {
-    const nodePair = getRandomNode(2);
-    const writer = nodePair[0];
-    const reader = nodePair[1];
-
-    let readerLoaded = false;
-    writer
-      .child('foo')
-      .set({ bar: 'a', baz: 'b', bam: 'c' }, (error, dummy) => {
-        reader
-          .child('foo')
-          .limitToLast(10)
-          .on('value', snapshot => {
-            const val = snapshot.val();
-            if (!readerLoaded) {
-              readerLoaded = true;
-              expect(val.bar).to.equal('a');
-              expect(val.baz).to.equal('b');
-              expect(val.bam).to.equal('c');
-              writer.child('foo').update({ bar: 'd', bam: null, bat: 'e' });
-            } else {
-              expect(val.bar).to.equal('d');
-              expect(val.baz).to.equal('b');
-              expect(val.bat).to.equal('e');
-              expect(val.bam).to.equal(undefined);
               done();
-            }
-          });
-      });
-  });
+            });
+        }
+      );
+    }));
+
+  it(".endBefore(null, 'f').limitToLast(5) returns the right set of children.", () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const ref = getRandomNode() as Reference;
+      ref.set(
+        { a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h' },
+        () => {
+          ref
+            .endBefore(null, 'f')
+            .limitToLast(5)
+            .on('value', s => {
+              expect(s.val()).toEqual({
+                a: 'a',
+                b: 'b',
+                c: 'c',
+                d: 'd',
+                e: 'e'
+              });
+              done();
+            });
+        }
+      );
+    }));
+
+  it('complex update() at query root raises correct value event', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const nodePair = getRandomNode(2);
+      const writer = nodePair[0];
+      const reader = nodePair[1];
+
+      let readerLoaded = false;
+      writer
+        .child('foo')
+        .set({ a: 1, b: 2, c: 3, d: 4, e: 5 }, (error, dummy) => {
+          reader
+            .child('foo')
+            .startAt()
+            .limitToFirst(4)
+            .on('value', snapshot => {
+              const val = snapshot.val();
+              if (!readerLoaded) {
+                readerLoaded = true;
+                expect(val).toEqual({ a: 1, b: 2, c: 3, d: 4 });
+
+                // This update causes the following to happen:
+                // 1. An in-view child is set to null (b)
+                // 2. An in-view child has its value changed (c)
+                // 3. An in-view child is changed and bumped out-of-view (d)
+                // We expect to get null values for b and d, along with the new children and updated value for c
+                writer.child('foo').update({
+                  b: null,
+                  c: 'a',
+                  cc: 'new',
+                  cd: 'new2',
+                  d: 'gone'
+                });
+              } else {
+                done();
+                expect(val).toEqual({
+                  a: 1,
+                  c: 'a',
+                  cc: 'new',
+                  cd: 'new2'
+                });
+              }
+            });
+        });
+    }));
+
+  it('update() at query root raises correct value event', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const nodePair = getRandomNode(2);
+      const writer = nodePair[0];
+      const reader = nodePair[1];
+
+      let readerLoaded = false;
+      writer
+        .child('foo')
+        .set({ bar: 'a', baz: 'b', bam: 'c' }, (error, dummy) => {
+          reader
+            .child('foo')
+            .limitToLast(10)
+            .on('value', snapshot => {
+              const val = snapshot.val();
+              if (!readerLoaded) {
+                readerLoaded = true;
+                expect(val.bar).toBe('a');
+                expect(val.baz).toBe('b');
+                expect(val.bam).toBe('c');
+                writer.child('foo').update({ bar: 'd', bam: null, bat: 'e' });
+              } else {
+                expect(val.bar).toBe('d');
+                expect(val.baz).toBe('b');
+                expect(val.bat).toBe('e');
+                expect(val.bam).toBe(undefined);
+                done();
+              }
+            });
+        });
+    }));
 
   it('get at empty node is null', async () => {
     const node = getRandomNode() as Reference;
-    expect((await node.get()).val()).to.equal(null);
+    expect((await node.get()).val()).toBe(null);
   });
 
   it('get at node returns correct value', async () => {
@@ -3236,21 +3267,21 @@ describe('Query Tests', () => {
     const expected = { foo: 'a', bar: 'b' };
     await node.set(expected);
     const snapshot = await node.get();
-    expect(snapshot.val()).to.deep.equal(expected);
+    expect(snapshot.val()).toEqual(expected);
   });
 
   it('get for child returns correct value', async () => {
     const node = getRandomNode() as Reference;
     await node.set({ foo: 'a', bar: 'b', baz: 'c' });
     const snapshot = await node.child('baz').get();
-    expect(snapshot.val()).to.deep.equal('c');
+    expect(snapshot.val()).toEqual('c');
   });
 
   it('get for parent returns correct value', async () => {
     const node = getRandomNode() as Reference;
     const child = node.child('child');
     await child.set(1);
-    expect((await node.get()).val()).to.deep.equal({ child: 1 });
+    expect((await node.get()).val()).toEqual({ child: 1 });
   });
 
   it('get for removed node returns correct value', async () => {
@@ -3259,10 +3290,10 @@ describe('Query Tests', () => {
     await node.set(expected);
     let snapshot = await node.get();
     const val = snapshot.val();
-    expect(val).to.deep.equal(expected);
+    expect(val).toEqual(expected);
     await node.remove();
     snapshot = await node.get();
-    expect(snapshot.val()).to.be.null;
+    expect(snapshot.val()).toBeNull();
   });
 
   it('get for missing node while offline is rejected', async () => {
@@ -3270,7 +3301,7 @@ describe('Query Tests', () => {
     node.database.goOffline();
     try {
       const getPromise = promiseWithTimeout(node.get());
-      await expect(getPromise).to.eventually.be.rejected;
+      await expect(getPromise).rejects.toThrow();
     } finally {
       node.database.goOnline();
     }
@@ -3290,9 +3321,7 @@ describe('Query Tests', () => {
       const getSnapshot = await node.get();
       // node's cache dropped here.
       node.off();
-      expect(getSnapshot.val()).to.deep.equal(
-        (onSnapshot as DataSnapshot).val()
-      );
+      expect(getSnapshot.val()).toEqual((onSnapshot as DataSnapshot).val());
     } finally {
       node.database.goOnline();
     }
@@ -3312,7 +3341,7 @@ describe('Query Tests', () => {
       const getSnapshot = await node.child('foo').get();
       // node's cache dropped here.
       node.off();
-      expect(getSnapshot.val()).to.deep.equal('bar');
+      expect(getSnapshot.val()).toEqual('bar');
     } finally {
       node.database.goOnline();
     }
@@ -3333,7 +3362,7 @@ describe('Query Tests', () => {
       const getSnapshot = await node.get();
       // node's cache dropped here.
       node.off();
-      expect(getSnapshot.val()).to.deep.equal({ foo: 'bar', baz: 1 });
+      expect(getSnapshot.val()).toEqual({ foo: 'bar', baz: 1 });
     } finally {
       node.database.goOnline();
     }
@@ -3354,7 +3383,7 @@ describe('Query Tests', () => {
       const getSnapshot = await node.get();
       // node's cache dropped here.
       node.off();
-      expect(getSnapshot.val()).to.deep.equal({ foo: 'baz' });
+      expect(getSnapshot.val()).toEqual({ foo: 'baz' });
     } finally {
       node.database.goOnline();
     }
@@ -3375,7 +3404,7 @@ describe('Query Tests', () => {
       const getSnapshot = await node.get();
       // node's cache dropped here.
       node.off();
-      expect(getSnapshot.val()).to.deep.equal({ foo: 'bar', baz: true });
+      expect(getSnapshot.val()).toEqual({ foo: 'bar', baz: true });
     } finally {
       node.database.goOnline();
     }
@@ -3396,7 +3425,7 @@ describe('Query Tests', () => {
       const getSnapshot = await node.child('foo').get();
       // node's cache dropped here.
       node.off();
-      expect(getSnapshot.val()).to.deep.equal('baz');
+      expect(getSnapshot.val()).toEqual('baz');
     } finally {
       node.database.goOnline();
     }
@@ -3408,7 +3437,7 @@ describe('Query Tests', () => {
     try {
       node.set({ foo: 'bar' });
       const snap = await node.get();
-      expect(snap.val()).to.deep.equal({ foo: 'bar' });
+      expect(snap.val()).toEqual({ foo: 'bar' });
     } finally {
       node.database.goOnline();
     }
@@ -3420,7 +3449,7 @@ describe('Query Tests', () => {
     try {
       node.set({ foo: 'bar' });
       const snap = await node.child('foo').get();
-      expect(snap.val()).to.deep.equal('bar');
+      expect(snap.val()).toEqual('bar');
     } finally {
       node.database.goOnline();
     }
@@ -3433,301 +3462,320 @@ describe('Query Tests', () => {
       foo: { cached: { data: '1' }, notCached: { data: '2' } }
     });
     const snapshot = await reader.child('foo/cached').get();
-    expect(snapshot.val()).to.deep.equal({ data: '1' });
+    expect(snapshot.val()).toEqual({ data: '1' });
     reader.database.goOffline();
     try {
-      await expect(promiseWithTimeout(reader.child('foo/notCached').get())).to
-        .eventually.be.rejected;
+      await expect(
+        promiseWithTimeout(reader.child('foo/notCached').get())
+      ).rejects.toThrow();
     } finally {
       reader.database.goOnline();
     }
   });
 
-  it('set() at query root raises correct value event', done => {
-    const nodePair = getRandomNode(2);
-    const writer = nodePair[0];
-    const reader = nodePair[1];
+  it('set() at query root raises correct value event', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
 
-    let readerLoaded = false;
-    writer
-      .child('foo')
-      .set({ bar: 'a', baz: 'b', bam: 'c' }, (error, dummy) => {
-        reader
-          .child('foo')
-          .limitToLast(10)
-          .on('value', snapshot => {
-            const val = snapshot.val();
+      const nodePair = getRandomNode(2);
+      const writer = nodePair[0];
+      const reader = nodePair[1];
+
+      let readerLoaded = false;
+      writer
+        .child('foo')
+        .set({ bar: 'a', baz: 'b', bam: 'c' }, (error, dummy) => {
+          reader
+            .child('foo')
+            .limitToLast(10)
+            .on('value', snapshot => {
+              const val = snapshot.val();
+              if (!readerLoaded) {
+                readerLoaded = true;
+                expect(val.bar).toBe('a');
+                expect(val.baz).toBe('b');
+                expect(val.bam).toBe('c');
+                writer.child('foo').set({ bar: 'd', baz: 'b', bat: 'e' });
+              } else {
+                expect(val.bar).toBe('d');
+                expect(val.baz).toBe('b');
+                expect(val.bat).toBe('e');
+                expect(val.bam).toBe(undefined);
+                done();
+              }
+            });
+        });
+    }));
+
+  it('listen for child_added events with limit and different types fires properly', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const nodePair = getRandomNode(2);
+      const writer = nodePair[0];
+      const reader = nodePair[1];
+
+      let numEventsReceived = 0,
+        gotA = false,
+        gotB = false,
+        gotC = false;
+      writer.child('a').set(1, (error, dummy) => {
+        writer.child('b').set('b', (error, dummy) => {
+          writer
+            .child('c')
+            .set({ deep: 'path', of: { stuff: true } }, (error, dummy) => {
+              reader.limitToLast(3).on('child_added', snap => {
+                const val = snap.val();
+                switch (snap.key) {
+                  case 'a':
+                    gotA = true;
+                    expect(val).toBe(1);
+                    break;
+                  case 'b':
+                    gotB = true;
+                    expect(val).toBe('b');
+                    break;
+                  case 'c':
+                    gotC = true;
+                    expect(val.deep).toBe('path');
+                    expect(val.of.stuff).toBe(true);
+                    break;
+                  default:
+                    expect(false).toBe(true);
+                }
+                numEventsReceived += 1;
+                expect(numEventsReceived).toBeLessThan(4);
+                if (gotA && gotB && gotC) {
+                  done();
+                }
+              });
+            });
+        });
+      });
+    }));
+
+  it('listen for child_changed events with limit and different types fires properly', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const nodePair = getRandomNode(2);
+      const writer = nodePair[0];
+      const reader = nodePair[1];
+
+      let numEventsReceived = 0,
+        gotA = false,
+        gotB = false,
+        gotC = false,
+        readerLoaded = false;
+      writer.set(
+        { a: 'something', b: "we'll", c: 'overwrite ' },
+        (error, dummy) => {
+          reader.limitToLast(3).on('value', snapshot => {
             if (!readerLoaded) {
               readerLoaded = true;
-              expect(val.bar).to.equal('a');
-              expect(val.baz).to.equal('b');
-              expect(val.bam).to.equal('c');
-              writer.child('foo').set({ bar: 'd', baz: 'b', bat: 'e' });
-            } else {
-              expect(val.bar).to.equal('d');
-              expect(val.baz).to.equal('b');
-              expect(val.bat).to.equal('e');
-              expect(val.bam).to.equal(undefined);
-              done();
+              // Set up listener for upcoming change events
+              reader.limitToLast(3).on('child_changed', snap => {
+                const val = snap.val();
+                switch (snap.key) {
+                  case 'a':
+                    gotA = true;
+                    expect(val).toBe(1);
+                    break;
+                  case 'b':
+                    gotB = true;
+                    expect(val).toBe('b');
+                    break;
+                  case 'c':
+                    gotC = true;
+                    expect(val.deep).toBe('path');
+                    expect(val.of.stuff).toBe(true);
+                    break;
+                  default:
+                    expect(false).toBe(true);
+                }
+                numEventsReceived += 1;
+                expect(numEventsReceived).toBeLessThan(4);
+                if (gotA && gotB && gotC) {
+                  done();
+                }
+              });
+
+              // Begin changing every key
+              writer.child('a').set(1);
+              writer.child('b').set('b');
+              writer.child('c').set({ deep: 'path', of: { stuff: true } });
             }
           });
-      });
-  });
+        }
+      );
+    }));
 
-  it('listen for child_added events with limit and different types fires properly', done => {
-    const nodePair = getRandomNode(2);
-    const writer = nodePair[0];
-    const reader = nodePair[1];
+  it('listen for child_remove events with limit and different types fires properly', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
 
-    let numEventsReceived = 0,
-      gotA = false,
-      gotB = false,
-      gotC = false;
-    writer.child('a').set(1, (error, dummy) => {
-      writer.child('b').set('b', (error, dummy) => {
-        writer
-          .child('c')
-          .set({ deep: 'path', of: { stuff: true } }, (error, dummy) => {
-            reader.limitToLast(3).on('child_added', snap => {
-              const val = snap.val();
-              switch (snap.key) {
-                case 'a':
-                  gotA = true;
-                  expect(val).to.equal(1);
-                  break;
-                case 'b':
-                  gotB = true;
-                  expect(val).to.equal('b');
-                  break;
-                case 'c':
-                  gotC = true;
-                  expect(val.deep).to.equal('path');
-                  expect(val.of.stuff).to.be.true;
-                  break;
-                default:
-                  expect(false).to.be.true;
-              }
-              numEventsReceived += 1;
-              expect(numEventsReceived).to.be.lessThan(4);
-              if (gotA && gotB && gotC) {
-                done();
-              }
-            });
+      const nodePair = getRandomNode(2);
+      const writer = nodePair[0];
+      const reader = nodePair[1];
+
+      let numEventsReceived = 0,
+        gotA = false,
+        gotB = false,
+        gotC = false,
+        readerLoaded = false;
+      writer.set(
+        { a: 1, b: 'b', c: { deep: 'path', of: { stuff: true } } },
+        (error, dummy) => {
+          reader.limitToLast(3).on('value', snapshot => {
+            if (!readerLoaded) {
+              readerLoaded = true;
+
+              // Set up listener for upcoming change events
+              reader.limitToLast(3).on('child_removed', snap => {
+                const val = snap.val();
+                switch (snap.key) {
+                  case 'a':
+                    gotA = true;
+                    expect(val).toBe(1);
+                    break;
+                  case 'b':
+                    gotB = true;
+                    expect(val).toBe('b');
+                    break;
+                  case 'c':
+                    gotC = true;
+                    expect(val.deep).toBe('path');
+                    expect(val.of.stuff).toBe(true);
+                    break;
+                  default:
+                    expect(false).toBe(true);
+                }
+                numEventsReceived += 1;
+                expect(numEventsReceived).toBeLessThan(4);
+                if (gotA && gotB && gotC) {
+                  done();
+                }
+              });
+
+              // Begin removing every key
+              writer.child('a').remove();
+              writer.child('b').remove();
+              writer.child('c').remove();
+            }
           });
-      });
-    });
-  });
+        }
+      );
+    }));
 
-  it('listen for child_changed events with limit and different types fires properly', done => {
-    const nodePair = getRandomNode(2);
-    const writer = nodePair[0];
-    const reader = nodePair[1];
+  it('listen for child_remove events when parent removed', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
 
-    let numEventsReceived = 0,
-      gotA = false,
-      gotB = false,
-      gotC = false,
-      readerLoaded = false;
-    writer.set(
-      { a: 'something', b: "we'll", c: 'overwrite ' },
-      (error, dummy) => {
-        reader.limitToLast(3).on('value', snapshot => {
-          if (!readerLoaded) {
-            readerLoaded = true;
-            // Set up listener for upcoming change events
-            reader.limitToLast(3).on('child_changed', snap => {
-              const val = snap.val();
-              switch (snap.key) {
-                case 'a':
-                  gotA = true;
-                  expect(val).to.equal(1);
-                  break;
-                case 'b':
-                  gotB = true;
-                  expect(val).to.equal('b');
-                  break;
-                case 'c':
-                  gotC = true;
-                  expect(val.deep).to.equal('path');
-                  expect(val.of.stuff).to.be.true;
-                  break;
-                default:
-                  expect(false).to.be.true;
-              }
-              numEventsReceived += 1;
-              expect(numEventsReceived).to.be.lessThan(4);
-              if (gotA && gotB && gotC) {
-                done();
-              }
-            });
+      const nodePair = getRandomNode(2);
+      const writer = nodePair[0];
+      const reader = nodePair[1];
 
-            // Begin changing every key
-            writer.child('a').set(1);
-            writer.child('b').set('b');
-            writer.child('c').set({ deep: 'path', of: { stuff: true } });
-          }
-        });
-      }
-    );
-  });
+      let numEventsReceived = 0,
+        gotA = false,
+        gotB = false,
+        gotC = false,
+        readerLoaded = false;
+      writer.set(
+        { a: 1, b: 'b', c: { deep: 'path', of: { stuff: true } } },
+        (error, dummy) => {
+          reader.limitToLast(3).on('value', snapshot => {
+            if (!readerLoaded) {
+              readerLoaded = true;
 
-  it('listen for child_remove events with limit and different types fires properly', done => {
-    const nodePair = getRandomNode(2);
-    const writer = nodePair[0];
-    const reader = nodePair[1];
+              // Set up listener for upcoming change events
+              reader.limitToLast(3).on('child_removed', snap => {
+                const val = snap.val();
+                switch (snap.key) {
+                  case 'a':
+                    gotA = true;
+                    expect(val).toBe(1);
+                    break;
+                  case 'b':
+                    gotB = true;
+                    expect(val).toBe('b');
+                    break;
+                  case 'c':
+                    gotC = true;
+                    expect(val.deep).toBe('path');
+                    expect(val.of.stuff).toBe(true);
+                    break;
+                  default:
+                    expect(false).toBe(true);
+                }
+                numEventsReceived += 1;
+                expect(numEventsReceived).toBeLessThan(4);
+                if (gotA && gotB && gotC) {
+                  done();
+                }
+              });
 
-    let numEventsReceived = 0,
-      gotA = false,
-      gotB = false,
-      gotC = false,
-      readerLoaded = false;
-    writer.set(
-      { a: 1, b: 'b', c: { deep: 'path', of: { stuff: true } } },
-      (error, dummy) => {
-        reader.limitToLast(3).on('value', snapshot => {
-          if (!readerLoaded) {
-            readerLoaded = true;
+              // Remove the query parent
+              writer.remove();
+            }
+          });
+        }
+      );
+    }));
 
-            // Set up listener for upcoming change events
-            reader.limitToLast(3).on('child_removed', snap => {
-              const val = snap.val();
-              switch (snap.key) {
-                case 'a':
-                  gotA = true;
-                  expect(val).to.equal(1);
-                  break;
-                case 'b':
-                  gotB = true;
-                  expect(val).to.equal('b');
-                  break;
-                case 'c':
-                  gotC = true;
-                  expect(val.deep).to.equal('path');
-                  expect(val.of.stuff).to.be.true;
-                  break;
-                default:
-                  expect(false).to.be.true;
-              }
-              numEventsReceived += 1;
-              expect(numEventsReceived).to.be.lessThan(4);
-              if (gotA && gotB && gotC) {
-                done();
-              }
-            });
+  it('listen for child_remove events when parent set to scalar', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
 
-            // Begin removing every key
-            writer.child('a').remove();
-            writer.child('b').remove();
-            writer.child('c').remove();
-          }
-        });
-      }
-    );
-  });
+      const nodePair = getRandomNode(2);
+      const writer = nodePair[0];
+      const reader = nodePair[1];
 
-  it('listen for child_remove events when parent removed', done => {
-    const nodePair = getRandomNode(2);
-    const writer = nodePair[0];
-    const reader = nodePair[1];
+      let numEventsReceived = 0,
+        gotA = false,
+        gotB = false,
+        gotC = false,
+        readerLoaded = false;
+      writer.set(
+        { a: 1, b: 'b', c: { deep: 'path', of: { stuff: true } } },
+        (error, dummy) => {
+          reader.limitToLast(3).on('value', snapshot => {
+            if (!readerLoaded) {
+              readerLoaded = true;
 
-    let numEventsReceived = 0,
-      gotA = false,
-      gotB = false,
-      gotC = false,
-      readerLoaded = false;
-    writer.set(
-      { a: 1, b: 'b', c: { deep: 'path', of: { stuff: true } } },
-      (error, dummy) => {
-        reader.limitToLast(3).on('value', snapshot => {
-          if (!readerLoaded) {
-            readerLoaded = true;
+              // Set up listener for upcoming change events
+              reader.limitToLast(3).on('child_removed', snap => {
+                const val = snap.val();
+                switch (snap.key) {
+                  case 'a':
+                    gotA = true;
+                    expect(val).toBe(1);
+                    break;
+                  case 'b':
+                    gotB = true;
+                    expect(val).toBe('b');
+                    break;
+                  case 'c':
+                    gotC = true;
+                    expect(val.deep).toBe('path');
+                    expect(val.of.stuff).toBe(true);
+                    break;
+                  default:
+                    expect(false).toBe(true);
+                }
+                numEventsReceived += 1;
+                expect(numEventsReceived).toBeLessThan(4);
+                if (gotA && gotB && gotC) {
+                  done();
+                }
+              });
 
-            // Set up listener for upcoming change events
-            reader.limitToLast(3).on('child_removed', snap => {
-              const val = snap.val();
-              switch (snap.key) {
-                case 'a':
-                  gotA = true;
-                  expect(val).to.equal(1);
-                  break;
-                case 'b':
-                  gotB = true;
-                  expect(val).to.equal('b');
-                  break;
-                case 'c':
-                  gotC = true;
-                  expect(val.deep).to.equal('path');
-                  expect(val.of.stuff).to.be.true;
-                  break;
-                default:
-                  expect(false).to.be.true;
-              }
-              numEventsReceived += 1;
-              expect(numEventsReceived).to.be.lessThan(4);
-              if (gotA && gotB && gotC) {
-                done();
-              }
-            });
-
-            // Remove the query parent
-            writer.remove();
-          }
-        });
-      }
-    );
-  });
-
-  it('listen for child_remove events when parent set to scalar', done => {
-    const nodePair = getRandomNode(2);
-    const writer = nodePair[0];
-    const reader = nodePair[1];
-
-    let numEventsReceived = 0,
-      gotA = false,
-      gotB = false,
-      gotC = false,
-      readerLoaded = false;
-    writer.set(
-      { a: 1, b: 'b', c: { deep: 'path', of: { stuff: true } } },
-      (error, dummy) => {
-        reader.limitToLast(3).on('value', snapshot => {
-          if (!readerLoaded) {
-            readerLoaded = true;
-
-            // Set up listener for upcoming change events
-            reader.limitToLast(3).on('child_removed', snap => {
-              const val = snap.val();
-              switch (snap.key) {
-                case 'a':
-                  gotA = true;
-                  expect(val).to.equal(1);
-                  break;
-                case 'b':
-                  gotB = true;
-                  expect(val).to.equal('b');
-                  break;
-                case 'c':
-                  gotC = true;
-                  expect(val.deep).to.equal('path');
-                  expect(val.of.stuff).to.be.true;
-                  break;
-                default:
-                  expect(false).to.be.true;
-              }
-              numEventsReceived += 1;
-              expect(numEventsReceived).to.be.lessThan(4);
-              if (gotA && gotB && gotC) {
-                done();
-              }
-            });
-
-            // Set the parent to a scalar
-            writer.set('scalar');
-          }
-        });
-      }
-    );
-  });
+              // Set the parent to a scalar
+              writer.set('scalar');
+            }
+          });
+        }
+      );
+    }));
 
   it('Queries behave wrong after .once().', async () => {
     const refPair = getRandomNode(2),
@@ -3745,17 +3793,17 @@ describe('Query Tests', () => {
       startAtCount++;
       ea.addEvent();
     });
-    expect(startAtCount).to.equal(0);
+    expect(startAtCount).toBe(0);
 
     defaultCount = 0;
     readRef.on('child_added', () => {
       defaultCount++;
       ea.addEvent();
     });
-    expect(defaultCount).to.equal(0);
+    expect(defaultCount).toBe(0);
 
     readRef.on('child_removed', () => {
-      expect(false).to.be.true;
+      expect(false).toBe(true);
     });
 
     return ea.promise;
@@ -3793,17 +3841,17 @@ describe('Query Tests', () => {
       });
 
     ref.child('a').setWithPriority('a', 5);
-    expect(addedFirst).to.deep.equal(['a']);
+    expect(addedFirst).toEqual(['a']);
     ref.child('a').setWithPriority('a', 15);
-    expect(removedFirst).to.deep.equal(['a']);
-    expect(addedSecond).to.deep.equal(['a']);
+    expect(removedFirst).toEqual(['a']);
+    expect(addedSecond).toEqual(['a']);
 
     ref.child('a').setWithPriority('a', 10);
-    expect(addedFirst).to.deep.equal(['a', 'a']);
-    expect(removedSecond).to.deep.equal([]);
+    expect(addedFirst).toEqual(['a', 'a']);
+    expect(removedSecond).toEqual([]);
 
     ref.child('a').setWithPriority('a', 5);
-    expect(removedSecond).to.deep.equal(['a']);
+    expect(removedSecond).toEqual(['a']);
   });
 
   it('Case 2003: Correctly get events for startAfter/endAt queries when priority changes.', () => {
@@ -3838,18 +3886,18 @@ describe('Query Tests', () => {
       });
 
     ref.child('a').setWithPriority('a', 5);
-    expect(addedFirst).to.deep.equal(['a']);
+    expect(addedFirst).toEqual(['a']);
     ref.child('a').setWithPriority('a', 15);
-    expect(removedFirst).to.deep.equal(['a']);
-    expect(addedSecond).to.deep.equal(['a']);
+    expect(removedFirst).toEqual(['a']);
+    expect(addedSecond).toEqual(['a']);
 
     ref.child('a').setWithPriority('a', 10);
     ref.child('a').setWithPriority('a', 0);
-    expect(addedFirst).to.deep.equal(['a', 'a']);
-    expect(removedSecond).to.deep.equal(['a']);
+    expect(addedFirst).toEqual(['a', 'a']);
+    expect(removedSecond).toEqual(['a']);
 
     ref.child('a').setWithPriority('a', 5);
-    expect(removedSecond).to.deep.equal(['a']);
+    expect(removedSecond).toEqual(['a']);
   });
 
   it('Correctly get events for startAt/endBefore queries when priority changes.', () => {
@@ -3884,18 +3932,18 @@ describe('Query Tests', () => {
       });
 
     ref.child('a').setWithPriority('a', 5);
-    expect(addedFirst).to.deep.equal(['a']);
+    expect(addedFirst).toEqual(['a']);
     ref.child('a').setWithPriority('a', 15);
-    expect(removedFirst).to.deep.equal(['a']);
-    expect(addedSecond).to.deep.equal(['a']);
+    expect(removedFirst).toEqual(['a']);
+    expect(addedSecond).toEqual(['a']);
 
     ref.child('a').setWithPriority('a', 10);
     ref.child('a').setWithPriority('a', 0);
-    expect(addedFirst).to.deep.equal(['a', 'a']);
-    expect(removedSecond).to.deep.equal(['a']);
+    expect(addedFirst).toEqual(['a', 'a']);
+    expect(removedSecond).toEqual(['a']);
 
     ref.child('a').setWithPriority('a', 5);
-    expect(removedSecond).to.deep.equal(['a']);
+    expect(removedSecond).toEqual(['a']);
   });
 
   it('Behaves with diverging queries', async () => {
@@ -3914,10 +3962,10 @@ describe('Query Tests', () => {
       const val = snap.val();
       childCount++;
       if (childCount === 1) {
-        expect(val).to.equal(1);
+        expect(val).toBe(1);
       } else {
         // fail this, nothing should have changed
-        expect(true).to.be.false;
+        expect(true).toBe(false);
       }
     });
 
@@ -3928,9 +3976,9 @@ describe('Query Tests', () => {
       const val = snap.val();
       count++;
       if (count === 1) {
-        expect(val).to.deep.equal({ a: { b: 1, c: 2 }, e: 3 });
+        expect(val).toEqual({ a: { b: 1, c: 2 }, e: 3 });
       } else if (count === 2) {
-        expect(val).to.deep.equal({ d: 4, e: 3 });
+        expect(val).toEqual({ d: 4, e: 3 });
       }
     });
 
@@ -3962,107 +4010,116 @@ describe('Query Tests', () => {
     });
 
     await ea.promise;
-    expect(readVal).to.deep.equal({ b: 2, c: 3 });
+    expect(readVal).toEqual({ b: 2, c: 3 });
 
     ea.reset();
     writeRef.child('a').setPriority(25);
 
     await ea.promise;
-    expect(readVal).to.deep.equal({ a: 1, c: 3 });
+    expect(readVal).toEqual({ a: 1, c: 3 });
   });
 
-  it('Server: Test re-listen', done => {
-    const refPair = getRandomNode(2) as Reference[],
-      ref = refPair[0],
-      ref2 = refPair[1];
-    ref.set({
-      a: 'a',
-      b: 'b',
-      c: 'c',
-      d: 'd',
-      e: 'e',
-      f: 'f',
-      g: 'g'
-    });
+  it('Server: Test re-listen', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
 
-    let before;
-    ref
-      .startAt(null, 'a')
-      .endAt(null, 'b')
-      .on('value', b => {
-        before = b.val();
+      const refPair = getRandomNode(2) as Reference[],
+        ref = refPair[0],
+        ref2 = refPair[1];
+      ref.set({
+        a: 'a',
+        b: 'b',
+        c: 'c',
+        d: 'd',
+        e: 'e',
+        f: 'f',
+        g: 'g'
       });
 
-    ref.child('aa').set('aa', () => {
-      ref2
+      let before;
+      ref
         .startAt(null, 'a')
         .endAt(null, 'b')
         .on('value', b => {
-          expect(b.val()).to.deep.equal(before);
-          done();
+          before = b.val();
         });
-    });
-  });
 
-  it('Server: Test re-listen 2', done => {
-    const refPair = getRandomNode(2),
-      ref = refPair[0],
-      ref2 = refPair[1];
-    ref.set({
-      a: 'a',
-      b: 'b',
-      c: 'c',
-      d: 'd',
-      e: 'e',
-      f: 'f',
-      g: 'g'
-    });
+      ref.child('aa').set('aa', () => {
+        ref2
+          .startAt(null, 'a')
+          .endAt(null, 'b')
+          .on('value', b => {
+            expect(b.val()).toEqual(before);
+            done();
+          });
+      });
+    }));
 
-    let before;
-    ref
-      .startAt(null, 'b')
-      .limitToFirst(3)
-      .on('value', b => {
-        before = b.val();
+  it('Server: Test re-listen 2', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const refPair = getRandomNode(2),
+        ref = refPair[0],
+        ref2 = refPair[1];
+      ref.set({
+        a: 'a',
+        b: 'b',
+        c: 'c',
+        d: 'd',
+        e: 'e',
+        f: 'f',
+        g: 'g'
       });
 
-    ref.child('aa').update({ a: 5, aa: 4, b: 7, c: 4, d: 4, dd: 3 }, () => {
-      ref2
+      let before;
+      ref
         .startAt(null, 'b')
         .limitToFirst(3)
         .on('value', b => {
-          expect(b.val()).to.deep.equal(before);
+          before = b.val();
+        });
+
+      ref.child('aa').update({ a: 5, aa: 4, b: 7, c: 4, d: 4, dd: 3 }, () => {
+        ref2
+          .startAt(null, 'b')
+          .limitToFirst(3)
+          .on('value', b => {
+            expect(b.val()).toEqual(before);
+            done();
+          });
+      });
+    }));
+
+  it('Server: Test re-listen 3', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const refPair = getRandomNode(2),
+        ref = refPair[0],
+        ref2 = refPair[1];
+      ref.set({
+        a: 'a',
+        b: 'b',
+        c: 'c',
+        d: 'd',
+        e: 'e',
+        f: 'f',
+        g: 'g'
+      });
+
+      let before;
+      ref.limitToLast(3).on('value', b => {
+        before = b.val();
+      });
+
+      ref.child('h').set('h', () => {
+        ref2.limitToLast(3).on('value', b => {
+          expect(b.val()).toEqual(before);
           done();
         });
-    });
-  });
-
-  it('Server: Test re-listen 3', done => {
-    const refPair = getRandomNode(2),
-      ref = refPair[0],
-      ref2 = refPair[1];
-    ref.set({
-      a: 'a',
-      b: 'b',
-      c: 'c',
-      d: 'd',
-      e: 'e',
-      f: 'f',
-      g: 'g'
-    });
-
-    let before;
-    ref.limitToLast(3).on('value', b => {
-      before = b.val();
-    });
-
-    ref.child('h').set('h', () => {
-      ref2.limitToLast(3).on('value', b => {
-        expect(b.val()).to.deep.equal(before);
-        done();
       });
-    });
-  });
+    }));
 
   it('Server limit below limit works properly.', async () => {
     const refPair = getRandomNode(2) as Reference[],
@@ -4078,7 +4135,7 @@ describe('Query Tests', () => {
     });
 
     readRef.limitToLast(1).on('value', s => {
-      expect(s.val()).to.deep.equal({ a: { aa: 1, ab: 1 } });
+      expect(s.val()).toEqual({ a: { aa: 1, ab: 1 } });
     });
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
@@ -4094,7 +4151,7 @@ describe('Query Tests', () => {
       });
 
     await ea.promise;
-    expect(childData).to.deep.equal({ aa: 1, ab: 1 });
+    expect(childData).toEqual({ aa: 1, ab: 1 });
 
     // This should remove an item from the child query, but *not* the parent query.
     ea.reset();
@@ -4102,7 +4159,7 @@ describe('Query Tests', () => {
 
     await ea.promise;
 
-    expect(childData).to.deep.equal({ aa: 1 });
+    expect(childData).toEqual({ aa: 1 });
   });
 
   it('Server: Setting grandchild of item in limit works.', async () => {
@@ -4127,16 +4184,13 @@ describe('Query Tests', () => {
     });
 
     await ea.promise;
-    expect(snaps).to.deep.equal([{ a: { name: 'Mike' } }]);
+    expect(snaps).toEqual([{ a: { name: 'Mike' } }]);
 
     ea.reset();
     ref.child('a/name').set('Fred');
 
     await ea.promise;
-    expect(snaps).to.deep.equal([
-      { a: { name: 'Mike' } },
-      { a: { name: 'Fred' } }
-    ]);
+    expect(snaps).toEqual([{ a: { name: 'Mike' } }, { a: { name: 'Fred' } }]);
   });
 
   it('Server: Updating grandchildren of item in limit works.', async () => {
@@ -4165,16 +4219,13 @@ describe('Query Tests', () => {
      * something about the timing is broken
      */
     await ea.promise;
-    expect(snaps).to.deep.equal([{ a: { name: 'Mike' } }]);
+    expect(snaps).toEqual([{ a: { name: 'Mike' } }]);
 
     ea.reset();
     ref.child('a').update({ name: null, Name: 'Fred' });
     await ea.promise;
 
-    expect(snaps).to.deep.equal([
-      { a: { name: 'Mike' } },
-      { a: { Name: 'Fred' } }
-    ]);
+    expect(snaps).toEqual([{ a: { name: 'Mike' } }, { a: { Name: 'Fred' } }]);
   });
 
   it('Server: New child at end of limit shows up.', async () => {
@@ -4190,7 +4241,7 @@ describe('Query Tests', () => {
     });
 
     await ea.promise;
-    expect(snap).to.be.null;
+    expect(snap).toBeNull();
     ea.reset();
 
     ref.child('a').set('new child');
@@ -4200,7 +4251,7 @@ describe('Query Tests', () => {
      * something about the timing is broken
      */
     await ea.promise;
-    expect(snap).to.deep.equal({ a: 'new child' });
+    expect(snap).toEqual({ a: 'new child' });
   });
 
   it('Server: Priority-only updates are processed correctly by server (1).', async () => {
@@ -4223,13 +4274,13 @@ describe('Query Tests', () => {
     });
 
     await ea.promise;
-    expect(readVal).to.deep.equal({ b: 2, c: 3 });
+    expect(readVal).toEqual({ b: 2, c: 3 });
 
     ea.reset();
     writeRef.child('a').setPriority(25);
 
     await ea.promise;
-    expect(readVal).to.deep.equal({ a: 1, c: 3 });
+    expect(readVal).toEqual({ a: 1, c: 3 });
   });
 
   // Same as above but with an endAt() so we hit CompoundQueryView instead of SimpleLimitView.
@@ -4257,13 +4308,13 @@ describe('Query Tests', () => {
     });
 
     await ea.promise;
-    expect(readVal).to.deep.equal({ b: 2, c: 3 });
+    expect(readVal).toEqual({ b: 2, c: 3 });
 
     ea.reset();
     writeRef.child('a').setPriority(25);
 
     await ea.promise;
-    expect(readVal).to.deep.equal({ a: 1, c: 3 });
+    expect(readVal).toEqual({ a: 1, c: 3 });
   });
 
   it('Latency compensation works with limit and pushed object.', () => {
@@ -4277,7 +4328,7 @@ describe('Query Tests', () => {
     ref.push({ a: 'foo' });
 
     // Should have synchronously gotten an event.
-    expect(events.length).to.equal(1);
+    expect(events.length).toBe(1);
   });
 
   it("Cache doesn't remove items that have fallen out of view.", async () => {
@@ -4293,7 +4344,7 @@ describe('Query Tests', () => {
     });
 
     await ea.promise;
-    expect(readVal).to.be.null;
+    expect(readVal).toBeNull();
 
     ea = EventAccumulatorFactory.waitsForCount(4);
     for (let i = 0; i < 4; i++) {
@@ -4303,13 +4354,13 @@ describe('Query Tests', () => {
     await ea.promise;
 
     await pause(500);
-    expect(readVal).to.deep.equal({ k2: 2, k3: 3 });
+    expect(readVal).toEqual({ k2: 2, k3: 3 });
 
     ea = EventAccumulatorFactory.waitsForCount(1);
     writeRef.remove();
 
     await ea.promise;
-    expect(readVal).to.be.null;
+    expect(readVal).toBeNull();
   });
 
   it('handles an update that moves another child that has a deeper listener out of view', async () => {
@@ -4324,7 +4375,7 @@ describe('Query Tests', () => {
     });
 
     reader.child('b/d').on('value', snap => {
-      expect(snap.val()).to.equal(4);
+      expect(snap.val()).toBe(4);
     });
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
@@ -4337,212 +4388,239 @@ describe('Query Tests', () => {
     });
 
     await ea.promise;
-    expect(val).to.deep.equal({ b: { d: 4 }, c: 3 });
+    expect(val).toEqual({ b: { d: 4 }, c: 3 });
 
     ea.reset();
     writer.child('a').setWithPriority(1, 40);
 
     await ea.promise;
-    expect(val).to.deep.equal({ c: 3, a: 1 });
+    expect(val).toEqual({ c: 3, a: 1 });
   });
 
-  it('Integer keys behave numerically 1.', done => {
-    const ref = getRandomNode() as Reference;
-    ref.set(
-      {
-        1: true,
-        50: true,
-        550: true,
-        6: true,
-        600: true,
-        70: true,
-        8: true,
-        80: true
-      },
-      () => {
-        ref.startAt(null, '80').once('value', s => {
-          expect(s.val()).to.deep.equal({ 80: true, 550: true, 600: true });
-          done();
-        });
-      }
-    );
-  });
+  it('Integer keys behave numerically 1.', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
 
-  it('Integer keys behave numerically 2.', done => {
-    const ref = getRandomNode() as Reference;
-    ref.set(
-      {
-        1: true,
-        50: true,
-        550: true,
-        6: true,
-        600: true,
-        70: true,
-        8: true,
-        80: true
-      },
-      () => {
-        ref.endAt(null, '50').once('value', s => {
-          expect(s.val()).to.deep.equal({
-            1: true,
-            6: true,
-            8: true,
-            50: true
-          });
-          done();
-        });
-      }
-    );
-  });
-
-  it('Integer keys behave numerically 3.', done => {
-    const ref = getRandomNode() as Reference;
-    ref.set(
-      {
-        1: true,
-        50: true,
-        550: true,
-        6: true,
-        600: true,
-        70: true,
-        8: true,
-        80: true
-      },
-      () => {
-        ref
-          .startAt(null, '50')
-          .endAt(null, '80')
-          .once('value', s => {
-            expect(s.val()).to.deep.equal({ 50: true, 70: true, 80: true });
+      const ref = getRandomNode() as Reference;
+      ref.set(
+        {
+          1: true,
+          50: true,
+          550: true,
+          6: true,
+          600: true,
+          70: true,
+          8: true,
+          80: true
+        },
+        () => {
+          ref.startAt(null, '80').once('value', s => {
+            expect(s.val()).toEqual({ 80: true, 550: true, 600: true });
             done();
           });
-      }
-    );
-  });
+        }
+      );
+    }));
 
-  it('Integer keys behave numerically with startAfter.', done => {
-    const ref = getRandomNode() as Reference;
-    ref.set(
-      {
-        1: true,
-        50: true,
-        550: true,
-        6: true,
-        600: true,
-        70: true,
-        8: true,
-        80: true
-      },
-      () => {
-        ref
-          .startAfter(null, '50')
-          .endAt(null, '80')
-          .once('value', s => {
-            expect(s.val()).to.deep.equal({ 70: true, 80: true });
+  it('Integer keys behave numerically 2.', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const ref = getRandomNode() as Reference;
+      ref.set(
+        {
+          1: true,
+          50: true,
+          550: true,
+          6: true,
+          600: true,
+          70: true,
+          8: true,
+          80: true
+        },
+        () => {
+          ref.endAt(null, '50').once('value', s => {
+            expect(s.val()).toEqual({
+              1: true,
+              6: true,
+              8: true,
+              50: true
+            });
             done();
           });
-      }
-    );
-  });
+        }
+      );
+    }));
 
-  it('Integer keys behave numerically with startAfter with overflow.', done => {
-    const ref = getRandomNode() as Reference;
-    ref.set(
-      {
-        1: true,
-        50: true,
-        550: true,
-        6: true,
-        600: true,
-        70: true,
-        8: true,
-        80: true,
-        'a': true
-      },
-      () => {
-        ref.startAfter(null, '' + INTEGER_32_MAX).once('value', s => {
-          expect(s.val()).to.deep.equal({ 'a': true });
-          done();
-        });
-      }
-    );
-  });
+  it('Integer keys behave numerically 3.', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
 
-  it('Integer keys behave numerically with endBefore.', done => {
-    const ref = getRandomNode() as Reference;
-    ref.set(
-      {
-        1: true,
-        50: true,
-        550: true,
-        6: true,
-        600: true,
-        70: true,
-        8: true,
-        80: true
-      },
-      () => {
-        ref.endBefore(null, '50').once('value', s => {
-          expect(s.val()).to.deep.equal({
-            1: true,
-            6: true,
-            8: true
-          });
-          done();
-        });
-      }
-    );
-  });
+      const ref = getRandomNode() as Reference;
+      ref.set(
+        {
+          1: true,
+          50: true,
+          550: true,
+          6: true,
+          600: true,
+          70: true,
+          8: true,
+          80: true
+        },
+        () => {
+          ref
+            .startAt(null, '50')
+            .endAt(null, '80')
+            .once('value', s => {
+              expect(s.val()).toEqual({ 50: true, 70: true, 80: true });
+              done();
+            });
+        }
+      );
+    }));
 
-  it('Integer keys behave numerically with endBefore with underflow.', done => {
-    const ref = getRandomNode() as Reference;
-    ref.set(
-      {
-        1: true
-      },
-      () => {
-        ref.endBefore(null, '' + INTEGER_32_MIN).once('value', s => {
-          expect(s.val()).to.deep.equal(null);
-          done();
-        });
-      }
-    );
-  });
+  it('Integer keys behave numerically with startAfter.', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
 
-  it('Integer keys behave numerically with endBefore at boundary.', done => {
-    const ref = getRandomNode() as Reference;
-    const integerData = {
-      1: true,
-      50: true,
-      550: true,
-      6: true,
-      600: true,
-      70: true,
-      8: true,
-      80: true
-    };
-    const data = Object.assign({}, integerData);
-    data['a'] = true;
-    ref.set(data, () => {
-      ref.endBefore(null, '' + INTEGER_32_MAX).once('value', s => {
-        (expect(s.val()).to.deep.equal(integerData),
+      const ref = getRandomNode() as Reference;
+      ref.set(
+        {
+          1: true,
+          50: true,
+          550: true,
+          6: true,
+          600: true,
+          70: true,
+          8: true,
+          80: true
+        },
+        () => {
+          ref
+            .startAfter(null, '50')
+            .endAt(null, '80')
+            .once('value', s => {
+              expect(s.val()).toEqual({ 70: true, 80: true });
+              done();
+            });
+        }
+      );
+    }));
+
+  it('Integer keys behave numerically with startAfter with overflow.', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const ref = getRandomNode() as Reference;
+      ref.set(
+        {
+          1: true,
+          50: true,
+          550: true,
+          6: true,
+          600: true,
+          70: true,
+          8: true,
+          80: true,
+          'a': true
+        },
+        () => {
           ref.startAfter(null, '' + INTEGER_32_MAX).once('value', s => {
-            expect(s.val()).to.deep.equal({ 'a': true });
+            expect(s.val()).toEqual({ 'a': true });
             done();
-          }));
-      });
-    });
-  });
+          });
+        }
+      );
+    }));
 
-  it('.limitToLast() on node with priority.', done => {
-    const ref = getRandomNode() as Reference;
-    ref.set({ a: 'blah', '.priority': 'priority' }, () => {
-      ref.limitToLast(2).once('value', s => {
-        expect(s.exportVal()).to.deep.equal({ a: 'blah' });
-        done();
+  it('Integer keys behave numerically with endBefore.', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const ref = getRandomNode() as Reference;
+      ref.set(
+        {
+          1: true,
+          50: true,
+          550: true,
+          6: true,
+          600: true,
+          70: true,
+          8: true,
+          80: true
+        },
+        () => {
+          ref.endBefore(null, '50').once('value', s => {
+            expect(s.val()).toEqual({
+              1: true,
+              6: true,
+              8: true
+            });
+            done();
+          });
+        }
+      );
+    }));
+
+  it('Integer keys behave numerically with endBefore with underflow.', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const ref = getRandomNode() as Reference;
+      ref.set(
+        {
+          1: true
+        },
+        () => {
+          ref.endBefore(null, '' + INTEGER_32_MIN).once('value', s => {
+            expect(s.val()).toEqual(null);
+            done();
+          });
+        }
+      );
+    }));
+
+  it('Integer keys behave numerically with endBefore at boundary.', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const ref = getRandomNode() as Reference;
+      const integerData = {
+        1: true,
+        50: true,
+        550: true,
+        6: true,
+        600: true,
+        70: true,
+        8: true,
+        80: true
+      };
+      const data = Object.assign({}, integerData);
+      data['a'] = true;
+      ref.set(data, () => {
+        ref.endBefore(null, '' + INTEGER_32_MAX).once('value', s => {
+          (expect(s.val()).toEqual(integerData),
+            ref.startAfter(null, '' + INTEGER_32_MAX).once('value', s => {
+              expect(s.val()).toEqual({ 'a': true });
+              done();
+            }));
+        });
       });
-    });
-  });
+    }));
+
+  it('.limitToLast() on node with priority.', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
+
+      const ref = getRandomNode() as Reference;
+      ref.set({ a: 'blah', '.priority': 'priority' }, () => {
+        ref.limitToLast(2).once('value', s => {
+          expect(s.exportVal()).toEqual({ a: 'blah' });
+          done();
+        });
+      });
+    }));
 
   it('.equalTo works', async () => {
     const ref = getRandomNode() as Reference;
@@ -4556,16 +4634,16 @@ describe('Query Tests', () => {
 
     const snap1 = await ref.equalTo(2).once('value');
     const val1 = snap1.exportVal();
-    expect(val1).to.deep.equal({ b: { '.priority': 2, '.value': 2 } });
+    expect(val1).toEqual({ b: { '.priority': 2, '.value': 2 } });
 
     const snap2 = await ref.equalTo('3', 'c').once('value');
 
     const val2 = snap2.exportVal();
-    expect(val2).to.deep.equal({ c: { '.priority': '3', '.value': 3 } });
+    expect(val2).toEqual({ c: { '.priority': '3', '.value': 3 } });
 
     const snap3 = await ref.equalTo(null, 'c').once('value');
     const val3 = snap3.exportVal();
-    expect(val3).to.be.null;
+    expect(val3).toBeNull();
   });
 
   it('Handles fallback for orderBy', async () => {
@@ -4584,7 +4662,7 @@ describe('Query Tests', () => {
       c: { foo: 2 }
     });
 
-    expect(children).to.deep.equal(['b', 'c', 'a']);
+    expect(children).toEqual(['b', 'c', 'a']);
   });
 
   it('Get notified of deletes that happen while offline.', async () => {
@@ -4607,7 +4685,7 @@ describe('Query Tests', () => {
     // Wait for us to read the 3 children.
     await ea.promise;
 
-    expect(readSnapshot.val()).to.deep.equal({ a: 1, b: 2, c: 3 });
+    expect(readSnapshot.val()).toEqual({ a: 1, b: 2, c: 3 });
 
     queryRef.database.goOffline();
 
@@ -4617,98 +4695,104 @@ describe('Query Tests', () => {
     queryRef.database.goOnline();
 
     await ea.promise;
-    expect(readSnapshot.child('b').val()).to.be.null;
+    expect(readSnapshot.child('b').val()).toBeNull();
   });
 
-  it('Snapshot children respect default ordering', done => {
-    const refPair = getRandomNode(2);
-    const queryRef = refPair[0],
-      writerRef = refPair[1];
+  it('Snapshot children respect default ordering', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
 
-    const list = {
-      a: {
-        thisvaluefirst: { '.value': true, '.priority': 1 },
-        name: { '.value': 'Michael', '.priority': 2 },
-        thisvaluelast: { '.value': true, '.priority': 3 }
-      },
-      b: {
-        thisvaluefirst: { '.value': true, '.priority': null },
-        name: { '.value': 'Rob', '.priority': 2 },
-        thisvaluelast: { '.value': true, '.priority': 3 }
-      },
-      c: {
-        thisvaluefirst: { '.value': true, '.priority': 1 },
-        name: { '.value': 'Jonny', '.priority': 2 },
-        thisvaluelast: { '.value': true, '.priority': 'somestring' }
-      }
-    };
+      const refPair = getRandomNode(2);
+      const queryRef = refPair[0],
+        writerRef = refPair[1];
 
-    writerRef.set(list, () => {
-      queryRef.orderByChild('name').once('value', snap => {
-        const expectedKeys = ['thisvaluefirst', 'name', 'thisvaluelast'];
-        const expectedNames = ['Jonny', 'Michael', 'Rob'];
+      const list = {
+        a: {
+          thisvaluefirst: { '.value': true, '.priority': 1 },
+          name: { '.value': 'Michael', '.priority': 2 },
+          thisvaluelast: { '.value': true, '.priority': 3 }
+        },
+        b: {
+          thisvaluefirst: { '.value': true, '.priority': null },
+          name: { '.value': 'Rob', '.priority': 2 },
+          thisvaluelast: { '.value': true, '.priority': 3 }
+        },
+        c: {
+          thisvaluefirst: { '.value': true, '.priority': 1 },
+          name: { '.value': 'Jonny', '.priority': 2 },
+          thisvaluelast: { '.value': true, '.priority': 'somestring' }
+        }
+      };
 
-        // Validate that snap.child() resets order to default for child snaps
-        const orderedKeys = [];
-        snap.child('b').forEach(childSnap => {
-          orderedKeys.push(childSnap.key);
-        });
-        expect(orderedKeys).to.deep.equal(expectedKeys);
+      writerRef.set(list, () => {
+        queryRef.orderByChild('name').once('value', snap => {
+          const expectedKeys = ['thisvaluefirst', 'name', 'thisvaluelast'];
+          const expectedNames = ['Jonny', 'Michael', 'Rob'];
 
-        // Validate that snap.forEach() resets ordering to default for child snaps
-        const orderedNames = [];
-        snap.forEach(childSnap => {
-          orderedNames.push(childSnap.child('name').val());
+          // Validate that snap.child() resets order to default for child snaps
           const orderedKeys = [];
-          childSnap.forEach(grandchildSnap => {
-            orderedKeys.push(grandchildSnap.key);
+          snap.child('b').forEach(childSnap => {
+            orderedKeys.push(childSnap.key);
           });
-          expect(orderedKeys).to.deep.equal([
-            'thisvaluefirst',
-            'name',
-            'thisvaluelast'
-          ]);
+          expect(orderedKeys).toEqual(expectedKeys);
+
+          // Validate that snap.forEach() resets ordering to default for child snaps
+          const orderedNames = [];
+          snap.forEach(childSnap => {
+            orderedNames.push(childSnap.child('name').val());
+            const orderedKeys = [];
+            childSnap.forEach(grandchildSnap => {
+              orderedKeys.push(grandchildSnap.key);
+            });
+            expect(orderedKeys).toEqual([
+              'thisvaluefirst',
+              'name',
+              'thisvaluelast'
+            ]);
+          });
+          expect(orderedNames).toEqual(expectedNames);
+          done();
         });
-        expect(orderedNames).to.deep.equal(expectedNames);
-        done();
       });
-    });
-  });
+    }));
 
-  it('Adding listens for the same paths does not check fail', done => {
-    // This bug manifests itself if there's a hierarchy of query listener, default listener and one-time listener
-    // underneath. During one-time listener registration, sync-tree traversal stopped as soon as it found a complete
-    // server cache (this is the case for not indexed query view). The problem is that the same traversal was
-    // looking for a ancestor default view, and the early exit prevented from finding the default listener above the
-    // one-time listener. Event removal code path wasn't removing the listener because it stopped as soon as it
-    // found the default view. This left the zombie one-time listener and check failed on the second attempt to
-    // create a listener for the same path (asana#61028598952586).
-    const ref = getRandomNode(1)[0];
+  it('Adding listens for the same paths does not check fail', () =>
+    new Promise<void>((resolve, reject) => {
+      const done = (err?: any) => (err ? reject(err) : resolve());
 
-    ref.child('child').set({ name: 'John' }, () => {
-      ref
-        .orderByChild('name')
-        .equalTo('John')
-        .on('value', snap => {
-          ref.child('child').on('value', snap => {
-            ref
-              .child('child')
-              .child('favoriteToy')
-              .once('value', snap => {
-                ref
-                  .child('child')
-                  .child('favoriteToy')
-                  .once('value', snap => {
-                    done();
-                  });
-              });
+      // This bug manifests itself if there's a hierarchy of query listener, default listener and one-time listener
+      // underneath. During one-time listener registration, sync-tree traversal stopped as soon as it found a complete
+      // server cache (this is the case for not indexed query view). The problem is that the same traversal was
+      // looking for a ancestor default view, and the early exit prevented from finding the default listener above the
+      // one-time listener. Event removal code path wasn't removing the listener because it stopped as soon as it
+      // found the default view. This left the zombie one-time listener and check failed on the second attempt to
+      // create a listener for the same path (asana#61028598952586).
+      const ref = getRandomNode(1)[0];
+
+      ref.child('child').set({ name: 'John' }, () => {
+        ref
+          .orderByChild('name')
+          .equalTo('John')
+          .on('value', snap => {
+            ref.child('child').on('value', snap => {
+              ref
+                .child('child')
+                .child('favoriteToy')
+                .once('value', snap => {
+                  ref
+                    .child('child')
+                    .child('favoriteToy')
+                    .once('value', snap => {
+                      done();
+                    });
+                });
+            });
           });
-        });
-    });
-  });
+      });
+    }));
 
   it('Can JSON serialize refs', () => {
     const ref = getRandomNode() as Reference;
-    expect(JSON.stringify(ref)).to.equal('"' + ref.toString() + '"');
+    expect(JSON.stringify(ref)).toBe('"' + ref.toString() + '"');
   });
 });
